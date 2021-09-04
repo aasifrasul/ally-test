@@ -52,27 +52,29 @@ function App(props) {
 	const handleHide = () => setShowModal(false);
 
 	return (
-		<Suspense fallback={<Spinner />}>
-			<ErrorBoundary>
-				<Router>
-					<Switch>
-						<Route exact path="/" component={() => <Home handleShow={handleShow} />} />
-						<Route exact path="/Counter" component={() => <Counter />} />
-						<Route exact path="/Contacts" component={() => <Contacts />} />
-						<Route exact path="/TicTacToe" component={() => <TicTacToe />} />
-						<Route exact path="/ReactQuery" component={() => <ReactQuery />} />
-						<Route exact path="/KeyBoardShortcutPage" component={() => <KeyBoardShortcutPage />} />
-						<Route exact path="/WineConnoisseur" component={() => <WineConnoisseur />} />
-						<Route exact path="/Profile" component={() => <Profile />} />
-						<Route exact path="/NestedCategories" component={() => <NestedCategories />} />
-						<Route exact path="/Todos" component={() => <Todos />} />
-						<Route exact path="/Stopwatch" component={() => <Stopwatch />} />
-						<Route exact path="/CurrencyStream" component={() => <CurrencyStream />} />
-						<Route exact path="/MovieList" component={() => <MovieList />} />
-					</Switch>
-				</Router>
-			</ErrorBoundary>
-		</Suspense>
+		<React.StrictMode>
+			<Suspense fallback={<Spinner />}>
+				<ErrorBoundary>
+					<Router>
+						<Switch>
+							<Route exact path="/" component={() => <Home handleShow={handleShow} />} />
+							<Route exact path="/Counter" component={() => <Counter />} />
+							<Route exact path="/Contacts" component={() => <Contacts />} />
+							<Route exact path="/TicTacToe" component={() => <TicTacToe />} />
+							<Route exact path="/ReactQuery" component={() => <ReactQuery />} />
+							<Route exact path="/KeyBoardShortcutPage" component={() => <KeyBoardShortcutPage />} />
+							<Route exact path="/WineConnoisseur" component={() => <WineConnoisseur />} />
+							<Route exact path="/Profile" component={() => <Profile />} />
+							<Route exact path="/NestedCategories" component={() => <NestedCategories />} />
+							<Route exact path="/Todos" component={() => <Todos />} />
+							<Route exact path="/Stopwatch" component={() => <Stopwatch />} />
+							<Route exact path="/CurrencyStream" component={() => <CurrencyStream />} />
+							<Route exact path="/MovieList" component={() => <MovieList />} />
+						</Switch>
+					</Router>
+				</ErrorBoundary>
+			</Suspense>
+		</React.StrictMode>
 	);
 }
 
