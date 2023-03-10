@@ -5,9 +5,7 @@ function usePersistentCallback(cb) {
 
 	callbackRef.current = cb;
 
-	const persistentCallbackRef = useRef((...args) => {
-		callbackRef.current(...args);
-	});
+	const persistentCallbackRef = useRef((...args) => callbackRef.current(...args));
 
 	return callbackRef.current;
 }

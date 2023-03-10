@@ -1,13 +1,15 @@
 import React, { forwardRef, useState, useEffect } from 'react';
 
-import { safeExecFunc } from '../../../utils/typeChecking';
+import { safelyExecuteFunction } from '../../../utils/typeChecking';
 
 const Checkbox = forwardRef(({ label, name, value, onChange, defaultChecked, ...rest }, forwardedRef) => {
 	const [checked, setChecked] = useState(defaultChecked);
 
 	const handleChange = () => (e) => setChecked(e.target.checked);
 
-	useEffect(() => safeExecFunc(onChange, checked), [checked]);
+	useEffect(() => {
+		safelyExecuteFunction(onChange, checked);
+	}, [checked]);
 
 	return (
 		<div style={{ cursor: 'pointer' }}>

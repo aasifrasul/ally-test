@@ -1,15 +1,17 @@
-import * as React from 'react';
+import React, { useRef, useEffect } from 'react';
+
+import { isFunction } from '../../utils/typeChecking';
 
 const useEffectOnlyOnce = (callback, dependencies, condition) => {
-	const calledOnce = React.useRef(false);
+	const calledOnce = useRef(false);
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (calledOnce.current) {
 			return;
 		}
 
-		if (typeof condition === 'function' && condition(dependencies)) {
-			typeof callback === 'function' && callback(dependencies);
+		if (isFunction(condition) && condition(dependencies)) {
+			isFunction(callback) && callback(dependencies);
 
 			calledOnce.current = true;
 		}

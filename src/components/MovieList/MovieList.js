@@ -7,48 +7,67 @@ import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
 import pageReducer from '../../reducers/pageReducer';
 import { FetchStoreProvider, useFetchDispatch } from '../../Context/dataFetchContext';
 
+import InputText from '../Common/InputText';
 import Movie from './Movie.js';
 
-import { debounce } from '../../utils/throttleAndDebounce';
+import { debounce, throttle } from '../../utils/throttleAndDebounce';
 
 import styles from './MovieList.css';
 
-function DisplayList() {
-	const [{ pageNum }, pagerDispatch] = useReducer(pageReducer, { pageNum: 1 });
-	const ioObserverRef = useRef(null);
-	const dispatch = useFetchDispatch();
+const BASE_URL = `https://api.themoviedb.org/3/discover/movie`;
+const schema = 'movieList';
+const queryParams = {
+	page: 1,
+	sort_by: 'popularity.desc',
+	api_key: '04c35731a5ee918f014970082a0088b1',
+};
 
-	const url = `https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=04c35731a5ee918f014970082a0088b1&page=${pageNum}`;
-	const { state, errorMessage, updateUrl } = useFetch(url, Object.create(null), null, null);
-	const { data = [], isLoading } = state || {};
+function DisplayList() {
+	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 1 } });
+	const ioObserverRef = useRef(null);
+	const searchRef = useRef('');
+	const dispatch = useFetchDispatch();
+	const debouncedHandleChange = debounce(handleChange, 400);
+
+	const { state, errorMessage, updateQueryParams } = useFetch(schema, BASE_URL, queryParams);
+	const { data, isLoading } = state || {};
+
+	queryParams.page = pagerObject[schema]?.pageNum || 0;
 
 	useEffect(() => {
-		updateUrl(url);
-	}, [pageNum]);
+		updateQueryParams(queryParams);
+	}, [queryParams.page]);
 
-	useInfiniteScrollIO(ioObserverRef, () => pagerDispatch({ type: 'ADVANCE_PAGE' }));
-	useImageLazyLoadIO('img[data-src]', data);
+	useInfiniteScrollIO(ioObserverRef, () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' }));
+	useImageLazyLoadIO('img[data-src]', data?.results);
 
-	function handleChange(e) {
+	function handleChange(value) {
+		value = value.trim();
+		searchRef.current = null;
 		ioObserverRef.current = null;
-		console.log(e.target.value);
-		dispatch({ type: 'FILTER_BY_TEXT', payload: { filterText: e.target.value } });
+		console.log(value);
+		dispatch({ schema, type: 'FILTER_BY_TEXT', payload: { filterText: value } });
 	}
 
 	return (
 		<div>
+			<div>
+				<InputText
+					label="Search Item:"
+					defaultValue={searchRef.current}
+					inputTextRef={searchRef}
+					callback={debouncedHandleChange}
+				/>
+			</div>
 			{isLoading && <p className="text-center">isLoading...</p>}
 			<div>
-				<input type="text" onChange={debounce(handleChange, 100)} />
-			</div>
-			<div>
 				<div className={styles.container} id="container">
-					{data.map((item, i) => (
+					{data?.results?.map((item, i) => (
 						<Movie key={item?.id} item={item} styles={styles} />
 					))}
 				</div>
 			</div>
-			<div ref={ioObserverRef}>ABCD</div>
+			<div ref={ioObserverRef}>Loading...</div>
 		</div>
 	);
 }

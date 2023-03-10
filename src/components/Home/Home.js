@@ -1,22 +1,21 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
-import { useDraggable } from '../../hooks/useDraggable';
-
-const Home = () => {
-	const [[x, y], setCords] = useState([0, 0]);
-	const style = useMemo(
-		() => ({
-			position: 'absolute',
-			top: `${y}px`,
-			left: `${x}px`,
-		}),
-		[x, y]
-	);
-	const [ref, onMouseDown] = useDraggable(setCords);
+const Home = (props) => {
+	const linksHtml = [];
+	for (let name in props.pages) {
+		linksHtml.push(
+			<li>
+				<Link to={`/${name}`}>{name}</Link>
+			</li>
+		);
+	}
 
 	return (
-		<div ref={ref} onMouseDown={onMouseDown} style={style}>
-			Start Dragging!
+		<div>
+			<nav>
+				<ul>{linksHtml}</ul>
+			</nav>
 		</div>
 	);
 };

@@ -1,7 +1,9 @@
-const useEffectOnlyOnUpdate = (callback, dependencies) => {
-	const didMount = React.useRef(false);
+import React, { useRef, useEffect } from 'react';
 
-	React.useEffect(() => {
+const useEffectOnlyOnUpdate = (callback, dependencies) => {
+	const didMount = useRef(false);
+
+	useEffect(() => {
 		if (didMount.current) {
 			callback(dependencies);
 		} else {

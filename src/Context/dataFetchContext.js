@@ -5,9 +5,26 @@ import storeFactory from '../store/storeFactory';
 import dataFetchReducer from '../reducers/dataFetchReducer';
 
 const initialState = {
-	isLoading: false,
-	isError: false,
-	data: [],
+	wineConnoisseur: {
+		isLoading: false,
+		isError: false,
+		data: {},
+	},
+	infiniteScroll: {
+		isLoading: false,
+		isError: false,
+		data: {},
+	},
+	movieList: {
+		isLoading: false,
+		isError: false,
+		data: {},
+	},
+	nestedCategories: {
+		isLoading: false,
+		isError: false,
+		data: {},
+	},
 };
 
 const [FetchStoreProvider, useFetchStore, useFetchDispatch] = storeFactory(dataFetchReducer, initialState);

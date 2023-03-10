@@ -2,7 +2,6 @@
 const socketio = require('socket.io');
 const http = require('http');
 const webpack = require('webpack');
-const os = require('os');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const WebpackDevServer = require('webpack-dev-server');
@@ -35,16 +34,13 @@ db.once('open', () => log('connection successfull'));
 */
 
 const generateBuildTime = async function () {
-	return new Promise((resolve, reject) => {
-		fs.writeFile(
-			path.join(__dirname, '..', 'public', 'server', 'buildtime'),
-			new Date().toUTCString(),
-			function (err) {
-				err && reject('Error occured while writing to generateBuildTime :: ' + err.toString());
-				resolve();
-			}
-		);
-	});
+	fs.writeFile(
+		path.join(__dirname, '..', 'public', 'server', 'buildtime'),
+		new Date().toUTCString(),
+		function (err) {
+			err && error('Error occured while writing to generateBuildTime :: ' + err.toString());
+		}
+	);
 };
 
 generateBuildTime();

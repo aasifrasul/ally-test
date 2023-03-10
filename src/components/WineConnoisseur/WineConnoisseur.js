@@ -1,51 +1,46 @@
-import React, { useState, useEffect, useRef } from 'react';
-import ReactDataGrid from 'react-data-grid';
+import React, { useEffect, useRef, useReducer } from 'react';
+import DataGrid from '../Common/DataGrid/DataGrid';
 
 import useFetch from '../../hooks/useFetch';
+import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
+
+import pageReducer from '../../reducers/pageReducer';
+import { FetchStoreProvider, useFetchDispatch } from '../../Context/dataFetchContext';
 
 import styles from './WineConnoisseur.css';
 
 const baseURL = `http://localhost:3100/api/fetchWineData/`;
 
-export default function WineConnoisseur(props) {
-	const [page, setPage] = useState(0);
-	const [columns, setColumns] = useState([]);
-	const [rows, setRows] = useState([]);
+const schema = 'wineConnoisseur';
 
-	const successCallback = (res) => {
-		const { headers, pageData } = res;
-		headers && setColumns(headers);
-		pageData && setRows([...rows, ...pageData]);
-	};
+function DisplayList(props) {
+	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });
+	const ioObserverRef = useRef(null);
+	const pageNum = pagerObject[schema]?.pageNum || 0;
 
-	const failureCallback = () => {
-		console.log('IN failureCallback');
-	};
+	const url = `${baseURL}${pageNum}`;
+	const { state, updateUrl } = useFetch(schema, url);
+	const { headers = [], pageData = [] } = state?.data || {};
 
-	useEffect(() => {}, [page, rows]);
+	useEffect(() => {
+		updateUrl(url);
+	}, [pageNum]);
 
-	const { state, errorMessage, updateUrl } = useFetch(
-		`${baseURL}${page}`,
-		Object.create(null),
-		successCallback,
-		failureCallback
-	);
-
-	const clickHandler = () => (e) => {
-		e.preventDefault();
-		setPage(page + 1);
-		updateUrl(`${baseURL}${page + 1}`);
-	};
+	useInfiniteScrollIO(ioObserverRef, () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' }));
 
 	return (
 		<div className={styles.alignCenter}>
 			<span>Wine Connoisseur</span>
-			<span>
-				<button className={styles.button} onClick={clickHandler()}>
-					Next
-				</button>
-			</span>
-			<ReactDataGrid columns={columns} rows={rows} rowsCount={20} minHeight={150} />
+			<DataGrid headings={headers} rows={pageData} rowsCount={40} minHeight={1000} />
+			<div ref={ioObserverRef}>Loading...</div>
 		</div>
 	);
 }
+
+const WineConnoisseur = (props) => (
+	<FetchStoreProvider>
+		<DisplayList {...props} />
+	</FetchStoreProvider>
+);
+
+export default WineConnoisseur;

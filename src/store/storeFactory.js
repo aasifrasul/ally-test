@@ -7,14 +7,8 @@ function storeFactory(reducer, initialState) {
 	const dispatchContext = createContext();
 
 	const StoreProvider = ({ children }) => {
-		let store, dispatch;
-
-		function useMemoCB() {
-			return { store, dispatch };
-		}
-
-		[store, dispatch] = useReducer(reducer, initialState);
-		({ store, dispatch } = useMemo(useMemoCB, [store, dispatch]));
+		let [store, dispatch] = useReducer(reducer, initialState);
+		[store, dispatch] = useMemo(() => [store, dispatch], [store, dispatch]);
 
 		return (
 			<dispatchContext.Provider value={dispatch}>

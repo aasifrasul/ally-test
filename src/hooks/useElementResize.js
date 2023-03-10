@@ -1,7 +1,9 @@
-const useElementResize = (ref) => {
-	const [rect, setRect] = React.useState({});
+import React, { useRef, useEffect } from 'react';
 
-	React.useEffect(
+const useElementResize = (ref) => {
+	const [rect, setRect] = useState({});
+
+	useEffect(
 		() => {
 			const ro = new ResizeObserver((entries, observer) => {
 				for (const entry of entries) {
@@ -14,10 +16,7 @@ const useElementResize = (ref) => {
 			});
 			// observe the passed in ref
 			ro.observe(ref.current);
-			return () => {
-				// cleanup
-				ro.disconnect();
-			};
+			return () => ro.disconnect();
 		},
 		[ref] // only update on ref change
 	);

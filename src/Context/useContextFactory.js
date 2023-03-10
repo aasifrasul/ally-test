@@ -6,7 +6,7 @@ const useContextFactory = (name, context) => {
 		if (ctx) {
 			return ctx;
 		}
-		throw new Error(`useContext must be used withing a ${name}ContextProvider.`);
+		throw new Error(`useContext must be used withing a ${name}.`);
 	};
 };
 

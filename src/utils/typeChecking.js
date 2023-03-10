@@ -1,17 +1,17 @@
-const checkDataType = (data, type) => Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type;
+const isType = (data, type) => Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type;
 
-const isFunction = (data) => checkDataType(data, 'function');
-const isArray = (data) => checkDataType(data, 'array');
-const isObject = (data) => checkDataType(data, 'object');
-const isNull = (data) => checkDataType(data, 'null');
-const isUndefined = (data) => checkDataType(data, 'undefined');
-const isNumber = (data) => checkDataType(data, 'number');
-const isString = (data) => checkDataType(data, 'string');
-const isBoolean = (data) => checkDataType(data, 'boolean');
+const isFunction = (data) => isType(data, 'function');
+const isArray = (data) => isType(data, 'array');
+const isObject = (data) => isType(data, 'object');
+const isNull = (data) => isType(data, 'null');
+const isUndefined = (data) => isType(data, 'undefined');
+const isNumber = (data) => isType(data, 'number');
+const isString = (data) => isType(data, 'string');
+const isBoolean = (data) => isType(data, 'boolean');
 
 const getArrayCount = (arr) => isArray(arr) && arr.length;
 
-const safeExecFunc = (...params) => {
+const safelyExecuteFunction = (...params) => {
 	const func = params.shift();
 	const context = params.shift();
 	if (!isFunction(func)) {
@@ -19,7 +19,7 @@ const safeExecFunc = (...params) => {
 	}
 
 	if (isObject(context) && isFunction(context[func.name])) {
-		return func.apply(context, params)
+		return func.apply(context, params);
 	}
 
 	return func(...params);
@@ -35,5 +35,5 @@ module.exports = {
 	isString,
 	isBoolean,
 	getArrayCount,
-	safeExecFunc,
+	safelyExecuteFunction,
 };

@@ -1,9 +1,11 @@
-const pageReducer = (state, action) => {
-	switch (action.type) {
+const pageReducer = (state = {}, action) => {
+	const { type, schema } = action;
+	switch (type) {
 		case 'ADVANCE_PAGE':
-			return { ...state, pageNum: state.pageNum + 1 };
+			const originalData = state[schema]?.pageNum || 0;
+			return { ...state, [schema]: { pageNum: originalData + 1 } };
 		default:
-			return state;
+			return { ...state };
 	}
 };
 

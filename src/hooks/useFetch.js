@@ -1,11 +1,11 @@
-import { useState, useEffect, useReducer, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 import { useFetchStore, useFetchDispatch } from '../Context/dataFetchContext';
-import { safeExecFunc } from '../utils/typeChecking';
+import { safelyExecuteFunction } from '../utils/typeChecking';
 
 const controller = new AbortController();
 
-const useFetch = (initialUrl, initialParams = {}, successCallback, failureCallback, skip = false) => {
+const useFetch = (schema, initialUrl, initialParams = {}, successCallback, failureCallback, skip = false) => {
 	const [url, updateUrl] = useState(initialUrl);
 	const [params, updateParams] = useState(initialParams);
 	const [errorMessage, setErrorMessage] = useState('');
@@ -17,7 +17,12 @@ const useFetch = (initialUrl, initialParams = {}, successCallback, failureCallba
 	const state = useFetchStore();
 	const dispatch = useFetchDispatch();
 
-	const refetch = () => setRefetchIndex((prevRefetchIndex) => prevRefetchIndex + 1);
+	const refetch = () => setRefetchIndex((previousIndex) => previousIndex + 1);
+	const updateQueryParams = (queryParams) =>
+		updateParams((previousParams) => {
+			console.log({ ...previousParams, ...queryParams });
+			return { ...previousParams, ...queryParams };
+		});
 	const abortFetching = () => {
 		console.log('Now aborting');
 		// Abort.
@@ -27,9 +32,8 @@ const useFetch = (initialUrl, initialParams = {}, successCallback, failureCallba
 	useEffect(() => {
 		const fetchData = async () => {
 			if (skip) return;
-			dispatch({ type: 'FETCH_INIT' });
+			dispatch({ schema, type: 'FETCH_INIT' });
 			try {
-				const urlToFetch = `${url}${queryString}`;
 				const options = {
 					method: 'GET',
 					mode: 'cors',
@@ -44,21 +48,21 @@ const useFetch = (initialUrl, initialParams = {}, successCallback, failureCallba
 					//body: body ? JSON.stringify(data) : {},
 					signal: controller.signal,
 				};
-				const response = await fetch(urlToFetch, options);
+				const response = await fetch(`${url}?${queryString}`, options);
 				const result = await response.json();
 				if (response.ok) {
-					dispatch({ type: 'FETCH_SUCCESS', payload: result });
-					safeExecFunc(successCallback, null, result);
+					dispatch({ schema, type: 'FETCH_SUCCESS', payload: result });
+					safelyExecuteFunction(successCallback, null, result);
 				} else {
-					dispatch({ type: 'FETCH_FAILURE' });
-					safeExecFunc(failureCallback, null, result);
+					dispatch({ schema, type: 'FETCH_FAILURE' });
+					safelyExecuteFunction(failureCallback, null, result);
 				}
 			} catch (err) {
 				setErrorMessage(err.message);
-				dispatch({ type: 'FETCH_FAILURE' });
-				safeExecFunc(failureCallback, null, err);
+				dispatch({ schema, type: 'FETCH_FAILURE' });
+				safelyExecuteFunction(failureCallback, null, err);
 			} finally {
-				dispatch({ type: 'FETCH_STOP' });
+				dispatch({ schema, type: 'FETCH_STOP' });
 			}
 		};
 
@@ -67,15 +71,16 @@ const useFetch = (initialUrl, initialParams = {}, successCallback, failureCallba
 		return () => {
 			// abortFetching();
 		};
-	}, [url, params, refetchIndex]);
-	return {
-		state,
+	}, [url, queryString, refetchIndex]);
+
+	return useMemo(() => ({
+		state: { ...state[schema] },
 		errorMessage,
 		updateUrl,
-		updateParams,
+		updateQueryParams,
 		refetch,
 		abortFetching,
-	};
+	}));
 };
 
 export default useFetch;

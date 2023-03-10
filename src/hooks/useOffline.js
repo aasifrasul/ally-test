@@ -3,13 +3,8 @@ import React from 'react';
 function useOffline() {
 	const [isOffline, setIsOffline] = React.useState(false);
 
-	function onOffline() {
-		setIsOffline(true);
-	}
-
-	function onOnline() {
-		setIsOffline(false);
-	}
+	const onOnline = () => setIsOffline(false);
+	const onOffline = () => setIsOffline(true);
 
 	React.useEffect(() => {
 		window.addEventListener('offline', onOffline);

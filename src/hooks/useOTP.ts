@@ -7,6 +7,7 @@ interface useOTPType {
 	value?: string;
 	OTPLength: number;
 }
+
 const useOTP = ({ value = '', OTPLength }: useOTPType) => {
 	const [activeInput, setActiveInput] = useState(0);
 	const [OTP, setOtp] = useState(value);

@@ -1,27 +1,24 @@
 import React, { useCallback, useEffect } from 'react';
 
-import { safeExecFunc } from '../utils/typeChecking';
+import { safelyExecuteFunction } from '../utils/typeChecking';
 
 const useInfiniteScrollIO = (scrollRef, callback) => {
 	const scrollObserver = useCallback(
-		(node) => {
-			const observer = new IntersectionObserver((entries) => {
-				entries.forEach((en) => {
-					if (en.intersectionRatio > 0) {
-						safeExecFunc(callback, null, null);
-					}
-				});
-			});
-			observer.observe(node);
-		},
-		[callback]
+		(node) =>
+			new IntersectionObserver(
+				(entries) => entries.forEach((entry) => entry.isIntersecting && safelyExecuteFunction(callback)),
+				{
+					root: null,
+					rootMargin: '2000px',
+					threshold: 0,
+				}
+			).observe(node),
+		[scrollRef]
 	);
 
 	useEffect(() => {
-		scrollRef.current && scrollObserver(scrollRef.current);
-		return () => {
-			scrollRef.current = null;
-		};
+		scrollRef?.current && scrollObserver(scrollRef.current);
+		return () => scrollRef?.current && (scrollRef.current = null);
 	}, [scrollObserver, scrollRef]);
 };
 

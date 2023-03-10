@@ -8,9 +8,13 @@ import useFetch from '../../hooks/useFetch';
 
 import { getArrayCount, buildNestedWithParentId, alphabets } from '../../utils/ArrayUtils';
 
+import { FetchStoreProvider } from '../../Context/dataFetchContext';
+
 import styles from './NestedCategories.css';
 
-export default function NestedCategories(props) {
+const schema = 'nestedCategories';
+
+function DisplayList(props) {
 	const [categories, setCategories] = useState([]);
 	const [selectedParents, setSelectedParents] = useState(new Map());
 	const [categoriesChecked, setCategoresChecked] = useState(new Map());
@@ -24,13 +28,12 @@ export default function NestedCategories(props) {
 	const categoriesHtml = [];
 	let count = 0;
 
-	const { state, errorMessage, updateUrl } = useFetch(
-		'https://okrcentral.github.io/sample-okrs/db.json',
-		Object.create(null),
-		successCallback,
-		failureCallback
-	);
+	const url = `https://okrcentral.github.io/sample-okrs/db.json`;
+	const { state, errorMessage, updateUrl } = useFetch(schema, url);
 
+	useEffect(() => {
+		successCallback();
+	}, [state.data]);
 	useEffect(() => {
 		if (!didMount.current) {
 			didMount.current = true;
@@ -68,8 +71,8 @@ export default function NestedCategories(props) {
 	function failureCallback(res) {}
 
 	function successCallback(res) {
-		if (!isLoading && !isError && res.data) {
-			const { nestedStructure, categories: allCategories } = buildNestedWithParentId(res.data);
+		if (!state.isLoading && !state.isError && state.data) {
+			const { nestedStructure, categories: allCategories } = buildNestedWithParentId(state.data);
 			setAllData(nestedStructure);
 			setFilteredData(nestedStructure);
 			setCategories(allCategories);
@@ -172,3 +175,11 @@ export default function NestedCategories(props) {
 		</>
 	);
 }
+
+const NestedCategories = (props) => (
+	<FetchStoreProvider>
+		<DisplayList {...props} />
+	</FetchStoreProvider>
+);
+
+export default NestedCategories;

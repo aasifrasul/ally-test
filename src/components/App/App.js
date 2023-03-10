@@ -1,8 +1,8 @@
 import React, { Suspense, lazy, useState } from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route, useHistory } from 'react-router-dom';
 import regeneratorRuntime from 'regenerator-runtime';
 
-import Spinner from '../Common/Spinner/Spinner';
+import Header from '../Common/Header/Header';
 
 const Home = lazy(() => import(/* webpackChunkName: "Home" */ '../Home/Home'));
 const ReactQuery = lazy(() => import(/* webpackChunkName: "ReactQuery" */ '../ReactQuery/ReactQuery'));
@@ -27,11 +27,30 @@ const Contacts = lazy(() => import(/* webpackChunkName: "Contacts" */ '../Contac
 
 const Modal = lazy(() => import(/* webpackChunkName: "Modal" */ '../Common/Modal/Modal'));
 
+import Spinner from '../Common/Spinner/Spinner';
 import ErrorBoundary from '../Common/ErrorBoundary/ErrorBoundary';
 
 import styles from './App.css';
 
+const pages = {
+	Counter: Counter,
+	Contacts: Contacts,
+	TicTacToe: TicTacToe,
+	ReactQuery: ReactQuery,
+	KeyBoardShortcutPage: KeyBoardShortcutPage,
+	WineConnoisseur: WineConnoisseur,
+	Profile: Profile,
+	NestedCategories: NestedCategories,
+	Todos: Todos,
+	Stopwatch: Stopwatch,
+	CurrencyStream: CurrencyStream,
+	MovieList: MovieList,
+	InfiniteScroll: InfiniteScroll,
+};
+
 function App(props) {
+	const history = useHistory();
+
 	const [showModal, setShowModal] = useState(false);
 
 	const modal = showModal ? (
@@ -52,25 +71,30 @@ function App(props) {
 	const handleShow = () => setShowModal(true);
 	const handleHide = () => setShowModal(false);
 
+	const pagesHtml = [];
+	for (let name in pages) {
+		const Component = pages[name];
+		pagesHtml.push(
+			<Route
+				key={name}
+				exact
+				path={`/${name}`}
+				component={() => (
+					<Header>
+						<Component />
+					</Header>
+				)}
+			/>
+		);
+	}
+
 	return (
 		<Suspense fallback={<Spinner />}>
 			<ErrorBoundary>
 				<Router>
 					<Switch>
-						<Route exact path="/" component={() => <Home handleShow={handleShow} />} />
-						<Route exact path="/Counter" component={() => <Counter />} />
-						<Route exact path="/Contacts" component={() => <Contacts />} />
-						<Route exact path="/TicTacToe" component={() => <TicTacToe />} />
-						<Route exact path="/ReactQuery" component={() => <ReactQuery />} />
-						<Route exact path="/KeyBoardShortcutPage" component={() => <KeyBoardShortcutPage />} />
-						<Route exact path="/WineConnoisseur" component={() => <WineConnoisseur />} />
-						<Route exact path="/Profile" component={() => <Profile />} />
-						<Route exact path="/NestedCategories" component={() => <NestedCategories />} />
-						<Route exact path="/Todos" component={() => <Todos />} />
-						<Route exact path="/Stopwatch" component={() => <Stopwatch />} />
-						<Route exact path="/CurrencyStream" component={() => <CurrencyStream />} />
-						<Route exact path="/MovieList" component={() => <MovieList />} />
-						<Route exact path="/InfiniteScroll" component={() => <InfiniteScroll />} />
+						<Route exact path="/" component={() => <Home handleShow={handleShow} pages={pages} />} />
+						{pagesHtml}
 					</Switch>
 				</Router>
 			</ErrorBoundary>

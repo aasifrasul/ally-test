@@ -1,3 +1,6 @@
+const os = require('os');
+const { logger } = require('./Logger');
+
 const onConnection = (socket) => {
 	const currencyPairs = [
 		{
@@ -48,6 +51,7 @@ const onConnection = (socket) => {
 
 	socket.on('fetchOSStats', () => {
 		const data = os.cpus();
+		logger.info(`info ${data}`);
 		socket.emit('oSStatsData', data);
 	});
 

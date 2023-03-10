@@ -27,7 +27,8 @@ var loaders = [
 			loader: 'babel-loader',
 			options: babelConfig,
 		},
-		exclude: /node_modules(?!(\/@fpg-modules[/]fk-cp-utils|\/fk-cp-shared|\/@fpg-modules[/]fk-ui-common|\/@fpg-modules|\/rv-*|\/@flipkart\/rv-overlay-otp))/,
+		exclude:
+			/node_modules(?!(\/@fpg-modules[/]fk-cp-utils|\/fk-cp-shared|\/@fpg-modules[/]fk-ui-common|\/@fpg-modules|\/rv-*|\/@flipkart\/rv-overlay-otp))/,
 	},
 	{
 		test: /\.(gif|png|jpe?g|svg)$/i,

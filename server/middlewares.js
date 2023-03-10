@@ -5,7 +5,7 @@ const htmlEncode = require('htmlencode');
 const { parse } = require('./UAParser');
 const { fetchCSVasJSON } = require('./fetchCSVasJSON');
 
-const csvData = fetchCSVasJSON('../../../Downloads/winemag-data-130k-v2.csv');
+const csvData = fetchCSVasJSON('../../Downloads/winemag-data-130k-v2.csv');
 const { headers, result } = csvData;
 
 /**

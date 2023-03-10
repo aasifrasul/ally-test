@@ -1,5 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 
+import { isFunction } from '../utils/typeChecking';
+
 // first, define a helper for combining refs
 function useCombinedRefs(...refs) {
 	const targetRef = useRef();
@@ -8,7 +10,7 @@ function useCombinedRefs(...refs) {
 		refs.forEach((ref) => {
 			if (!ref) return;
 
-			if (typeof ref === 'function') {
+			if (isFunction(ref)) {
 				ref(targetRef.current);
 			} else {
 				ref.current = targetRef.current;
