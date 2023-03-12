@@ -8,7 +8,7 @@ const initialState = {};
 
 const [KeyBoardShortcutStoreProvider, useKeyBoardShortcutStore, useKeyBoardShortcutDispatch] = storeFactory(
 	KeyBoardShortcutReducer,
-	initialState
+	initialState,
 );
 
 export { KeyBoardShortcutStoreProvider, useKeyBoardShortcutStore, useKeyBoardShortcutDispatch };

@@ -56,7 +56,7 @@ const makeConfig = () => {
 				'fk-ui-common-components': path.resolve(
 					__dirname,
 					'..',
-					'node_modules/@fpg-modules/fk-ui-common/src/components'
+					'node_modules/@fpg-modules/fk-ui-common/src/components',
 				),
 			},
 		},

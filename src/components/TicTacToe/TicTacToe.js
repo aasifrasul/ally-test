@@ -13,9 +13,9 @@ const allKeys = [
 	[`idx-r1-c1`, `idx-r2-c2`, `idx-r3-c3`],
 	[`idx-r1-c3`, `idx-r2-c2`, `idx-r3-c1`],
 ];
+
 const allowedOptions = ['O', 'X'];
 let count = 0;
-let lastItem = '';
 let isAStreak = false;
 
 export default function tictactoe(props) {

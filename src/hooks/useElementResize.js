@@ -18,7 +18,7 @@ const useElementResize = (ref) => {
 			ro.observe(ref.current);
 			return () => ro.disconnect();
 		},
-		[ref] // only update on ref change
+		[ref], // only update on ref change
 	);
 
 	return rect;

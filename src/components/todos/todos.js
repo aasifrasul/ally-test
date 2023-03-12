@@ -46,7 +46,7 @@ class Todos extends React.Component {
 						<span>{text}</span>
 						<span onClick={() => this.handleDelete(key)}> Delete </span>
 						<span onClick={() => this.handleComplete(key)}> Complete </span>
-					</div>
+					</div>,
 				);
 		});
 

@@ -49,7 +49,7 @@ const runWebpack = (type, hash) => {
 					chunks: false,
 					assets: type !== CONFIGTYPE.SERVER, // disabling assets primted only for server since they don't manifest in what goes to end users, hiding noise
 					colors: true, // Shows colors in the console
-				})
+				}),
 			);
 			resolve();
 		});

@@ -11,9 +11,9 @@ const useInfiniteScrollIO = (scrollRef, callback) => {
 					root: null,
 					rootMargin: '2000px',
 					threshold: 0,
-				}
+				},
 			).observe(node),
-		[scrollRef]
+		[scrollRef],
 	);
 
 	useEffect(() => {

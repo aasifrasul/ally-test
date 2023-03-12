@@ -33,8 +33,8 @@ const DisplayList = (props) => {
 
 	const observer = useRef(
 		new IntersectionObserver((entries) =>
-			entries.forEach((entry) => entry.intersectionRatio > 0 && pagerDispatch({ schema, type: 'ADVANCE_PAGE' }))
-		)
+			entries.forEach((entry) => entry.intersectionRatio > 0 && pagerDispatch({ schema, type: 'ADVANCE_PAGE' })),
+		),
 	);
 
 	useEffect(() => {

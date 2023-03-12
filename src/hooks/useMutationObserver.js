@@ -10,7 +10,7 @@ function useMutationObserver(targetNode, config, callback = defaultCallback) {
 				const result = callback(mutationList, observer);
 				setValue(result);
 			}),
-		[callback]
+		[callback],
 	);
 	useEffect(() => {
 		if (targetNode) {
