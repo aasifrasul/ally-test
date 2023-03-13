@@ -117,7 +117,7 @@ app.use(
 	'/public',
 	proxy(`localhost:${port + 1}`, {
 		proxyReqPathResolver: (req) => req.originalUrl,
-	}),
+	})
 );
 
 app.all('/*', (req, res) => {
