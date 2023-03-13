@@ -9,7 +9,7 @@ import { useEffect, useRef } from 'react';
  */
 function useRequestAnimationFrame(
 	callback: (relativeProgress: number, isLastFrame: boolean) => void,
-	duration: number
+	duration: number,
 ) {
 	const savedCallback = useRef(callback);
 	const savedDuration = useRef(duration);

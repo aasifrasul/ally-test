@@ -18,7 +18,7 @@ class DropDown extends Component {
 				headerTitle: title,
 				isListOpen: false,
 			},
-			() => resetThenSet(id, key)
+			() => resetThenSet(id, key),
 		);
 	};
 

@@ -14,7 +14,7 @@ const ALLOWED_WORD_FORMAT_REGEX = '[a-zA-z0-9-. ]*';
 // var APP_DEVICE_ID_ALLOWED_WORD_FORMAT_REGEX = "[a-zA-z0-9-.+,| ]*";
 
 const FKUA_APP_REGEX = new RegExp(
-	`FKUA/(${ALLOWED_WORD_FORMAT_REGEX})/((\\d+\\.)*\\d+)?/(${ALLOWED_WORD_FORMAT_REGEX})/(${ALLOWED_WORD_FORMAT_REGEX})(( \\(.*\\))|.*)`
+	`FKUA/(${ALLOWED_WORD_FORMAT_REGEX})/((\\d+\\.)*\\d+)?/(${ALLOWED_WORD_FORMAT_REGEX})/(${ALLOWED_WORD_FORMAT_REGEX})(( \\(.*\\))|.*)`,
 );
 // var RETAIL_NATIVE_ANDROID_APP_REGEX = new RegExp(
 //   "appVersion:(\\d*) fk_android_app"

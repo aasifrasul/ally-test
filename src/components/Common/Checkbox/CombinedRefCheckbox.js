@@ -39,7 +39,7 @@ const CombinedRefCheckbox = forwardRef(
 				[{checked ? 'X' : ' '}]{label}
 			</div>
 		);
-	}
+	},
 );
 
 export default CombinedRefCheckbox;

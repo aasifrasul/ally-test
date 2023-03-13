@@ -18,7 +18,7 @@ function stopwatch(props) {
 					}
 					return timerCount + 1;
 				}),
-			100
+			100,
 		);
 		return stopTimer;
 	}, [toggle]);

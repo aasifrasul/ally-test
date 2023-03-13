@@ -60,7 +60,7 @@ self.addEventListener(
 	(e) => {
 		console.log('Data received from main Thread', e.data);
 	},
-	false
+	false,
 );
 
 self.postMessage('From WebWorker');

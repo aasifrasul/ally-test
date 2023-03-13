@@ -34,13 +34,9 @@ db.once('open', () => log('connection successfull'));
 */
 
 const generateBuildTime = async function () {
-	fs.writeFile(
-		path.join(__dirname, '..', 'public', 'server', 'buildtime'),
-		new Date().toUTCString(),
-		function (err) {
-			err && error('Error occured while writing to generateBuildTime :: ' + err.toString());
-		}
-	);
+	fs.writeFile(path.join(__dirname, '..', 'public', 'server', 'buildtime'), new Date().toUTCString(), function (err) {
+		err && error('Error occured while writing to generateBuildTime :: ' + err.toString());
+	});
 };
 
 generateBuildTime();
@@ -121,7 +117,7 @@ app.use(
 	'/public',
 	proxy(`localhost:${port + 1}`, {
 		proxyReqPathResolver: (req) => req.originalUrl,
-	})
+	}),
 );
 
 app.all('/*', (req, res) => {

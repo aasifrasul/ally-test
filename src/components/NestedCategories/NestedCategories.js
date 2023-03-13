@@ -57,7 +57,7 @@ function DisplayList(props) {
 							target.parentElement.parentElement.childNodes[1].children[1].classList.add(hidden);
 						}
 					},
-					false
+					false,
 				);
 			}
 			addEvents.current = true;
@@ -125,7 +125,7 @@ function DisplayList(props) {
 					childHtml.push(
 						<div key={id}>
 							{alphabets[childCount++]}. {title}
-						</div>
+						</div>,
 					);
 			});
 
@@ -141,7 +141,7 @@ function DisplayList(props) {
 					<div className={styles['category_children']}>{childHtml}</div>
 				</div>
 				<Spacer size={16} />
-			</div>
+			</div>,
 		);
 	}
 

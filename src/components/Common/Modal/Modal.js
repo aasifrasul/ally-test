@@ -32,7 +32,7 @@ class Modal extends React.Component {
 			// Any valid React child: JSX, strings, arrays, etc.
 			this.props.children,
 			// A DOM element
-			this.el
+			this.el,
 		);
 	}
 }

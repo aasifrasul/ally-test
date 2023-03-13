@@ -7,7 +7,7 @@ const Home = (props) => {
 		linksHtml.push(
 			<li>
 				<Link to={`/${name}`}>{name}</Link>
-			</li>
+			</li>,
 		);
 	}
 

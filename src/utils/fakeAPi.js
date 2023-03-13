@@ -22,7 +22,7 @@ function wrapPromise(promise) {
 		(e) => {
 			status = 'error';
 			result = e;
-		}
+		},
 	);
 	return {
 		read() {
