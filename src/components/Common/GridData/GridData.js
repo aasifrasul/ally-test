@@ -54,7 +54,7 @@ function GridData(props) {
 
 		return () => {
 			didMount.current = false;
-			window.cancelAnimationFrame(rafId);
+			window.cancelAnimationFrame(rafRef.current);
 			socket.emit('stopFetchCurrencyPair');
 		};
 	}, []);

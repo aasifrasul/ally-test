@@ -31,24 +31,22 @@ const alphabets = [
 
 const getArrayCount = (arr) => idx(arr, (_) => _.length) || 0;
 
-const buildNestedWithParentId = (arr) => {
+const buildNestedWithParentId = (items) => {
 	const nestedStructure = Object.create(null);
 	const categories = [];
 	const uniqueCategories = {};
 	let elem;
 
-	for (var i = 0; i < arr.length; i++) {
-		elem = arr[i];
-
+	for (const key in items) {
+		elem = items[key];
 		if (elem.parent_objective_id) {
 			const parentElem = nestedStructure[elem.parent_objective_id];
-			if (!parentElem) {
-				continue;
+			if (parentElem) {
+				if (!parentElem.children) {
+					parentElem.children = [];
+				}
+				parentElem.children.push(elem);
 			}
-			if (!parentElem.children) {
-				parentElem.children = [];
-			}
-			parentElem.children.push(elem);
 		} else {
 			nestedStructure[elem.id] = elem;
 			if (!uniqueCategories[elem.category]) {
