@@ -71,7 +71,7 @@ const useFetch = (schema, initialUrl, initialParams = {}, successCallback, failu
 		return () => {
 			// abortFetching();
 		};
-	}, [url, queryString, refetchIndex]);
+	}, [url, queryString, refetchIndex, schema, skip, controller.signal, successCallback, failureCallback]);
 
 	return useMemo(() => ({
 		state: { ...state[schema] },
