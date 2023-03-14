@@ -5,7 +5,7 @@ import useCombinedRefs from '../../../hooks/useCombinedRefs';
 import { safelyExecuteFunction } from '../../../utils/typeChecking';
 
 const CombinedRefCheckbox = forwardRef(
-	({ label, name, value, callback, defaultChecked = false, ...rest }, forwardedRef) => {
+	({ label, name, value, callback, isCheckedRef, defaultChecked = false, ...rest }, forwardedRef) => {
 		const [checked, setChecked] = useState(defaultChecked);
 
 		const innerRef = useRef(null);
@@ -18,28 +18,35 @@ const CombinedRefCheckbox = forwardRef(
 			}
 		};
 
-		const handleChecked = () => (e) => setChecked(e.target.checked);
+		const handleChecked = () => (e) =>
+			setChecked(() => {
+				return !checked;
+			});
 
 		useEffect(() => {
 			setCheckedInput(checked);
+			isCheckedRef.current = checked;
 			safelyExecuteFunction(callback, checked);
 		}, [checked]);
 
 		return (
-			<div onClick={() => setChecked(!checked)} style={{ cursor: 'pointer' }}>
-				<input
-					style={{ display: 'none' }}
-					ref={combinedRef}
-					type="checkbox"
-					name={name}
-					value={value}
-					defaultChecked={defaultChecked}
-					onChange={handleChecked()}
-				/>
-				[{checked ? 'X' : ' '}]{label}
+			<div style={{ cursor: 'pointer' }}>
+				<label htmlFor="my-checkbox">
+					<input
+						id="my-checkbox"
+						style={{ display: 'none' }}
+						ref={combinedRef}
+						type="checkbox"
+						name={name}
+						value={value}
+						defaultChecked={defaultChecked}
+						onChange={handleChecked()}
+					/>
+					[{checked ? 'X' : ' '}]{label}
+				</label>
 			</div>
 		);
-	},
+	}
 );
 
 export default CombinedRefCheckbox;
