@@ -61,7 +61,7 @@ const onConnection = (socket) => {
 		IntervalId = setInterval(() => {
 			const data = currencyPairs[getRandomInt(10)];
 			socket.emit('currencyPairData', data);
-		}, 3000);
+		}, 1000);
 	});
 
 	socket.on('stopFetchCurrencyPair', () => {

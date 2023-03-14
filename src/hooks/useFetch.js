@@ -5,6 +5,25 @@ import { safelyExecuteFunction } from '../utils/typeChecking';
 
 const controller = new AbortController();
 
+const blob = new Blob([
+	`self.addEventListener(
+		'message',
+		(event) => {
+			const { endpoint, options } = JSON.parse(event.data);
+			console.log('event.data', event.data);
+
+			endpoint &&
+				fetch(endpoint, options)
+					.then((response) => response.json())
+					.then((data) => {
+						console.log('worker data', data);
+						self.postMessage({ type: 'apiResponse', data });
+					});
+		},
+		false
+	);`,
+]);
+
 const useFetch = (schema, initialUrl, initialParams = {}, successCallback, failureCallback, skip = false) => {
 	const [url, updateUrl] = useState(initialUrl);
 	const [params, updateParams] = useState(initialParams);
@@ -30,6 +49,9 @@ const useFetch = (schema, initialUrl, initialParams = {}, successCallback, failu
 	};
 
 	useEffect(() => {
+		const blobURL = URL.createObjectURL(blob);
+		const worker = new Worker(blobURL);
+
 		const fetchData = async () => {
 			if (skip) return;
 			dispatch({ schema, type: 'FETCH_INIT' });
@@ -46,17 +68,17 @@ const useFetch = (schema, initialUrl, initialParams = {}, successCallback, failu
 					redirect: 'follow',
 					referrerPolicy: 'no-referrer',
 					//body: body ? JSON.stringify(data) : {},
-					signal: controller.signal,
 				};
-				const response = await fetch(`${url}?${queryString}`, options);
-				const result = await response.json();
-				if (response.ok) {
-					dispatch({ schema, type: 'FETCH_SUCCESS', payload: result });
-					safelyExecuteFunction(successCallback, null, result);
-				} else {
-					dispatch({ schema, type: 'FETCH_FAILURE' });
-					safelyExecuteFunction(failureCallback, null, result);
-				}
+
+				worker.postMessage(JSON.stringify({ endpoint: `${url}?${queryString}`, options }));
+				worker.onmessage = function (event) {
+					const { type, data } = event.data;
+
+					if (type === 'apiResponse') {
+						dispatch({ schema, type: 'FETCH_SUCCESS', payload: data });
+						safelyExecuteFunction(successCallback, null, data);
+					}
+				};
 			} catch (err) {
 				setErrorMessage(err.message);
 				dispatch({ schema, type: 'FETCH_FAILURE' });
@@ -69,7 +91,8 @@ const useFetch = (schema, initialUrl, initialParams = {}, successCallback, failu
 		fetchData();
 
 		return () => {
-			// abortFetching();
+			worker.terminate();
+			URL.revokeObjectURL(blobURL);
 		};
 	}, [url, queryString, refetchIndex, schema, skip, controller.signal, successCallback, failureCallback]);
 

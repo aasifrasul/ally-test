@@ -7,15 +7,15 @@ import Header from '../Common/Header/Header';
 const Home = lazy(() => import(/* webpackChunkName: "Home" */ '../Home/Home'));
 const ReactQuery = lazy(() => import(/* webpackChunkName: "ReactQuery" */ '../ReactQuery/ReactQuery'));
 const KeyBoardShortcutPage = lazy(() =>
-	import(/* webpackChunkName: "KeyBoardShortcutPage" */ '../KeyBoardShortcutPage/KeyBoardShortcutPage')
+	import(/* webpackChunkName: "KeyBoardShortcutPage" */ '../KeyBoardShortcutPage/KeyBoardShortcutPage'),
 );
 const WineConnoisseur = lazy(() =>
-	import(/* webpackChunkName: "WineConnoisseur" */ '../WineConnoisseur/WineConnoisseur')
+	import(/* webpackChunkName: "WineConnoisseur" */ '../WineConnoisseur/WineConnoisseur'),
 );
 const Profile = lazy(() => import(/* webpackChunkName: "Profile" */ '../Profile/Profile'));
 const Todos = lazy(() => import(/* webpackChunkName: "Todos" */ '../Todos/Todos'));
 const NestedCategories = lazy(() =>
-	import(/* webpackChunkName: "NestedCategories" */ '../NestedCategories/NestedCategories')
+	import(/* webpackChunkName: "NestedCategories" */ '../NestedCategories/NestedCategories'),
 );
 const Stopwatch = lazy(() => import(/* webpackChunkName: "Stopwatch" */ '../stopwatch/stopwatch'));
 const CurrencyStream = lazy(() => import(/* webpackChunkName: "CurrencyStream" */ '../CurrencyStream/CurrencyStream'));
@@ -84,7 +84,7 @@ function App(props) {
 						<Component />
 					</Header>
 				)}
-			/>
+			/>,
 		);
 	}
 
