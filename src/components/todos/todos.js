@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer, useRef } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 
 import CombinedRefCheckbox from '../Common/Checkbox/CombinedRefCheckbox';
@@ -9,44 +9,45 @@ class Todos extends React.Component {
 		super(props);
 		this.inputTextRef = React.createRef('');
 		this.searchRef = React.createRef('');
+		this.isCheckedRef = React.createRef(false);
 
 		this.props = props;
 
 		this.handleSubmit = this.handleSubmit.bind(this);
-
-		this.state = {
-			checked: '',
-		};
 	}
 
 	handleSubmit(event) {
 		event.preventDefault();
 		if (this.inputTextRef.current) {
-			this.props.dispatch({ type: 'TODO_ADD_NEW', payload: { value: this.inputTextRef.current } });
+			this.dispatch('TODO_ADD_NEW', { value: this.inputTextRef.current });
 			this.inputTextRef.current = '';
 		}
 	}
 
-	handleRemoveFromComplete = (key) => this.props.dispatch({ type: 'TODO_UNCOMPLETE', payload: { id: key } });
+	handleRemoveFromComplete = (key) => this.dispatch('TODO_UNCOMPLETE', { id: key });
 
-	handleDelete = (key) => this.props.dispatch({ type: 'TODO_DELETE', payload: { id: key } });
+	handleDelete = (key) => this.dispatch('TODO_DELETE', { id: key });
 
-	handleComplete = (key) => this.props.dispatch({ type: 'TODO_COMPLETE', payload: { id: key } });
+	handleComplete = (key) => this.dispatch('TODO_COMPLETE', { id: key });
 
-	handleShowCompleted = () => (isChecked, val) => this.setState({ checked: isChecked });
+	dispatch = (type, payload) => this.props.dispatch({ type, payload });
+
+	handleShowCompleted = () => {
+		this.forceUpdate();
+	};
 
 	render() {
 		const todosHtml = [];
 		this.props.todos.forEach((item, key) => {
 			const { text, complete } = item;
-			const include = this.state.checked ? complete : !complete;
+			const include = this.isCheckedRef.current ? complete : !complete;
 			include &&
 				todosHtml.push(
 					<div key={key}>
 						<span>{text}</span>
 						<span onClick={() => this.handleDelete(key)}> Delete </span>
 						<span onClick={() => this.handleComplete(key)}> Complete </span>
-					</div>,
+					</div>
 				);
 		});
 
@@ -61,7 +62,8 @@ class Todos extends React.Component {
 					<CombinedRefCheckbox
 						name="Show Completed:"
 						label="Show Completed:"
-						callback={this.handleShowCompleted()}
+						isCheckedRef={this.isCheckedRef}
+						callback={() => this.handleShowCompleted()}
 					/>
 					<InputText
 						label="Add Item:"
