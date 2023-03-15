@@ -1,11 +1,8 @@
 const workerCode = () => {
-	const isType = (data, type) => Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type;
-	const isString = (data) => isType(data, 'string');
-
 	self.addEventListener(
 		'message',
 		(event) => {
-			if (isString(event.data)) {
+			if (typeof event.data === 'string') {
 				const { endpoint, options } = JSON.parse(event.data) || {};
 				console.log('event.data', event.data);
 
