@@ -17,6 +17,7 @@ const webpackConfig = require('../webpack-configs/webpack.config');
 const AppHelper = require('./helper');
 const { userAgentHandler, getCSVData } = require('./middlewares');
 const { onConnection } = require('./socketConnection');
+const { logger } = require('./Logger');
 
 // mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -65,6 +66,7 @@ const nocache = function (res) {
 };
 
 const webWorkerContent = fs.readFileSync(`./src/utils/WebWorker.js`, enc);
+const apiWorkerContent = fs.readFileSync(`./src/workers/apiWorker.js`, enc);
 
 const app = express();
 // port to use
@@ -74,6 +76,12 @@ app.get('/WebWorker.js', function (req, res) {
 	res.set('Content-Type', `application/javascript; charset=${enc.encoding}`);
 	nocache(res);
 	res.end(webWorkerContent);
+});
+
+app.get('/apiWorker.js', function (req, res) {
+	res.set('Content-Type', `application/javascript; charset=${enc.encoding}`);
+	nocache(res);
+	res.end(apiWorkerContent);
 });
 
 app.get('/api/fetchWineData/:pageNum', getCSVData);
@@ -117,7 +125,7 @@ app.use(
 	'/public',
 	proxy(`localhost:${port + 1}`, {
 		proxyReqPathResolver: (req) => req.originalUrl,
-	})
+	}),
 );
 
 app.all('/*', (req, res) => {

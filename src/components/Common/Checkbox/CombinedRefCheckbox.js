@@ -18,7 +18,7 @@ const CombinedRefCheckbox = forwardRef(
 			}
 		};
 
-		const handleChecked = () => (e) =>
+		const handleChecked = () => () =>
 			setChecked(() => {
 				return !checked;
 			});
@@ -46,7 +46,7 @@ const CombinedRefCheckbox = forwardRef(
 				</label>
 			</div>
 		);
-	}
+	},
 );
 
 export default CombinedRefCheckbox;
