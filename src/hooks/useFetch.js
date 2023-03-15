@@ -2,27 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 import { useFetchStore, useFetchDispatch } from '../Context/dataFetchContext';
 import { safelyExecuteFunction } from '../utils/typeChecking';
+import WebWorker from '../workers/WebWorkerHelper';
+import MyWorker from '../workers/MyWorker';
+
+// Worker initialisation
+const worker = new WebWorker(MyWorker);
 
 const controller = new AbortController();
-
-const blob = new Blob([
-	`self.addEventListener(
-		'message',
-		(event) => {
-			const { endpoint, options } = JSON.parse(event.data);
-			console.log('event.data', event.data);
-
-			endpoint &&
-				fetch(endpoint, options)
-					.then((response) => response.json())
-					.then((data) => {
-						console.log('worker data', data);
-						self.postMessage({ type: 'apiResponse', data });
-					});
-		},
-		false
-	);`,
-]);
+//const worker = new Worker(new URL('apiWorker.js', window.location.origin));
 
 const useFetch = (schema, initialUrl, initialParams = {}, successCallback, failureCallback, skip = false) => {
 	const [url, updateUrl] = useState(initialUrl);
@@ -49,9 +36,6 @@ const useFetch = (schema, initialUrl, initialParams = {}, successCallback, failu
 	};
 
 	useEffect(() => {
-		const blobURL = URL.createObjectURL(blob);
-		const worker = new Worker(blobURL);
-
 		const fetchData = async () => {
 			if (skip) return;
 			dispatch({ schema, type: 'FETCH_INIT' });
@@ -90,10 +74,7 @@ const useFetch = (schema, initialUrl, initialParams = {}, successCallback, failu
 
 		fetchData();
 
-		return () => {
-			worker.terminate();
-			URL.revokeObjectURL(blobURL);
-		};
+		return () => {};
 	}, [url, queryString, refetchIndex, schema, skip, controller.signal, successCallback, failureCallback]);
 
 	return useMemo(() => ({
