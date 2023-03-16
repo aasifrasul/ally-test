@@ -1,20 +1,21 @@
-const webpack = require('webpack');
-const path = require('path');
+import webpack from 'webpack';
+import path from 'path';
+import ATL from 'awesome-typescript-loader';
+import CompressionPlugin from 'compression-webpack-plugin';
+import CssExtractPlugin from 'mini-css-extract-plugin';
+import Visualizer from 'webpack-visualizer-plugin';
+import StatsPlugin from 'stats-webpack-plugin';
 
-const ATL = require('awesome-typescript-loader');
-const CompressionPlugin = require('compression-webpack-plugin');
-const CssExtractPlugin = require('mini-css-extract-plugin');
-const FkEmitAssetsPlugin = require('./fk-emit-assets-plugin');
-const Visualizer = require('webpack-visualizer-plugin');
-const StatsPlugin = require('stats-webpack-plugin');
-const webpackCommonConfig = require('./webpack.common');
+import { FkEmitAssetsPlugin } from './fk-emit-assets-plugin.js';
+import { APP_NAME } from './constants.js';
+
 const DEV = process.env.NODE_ENV !== 'production';
 const PROD = !DEV;
-const Constants = require('./constants');
+
 const PATHS = {
-	src: path.join(__dirname, '..', 'src'),
-	build: path.join(__dirname, '..', 'build'),
-	public: path.join(__dirname, '..', ''),
+	src: path.resolve('..', 'src'),
+	build: path.resolve('..', 'build'),
+	public: path.resolve('..', ''),
 };
 
 let plugins = [
@@ -32,7 +33,7 @@ let plugins = [
 	 * make.hbs file to generate the hbs template with the assets to be served
 	 */
 	new FkEmitAssetsPlugin({
-		fileName: Constants.APP_NAME + '.json',
+		fileName: APP_NAME + '.json',
 	}),
 
 	new webpack.LoaderOptionsPlugin({
@@ -112,4 +113,4 @@ if (PROD) {
 	]);
 }
 
-module.exports = plugins;
+export { plugins };

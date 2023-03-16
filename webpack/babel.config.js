@@ -38,4 +38,4 @@ if ('prod' === process.env.PROMOTION_ENV) {
 	]);
 }
 
-module.exports = config;
+export { config };

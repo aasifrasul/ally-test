@@ -1,9 +1,8 @@
-const idx = require('idx');
-
-const AppHelper = require('./helper');
-const htmlEncode = require('htmlencode');
-const { parse } = require('./UAParser');
-const { fetchCSVasJSON } = require('./fetchCSVasJSON');
+import idx from 'idx';
+import htmlEncode from 'htmlEncode';
+import { isMobileApp } from './helper.js';
+import { parse } from './UAParser.js';
+import { fetchCSVasJSON } from './fetchCSVasJSON.js';
 
 const csvData = fetchCSVasJSON('../../Downloads/winemag-data-130k-v2.csv');
 const { headers, result } = csvData;
@@ -25,7 +24,7 @@ const userAgentHandler = (req, res, next) => {
 		req.userAgentData = parse(userAgent);
 
 		// Msite requires a custom string to be appended with usual user agent
-		if (AppHelper.isMobileApp(req.userAgentData) === false) {
+		if (isMobileApp(req.userAgentData) === false) {
 			const { source } = idx(req, (_) => _.userAgentData.userAgent) || {};
 			req.fkUA = `${source || userAgent} FKUA/msite/0.0.1/msite/Mobile`;
 		} else {
@@ -41,7 +40,4 @@ const getCSVData = (req, res) => {
 	res.end(JSON.stringify(pageNum ? { pageData } : { headers, pageData }));
 };
 
-module.exports = {
-	userAgentHandler,
-	getCSVData,
-};
+export { userAgentHandler, getCSVData };

@@ -1,25 +1,27 @@
-const { createLogger, format, transports } = require('winston');
-const { combine, timestamp, label, printf } = format;
+import winston from 'winston';
+const { format } = winston;
+const { combine, label, json } = format;
 
-const myFormat = printf(({ level, message, label, timestamp }) => {
-	return `${timestamp} [${label}] ${level}: ${message}`;
-});
-
-const filename = module.filename.split('/').slice(-1);
-
-const logger = createLogger({
-	level: 'info',
-	format: combine(label({ label: filename }), timestamp(), myFormat, format.json()),
+//
+// Configure the logger for `category1`
+//
+winston.loggers.add('category1', {
+	format: combine(label({ label: 'category one' }), json()),
 	transports: [
-		//
-		// - Write to all logs with level `info` and below to `combined.log`
-		// - Write all logs error (and below) to `error.log`.
-		//
-		new transports.File({ filename: 'error.log', level: 'error' }),
-		new transports.File({ filename: 'combined.log' }),
+		new winston.transports.Console({ level: 'silly' }),
+		new winston.transports.File({ filename: 'somefile.log' }),
 	],
 });
 
-module.exports = {
-	logger,
-};
+//
+// Configure the logger for `category2`
+//
+winston.loggers.add('category2', {
+	format: combine(label({ label: 'category two' }), json()),
+	transports: [new winston.transports.Http({ host: 'localhost', port: 8080 })],
+});
+
+const category1 = winston.loggers.get('category1');
+const category2 = winston.loggers.get('category2');
+
+export { category1, category2 };

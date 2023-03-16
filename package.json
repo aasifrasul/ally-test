@@ -5,6 +5,7 @@
 	"scripts": {
 		"lint:css": "stylelint 'src/**/*.css'",
 		"lint:js": "eslint . --ext .js,.jsx,.ts,.tsx,.hbs",
+		"precommit": "yarn lint:js && Yarn lint:css && yarn prettier",
 		"prettier": "prettier --write './**/*.{js,json,jsx,ts,tsx,css}'",
 		"build": "PROMO_ENV=next1 npm run build:make",
 		"build-prod": "PROMO_ENV=prod npm run build:make",
@@ -17,12 +18,7 @@
 		"build-dev": "NODE_ENV=development BABEL_ENV=development webpack",
 		"test": "nodemon scripts/test.js"
 	},
-	"proxy": "http://my.flipkart.com:3000",
-	"browser": {
-		"fs": false,
-		"path": false,
-		"os": false
-	},
+	"type": "module",
 	"browserslist": {
 		"production": [
 			">0.2%",

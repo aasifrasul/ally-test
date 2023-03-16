@@ -1,4 +1,4 @@
-module.exports = [
+const vendorlibs = [
 	'react',
 	'react-dom',
 	'react-router-dom',
@@ -10,3 +10,5 @@ module.exports = [
 	'redux-thunk',
 	'idx',
 ];
+
+export { vendorlibs };

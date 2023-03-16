@@ -1,9 +1,9 @@
 // Reading the file using default
 // fs npm package
-const fs = require('fs');
+import fs from 'fs';
 
 const fetchCSVasJSON = (filePath) => {
-	csv = fs.readFileSync(filePath);
+	const csv = fs.readFileSync(filePath);
 
 	// Convert the data to String and
 	// split it in an array
@@ -76,6 +76,4 @@ const fetchCSVasJSON = (filePath) => {
 	return { headers, result };
 };
 
-module.exports = {
-	fetchCSVasJSON,
-};
+export { fetchCSVasJSON };

@@ -1,5 +1,5 @@
-const os = require('os');
-const { logger } = require('./Logger');
+import os from 'os';
+import { category1 } from './Logger.js';
 
 const onConnection = (socket) => {
 	const currencyPairs = [
@@ -51,7 +51,7 @@ const onConnection = (socket) => {
 
 	socket.on('fetchOSStats', () => {
 		const data = os.cpus();
-		logger.info(`info ${data}`);
+		category1.info(`info ${data}`);
 		socket.emit('oSStatsData', data);
 	});
 
@@ -69,6 +69,4 @@ const onConnection = (socket) => {
 	});
 };
 
-module.exports = {
-	onConnection,
-};
+export { onConnection };

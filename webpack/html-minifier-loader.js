@@ -1,8 +1,9 @@
-var minify = require('html-minifier').minify;
-var loaderUtils = require('loader-utils');
-const options = loaderUtils.getOptions(this);
+import { minify } from 'html-minifier';
+import { getOptions } from 'loader-utils';
 
-module.exports = function (source) {
+const options = getOptions(this);
+
+const htmlminifier = (source) => {
 	this.cacheable && this.cacheable();
 	var callback = this.async(),
 		defaultOptions = {
@@ -20,3 +21,5 @@ module.exports = function (source) {
 
 	callback(null, minify(source, options || defaultOptions));
 };
+
+export { htmlminifier };

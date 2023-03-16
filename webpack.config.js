@@ -1,15 +1,16 @@
-const path = require('path');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const webpack = require('webpack');
+import path from 'path';
+import webpack from 'webpack';
+import UglifyJsPlugin from 'uglifyjs-webpack-plugin';
+import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin';
+import CompressionPlugin from 'compression-webpack-plugin';
+import CssExtractPlugin from 'mini-css-extract-plugin';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+
 const DEV = process.env.NODE_ENV !== 'production';
 const APP_NAME = 'credit';
-const CompressionPlugin = require('compression-webpack-plugin');
-const CssExtractPlugin = require('mini-css-extract-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-console.log(__dirname);
+
 const CONFIG = {
-	context: path.join(__dirname, 'src'),
+	context: path.resolve('src'),
 	mode: DEV ? 'development' : 'production',
 	target: 'web',
 	parallelism: 1,
@@ -19,7 +20,7 @@ const CONFIG = {
 		app: ['./index.js'],
 	},
 	output: {
-		path: DEV ? path.join(__dirname, 'public') : path.join(__dirname, 'build', APP_NAME),
+		path: DEV ? path.resolve('public') : path.resolve('build', APP_NAME),
 		filename: DEV ? '[name].bundle.js' : '[name].[chunkhash].js',
 		publicPath: DEV ? '/' : '//assets/' + APP_NAME + '/',
 		pathinfo: DEV,
@@ -110,5 +111,7 @@ const CONFIG = {
 		}),
 	],
 };
+
 DEV && (CONFIG.devtool = 'cheap-module-eval-source-map');
-module.exports = CONFIG;
+
+export { CONFIG };

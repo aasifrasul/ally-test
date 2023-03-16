@@ -1,8 +1,8 @@
 /**
  * File contains list of utilities for handling configs and rendering the page
  */
-const idx = require('idx');
-const htmlEncode = require('htmlencode');
+import idx from 'idx';
+import htmlEncode from 'htmlEncode';
 /**
  * Returns the current platform string (android/ios/windows)
  * @param uaData
@@ -118,7 +118,4 @@ const _getValueFromCookie = function (request, paramName) {
 	}
 };
 
-module.exports = {
-	isMobileApp,
-	constructReqDataObject,
-};
+export { isMobileApp, constructReqDataObject };

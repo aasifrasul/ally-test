@@ -1,23 +1,22 @@
 // webpack
-const socketio = require('socket.io');
-const http = require('http');
-const webpack = require('webpack');
-const fs = require('fs');
-const mongoose = require('mongoose');
-const WebpackDevServer = require('webpack-dev-server');
-const cors = require('cors');
-const express = require('express');
-const exphbs = require('express-handlebars');
-const handlebars = require('handlebars');
-const cookieParser = require('cookie-parser');
-const proxy = require('express-http-proxy');
-const path = require('path');
+import { Server } from 'socket.io';
+import http from 'http';
+import webpack from 'webpack';
+import fs from 'fs';
+import path from 'path';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import express from 'express';
+import handlebars from 'handlebars';
+import WebpackDevServer from 'webpack-dev-server';
+import exphbs from 'express-handlebars';
+import cookieParser from 'cookie-parser';
+import proxy from 'express-http-proxy';
 
-const webpackConfig = require('../webpack-configs/webpack.config');
-const AppHelper = require('./helper');
-const { userAgentHandler, getCSVData } = require('./middlewares');
-const { onConnection } = require('./socketConnection');
-const { logger } = require('./Logger');
+import { constructReqDataObject } from './helper.js';
+import { userAgentHandler, getCSVData } from './middlewares.js';
+import { onConnection } from './socketConnection.js';
+import { webpackConfig } from '../webpack-configs/webpack.config.js';
 
 // mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -35,7 +34,7 @@ db.once('open', () => log('connection successfull'));
 */
 
 const generateBuildTime = async function () {
-	fs.writeFile(path.join(__dirname, '..', 'public', 'server', 'buildtime'), new Date().toUTCString(), function (err) {
+	fs.writeFile(path.resolve('', '..', 'public', 'server', 'buildtime'), new Date().toUTCString(), function (err) {
 		err && error('Error occured while writing to generateBuildTime :: ' + err.toString());
 	});
 };
@@ -44,10 +43,10 @@ generateBuildTime();
 
 const getStartTime = () => {
 	if (process.env.NODE_ENV !== 'production') {
-		return fs.readFileSync(path.join(__dirname, '..', 'public', 'server', 'buildtime'), enc);
+		return fs.readFileSync(path.resolve('public', 'server', 'buildtime'), enc);
 	}
 
-	let startTime = fs.readFileSync(path.join(__dirname, 'public', 'server', 'buildtime'), enc);
+	let startTime = fs.readFileSync(path.resolve('', 'public', 'server', 'buildtime'), enc);
 	startTime = new Date(Date.parse(startTime) + 1000000000).toUTCString();
 	return startTime;
 };
@@ -88,7 +87,7 @@ app.get('/api/fetchWineData/:pageNum', getCSVData);
 
 //Set hbs template config
 app.engine('.hbs', exphbs({ extname: '.hbs' }));
-app.set('views', path.join(__dirname, '..', 'public', 'ally-test'));
+app.set('views', path.resolve('', '..', 'public', 'ally-test'));
 app.set('view engine', '.hbs');
 
 handlebars.registerHelper({
@@ -131,7 +130,7 @@ app.use(
 app.all('/*', (req, res) => {
 	const data = {
 		js: bundleConfig,
-		...AppHelper.constructReqDataObject(req),
+		...constructReqDataObject(req),
 		dev: true,
 		layout: false,
 	};
@@ -141,6 +140,6 @@ app.all('/*', (req, res) => {
 //Start the server
 server.listen(port, 'localhost', () => log('webpack-dev-server listening on port 3001'));
 
-const io = socketio(server);
+const io = new Server(server);
 
 io.on('connection', onConnection);

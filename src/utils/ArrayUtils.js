@@ -1,4 +1,4 @@
-const idx = require('idx');
+import idx from 'idx';
 
 const alphabets = [
 	'a',
@@ -64,8 +64,4 @@ const buildNestedWithParentId = (items) => {
 	return { nestedStructure, categories };
 };
 
-module.exports = {
-	alphabets,
-	getArrayCount,
-	buildNestedWithParentId,
-};
+export { alphabets, getArrayCount, buildNestedWithParentId };

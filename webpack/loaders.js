@@ -1,12 +1,13 @@
-const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const babelConfig = require('./babel.config');
-const postCSSConfig = require('./postcss.config');
-var PROD = process.env.NODE_ENV === 'production';
-const getDefaultLocalIdent = require('css-loader/lib/getLocalIdent.js');
+import path from 'path';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+import { config } from './babel.config.js';
+import { postCSSConfig } from './postcss.config.js';
+import getDefaultLocalIdent from 'css-loader/lib/getLocalIdent.js';
+
+const PROD = process.env.NODE_ENV === 'production';
 const appName = process.env.APP_NAME;
 
-var loaders = [
+const loaders = [
 	{
 		test: /\.(ts|tsx)$/,
 		use: [
@@ -15,7 +16,7 @@ var loaders = [
 				options: {
 					useBabel: true,
 					useCache: true,
-					configFileName: path.join(__dirname, '../tsconfig.json'),
+					configFileName: path.resolve('..', 'tsconfig.json'),
 					reportFiles: ['../../../../src/**/*.{ts,tsx}'],
 				},
 			},
@@ -25,7 +26,7 @@ var loaders = [
 		test: /\.(js|jsx)$/,
 		use: {
 			loader: 'babel-loader',
-			options: babelConfig,
+			options: config,
 		},
 		exclude:
 			/node_modules(?!(\/@fpg-modules[/]fk-cp-utils|\/fk-cp-shared|\/@fpg-modules[/]fk-ui-common|\/@fpg-modules|\/rv-*|\/@flipkart\/rv-overlay-otp))/,
@@ -76,7 +77,7 @@ if (PROD) {
 				loader: 'postcss-loader',
 				options: {
 					config: {
-						path: __dirname,
+						path: path.resolve(''),
 					},
 				},
 			},
@@ -109,4 +110,4 @@ if (PROD) {
 	});
 }
 
-module.exports = loaders;
+export { loaders };

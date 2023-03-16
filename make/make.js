@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
-const chalk = require('chalk');
-const webpack = require('webpack');
-const { generateHBS } = require('./make.hbs');
+import chalk from 'chalk';
+import webpack from 'webpack';
+import { generateHBS } from './make.hbs.js';
 /**
  * Get Webpack configs
  */
-const hbsConfig = require('../webpack-configs/hbs.config');
-const clientConfig = require('../webpack-configs/webpack.config');
+import { hbsConfig } from '../webpack-configs/hbs.config.js';
+import { webpackConfig } from '../webpack-configs/webpack.config.js';
 
 const CONFIGTYPE = {
 	CLIENT: 'CLIENT',
@@ -14,7 +14,7 @@ const CONFIGTYPE = {
 };
 
 const getWebpackConfig = (type) => {
-	return type === CONFIGTYPE.CLIENT ? clientConfig : hbsConfig();
+	return type === CONFIGTYPE.CLIENT ? webpackConfig : hbsConfig();
 };
 
 const runWebpack = (type, hash) => {

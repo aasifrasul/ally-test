@@ -1,5 +1,5 @@
 // Importing the async module
-const async = require('async');
+import async from 'async';
 
 // Creating a tasks array
 const tasks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];

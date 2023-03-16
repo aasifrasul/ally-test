@@ -25,7 +25,7 @@ const safelyExecuteFunction = (...params) => {
 	return func(...params);
 };
 
-module.exports = {
+export {
 	isFunction,
 	isArray,
 	isObject,

@@ -1,10 +1,12 @@
 /* eslint-disable no-console */
-var path = require('path');
-var loaders = require('../webpack/loaders');
-var publicPath = require('../webpack/constants').publicPath;
-var htmlminifier = path.join(__dirname, '..', 'webpack', 'html-minifier-loader.js');
-var webpackCommonConfig = require('../webpack/webpack.common');
-var MiniCssExtractPlugin = require('mini-css-extract-plugin');
+import path from 'path';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+
+import { loaders } from '../webpack/loaders.js';
+import { publicPath } from '../webpack/constants.js';
+import { htmlminifier } from '../webpack/html-minifier-loader.js';
+import { getNodeEnv, cleanWebpackPlugin } from '../webpack/webpack.common.js';
+
 var DEV = process.env.NODE_ENV !== 'production';
 
 var htmlminifierQuery = JSON.stringify({
@@ -17,22 +19,22 @@ var htmlminifierQuery = JSON.stringify({
 	},
 });
 
-module.exports = function (env) {
+const hbsConfig = (env) => {
 	console.log('\n\nHBS:: Running as:', process.env.BUILD_TYPE || 'release');
 	console.log('HBS:: ENVIRONMENTS');
 	console.log('--------------------------------------------------');
 	var outputPath = DEV ? 'public' : 'build';
 	return {
-		entry: __dirname + '/hbs.js',
+		entry: '/hbs.js',
 		output: {
-			path: path.join(__dirname, '..', outputPath, 'server'),
+			path: path.resolve('..', outputPath, 'server'),
 			filename: 'hbs.bundle.js',
-			libraryTarget: 'commonjs2',
+			libraryTarget: 'jsonp',
 			jsonpFunction: 'webpackJsonp',
-			publicPath: publicPath,
+			publicPath,
 		},
-		mode: webpackCommonConfig.getNodeEnv(),
-		plugins: [webpackCommonConfig.cleanWebpackPlugin()],
+		mode: getNodeEnv(),
+		plugins: [cleanWebpackPlugin()],
 		// resolve: resolve,
 		optimization: {
 			minimize: false,
@@ -73,3 +75,5 @@ module.exports = function (env) {
 		},
 	};
 };
+
+export { hbsConfig };
