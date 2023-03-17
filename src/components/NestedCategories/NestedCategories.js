@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useReducer } from 'react';
 import Checkbox from '../Common/Checkbox';
 import Spacer from '../Common/Spacer/Spacer1';
 import DropDown from '../Common/DropDown/DropDown';
+import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
 import useFetch from '../../hooks/useFetch';
 
@@ -163,6 +164,7 @@ function DisplayList(props) {
 	return (
 		<>
 			<Spacer size={16} />
+			<ScrollToTop />
 			<DropDown title="Select a category" options={categories} selectHandler={handleCategoriesSelection} />
 			{/*
 				<DropDown

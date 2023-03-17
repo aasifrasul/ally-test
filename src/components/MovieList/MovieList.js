@@ -8,6 +8,8 @@ import pageReducer from '../../reducers/pageReducer';
 import { FetchStoreProvider, useFetchDispatch } from '../../Context/dataFetchContext';
 
 import InputText from '../Common/InputText';
+import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
+
 import Movie from './Movie.js';
 
 import { debounce, throttle } from '../../utils/throttleAndDebounce';
@@ -30,8 +32,8 @@ function DisplayList() {
 	const debouncedHandleChange = debounce(handleChange, 400);
 
 	const { state, errorMessage, updateQueryParams } = useFetch(schema, BASE_URL, queryParams);
-	const { data, isLoading } = state || {};
 
+	const rowsCount = state?.data?.results?.length
 	queryParams.page = pagerObject[schema]?.pageNum || 0;
 
 	useEffect(() => {
@@ -39,7 +41,7 @@ function DisplayList() {
 	}, [queryParams.page]);
 
 	useInfiniteScrollIO(ioObserverRef, () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' }));
-	useImageLazyLoadIO('img[data-src]', data?.results);
+	useImageLazyLoadIO('img[data-src]', rowsCount);
 
 	function handleChange(value) {
 		value = value.trim();
@@ -59,10 +61,11 @@ function DisplayList() {
 					callback={debouncedHandleChange}
 				/>
 			</div>
-			{isLoading && <p className="text-center">isLoading...</p>}
+			{state?.isLoading && <p className="text-center">isLoading...</p>}
+			<ScrollToTop />
 			<div>
 				<div className={styles.container} id="container">
-					{data?.results?.map((item, i) => (
+					{state?.data?.results?.map((item, i) => (
 						<Movie key={item?.id} item={item} styles={styles} />
 					))}
 				</div>

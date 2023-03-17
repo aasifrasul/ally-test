@@ -3,8 +3,9 @@ import React from 'react';
 import cssStyles from './Image.css';
 
 const Image = ({ src, styles, alt, lazy, width = 100, height = 100 }) => {
-	const onLoadCallback = (event) => {
-		event.target?.parentElement?.removeChild(event.target.parentElement.children[1]);
+	const onLoadCallback = (e) => {
+		const loader = e.target?.parentElement?.children[1];
+		loader && e.target?.parentElement?.removeChild(loader);
 	};
 	const img = lazy ? (
 		<img

@@ -4,28 +4,15 @@ import storeFactory from '../store/storeFactory';
 
 import dataFetchReducer from '../reducers/dataFetchReducer';
 
-const initialState = {
-	wineConnoisseur: {
+const initialState = {};
+
+['wineConnoisseur', 'infiniteScroll', 'movieList', 'nestedCategories'].forEach((key) => {
+	initialState[key] = {
 		isLoading: false,
 		isError: false,
 		data: {},
-	},
-	infiniteScroll: {
-		isLoading: false,
-		isError: false,
-		data: {},
-	},
-	movieList: {
-		isLoading: false,
-		isError: false,
-		data: {},
-	},
-	nestedCategories: {
-		isLoading: false,
-		isError: false,
-		data: {},
-	},
-};
+	};
+});
 
 const [FetchStoreProvider, useFetchStore, useFetchDispatch] = storeFactory(dataFetchReducer, initialState);
 

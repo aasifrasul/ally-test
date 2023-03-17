@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useReducer, useCallback } from 'rea
 
 import useFetch from '../../hooks/useFetch';
 import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
-import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
+import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
 import pageReducer from '../../reducers/pageReducer';
 
@@ -46,12 +46,13 @@ const DisplayList = (props) => {
 		return () => observerElement && observer.current.unobserve(observerElement);
 	}, [observerElement]);
 
-	useImageLazyLoadIO('img[data-src]', state?.data?.results);
+	useImageLazyLoadIO('img[data-src]', state?.data?.results?.length);
 
 	return (
 		<div className={styles.scrollParent}>
 			{/*<div className={`${styles.topElement} ${styles.uni}`}></div>*/}
 			<h1 className="text-3xl text-center mt-4 mb-10">All users</h1>
+			<ScrollToTop />
 			<div className={styles.scrollArea}>
 				{state?.data?.results?.map((user, i) => (
 					<>

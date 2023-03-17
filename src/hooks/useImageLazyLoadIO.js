@@ -1,24 +1,23 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 
-export const useImageLazyLoadIO = (imgSelector, items) => {
+export const useImageLazyLoadIO = (imgSelector, count) => {
 	const imageObserver = useCallback((node) => {
 		const intObs = new IntersectionObserver((entries) => {
 			entries.forEach((entry) => {
 				if (entry.intersectionRatio > 0) {
 					const currentImg = entry.target;
-					const newImgSrc = currentImg.dataset.src;
+					const ImageSrc = currentImg.dataset.src;
 					currentImg.removeAttribute('data-src');
 					// only swap out the image source if the new url exists
-					if (!newImgSrc) {
-						console.error('Image source is invalid');
-					} else {
-						window.requestIdleCallback(
+
+					ImageSrc &&
+						requestIdleCallback(
 							() => {
-								currentImg.src = newImgSrc;
+								currentImg.src = ImageSrc;
 							},
-							{ timeout: 200 },
+							{ timeout: 1000 }
 						);
-					}
+
 					intObs.unobserve(node); // detach the observer when done
 				}
 			});
@@ -35,7 +34,7 @@ export const useImageLazyLoadIO = (imgSelector, items) => {
 		return () => {
 			imageRef.current = null;
 		};
-	}, [imageObserver, imageRef, imgSelector, items]);
+	}, [imageObserver, imageRef, count]);
 };
 
 export default useImageLazyLoadIO;

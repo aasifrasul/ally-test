@@ -1,0 +1,57 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-image: linear-gradient(#d16ba5,
+            #e17497,
+            #eb828b,
+            #ee9183,
+            #eda280,
+            #f1ad7d,
+            #f3b97b,
+            #f3c67b,
+            #f8d273,
+            #fbdf6b,
+            #f9ec64,
+            #f4fb5f);
+}
+
+main {
+    height: 200vmin;
+}
+
+h1 {
+    color: white;
+    font-family: system-ui, sans-serif;
+    font-size: 48px;
+    text-align: center;
+}
+
+.scrollToTopBtn {
+    background-color: black;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 48px;
+    width: 48px;
+
+    /* place it at the bottom right corner */
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    /* keep it at the top of everything else */
+    z-index: 100;
+    /* hide with opacity */
+    opacity: 0;
+    /* also add a translate effect */
+    transform: translateY(100px);
+    /* and a transition */
+    transition: all 0.5s ease;
+}
+
+.showBtn {
+    opacity: 1;
+    transform: translateY(0);
+}
