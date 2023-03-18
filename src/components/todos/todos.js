@@ -1,92 +1,71 @@
 import React from 'react';
-import { connect } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
 import CombinedRefCheckbox from '../Common/Checkbox/CombinedRefCheckbox';
 import InputText from '../Common/InputText';
 
-class Todos extends React.Component {
-	constructor(props) {
-		super(props);
-		this.inputTextRef = React.createRef('');
-		this.searchRef = React.createRef('');
-		this.isCheckedRef = React.createRef(false);
+const Todos = (props) => {
+	const inputTextRef = React.useRef('');
+	const searchRef = React.useRef('');
+	const isCheckedRef = React.useRef(false);
+	const [showCompleted, setShowCompleted] = React.useState(false);
+	const todos = useSelector((state) => state.todos);
 
-		this.props = props;
+	const dispatch = useDispatch();
 
-		this.handleSubmit = this.handleSubmit.bind(this);
-	}
-
-	handleSubmit(event) {
+	const handleSubmit = (event) => {
 		event.preventDefault();
-		if (this.inputTextRef.current) {
-			this.dispatch('TODO_ADD_NEW', { value: this.inputTextRef.current });
-			this.inputTextRef.current = '';
+		if (inputTextRef.current) {
+			fireDispatch('TODO_ADD_NEW', { value: inputTextRef.current });
+			inputTextRef.current = '';
 		}
-	}
-
-	handleRemoveFromComplete = (key) => this.dispatch('TODO_UNCOMPLETE', { id: key });
-
-	handleDelete = (key) => this.dispatch('TODO_DELETE', { id: key });
-
-	handleComplete = (key) => this.dispatch('TODO_COMPLETE', { id: key });
-
-	dispatch = (type, payload) => this.props.dispatch({ type, payload });
-
-	handleShowCompleted = () => {
-		this.forceUpdate();
 	};
 
-	render() {
-		const todosHtml = [];
-		this.props.todos.forEach((item, key) => {
-			const { text, complete } = item;
-			const include = this.isCheckedRef.current ? complete : !complete;
-			include &&
-				todosHtml.push(
-					<div key={key}>
-						<span>{text}</span>
-						<span onClick={() => this.handleDelete(key)}> Delete </span>
-						<span onClick={() => this.handleComplete(key)}> Complete </span>
-					</div>,
-				);
-		});
+	const handleRemoveFromComplete = (key) => fireDispatch('TODO_UNCOMPLETE', { id: key });
 
-		return (
-			<>
-				<form onSubmit={this.handleSubmit}>
-					<InputText
-						label="Search Item:"
-						defaultValue={this.searchRef.current}
-						inputTextRef={this.searchRef}
-					/>
-					<CombinedRefCheckbox
-						name="Show Completed:"
-						label="Show Completed:"
-						isCheckedRef={this.isCheckedRef}
-						callback={() => this.handleShowCompleted()}
-					/>
-					<InputText
-						label="Add Item:"
-						defaultValue={this.inputTextRef.current}
-						inputTextRef={this.inputTextRef}
-					/>
-					<input type="submit" value="Submit" />
-				</form>
-				<div>All the Todos</div>
-				<div>{todosHtml}</div>
-			</>
-		);
-	}
-}
+	const handleDelete = (key) => fireDispatch('TODO_DELETE', { id: key });
 
-const mapStateToProps = (state) => {
-	return { todos: state.todoReducer };
+	const handleComplete = (key) => fireDispatch('TODO_COMPLETE', { id: key });
+
+	const fireDispatch = (type, payload) => dispatch({ type, payload });
+
+	const handleShowCompleted = () => () => setShowCompleted((currentShowCompleted) => !currentShowCompleted);
+
+	const todosHtml = [];
+	todos.forEach((item, key) => {
+		const { text, complete } = item;
+		const include = showCompleted ? complete : !complete;
+		include &&
+			todosHtml.push(
+				<div key={key}>
+					<span>{text}</span>
+					<span onClick={() => handleDelete(key)}> Delete </span>
+					{complete ? (
+						<span onClick={() => handleRemoveFromComplete(key)}> UnComplete </span>
+					) : (
+						<span onClick={() => handleComplete(key)}> Complete </span>
+					)}
+				</div>
+			);
+	});
+
+	return (
+		<>
+			<form onSubmit={handleSubmit}>
+				<InputText label="Search Item:" defaultValue={searchRef.current} inputTextRef={searchRef} />
+				<CombinedRefCheckbox
+					name="Show Completed:"
+					label="Show Completed:"
+					isCheckedRef={isCheckedRef}
+					callback={handleShowCompleted()}
+				/>
+				<InputText label="Add Item:" defaultValue={inputTextRef.current} inputTextRef={inputTextRef} />
+				<input type="submit" value="Submit" />
+			</form>
+			<div>All the Todos</div>
+			<div>{todosHtml}</div>
+		</>
+	);
 };
 
-const mapDispatchToProps = (dispatch) => {
-	return {
-		dispatch,
-	};
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(Todos);
+export default Todos;

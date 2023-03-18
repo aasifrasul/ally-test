@@ -18,15 +18,14 @@ const CombinedRefCheckbox = forwardRef(
 			}
 		};
 
-		const handleChecked = () => () =>
-			setChecked(() => {
-				return !checked;
-			});
+		const handleChecked = () => (e) => {
+			safelyExecuteFunction(callback, !checked);
+			setChecked((isChecked) => !isChecked);
+		};
 
 		useEffect(() => {
 			setCheckedInput(checked);
 			isCheckedRef.current = checked;
-			safelyExecuteFunction(callback, checked);
 		}, [checked]);
 
 		return (
@@ -46,7 +45,7 @@ const CombinedRefCheckbox = forwardRef(
 				</label>
 			</div>
 		);
-	},
+	}
 );
 
 export default CombinedRefCheckbox;

@@ -6,18 +6,16 @@ const todoReducer = (state = defaultState, action) => {
 		case 'TODO_COMPLETE':
 			return state.map((todo, key) => {
 				if (key === payload.id) {
-					return { ...todo, complete: true };
-				} else {
-					return todo;
+					todo.complete = true;
 				}
+				return todo;
 			});
 		case 'TODO_UNCOMPLETE':
 			return state.map((todo, key) => {
 				if (key === payload.id) {
-					return { ...todo, complete: false };
-				} else {
-					return todo;
+					todo.complete = false;
 				}
+				return todo;
 			});
 		case 'TODO_SHOW_UNCOMPLETED':
 			return state.filter((todo) => !todo.complete);
