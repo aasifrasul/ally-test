@@ -9,9 +9,9 @@ import { FetchStoreProvider, useFetchDispatch } from '../../Context/dataFetchCon
 
 import styles from './WineConnoisseur.css';
 
-const baseURL = `http://localhost:3100/api/fetchWineData/`;
+import { constants } from '../../utils/Constants';
 
-const schema = 'wineConnoisseur';
+const { baseURL, schema } = constants?.wineConnoisseur;
 
 function DisplayList(props) {
 	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });

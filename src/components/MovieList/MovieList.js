@@ -10,19 +10,14 @@ import { FetchStoreProvider, useFetchDispatch } from '../../Context/dataFetchCon
 import InputText from '../Common/InputText';
 import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
+import { constants } from '../../utils/Constants';
 import Movie from './Movie.js';
 
-import { debounce, throttle } from '../../utils/throttleAndDebounce';
+import { debounce } from '../../utils/throttleAndDebounce';
 
 import styles from './MovieList.css';
 
-const BASE_URL = `https://api.themoviedb.org/3/discover/movie`;
-const schema = 'movieList';
-const queryParams = {
-	page: 1,
-	sort_by: 'popularity.desc',
-	api_key: '04c35731a5ee918f014970082a0088b1',
-};
+const { BASE_URL, schema, queryParams } = constants?.movieList;
 
 function DisplayList() {
 	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 1 } });

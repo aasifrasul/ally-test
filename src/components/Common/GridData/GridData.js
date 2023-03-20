@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactDataGrid from 'react-data-grid';
 import socketClient from 'socket.io-client';
 
-import { getArrayCount } from '../../../utils/typeChecking';
-
 const socket = socketClient.connect('http://localhost:3100');
 
 const columns = [
