@@ -18,15 +18,14 @@ const CombinedRefCheckbox = forwardRef(
 			}
 		};
 
-		const handleChecked = () => () =>
-			setChecked(() => {
-				return !checked;
-			});
+		const handleChecked = () => (e) => {
+			safelyExecuteFunction(callback, null, !checked);
+			setChecked((isChecked) => !isChecked);
+		};
 
 		useEffect(() => {
 			setCheckedInput(checked);
 			isCheckedRef.current = checked;
-			safelyExecuteFunction(callback, checked);
 		}, [checked]);
 
 		return (

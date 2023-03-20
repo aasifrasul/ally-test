@@ -15,7 +15,7 @@ export const useImageLazyLoadIO = (imgSelector, count) => {
 							() => {
 								currentImg.src = ImageSrc;
 							},
-							{ timeout: 1000 }
+							{ timeout: 1000 },
 						);
 
 					intObs.unobserve(node); // detach the observer when done

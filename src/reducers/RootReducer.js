@@ -4,7 +4,7 @@ import todoReducer from './todoReducer';
 import dataFetchReducer from './dataFetchReducer';
 
 const RootReducer = combineReducers({
-	todoReducer,
+	todos: todoReducer,
 	dataFetchReducer,
 });
 

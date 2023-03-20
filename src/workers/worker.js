@@ -14,7 +14,7 @@ const workerCode = () => {
 						});
 			}
 		},
-		false
+		false,
 	);
 };
 
