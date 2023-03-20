@@ -1,7 +1,9 @@
 import React, { Component, Fragment } from 'react';
 
 import InputText from '../Common/InputText';
+import { debounce } from '../../utils/throttleAndDebounce';
 
+import { constants } from '../../utils/Constants';
 import './styles.css';
 
 const Autocomplete = (props) => {
@@ -14,10 +16,11 @@ const Autocomplete = (props) => {
 
 	const onChange = (e) => {
 		const { suggestions } = props;
-		const searchText = e.currentTarget.value;
+		const searchText = e.target.value;
+		const searchTextLowerCase = searchText.toLowerCase();
 
 		const filteredSuggestions = suggestions.filter(
-			(suggestion) => suggestion.toLowerCase().indexOf(searchText?.toLowerCase()) > -1,
+			(suggestion) => suggestion.toLowerCase().indexOf(searchTextLowerCase) > -1,
 		);
 
 		setActiveSuggestion(0);
@@ -27,7 +30,7 @@ const Autocomplete = (props) => {
 	};
 
 	const onClick = (e) => {
-		inputTextRef.current = e.currentTarget.innerText;
+		inputTextRef.current = e.target.innerText;
 		setActiveSuggestion(0);
 		setFilteredSuggestions(() => []);
 		setShowSuggestions(false);
@@ -51,6 +54,8 @@ const Autocomplete = (props) => {
 			setActiveSuggestion((curActiveSuggestion) => curActiveSuggestion + 1);
 		}
 	};
+
+	const debouncedOnChange = debounce(onChange, constants?.autoComplete?.debounceDelay);
 
 	if (showSuggestions && userInput) {
 		if (filteredSuggestions.length) {
@@ -82,7 +87,12 @@ const Autocomplete = (props) => {
 
 	return (
 		<Fragment>
-			<InputText label="Search Item:" inputTextRef={inputTextRef} onChange={onChange} onKeyDown={onKeyDown} />
+			<InputText
+				label="Search Item:"
+				inputTextRef={inputTextRef}
+				onChange={debouncedOnChange}
+				onKeyDown={onKeyDown}
+			/>
 			{suggestionsListHtml}
 		</Fragment>
 	);

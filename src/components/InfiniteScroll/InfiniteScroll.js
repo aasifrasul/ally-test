@@ -10,19 +10,10 @@ import { FetchStoreProvider } from '../../Context/dataFetchContext';
 
 import UserCard from './UserCard';
 
+import { constants } from '../../utils/Constants';
 import styles from './InfiniteScroll.css';
 
-const TOTAL_PAGES = 25;
-const PAGE_SIZE = 10;
-const BASE_URL = `https://randomuser.me/api/`;
-
-const schema = 'infiniteScroll';
-
-const queryParams = {
-	page: 1,
-	results: PAGE_SIZE,
-	seed: 'asf',
-};
+const { TOTAL_PAGES, BASE_URL, schema, queryParams } = constants?.infiniteScroll;
 
 const DisplayList = (props) => {
 	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 1 } });

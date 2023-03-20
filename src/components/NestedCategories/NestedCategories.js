@@ -7,13 +7,15 @@ import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
 import useFetch from '../../hooks/useFetch';
 
-import { getArrayCount, buildNestedWithParentId, alphabets } from '../../utils/ArrayUtils';
-
+import { buildNestedWithParentId, alphabets } from '../../utils/ArrayUtils';
+import { getArrayCount } from '../../utils/typeChecking';
 import { FetchStoreProvider } from '../../Context/dataFetchContext';
+
+import { constants } from '../../utils/Constants';
 
 import styles from './NestedCategories.css';
 
-const schema = 'nestedCategories';
+const { url, schema } = constants?.nestedCategories;
 
 function DisplayList(props) {
 	const [categories, setCategories] = useState([]);
@@ -29,7 +31,6 @@ function DisplayList(props) {
 	const categoriesHtml = [];
 	let count = 0;
 
-	const url = `https://okrcentral.github.io/sample-okrs/db.json`;
 	const { state, errorMessage, updateUrl } = useFetch(schema, url);
 
 	useEffect(() => {

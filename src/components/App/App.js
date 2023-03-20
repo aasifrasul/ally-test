@@ -31,10 +31,11 @@ const Modal = lazy(() => import(/* webpackChunkName: "Modal" */ '../Common/Modal
 import Spinner from '../Common/Spinner/Spinner';
 import ErrorBoundary from '../Common/ErrorBoundary/ErrorBoundary';
 
+import { constants } from '../../utils/Constants';
 import styles from './App.css';
 
 Autocomplete.props = {};
-Autocomplete.props.suggestions = ['Oranges', 'Apples', 'Banana', 'Kiwi', 'Mango'];
+Autocomplete.props.suggestions = constants?.autoComplete?.initialFeed;
 
 const pages = {
 	Counter: Counter,
