@@ -24,6 +24,7 @@ const TicTacToe = lazy(() => import(/* webpackChunkName: "TicTacToe" */ '../TicT
 const InfiniteScroll = lazy(() => import(/* webpackChunkName: "InfiniteScroll" */ '../InfiniteScroll/InfiniteScroll'));
 const Counter = lazy(() => import(/* webpackChunkName: "Counter" */ '../Counter/Counter'));
 const Contacts = lazy(() => import(/* webpackChunkName: "Contacts" */ '../Contacts/view'));
+const Autocomplete = lazy(() => import(/* webpackChunkName: "Contacts" */ '../Autocomplete/Autocomplete'));
 
 const Modal = lazy(() => import(/* webpackChunkName: "Modal" */ '../Common/Modal/Modal'));
 
@@ -31,6 +32,9 @@ import Spinner from '../Common/Spinner/Spinner';
 import ErrorBoundary from '../Common/ErrorBoundary/ErrorBoundary';
 
 import styles from './App.css';
+
+Autocomplete.props = {};
+Autocomplete.props.suggestions = ['Oranges', 'Apples', 'Banana', 'Kiwi', 'Mango'];
 
 const pages = {
 	Counter: Counter,
@@ -46,6 +50,7 @@ const pages = {
 	CurrencyStream: CurrencyStream,
 	MovieList: MovieList,
 	InfiniteScroll: InfiniteScroll,
+	Autocomplete: Autocomplete,
 };
 
 function App(props) {
@@ -81,7 +86,7 @@ function App(props) {
 				path={`/${name}`}
 				component={() => (
 					<Header>
-						<Component />
+						<Component {...Component.props} />
 					</Header>
 				)}
 			/>,

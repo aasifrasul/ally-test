@@ -17,5 +17,5 @@ self.addEventListener(
 					});
 		}
 	},
-	false
+	false,
 );

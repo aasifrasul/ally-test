@@ -45,7 +45,7 @@ const Todos = (props) => {
 					) : (
 						<span onClick={() => handleComplete(key)}> Complete </span>
 					)}
-				</div>
+				</div>,
 			);
 	});
 
@@ -59,7 +59,7 @@ const Todos = (props) => {
 					isCheckedRef={isCheckedRef}
 					callback={handleShowCompleted()}
 				/>
-				<InputText label="Add Item:" defaultValue={inputTextRef.current} inputTextRef={inputTextRef} />
+				<InputText label="Add Item:" inputTextRef={inputTextRef} />
 				<input type="submit" value="Submit" />
 			</form>
 			<div>All the Todos</div>

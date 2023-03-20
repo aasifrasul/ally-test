@@ -33,7 +33,7 @@ function DisplayList() {
 
 	const { state, errorMessage, updateQueryParams } = useFetch(schema, BASE_URL, queryParams);
 
-	const rowsCount = state?.data?.results?.length
+	const rowsCount = state?.data?.results?.length;
 	queryParams.page = pagerObject[schema]?.pageNum || 0;
 
 	useEffect(() => {
@@ -43,8 +43,8 @@ function DisplayList() {
 	useInfiniteScrollIO(ioObserverRef, () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' }));
 	useImageLazyLoadIO('img[data-src]', rowsCount);
 
-	function handleChange(value) {
-		value = value.trim();
+	function handleChange(e) {
+		const value = searchRef.current?.trim();
 		searchRef.current = null;
 		ioObserverRef.current = null;
 		console.log(value);
@@ -54,12 +54,7 @@ function DisplayList() {
 	return (
 		<div>
 			<div>
-				<InputText
-					label="Search Item:"
-					defaultValue={searchRef.current}
-					inputTextRef={searchRef}
-					callback={debouncedHandleChange}
-				/>
+				<InputText label="Search Item:" inputTextRef={searchRef} onChange={debouncedHandleChange} />
 			</div>
 			{state?.isLoading && <p className="text-center">isLoading...</p>}
 			<ScrollToTop />
