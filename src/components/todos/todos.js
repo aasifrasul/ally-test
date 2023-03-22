@@ -4,12 +4,15 @@ import { useSelector, useDispatch } from 'react-redux';
 import CombinedRefCheckbox from '../Common/Checkbox/CombinedRefCheckbox';
 import InputText from '../Common/InputText';
 
+const selectTodos = state => state.todos
+
 const Todos = (props) => {
 	const inputTextRef = React.useRef('');
 	const searchRef = React.useRef('');
 	const isCheckedRef = React.useRef(false);
 	const [showCompleted, setShowCompleted] = React.useState(false);
-	const todos = useSelector((state) => state.todos);
+	//const todos = useSelector((state) => state.todos);
+	const todos = useSelector(selectTodos);
 
 	const dispatch = useDispatch();
 

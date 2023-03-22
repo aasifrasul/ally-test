@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { constants } from '../../utils/Constants';
 
-const { allKeys, allowedOptions } = constants?.tictactoe;
+const { allPossibleWinningCombo, allowedOptions } = constants?.tictactoe;
 
 const getElementById = (id) => id && document.querySelector(`#${id}`);
 const getValueById = (id) => id && getElementById(id)?.value;
@@ -18,7 +18,7 @@ export default function tictactoe(props) {
 		const checkForStreak = (id1, id2, id3) =>
 			value && [getValueById(id1), getValueById(id2), getValueById(id3)].every((key) => key === value);
 
-		allKeys.forEach((keys) => {
+		allPossibleWinningCombo.forEach((keys) => {
 			if (!isAStreak) {
 				isAStreak = checkForStreak(...keys);
 				isAStreak &&
