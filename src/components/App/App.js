@@ -24,7 +24,8 @@ const TicTacToe = lazy(() => import(/* webpackChunkName: "TicTacToe" */ '../TicT
 const InfiniteScroll = lazy(() => import(/* webpackChunkName: "InfiniteScroll" */ '../InfiniteScroll/InfiniteScroll'));
 const Counter = lazy(() => import(/* webpackChunkName: "Counter" */ '../Counter/Counter'));
 const Contacts = lazy(() => import(/* webpackChunkName: "Contacts" */ '../Contacts/view'));
-const Autocomplete = lazy(() => import(/* webpackChunkName: "Contacts" */ '../Autocomplete/Autocomplete'));
+const Autocomplete = lazy(() => import(/* webpackChunkName: "Autocomplete" */ '../Autocomplete/Autocomplete'));
+const NewsFeed = lazy(() => import(/* webpackChunkName: "NewsFeed" */ '../NewsFeed'));
 
 const Modal = lazy(() => import(/* webpackChunkName: "Modal" */ '../Common/Modal/Modal'));
 
@@ -52,6 +53,7 @@ const pages = {
 	MovieList: MovieList,
 	InfiniteScroll: InfiniteScroll,
 	Autocomplete: Autocomplete,
+	NewsFeed: NewsFeed,
 };
 
 function App(props) {
