@@ -1,4 +1,5 @@
 const idx = require('idx');
+const { isArray } = require('./typeChecking');
 
 const alphabets = [
 	'a',
@@ -30,6 +31,8 @@ const alphabets = [
 ];
 
 const getArrayCount = (arr) => idx(arr, (_) => _.length) || 0;
+
+const dupeArray = (arr) => isArray(arr) && Array.prototype.slice.call(arr);
 
 const buildNestedWithParentId = (items) => {
 	const nestedStructure = Object.create(null);
@@ -65,6 +68,7 @@ const buildNestedWithParentId = (items) => {
 };
 
 module.exports = {
+	dupeArray,
 	alphabets,
 	getArrayCount,
 	buildNestedWithParentId,

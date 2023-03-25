@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import CombinedRefCheckbox from '../Common/Checkbox/CombinedRefCheckbox';
 import InputText from '../Common/InputText';
 
-const selectTodos = state => state.todos
+const selectTodos = (state) => state.todos;
 
 const Todos = (props) => {
 	const inputTextRef = React.useRef('');
@@ -24,11 +24,11 @@ const Todos = (props) => {
 		}
 	};
 
-	const handleRemoveFromComplete = (key) => fireDispatch('TODO_UNCOMPLETE', { id: key });
+	const handleRemoveFromComplete = (id) => fireDispatch('TODO_TOGGLE', { id });
 
-	const handleDelete = (key) => fireDispatch('TODO_DELETE', { id: key });
+	const handleDelete = (id) => fireDispatch('TODO_DELETE', { id });
 
-	const handleComplete = (key) => fireDispatch('TODO_COMPLETE', { id: key });
+	const handleComplete = (id) => fireDispatch('TODO_TOGGLE', { id });
 
 	const fireDispatch = (type, payload) => dispatch({ type, payload });
 
@@ -36,19 +36,19 @@ const Todos = (props) => {
 
 	const todosHtml = [];
 	todos.forEach((item, key) => {
-		const { text, complete } = item;
+		const { id, text, complete } = item;
 		const include = showCompleted ? complete : !complete;
 		include &&
 			todosHtml.push(
-				<div key={key}>
+				<div key={id}>
 					<span>{text}</span>
-					<span onClick={() => handleDelete(key)}> Delete </span>
+					<span onClick={() => handleDelete(id)}> Delete </span>
 					{complete ? (
-						<span onClick={() => handleRemoveFromComplete(key)}> UnComplete </span>
+						<span onClick={() => handleRemoveFromComplete(id)}> UnComplete </span>
 					) : (
-						<span onClick={() => handleComplete(key)}> Complete </span>
+						<span onClick={() => handleComplete(id)}> Complete </span>
 					)}
-				</div>,
+				</div>
 			);
 	});
 

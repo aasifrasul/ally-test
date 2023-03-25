@@ -1,18 +1,15 @@
-import { createStore, applyMiddleware } from 'redux';
-import thunk from 'redux-thunk';
-import { composeWithDevTools } from 'redux-devtools-extension';
+import { configureStore } from '@reduxjs/toolkit';
 
-import RootReducer from '../reducers/RootReducer';
+import todoReducer from '../reducers/todoReducer';
+import dataFetchReducer from '../reducers/dataFetchReducer';
+import feedReducer from '../reducers/feedReducer';
 
-const composedEnhancer = composeWithDevTools(
-	// EXAMPLE: Add whatever middleware you actually want to use here
-	// applyMiddleware(print1, print2, print3)
-	applyMiddleware(thunk)
-	// other store enhancers if any
-);
-
-const store = createStore(RootReducer, composedEnhancer);
-console.log('Initial state: ', store.getState());
-const unsubscribe = store.subscribe(() => console.log('State after dispatch: ', store.getState()));
+const store = configureStore({
+	reducer: {
+		todos: todoReducer,
+		dataFetchReducer,
+		feedReducer,
+	},
+});
 
 export default store;
