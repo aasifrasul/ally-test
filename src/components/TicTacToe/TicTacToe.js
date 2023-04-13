@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
+import { Button } from 'semantic-ui-react';
 
 import { constants } from '../../utils/Constants';
 
 const { allPossibleWinningCombo, allowedOptions } = constants?.tictactoe;
 
-const getElementById = (id) => id && document.querySelector(`#${id}`);
-const getValueById = (id) => id && getElementById(id)?.value;
-
 let count = 0;
 let isAStreak = false;
+
+const getElementById = (id) => id && document.querySelector(`#${id}`);
+const getValueById = (id) => id && getElementById(id)?.value;
+const getAllNodes = () => document.querySelectorAll('[id^="idx-"]');
 
 export default function tictactoe(props) {
 	const [value, setValue] = useState('');
@@ -28,7 +30,7 @@ export default function tictactoe(props) {
 			}
 		});
 
-		isAStreak && document.querySelectorAll('[id^="idx-"]').forEach((node) => node.setAttribute('readonly', true));
+		isAStreak && getAllNodes().forEach((node) => node.setAttribute('readonly', true));
 	};
 
 	const handleChange = (key) => (e) => {
@@ -51,6 +53,16 @@ export default function tictactoe(props) {
 		currentElement.setAttribute('readonly', true);
 		setValue(() => currentValue);
 		setChance(() => !chance);
+	};
+
+	const handleRestart = () => (e) => {
+		getAllNodes().forEach((node) => {
+			node.value = '';
+			node.style.backgroundColor = 'white';
+			node.removeAttribute('readonly');
+		});
+		setValue('');
+		setChance(0);
 	};
 
 	React.useEffect(() => {
@@ -77,7 +89,12 @@ export default function tictactoe(props) {
 
 	return (
 		<>
-			<div>Player {chance + 1}</div>
+			<h3>
+				<Button primary onClick={handleRestart()}>
+					Re-start
+				</Button>
+			</h3>
+			<h3>Player {chance + 1}</h3>
 			{html}
 		</>
 	);

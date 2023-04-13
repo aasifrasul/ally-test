@@ -26,6 +26,7 @@ const Counter = lazy(() => import(/* webpackChunkName: "Counter" */ '../Counter/
 const Contacts = lazy(() => import(/* webpackChunkName: "Contacts" */ '../Contacts/view'));
 const Autocomplete = lazy(() => import(/* webpackChunkName: "Autocomplete" */ '../Autocomplete/Autocomplete'));
 const NewsFeed = lazy(() => import(/* webpackChunkName: "NewsFeed" */ '../NewsFeed'));
+const FlipTheCard = lazy(() => import(/* webpackChunkName: "FlipTheCard" */ '../FlipTheCard'));
 
 const Modal = lazy(() => import(/* webpackChunkName: "Modal" */ '../Common/Modal/Modal'));
 
@@ -54,6 +55,7 @@ const pages = {
 	InfiniteScroll: InfiniteScroll,
 	Autocomplete: Autocomplete,
 	NewsFeed: NewsFeed,
+	FlipTheCard: FlipTheCard,
 };
 
 function App(props) {

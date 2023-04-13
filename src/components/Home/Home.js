@@ -5,9 +5,9 @@ const Home = (props) => {
 	const linksHtml = [];
 	for (let name in props.pages) {
 		linksHtml.push(
-			<li>
+			<li key={name}>
 				<Link to={`/${name}`}>{name}</Link>
-			</li>,
+			</li>
 		);
 	}
 
