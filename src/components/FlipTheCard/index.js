@@ -5,7 +5,7 @@ import { MOCK, blankCard } from './mock';
 
 import styles from './styles.css';
 
-const flipCards = shuffle(MOCK);
+let flipCards = shuffle(MOCK);
 
 export default function FlipTheCard() {
 	const [clickedCards, setClickedCards] = React.useState([]);
@@ -39,19 +39,32 @@ export default function FlipTheCard() {
 		}
 	}, [clickedCards.length]);
 
+	const restart = () => {
+		flipCards.forEach((_, index) => {
+			console.log(flipCards[index] == MOCK[index]);
+		});
+		flipCards = shuffle(MOCK);
+		setClickedCards(() => []);
+	};
+
 	return (
-		<div className={styles.parent}>
-			{flipCards.map(({ pic, display, name }, index) => {
-				return display ? (
-					<div className={styles.child}>
-						<img src={pic} />
-					</div>
-				) : (
-					<div className={styles.child}>
-						<img src={blankCard} onClick={() => handleClick(index)} />
-					</div>
-				);
-			})}
-		</div>
+		<>
+			<div className={styles.center}>
+				<button onClick={() => restart()}>Restart</button>
+			</div>
+			<div className={styles.parent}>
+				{flipCards.map(({ pic, display, name }, index) => {
+					return display ? (
+						<div className={styles.child}>
+							<img src={pic} />
+						</div>
+					) : (
+						<div className={styles.child}>
+							<img src={blankCard} onClick={() => handleClick(index)} />
+						</div>
+					);
+				})}
+			</div>
+		</>
 	);
 }

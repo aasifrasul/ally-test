@@ -3,6 +3,8 @@ import { Button } from 'semantic-ui-react';
 
 import { constants } from '../../utils/Constants';
 
+import styles from './styles.css'
+
 const { allPossibleWinningCombo, allowedOptions } = constants?.tictactoe;
 
 let count = 0;
@@ -89,7 +91,7 @@ export default function tictactoe(props) {
 
 	return (
 		<>
-			<h3>
+			<h3 className={styles.center}>
 				<Button primary onClick={handleRestart()}>
 					Re-start
 				</Button>
