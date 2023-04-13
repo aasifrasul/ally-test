@@ -1,5 +1,6 @@
 const idx = require('idx');
 const { isArray } = require('./typeChecking');
+const { deepClone } = require('./common');
 
 const alphabets = [
 	'a',
@@ -67,9 +68,28 @@ const buildNestedWithParentId = (items) => {
 	return { nestedStructure, categories };
 };
 
+const shuffle = (array) => {
+	if (!isArray(array)) {
+		throw new Error('Please provide a valid array');
+	}
+
+	const newArray = deepClone(array);
+
+	newArray.sort(function () {
+		return Math.random() - 0.5;
+	});
+
+	return newArray;
+};
+
+const arrayChunks = (a, size) =>
+	Array.from(new Array(Math.ceil(a.length / size)), (_, i) => a.slice(i * size, i * size + size));
+
 module.exports = {
 	dupeArray,
 	alphabets,
 	getArrayCount,
 	buildNestedWithParentId,
+	shuffle,
+	arrayChunks,
 };

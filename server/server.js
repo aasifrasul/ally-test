@@ -15,7 +15,7 @@ const path = require('path');
 
 const webpackConfig = require('../webpack-configs/webpack.config');
 const AppHelper = require('./helper');
-const { userAgentHandler, getCSVData } = require('./middlewares');
+const { userAgentHandler, getCSVData, fetchImage, fetchWebWorker, fetchApiWorker } = require('./middlewares');
 const { onConnection } = require('./socketConnection');
 const { logger } = require('./Logger');
 
@@ -65,26 +65,14 @@ const nocache = function (res) {
 	});
 };
 
-const webWorkerContent = fs.readFileSync(`./src/utils/WebWorker.js`, enc);
-const apiWorkerContent = fs.readFileSync(`./src/workers/apiWorker.js`, enc);
-
 const app = express();
 // port to use
 const port = 3100;
 
-app.get('/WebWorker.js', function (req, res) {
-	res.set('Content-Type', `application/javascript; charset=${enc.encoding}`);
-	nocache(res);
-	res.end(webWorkerContent);
-});
-
-app.get('/apiWorker.js', function (req, res) {
-	res.set('Content-Type', `application/javascript; charset=${enc.encoding}`);
-	nocache(res);
-	res.end(apiWorkerContent);
-});
-
+app.get('/WebWorker.js', fetchWebWorker);
+app.get('/apiWorker.js', fetchApiWorker);
 app.get('/api/fetchWineData/:pageNum', getCSVData);
+app.get('/images/*', fetchImage);
 
 //Set hbs template config
 app.engine('.hbs', exphbs({ extname: '.hbs' }));
@@ -108,7 +96,7 @@ const devServer = new WebpackDevServer(webpack(webpackConfig), {
 	publicPath,
 });
 
-devServer.listen(port + 1, 'localhost', () => log('webpack-dev-server listening on port 3001'));
+devServer.listen(port + 1, 'localhost', () => log(`webpack-dev-server listening on port ${port + 1}`));
 
 const server = http.createServer(app);
 
@@ -120,13 +108,13 @@ server.on('request', () => log('server.request'));
 const bundleConfig = ['en', 'vendor', 'app'].map((i) => `${publicPath}${i}.bundle.js`);
 
 // start the express server
-
 app.use(
 	'/public',
 	proxy(`localhost:${port + 1}`, {
 		proxyReqPathResolver: (req) => req.originalUrl,
-	}),
+	})
 );
+//app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.all('/*', (req, res) => {
 	const data = {
@@ -139,7 +127,7 @@ app.all('/*', (req, res) => {
 });
 
 //Start the server
-server.listen(port, 'localhost', () => log('webpack-dev-server listening on port 3001'));
+server.listen(port, 'localhost', () => log(`webpack-dev-server listening on port ${port}`));
 
 const io = socketio(server);
 

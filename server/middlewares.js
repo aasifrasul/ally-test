@@ -1,4 +1,6 @@
 const idx = require('idx');
+const path = require('path');
+const fs = require('fs');
 
 const AppHelper = require('./helper');
 const htmlEncode = require('htmlencode');
@@ -7,6 +9,13 @@ const { fetchCSVasJSON } = require('./fetchCSVasJSON');
 
 const csvData = fetchCSVasJSON('../../Downloads/winemag-data-130k-v2.csv');
 const { headers, result } = csvData;
+
+const enc = {
+	encoding: 'utf-8',
+};
+
+const webWorkerContent = fs.readFileSync(`./src/utils/WebWorker.js`, enc);
+const apiWorkerContent = fs.readFileSync(`./src/workers/apiWorker.js`, enc);
 
 /**
  * Generate user agent object (platform, version, ...)
@@ -41,7 +50,33 @@ const getCSVData = (req, res) => {
 	res.end(JSON.stringify(pageNum ? { pageData } : { headers, pageData }));
 };
 
+const fetchImage = (req, res) => {
+	const imagePath = path.join(__dirname, '..', 'assets', 'images');
+	const img = fs.readFileSync(`${imagePath}/${req.params[0]}`);
+
+	// Set the response headers
+	res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+
+	// Send the image data as the response body
+	res.end(img, 'binary');
+};
+
+const fetchWebWorker = (req, res) => {
+	res.set('Content-Type', `application/javascript; charset=${enc.encoding}`);
+	nocache(res);
+	res.end(webWorkerContent);
+};
+
+const fetchApiWorker = (req, res) => {
+	res.set('Content-Type', `application/javascript; charset=${enc.encoding}`);
+	nocache(res);
+	res.end(apiWorkerContent);
+};
+
 module.exports = {
 	userAgentHandler,
 	getCSVData,
+	fetchImage,
+	fetchWebWorker,
+	fetchApiWorker,
 };

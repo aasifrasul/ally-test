@@ -8,6 +8,11 @@ const isUndefined = (data) => isType(data, 'undefined');
 const isNumber = (data) => isType(data, 'number');
 const isString = (data) => isType(data, 'string');
 const isBoolean = (data) => isType(data, 'boolean');
+const isMap = (data) => isType(data, 'map');
+const isSet = (data) => isType(data, 'set');
+const isGeneratorFunction = (data) => isType(data, 'generatorfunction');
+const isPromise = (data) => isType(data, 'promise');
+const isDate = (data) => isType(data, 'date');
 
 const getArrayCount = (arr) => isArray(arr) && arr.length;
 
