@@ -1,6 +1,6 @@
 const idx = require('idx');
 const { isArray } = require('./typeChecking');
-const { deepClone } = require('./common');
+const { deepCopy } = require('./common');
 
 const alphabets = [
 	'a',
@@ -68,12 +68,16 @@ const buildNestedWithParentId = (items) => {
 	return { nestedStructure, categories };
 };
 
+/**
+ * Shuffles a given array
+ * Randomize the indexes
+*/
 const shuffle = (array) => {
 	if (!isArray(array)) {
 		throw new Error('Please provide a valid array');
 	}
 
-	const newArray = deepClone(array);
+	const newArray = deepCopy(array);
 
 	newArray.sort(function () {
 		return Math.random() - 0.5;
@@ -82,6 +86,9 @@ const shuffle = (array) => {
 	return newArray;
 };
 
+/**
+ * Create equal chunks of the given array by size
+*/
 const arrayChunks = (a, size) =>
 	Array.from(new Array(Math.ceil(a.length / size)), (_, i) => a.slice(i * size, i * size + size));
 
