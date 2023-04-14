@@ -20,7 +20,10 @@ class ErrorBoundary extends React.Component {
 					<div>
 						<div>Something went wrong </div>
 						<div>{`${error}`} </div>
-						<div className={styles.displayError}> {JSON.stringify(error.errorData)} </div>
+						<div className={styles.displayError}>
+							{' '}
+							{JSON.stringify(error.errorData)}{' '}
+						</div>
 					</div>
 			  )
 			: children;

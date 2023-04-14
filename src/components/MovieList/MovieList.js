@@ -49,7 +49,11 @@ function DisplayList() {
 	return (
 		<div>
 			<div>
-				<InputText label="Search Item:" inputTextRef={searchRef} onChange={debouncedHandleChange} />
+				<InputText
+					label="Search Item:"
+					inputTextRef={searchRef}
+					onChange={debouncedHandleChange}
+				/>
 			</div>
 			{state?.isLoading && <p className="text-center">isLoading...</p>}
 			<ScrollToTop />

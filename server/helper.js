@@ -17,7 +17,8 @@ const getPlatformString = (uaData) => {
  * @param uaData
  * @returns {boolean}
  */
-const isMobileApp = (uaData) => ['android', 'ios', 'windows'].includes(getPlatformString(uaData));
+const isMobileApp = (uaData) =>
+	['android', 'ios', 'windows'].includes(getPlatformString(uaData));
 
 /**
  * Returns the app environment config
@@ -25,14 +26,20 @@ const isMobileApp = (uaData) => ['android', 'ios', 'windows'].includes(getPlatfo
  * @param {*} appName
  */
 const getAppEnvironment = (req) =>
-	JSON.stringify(isMobileApp(req.userAgentData) === true ? _getAppParams(req) : _getWebEnvParams(req));
+	JSON.stringify(
+		isMobileApp(req.userAgentData) === true ? _getAppParams(req) : _getWebEnvParams(req),
+	);
 
 /**
  * Returns data passed from app
  * @private
  */
 const _getAppParams = (request) => {
-	const { platform = '', version, string: fkUA } = idx(request, (_) => _.userAgentData.fkApp) || {};
+	const {
+		platform = '',
+		version,
+		string: fkUA,
+	} = idx(request, (_) => _.userAgentData.fkApp) || {};
 	!platform && errorLogger.error('InvalidUserAgentObject', platform);
 	const appEnvironment = {
 		platform: platform.toLowerCase(),

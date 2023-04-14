@@ -6,7 +6,10 @@ const useInfiniteScrollIO = (scrollRef, callback) => {
 	const scrollObserver = useCallback(
 		(node) =>
 			new IntersectionObserver(
-				(entries) => entries.forEach((entry) => entry.isIntersecting && safelyExecuteFunction(callback)),
+				(entries) =>
+					entries.forEach(
+						(entry) => entry.isIntersecting && safelyExecuteFunction(callback),
+					),
 				{
 					root: null,
 					rootMargin: '2000px',

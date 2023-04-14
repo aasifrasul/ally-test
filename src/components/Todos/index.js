@@ -32,7 +32,8 @@ const Todos = (props) => {
 
 	const fireDispatch = (type, payload) => dispatch({ type, payload });
 
-	const handleShowCompleted = () => () => setShowCompleted((currentShowCompleted) => !currentShowCompleted);
+	const handleShowCompleted = () => () =>
+		setShowCompleted((currentShowCompleted) => !currentShowCompleted);
 
 	const todosHtml = [];
 	todos.forEach((item, key) => {
@@ -48,14 +49,18 @@ const Todos = (props) => {
 					) : (
 						<span onClick={() => handleComplete(id)}> Complete </span>
 					)}
-				</div>
+				</div>,
 			);
 	});
 
 	return (
 		<>
 			<form onSubmit={handleSubmit}>
-				<InputText label="Search Item:" defaultValue={searchRef.current} inputTextRef={searchRef} />
+				<InputText
+					label="Search Item:"
+					defaultValue={searchRef.current}
+					inputTextRef={searchRef}
+				/>
 				<CombinedRefCheckbox
 					name="Show Completed:"
 					label="Show Completed:"

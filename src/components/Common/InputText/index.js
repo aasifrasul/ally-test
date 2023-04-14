@@ -25,7 +25,14 @@ const InputText = (props) => {
 	return (
 		<label>
 			{label}
-			<input type="text" label={label} name={name} value={value} onChange={onChange} onKeyDown={onKeyDown} />
+			<input
+				type="text"
+				label={label}
+				name={name}
+				value={value}
+				onChange={onChange}
+				onKeyDown={onKeyDown}
+			/>
 		</label>
 	);
 };

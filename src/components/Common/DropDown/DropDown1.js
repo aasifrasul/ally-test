@@ -84,7 +84,8 @@ class DropDown extends Component {
 									this.selectItem(item);
 								}}
 							>
-								{item.title} {/*{item.selected && <FontAwesome name="check" />}*/}
+								{item.title}{' '}
+								{/*{item.selected && <FontAwesome name="check" />}*/}
 							</button>
 						))}
 					</div>

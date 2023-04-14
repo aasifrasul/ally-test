@@ -5,26 +5,42 @@ import regeneratorRuntime from 'regenerator-runtime';
 import Header from '../Common/Header/Header';
 
 const Home = lazy(() => import(/* webpackChunkName: "Home" */ '../Home/Home'));
-const ReactQuery = lazy(() => import(/* webpackChunkName: "ReactQuery" */ '../ReactQuery/ReactQuery'));
+const ReactQuery = lazy(() =>
+	import(/* webpackChunkName: "ReactQuery" */ '../ReactQuery/ReactQuery'),
+);
 const KeyBoardShortcutPage = lazy(() =>
-	import(/* webpackChunkName: "KeyBoardShortcutPage" */ '../KeyBoardShortcutPage/KeyBoardShortcutPage'),
+	import(
+		/* webpackChunkName: "KeyBoardShortcutPage" */ '../KeyBoardShortcutPage/KeyBoardShortcutPage'
+	),
 );
 const WineConnoisseur = lazy(() =>
 	import(/* webpackChunkName: "WineConnoisseur" */ '../WineConnoisseur/WineConnoisseur'),
 );
 const Profile = lazy(() => import(/* webpackChunkName: "Profile" */ '../Profile/Profile'));
-const Todos = lazy(() => import(/* webpackChunkName: "Todos" */ '../Todos/Todos'));
+const Todos = lazy(() => import(/* webpackChunkName: "Todos" */ '../Todos'));
 const NestedCategories = lazy(() =>
 	import(/* webpackChunkName: "NestedCategories" */ '../NestedCategories/NestedCategories'),
 );
-const Stopwatch = lazy(() => import(/* webpackChunkName: "Stopwatch" */ '../stopwatch/stopwatch'));
-const CurrencyStream = lazy(() => import(/* webpackChunkName: "CurrencyStream" */ '../CurrencyStream/CurrencyStream'));
-const MovieList = lazy(() => import(/* webpackChunkName: "MovieList" */ '../MovieList/MovieList'));
-const TicTacToe = lazy(() => import(/* webpackChunkName: "TicTacToe" */ '../TicTacToe/TicTacToe'));
-const InfiniteScroll = lazy(() => import(/* webpackChunkName: "InfiniteScroll" */ '../InfiniteScroll/InfiniteScroll'));
+const Stopwatch = lazy(() =>
+	import(/* webpackChunkName: "Stopwatch" */ '../stopwatch/stopwatch'),
+);
+const CurrencyStream = lazy(() =>
+	import(/* webpackChunkName: "CurrencyStream" */ '../CurrencyStream/CurrencyStream'),
+);
+const MovieList = lazy(() =>
+	import(/* webpackChunkName: "MovieList" */ '../MovieList/MovieList'),
+);
+const TicTacToe = lazy(() =>
+	import(/* webpackChunkName: "TicTacToe" */ '../TicTacToe/TicTacToe'),
+);
+const InfiniteScroll = lazy(() =>
+	import(/* webpackChunkName: "InfiniteScroll" */ '../InfiniteScroll/InfiniteScroll'),
+);
 const Counter = lazy(() => import(/* webpackChunkName: "Counter" */ '../Counter/Counter'));
 const Contacts = lazy(() => import(/* webpackChunkName: "Contacts" */ '../Contacts/view'));
-const Autocomplete = lazy(() => import(/* webpackChunkName: "Autocomplete" */ '../Autocomplete/Autocomplete'));
+const AutoComplete = lazy(() =>
+	import(/* webpackChunkName: "AutoComplete" */ '../AutoComplete/AutoComplete'),
+);
 const NewsFeed = lazy(() => import(/* webpackChunkName: "NewsFeed" */ '../NewsFeed'));
 const FlipTheCard = lazy(() => import(/* webpackChunkName: "FlipTheCard" */ '../FlipTheCard'));
 
@@ -36,8 +52,8 @@ import ErrorBoundary from '../Common/ErrorBoundary/ErrorBoundary';
 import { constants } from '../../utils/Constants';
 import styles from './App.css';
 
-Autocomplete.props = {};
-Autocomplete.props.suggestions = constants?.autoComplete?.initialFeed;
+AutoComplete.props = {};
+AutoComplete.props.suggestions = constants?.autoComplete?.initialFeed;
 
 const pages = {
 	Counter: Counter,
@@ -53,7 +69,7 @@ const pages = {
 	CurrencyStream: CurrencyStream,
 	MovieList: MovieList,
 	InfiniteScroll: InfiniteScroll,
-	Autocomplete: Autocomplete,
+	AutoComplete: AutoComplete,
 	NewsFeed: NewsFeed,
 	FlipTheCard: FlipTheCard,
 };
@@ -67,8 +83,8 @@ function App(props) {
 		<Modal>
 			<div className={styles.modal}>
 				<div className={styles['modal-content']}>
-					With a portal, we can render content into a different part of the DOM, as if it were any other React
-					child.
+					With a portal, we can render content into a different part of the DOM, as
+					if it were any other React child.
 				</div>
 				This is being rendered inside the #modal-container div.
 				<button className={styles.close} onClick={handleHide}>
@@ -103,7 +119,11 @@ function App(props) {
 			<ErrorBoundary>
 				<Router>
 					<Switch>
-						<Route exact path="/" component={() => <Home handleShow={handleShow} pages={pages} />} />
+						<Route
+							exact
+							path="/"
+							component={() => <Home handleShow={handleShow} pages={pages} />}
+						/>
 						{pagesHtml}
 					</Switch>
 				</Router>

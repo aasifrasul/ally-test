@@ -1,23 +1,24 @@
-import React, { Component, Fragment } from 'react';
+import React from 'react';
 
 import InputText from '../Common/InputText';
 import { debounce } from '../../utils/throttleAndDebounce';
 
+import useOutsideClick from '../../hooks/useOutsideClick';
+
 import { constants } from '../../utils/Constants';
-import './styles.css';
+import styles from './styles.css';
 
 const Autocomplete = (props) => {
 	const [activeSuggestion, setActiveSuggestion] = React.useState(0);
 	const [filteredSuggestions, setFilteredSuggestions] = React.useState([]);
-	const [showSuggestions, setShowSuggestions] = React.useState(false);
-	const [userInput, setUserInput] = React.useState('');
 	const inputTextRef = React.useRef('');
+	const displayRef = React.useRef(null);
 	let suggestionsListHtml;
+	const clickedOutside = useOutsideClick(displayRef);
 
 	const onChange = (e) => {
 		const { suggestions } = props;
-		const searchText = e.target.value;
-		const searchTextLowerCase = searchText.toLowerCase();
+		const searchTextLowerCase = inputTextRef.current?.toLowerCase();
 
 		const filteredSuggestions = suggestions.filter(
 			(suggestion) => suggestion.toLowerCase().indexOf(searchTextLowerCase) > -1,
@@ -25,22 +26,17 @@ const Autocomplete = (props) => {
 
 		setActiveSuggestion(0);
 		setFilteredSuggestions(() => filteredSuggestions);
-		setShowSuggestions(true);
-		setUserInput(() => searchText);
 	};
 
 	const onClick = (e) => {
 		inputTextRef.current = e.target.innerText;
 		setActiveSuggestion(0);
 		setFilteredSuggestions(() => []);
-		setShowSuggestions(false);
 	};
 
 	const onKeyDown = (e) => {
 		if (e.keyCode === 13) {
 			setActiveSuggestion(0);
-			setShowSuggestions(false);
-			setUserInput(() => filteredSuggestions[activeSuggestion]);
 		} else if (e.keyCode === 38) {
 			if (activeSuggestion === 0) {
 				return;
@@ -57,28 +53,34 @@ const Autocomplete = (props) => {
 
 	const debouncedOnChange = debounce(onChange, constants?.autoComplete?.debounceDelay);
 
-	if (showSuggestions && userInput) {
+	if (filteredSuggestions.length) {
 		if (filteredSuggestions.length) {
-			suggestionsListHtml = (
-				<ul className="suggestions">
-					{filteredSuggestions.map((suggestion, index) => {
-						let className;
+			if (clickedOutside) {
+				setActiveSuggestion(0);
+				setFilteredSuggestions(() => []);
+				suggestionsListHtml = '';
+			} else {
+				suggestionsListHtml = (
+					<ul className={styles.suggestions} ref={displayRef}>
+						{filteredSuggestions.map((suggestion, index) => {
+							let className;
 
-						// Flag the active suggestion with a class
-						if (index === activeSuggestion) {
-							className = 'suggestion-active';
-						}
-						return (
-							<li className={className} key={suggestion} onClick={onClick}>
-								{suggestion}
-							</li>
-						);
-					})}
-				</ul>
-			);
+							// Flag the active suggestion with a class
+							if (index === activeSuggestion) {
+								className = styles['suggestion-active'];
+							}
+							return (
+								<li className={className} key={suggestion} onClick={onClick}>
+									{suggestion}
+								</li>
+							);
+						})}
+					</ul>
+				);
+			}
 		} else {
 			suggestionsListHtml = (
-				<div className="no-suggestions">
+				<div className={styles['no-suggestions']}>
 					<em>No suggestions available.</em>
 				</div>
 			);
@@ -86,15 +88,15 @@ const Autocomplete = (props) => {
 	}
 
 	return (
-		<Fragment>
+		<>
+			<div>Search Item:</div>
 			<InputText
-				label="Search Item:"
 				inputTextRef={inputTextRef}
 				onChange={debouncedOnChange}
 				onKeyDown={onKeyDown}
 			/>
 			{suggestionsListHtml}
-		</Fragment>
+		</>
 	);
 };
 

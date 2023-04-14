@@ -45,8 +45,8 @@ export const constants = {
 		],
 		allowedOptions: ['O', 'X'],
 	},
-    newsFeed: {
-        BASE_URL: 'https://newsapi.org/v2/',
-        API_KEY: 'd85ffa9e47de4423af6a356f3f48d0dc'
-    }
+	newsFeed: {
+		BASE_URL: 'https://newsapi.org/v2/',
+		API_KEY: 'd85ffa9e47de4423af6a356f3f48d0dc',
+	},
 };

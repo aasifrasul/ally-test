@@ -5,7 +5,10 @@ import useCombinedRefs from '../../../hooks/useCombinedRefs';
 import { safelyExecuteFunction } from '../../../utils/typeChecking';
 
 const CombinedRefCheckbox = forwardRef(
-	({ label, name, value, callback, isCheckedRef, defaultChecked = false, ...rest }, forwardedRef) => {
+	(
+		{ label, name, value, callback, isCheckedRef, defaultChecked = false, ...rest },
+		forwardedRef,
+	) => {
 		const [checked, setChecked] = useState(defaultChecked);
 
 		const innerRef = useRef(null);

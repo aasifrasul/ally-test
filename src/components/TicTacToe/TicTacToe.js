@@ -3,7 +3,7 @@ import { Button } from 'semantic-ui-react';
 
 import { constants } from '../../utils/Constants';
 
-import styles from './styles.css'
+import styles from './styles.css';
 
 const { allPossibleWinningCombo, allowedOptions } = constants?.tictactoe;
 
@@ -20,7 +20,10 @@ export default function tictactoe(props) {
 
 	const checkForStreakComplete = (value) => {
 		const checkForStreak = (id1, id2, id3) =>
-			value && [getValueById(id1), getValueById(id2), getValueById(id3)].every((key) => key === value);
+			value &&
+			[getValueById(id1), getValueById(id2), getValueById(id3)].every(
+				(key) => key === value,
+			);
 
 		allPossibleWinningCombo.forEach((keys) => {
 			if (!isAStreak) {
@@ -81,7 +84,12 @@ export default function tictactoe(props) {
 							key={`idx-r${i}-c${j}`}
 							type="text"
 							onChange={handleChange(count)}
-							style={{ height: '150px', width: '150px', textAlign: 'center', fontSize: '150px' }}
+							style={{
+								height: '150px',
+								width: '150px',
+								textAlign: 'center',
+								fontSize: '150px',
+							}}
 						/>
 					</span>
 				);

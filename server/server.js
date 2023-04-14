@@ -15,7 +15,13 @@ const path = require('path');
 
 const webpackConfig = require('../webpack-configs/webpack.config');
 const AppHelper = require('./helper');
-const { userAgentHandler, getCSVData, fetchImage, fetchWebWorker, fetchApiWorker } = require('./middlewares');
+const {
+	userAgentHandler,
+	getCSVData,
+	fetchImage,
+	fetchWebWorker,
+	fetchApiWorker,
+} = require('./middlewares');
 const { onConnection } = require('./socketConnection');
 const { logger } = require('./Logger');
 
@@ -35,19 +41,30 @@ db.once('open', () => log('connection successfull'));
 */
 
 const generateBuildTime = async function () {
-	fs.writeFile(path.join(__dirname, '..', 'public', 'server', 'buildtime'), new Date().toUTCString(), function (err) {
-		err && error('Error occured while writing to generateBuildTime :: ' + err.toString());
-	});
+	fs.writeFile(
+		path.join(__dirname, '..', 'public', 'server', 'buildtime'),
+		new Date().toUTCString(),
+		function (err) {
+			err &&
+				error('Error occured while writing to generateBuildTime :: ' + err.toString());
+		},
+	);
 };
 
 generateBuildTime();
 
 const getStartTime = () => {
 	if (process.env.NODE_ENV !== 'production') {
-		return fs.readFileSync(path.join(__dirname, '..', 'public', 'server', 'buildtime'), enc);
+		return fs.readFileSync(
+			path.join(__dirname, '..', 'public', 'server', 'buildtime'),
+			enc,
+		);
 	}
 
-	let startTime = fs.readFileSync(path.join(__dirname, 'public', 'server', 'buildtime'), enc);
+	let startTime = fs.readFileSync(
+		path.join(__dirname, 'public', 'server', 'buildtime'),
+		enc,
+	);
 	startTime = new Date(Date.parse(startTime) + 1000000000).toUTCString();
 	return startTime;
 };
@@ -96,7 +113,9 @@ const devServer = new WebpackDevServer(webpack(webpackConfig), {
 	publicPath,
 });
 
-devServer.listen(port + 1, 'localhost', () => log(`webpack-dev-server listening on port ${port + 1}`));
+devServer.listen(port + 1, 'localhost', () =>
+	log(`webpack-dev-server listening on port ${port + 1}`),
+);
 
 const server = http.createServer(app);
 
@@ -112,7 +131,7 @@ app.use(
 	'/public',
 	proxy(`localhost:${port + 1}`, {
 		proxyReqPathResolver: (req) => req.originalUrl,
-	})
+	}),
 );
 //app.use(express.static(path.join(__dirname, '..', 'public')));
 

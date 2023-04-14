@@ -53,10 +53,14 @@ function DisplayList(props) {
 						}
 						if (target.classList.contains(arrowUpDownUp)) {
 							target.classList.remove(arrowUpDownUp);
-							target.parentElement.parentElement.childNodes[1].children[1].classList.remove(hidden);
+							target.parentElement.parentElement.childNodes[1].children[1].classList.remove(
+								hidden,
+							);
 						} else {
 							target.classList.add(arrowUpDownUp);
-							target.parentElement.parentElement.childNodes[1].children[1].classList.add(hidden);
+							target.parentElement.parentElement.childNodes[1].children[1].classList.add(
+								hidden,
+							);
 						}
 					},
 					false,
@@ -74,7 +78,9 @@ function DisplayList(props) {
 
 	function successCallback(res) {
 		if (!state.isLoading && !state.isError && state.data) {
-			const { nestedStructure, categories: allCategories } = buildNestedWithParentId(state.data);
+			const { nestedStructure, categories: allCategories } = buildNestedWithParentId(
+				state.data,
+			);
 			setAllData(nestedStructure);
 			setFilteredData(nestedStructure);
 			setCategories(allCategories);
@@ -166,7 +172,11 @@ function DisplayList(props) {
 		<>
 			<Spacer size={16} />
 			<ScrollToTop />
-			<DropDown title="Select a category" options={categories} selectHandler={handleCategoriesSelection} />
+			<DropDown
+				title="Select a category"
+				options={categories}
+				selectHandler={handleCategoriesSelection}
+			/>
 			{/*
 				<DropDown
 					titleHelper="Category"

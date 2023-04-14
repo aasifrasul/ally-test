@@ -2,13 +2,10 @@ import React, { useEffect, useState } from 'react';
 import useToggle from './useToggle';
 
 // Hook that alerts clicks outside of the passed ref
-const useOutsideClick = (ref: any) => {
-	const { active: outsideClicked, toggle: setOutsideClicked } = useToggle();
-	const handleClickOutside = (event: any) => {
-		if (ref.current && !ref.current.contains(event.target)) {
-			setOutsideClicked();
-		}
-	};
+const useOutsideClick = (ref) => {
+	const { active: clickedOutside, setActive } = useToggle();
+	const handleClickOutside = (event) =>
+		setActive(ref.current && !ref.current.contains(event.target) ? true : false);
 
 	useEffect(() => {
 		document.addEventListener('click', handleClickOutside);
@@ -17,7 +14,7 @@ const useOutsideClick = (ref: any) => {
 		};
 	}, [ref]);
 
-	return outsideClicked;
+	return clickedOutside;
 };
 
 export default useOutsideClick;

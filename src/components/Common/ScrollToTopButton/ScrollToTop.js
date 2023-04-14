@@ -6,7 +6,9 @@ import styles from './index.css';
 const ScrollToTop = () => {
 	const [showTopBtn, setShowTopBtn] = useState(false);
 	useEffect(() => {
-		window.addEventListener('scroll', () => setShowTopBtn(() => (window.scrollY > 500 ? true : false)));
+		window.addEventListener('scroll', () =>
+			setShowTopBtn(() => (window.scrollY > 500 ? true : false)),
+		);
 	}, []);
 	const goToTop = () => {
 		window.scrollTo({
@@ -18,7 +20,10 @@ const ScrollToTop = () => {
 		<div className={styles['top-to-btm']}>
 			{' '}
 			{showTopBtn && (
-				<FaAngleUp className={styles['icon-position'] + ' ' + styles['icon-style']} onClick={goToTop} />
+				<FaAngleUp
+					className={styles['icon-position'] + ' ' + styles['icon-style']}
+					onClick={goToTop}
+				/>
 			)}{' '}
 		</div>
 	);

@@ -24,7 +24,11 @@ const DisplayList = (props) => {
 
 	const observer = useRef(
 		new IntersectionObserver((entries) =>
-			entries.forEach((entry) => entry.intersectionRatio > 0 && pagerDispatch({ schema, type: 'ADVANCE_PAGE' })),
+			entries.forEach(
+				(entry) =>
+					entry.intersectionRatio > 0 &&
+					pagerDispatch({ schema, type: 'ADVANCE_PAGE' }),
+			),
 		),
 	);
 
@@ -48,7 +52,10 @@ const DisplayList = (props) => {
 				{state?.data?.results?.map((user, i) => (
 					<>
 						{Math.floor(state.data.results.length / 1.2) === i ? (
-							<div ref={setObserverElement} key={`${user.name?.first}-${i}-observer`}>
+							<div
+								ref={setObserverElement}
+								key={`${user.name?.first}-${i}-observer`}
+							>
 								Loading...
 							</div>
 						) : null}

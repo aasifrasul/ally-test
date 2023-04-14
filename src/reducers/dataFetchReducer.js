@@ -18,7 +18,12 @@ const dataFetchReducer = (state = {}, action) => {
 		...state,
 	};
 	if (schema) {
-		newState[schema] = safelyExecuteFunction(reducers[schema], null, newState[schema], action);
+		newState[schema] = safelyExecuteFunction(
+			reducers[schema],
+			null,
+			newState[schema],
+			action,
+		);
 	}
 	return newState;
 };

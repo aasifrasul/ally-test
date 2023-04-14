@@ -12,6 +12,7 @@ window.__languageBundle__ = {
 	'App.note': 'Note:',
 	'App.success': 'Success',
 	'App.rotateDevice': 'Please rotate your device',
-	'App.noLandscape': "We don't support landscape mode yet. Please go back to portrait mode for the best experience",
+	'App.noLandscape':
+		"We don't support landscape mode yet. Please go back to portrait mode for the best experience",
 	'App.bestSeller': 'BEST SELLER',
 };

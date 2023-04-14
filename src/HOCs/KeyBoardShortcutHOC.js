@@ -12,7 +12,13 @@ const withKeyBoardShortcut = (WrappedComponent) => {
 		const removeShortcut = (hash) => {
 			dispatch({ type: 'REMOVE_SHORTCUT', payload: { hash } });
 		};
-		return <WrappedComponent {...props} addShortcut={addShortcut} removeShortcut={removeShortcut} />;
+		return (
+			<WrappedComponent
+				{...props}
+				addShortcut={addShortcut}
+				removeShortcut={removeShortcut}
+			/>
+		);
 	}
 	return Wrapper;
 };

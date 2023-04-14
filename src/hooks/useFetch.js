@@ -11,7 +11,14 @@ const worker = new WebWorker(MyWorker);
 const controller = new AbortController();
 //const worker = new Worker(new URL('apiWorker.js', window.location.origin));
 
-const useFetch = (schema, initialUrl, initialParams = {}, successCallback, failureCallback, skip = false) => {
+const useFetch = (
+	schema,
+	initialUrl,
+	initialParams = {},
+	successCallback,
+	failureCallback,
+	skip = false,
+) => {
 	const [url, updateUrl] = useState(initialUrl);
 	const [params, updateParams] = useState(initialParams);
 	const [errorMessage, setErrorMessage] = useState('');
@@ -54,7 +61,9 @@ const useFetch = (schema, initialUrl, initialParams = {}, successCallback, failu
 					//body: body ? JSON.stringify(data) : {},
 				};
 
-				worker.postMessage(JSON.stringify({ endpoint: `${url}?${queryString}`, options }));
+				worker.postMessage(
+					JSON.stringify({ endpoint: `${url}?${queryString}`, options }),
+				);
 				worker.onmessage = function (event) {
 					const { type, data } = event.data;
 
@@ -75,7 +84,16 @@ const useFetch = (schema, initialUrl, initialParams = {}, successCallback, failu
 		fetchData();
 
 		return () => {};
-	}, [url, queryString, refetchIndex, schema, skip, controller.signal, successCallback, failureCallback]);
+	}, [
+		url,
+		queryString,
+		refetchIndex,
+		schema,
+		skip,
+		controller.signal,
+		successCallback,
+		failureCallback,
+	]);
 
 	return useMemo(() => ({
 		state: { ...state[schema] },

@@ -14,7 +14,11 @@ function ContactForm() {
 	const onSubmit = () => {
 		dispatch({
 			type: 'ADD_CONTACT',
-			payload: { id: Math.floor(Math.random() * 1000), name: name.value, email: email.value },
+			payload: {
+				id: Math.floor(Math.random() * 1000),
+				name: name.value,
+				email: email.value,
+			},
 		});
 		// Reset Form
 		name.onReset();

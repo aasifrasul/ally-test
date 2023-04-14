@@ -10,7 +10,9 @@ const todoReducer = (state = defaultState, action) => {
 	const { type, payload } = action;
 	switch (type) {
 		case 'TODO_TOGGLE':
-			return state.map((todo) => (todo.id !== payload.id ? todo : { ...todo, complete: !todo.complete }));
+			return state.map((todo) =>
+				todo.id !== payload.id ? todo : { ...todo, complete: !todo.complete },
+			);
 		case 'TODO_SHOW_UNCOMPLETED':
 			return state.filter((todo) => !todo.complete);
 		case 'TODO_SHOW_COMPLETED':

@@ -1,4 +1,5 @@
-const isType = (data, type) => Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type;
+const isType = (data, type) =>
+	Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type;
 
 const isFunction = (data) => isType(data, 'function');
 const isArray = (data) => isType(data, 'array');
