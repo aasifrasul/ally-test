@@ -1,5 +1,6 @@
 /* eslint-disable no-restricted-globals */
-const isType = (data, type) => Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type;
+const isType = (data, type) =>
+	Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type;
 const isString = (data) => isType(data, 'string');
 
 self.addEventListener(

@@ -42,7 +42,9 @@ class FkEmitAssetsPlugin {
 				localeChunks: {},
 			};
 
-			const publicPath = this.options.appendPublicPath ? compilation.options.output.publicPath : '';
+			const publicPath = this.options.appendPublicPath
+				? compilation.options.output.publicPath
+				: '';
 
 			// Important: Ordering is crucial here, the <script> tags are added in this same order.
 			const entries = ['runtime', 'common', 'vendor', 'app'];

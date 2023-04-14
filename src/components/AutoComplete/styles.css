@@ -39,3 +39,10 @@ input {
 .suggestions li:not(:last-of-type) {
 	border-bottom: 1px solid #999;
 }
+
+.center {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 50px;
+}

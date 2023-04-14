@@ -14,8 +14,14 @@ const writeFile = (name, contents) => {
 
 const fetchBuildConfig = () => {
 	return DEV
-		? [require('../public/' + APP_NAME + '.json'), require('../public/server/hbs.bundle.js')]
-		: [require('../build/' + APP_NAME + '/' + APP_NAME + '.json'), require('../build/server/hbs.bundle.js')];
+		? [
+				require('../public/' + APP_NAME + '.json'),
+				require('../public/server/hbs.bundle.js'),
+		  ]
+		: [
+				require('../build/' + APP_NAME + '/' + APP_NAME + '.json'),
+				require('../build/server/hbs.bundle.js'),
+		  ];
 };
 
 const generateHBS = function () {

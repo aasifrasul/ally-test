@@ -6,14 +6,23 @@ import styles from './DataGrid.css';
 function DataGrid(props) {
 	const { headings, rows } = props;
 	const renderHeadingRow = (item, cellIndex) => {
-		return <Cell key={`heading-${cellIndex}`} content={item['name']} header={true} styles={styles} />;
+		return (
+			<Cell
+				key={`heading-${cellIndex}`}
+				content={item['name']}
+				header={true}
+				styles={styles}
+			/>
+		);
 	};
 
 	const renderRow = (row, rowIndex) => {
 		return (
 			<div className={styles.row} key={`row-${rowIndex}`}>
 				{Object.keys(row).map((key, cellIndex) => {
-					return <Cell key={`${key}-${cellIndex}`} content={row[key]} styles={styles} />;
+					return (
+						<Cell key={`${key}-${cellIndex}`} content={row[key]} styles={styles} />
+					);
 				})}
 			</div>
 		);

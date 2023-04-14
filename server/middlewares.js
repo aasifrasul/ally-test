@@ -27,7 +27,10 @@ const apiWorkerContent = fs.readFileSync(`./src/workers/apiWorker.js`, enc);
 const userAgentHandler = (req, res, next) => {
 	const { headers } = req;
 	let userAgent =
-		headers['X-User-Agent'] || headers['x-user-agent'] || headers['X-user-agent'] || headers['user-agent'];
+		headers['X-User-Agent'] ||
+		headers['x-user-agent'] ||
+		headers['X-user-agent'] ||
+		headers['user-agent'];
 
 	if (userAgent) {
 		userAgent = htmlEncode.XSSEncode(userAgent);

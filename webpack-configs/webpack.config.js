@@ -51,8 +51,16 @@ const makeConfig = () => {
 				'mocks',
 			],
 			alias: {
-				'fk-cp-utils': path.resolve(__dirname, '..', 'node_modules/@fpg-modules/fk-cp-utils'),
-				'fk-ui-common': path.resolve(__dirname, '..', 'node_modules/@fpg-modules/fk-ui-common/src'),
+				'fk-cp-utils': path.resolve(
+					__dirname,
+					'..',
+					'node_modules/@fpg-modules/fk-cp-utils',
+				),
+				'fk-ui-common': path.resolve(
+					__dirname,
+					'..',
+					'node_modules/@fpg-modules/fk-ui-common/src',
+				),
 				'fk-ui-common-components': path.resolve(
 					__dirname,
 					'..',
@@ -74,7 +82,9 @@ const makeConfig = () => {
 					vendors: false,
 					vendor: {
 						name: 'vendor',
-						test: new RegExp(`[\\/]node_modules[\\/](${vendorlibs.join('|')})[\\/]`),
+						test: new RegExp(
+							`[\\/]node_modules[\\/](${vendorlibs.join('|')})[\\/]`,
+						),
 						enforce: true,
 						minChunks: 1,
 						priority: 1,

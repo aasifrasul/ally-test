@@ -71,7 +71,7 @@ const buildNestedWithParentId = (items) => {
 /**
  * Shuffles a given array
  * Randomize the indexes
-*/
+ */
 const shuffle = (array) => {
 	if (!isArray(array)) {
 		throw new Error('Please provide a valid array');
@@ -88,9 +88,11 @@ const shuffle = (array) => {
 
 /**
  * Create equal chunks of the given array by size
-*/
+ */
 const arrayChunks = (a, size) =>
-	Array.from(new Array(Math.ceil(a.length / size)), (_, i) => a.slice(i * size, i * size + size));
+	Array.from(new Array(Math.ceil(a.length / size)), (_, i) =>
+		a.slice(i * size, i * size + size),
+	);
 
 module.exports = {
 	dupeArray,

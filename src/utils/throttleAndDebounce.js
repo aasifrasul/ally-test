@@ -46,13 +46,16 @@ const throttle = function throttle(func, delay) {
 	const wrapper = function wrapper(...args) {
 		if (lastRan) {
 			timerId && clearTimeout(timerId);
-			timerId = setTimeout(() => {
-				if (Date.now() - lastRan >= delay) {
-					func.apply(this, ...args);
-					lastRan = Date.now();
-					clearTimeout(timerId);
-				}
-			}, delay - (Date.now() - lastRan));
+			timerId = setTimeout(
+				() => {
+					if (Date.now() - lastRan >= delay) {
+						func.apply(this, ...args);
+						lastRan = Date.now();
+						clearTimeout(timerId);
+					}
+				},
+				delay - (Date.now() - lastRan),
+			);
 		} else {
 			func.apply(null, args);
 			lastRan = Date.now();

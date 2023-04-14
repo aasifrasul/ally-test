@@ -28,7 +28,9 @@ export default function Movie(props) {
 					{title} {vote_average}
 				</div>
 				{isShown && (
-					<Portal container={document.querySelector(`.${styles.mouseOverWrapper}_${id}`)}>
+					<Portal
+						container={document.querySelector(`.${styles.mouseOverWrapper}_${id}`)}
+					>
 						<div className={styles.imageWrapper}>{overview}</div>
 					</Portal>
 				)}

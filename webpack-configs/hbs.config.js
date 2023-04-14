@@ -58,7 +58,9 @@ module.exports = function (env) {
 						{
 							loader: 'css-loader',
 							options: {
-								localIdentName: DEV ? '[path][name]_[local]_[hash:base64:6]' : '[sha512:hash:base64:6]',
+								localIdentName: DEV
+									? '[path][name]_[local]_[hash:base64:6]'
+									: '[sha512:hash:base64:6]',
 								modules: true,
 								importLoaders: 1,
 								minimize: !DEV,
