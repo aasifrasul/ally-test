@@ -40,9 +40,6 @@ export default function FlipTheCard() {
 	}, [clickedCards.length]);
 
 	const restart = () => {
-		flipCards.forEach((_, index) => {
-			console.log(flipCards[index] == MOCK[index]);
-		});
 		flipCards = shuffle(MOCK);
 		setClickedCards(() => []);
 	};

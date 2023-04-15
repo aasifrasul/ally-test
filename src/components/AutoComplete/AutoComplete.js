@@ -8,27 +8,42 @@ import useOutsideClick from '../../hooks/useOutsideClick';
 import { constants } from '../../utils/Constants';
 import styles from './styles.css';
 
-const Autocomplete = (props) => {
+const AutoComplete = (props) => {
 	const [activeSuggestion, setActiveSuggestion] = React.useState(0);
 	const [filteredSuggestions, setFilteredSuggestions] = React.useState([]);
+	const [showNoMatch, setShowNoMatch] = React.useState(false);
 	const inputTextRef = React.useRef('');
 	const displayRef = React.useRef(null);
-	let suggestionsListHtml;
+	let suggestionsHtml;
 	const clickedOutside = useOutsideClick(displayRef);
+
+	const reset = () => {
+		setActiveSuggestion(0);
+		setFilteredSuggestions(() => []);
+		setShowNoMatch(() => false);
+		suggestionsHtml = '';
+		inputTextRef.current = '';
+	};
 
 	const onChange = (e) => {
 		const { suggestions } = props;
-		const searchTextLowerCase = inputTextRef.current?.toLowerCase();
-
-		const filteredSuggestions = suggestions.filter(
-			(suggestion) => suggestion.toLowerCase().indexOf(searchTextLowerCase) > -1,
-		);
+		const searchedText = inputTextRef.current?.toLowerCase();
 
 		setActiveSuggestion(0);
-		setFilteredSuggestions(() => filteredSuggestions);
+		if (searchedText) {
+			const matchedSuggestions = suggestions.filter(
+				(suggestion) => suggestion.toLowerCase().indexOf(searchedText) > -1
+			);
+			setFilteredSuggestions(() => matchedSuggestions);
+			if (matchedSuggestions.length === 0) {
+				setShowNoMatch(() => true);
+			}
+		} else {
+			setFilteredSuggestions(() => []);
+		}
 	};
 
-	const onClick = (e) => {
+	const onSuggestionClick = (e) => {
 		inputTextRef.current = e.target.innerText;
 		setActiveSuggestion(0);
 		setFilteredSuggestions(() => []);
@@ -54,50 +69,50 @@ const Autocomplete = (props) => {
 	const debouncedOnChange = debounce(onChange, constants?.autoComplete?.debounceDelay);
 
 	if (filteredSuggestions.length) {
-		if (filteredSuggestions.length) {
-			if (clickedOutside) {
-				setActiveSuggestion(0);
-				setFilteredSuggestions(() => []);
-				suggestionsListHtml = '';
-			} else {
-				suggestionsListHtml = (
-					<ul className={styles.suggestions} ref={displayRef}>
-						{filteredSuggestions.map((suggestion, index) => {
-							let className;
-
-							// Flag the active suggestion with a class
-							if (index === activeSuggestion) {
-								className = styles['suggestion-active'];
-							}
-							return (
-								<li className={className} key={suggestion} onClick={onClick}>
-									{suggestion}
-								</li>
-							);
-						})}
-					</ul>
-				);
-			}
+		if (clickedOutside) {
+			reset();
 		} else {
-			suggestionsListHtml = (
-				<div className={styles['no-suggestions']}>
-					<em>No suggestions available.</em>
-				</div>
+			suggestionsHtml = (
+				<ul className={styles.suggestions} ref={displayRef}>
+					{filteredSuggestions.map((suggestion, index) => {
+						let className;
+
+						// Flag the active suggestion with a class
+						if (index === activeSuggestion) {
+							className = styles['suggestion-active'];
+						}
+						return (
+							<li className={className} key={suggestion} onClick={(e) => onSuggestionClick(e)}>
+								{suggestion}
+							</li>
+						);
+					})}
+				</ul>
 			);
 		}
+	}
+	if (showNoMatch) {
+		suggestionsHtml = (
+			<div className={styles['no-suggestions']}>
+				<em>No suggestions available.</em>
+			</div>
+		);
 	}
 
 	return (
 		<>
+			<div className={styles.center}>
+				<button onClick={() => reset()}>Reset</button>
+			</div>
 			<div>Search Item:</div>
 			<InputText
 				inputTextRef={inputTextRef}
 				onChange={debouncedOnChange}
 				onKeyDown={onKeyDown}
 			/>
-			{suggestionsListHtml}
+			{suggestionsHtml}
 		</>
 	);
 };
 
-export default Autocomplete;
+export default AutoComplete;
