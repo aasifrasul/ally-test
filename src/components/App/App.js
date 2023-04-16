@@ -43,6 +43,13 @@ const AutoComplete = lazy(() =>
 );
 const NewsFeed = lazy(() => import(/* webpackChunkName: "NewsFeed" */ '../NewsFeed'));
 const FlipTheCard = lazy(() => import(/* webpackChunkName: "FlipTheCard" */ '../FlipTheCard'));
+const TabsComponent = lazy(() =>
+	import(/* webpackChunkName: "TabsComponent" */ '../TabsComponent')
+);
+
+const TrafficLight = lazy(() =>
+	import(/* webpackChunkName: "TrafficLight" */ '../TrafficLight')
+);
 
 const Modal = lazy(() => import(/* webpackChunkName: "Modal" */ '../Common/Modal/Modal'));
 
@@ -72,6 +79,8 @@ const pages = {
 	AutoComplete: AutoComplete,
 	NewsFeed: NewsFeed,
 	FlipTheCard: FlipTheCard,
+	TabsComponent: TabsComponent,
+	TrafficLight: TrafficLight,
 };
 
 function App(props) {

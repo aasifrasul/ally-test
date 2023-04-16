@@ -1,0 +1,53 @@
+.traffic-light {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 300px;
+}
+
+.red,
+.yellow,
+.green {
+	width: 100px;
+	height: 100px;
+	margin: 10px;
+	border-radius: 50%;
+}
+
+.red {
+	background-color: red;
+}
+
+.yellow {
+	background-color: yellow;
+}
+
+.green {
+	background-color: green;
+}
+
+.on {
+	animation: blink 1s infinite;
+}
+
+@keyframes blink {
+	0% {
+		opacity: 1;
+	}
+
+	25% {
+		opacity: .5;
+	}
+
+	50% {
+		opacity: 0;
+	}
+
+	75% {
+		opacity: .5;
+	}
+
+	100% {
+		opacity: 1;
+	}
+}

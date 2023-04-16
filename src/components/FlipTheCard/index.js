@@ -50,17 +50,17 @@ export default function FlipTheCard() {
 				<button onClick={() => restart()}>Restart</button>
 			</div>
 			<div className={styles.parent}>
-				{flipCards.map(({ pic, display, name }, index) => {
-					return display ? (
-						<div className={styles.child}>
+				{flipCards.map(({ pic, display, name }, index) =>
+					display ? (
+						<div key={`${name}-${index}`} className={styles.child}>
 							<img src={pic} />
 						</div>
 					) : (
-						<div className={styles.child}>
+						<div key={`${name}-${index}`} className={styles.child}>
 							<img src={blankCard} onClick={() => handleClick(index)} />
 						</div>
-					);
-				})}
+					)
+				)}
 			</div>
 		</>
 	);
