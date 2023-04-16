@@ -42,11 +42,11 @@
 	 },
 	"lint-staged": {
 		"**/*.+(js|jsx|ts|tsx)": [
-			"eslint -c .eslintrc.js --ignore-path .eslintignore --fix",
-			"prettier --write --ignore-path .prettierignore"
+			"yarn lint:js",
+			"yarn prettier"
 		],
 		"**/*.+(json|yml|yaml|css|less|scss|md|mdx)": [
-			"prettier --write --ignore-path .prettierignore"
+			"yarn prettier"
 		]
 	},
 	"dependencies": {
