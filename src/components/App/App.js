@@ -6,49 +6,57 @@ import Header from '../Common/Header/Header';
 
 const Home = lazy(() => import(/* webpackChunkName: "Home" */ '../Home/Home'));
 const ReactQuery = lazy(() =>
-	import(/* webpackChunkName: "ReactQuery" */ '../ReactQuery/ReactQuery')
+	import(/* webpackChunkName: "ReactQuery" */ '../ReactQuery/ReactQuery'),
 );
 const KeyBoardShortcutPage = lazy(() =>
 	import(
 		/* webpackChunkName: "KeyBoardShortcutPage" */ '../KeyBoardShortcutPage/KeyBoardShortcutPage'
-	)
+	),
 );
 const WineConnoisseur = lazy(() =>
-	import(/* webpackChunkName: "WineConnoisseur" */ '../WineConnoisseur/WineConnoisseur')
+	import(/* webpackChunkName: "WineConnoisseur" */ '../WineConnoisseur/WineConnoisseur'),
 );
 const Profile = lazy(() => import(/* webpackChunkName: "Profile" */ '../Profile/Profile'));
 const Todos = lazy(() => import(/* webpackChunkName: "Todos" */ '../Todos'));
 const NestedCategories = lazy(() =>
-	import(/* webpackChunkName: "NestedCategories" */ '../NestedCategories/NestedCategories')
+	import(/* webpackChunkName: "NestedCategories" */ '../NestedCategories/NestedCategories'),
 );
 const Stopwatch = lazy(() =>
-	import(/* webpackChunkName: "Stopwatch" */ '../stopwatch/stopwatch')
+	import(/* webpackChunkName: "Stopwatch" */ '../stopwatch/stopwatch'),
 );
 const CurrencyStream = lazy(() =>
-	import(/* webpackChunkName: "CurrencyStream" */ '../CurrencyStream/CurrencyStream')
+	import(/* webpackChunkName: "CurrencyStream" */ '../CurrencyStream/CurrencyStream'),
 );
 const MovieList = lazy(() =>
-	import(/* webpackChunkName: "MovieList" */ '../MovieList/MovieList')
+	import(/* webpackChunkName: "MovieList" */ '../MovieList/MovieList'),
 );
 const TicTacToe = lazy(() =>
-	import(/* webpackChunkName: "TicTacToe" */ '../TicTacToe/TicTacToe')
+	import(/* webpackChunkName: "TicTacToe" */ '../TicTacToe/TicTacToe'),
 );
 const InfiniteScroll = lazy(() =>
-	import(/* webpackChunkName: "InfiniteScroll" */ '../InfiniteScroll/InfiniteScroll')
+	import(/* webpackChunkName: "InfiniteScroll" */ '../InfiniteScroll/InfiniteScroll'),
 );
 const Counter = lazy(() => import(/* webpackChunkName: "Counter" */ '../Counter/Counter'));
 const Contacts = lazy(() => import(/* webpackChunkName: "Contacts" */ '../Contacts/view'));
 const AutoComplete = lazy(() =>
-	import(/* webpackChunkName: "AutoComplete" */ '../AutoComplete/AutoComplete')
+	import(/* webpackChunkName: "AutoComplete" */ '../AutoComplete/AutoComplete'),
 );
 const NewsFeed = lazy(() => import(/* webpackChunkName: "NewsFeed" */ '../NewsFeed'));
 const FlipTheCard = lazy(() => import(/* webpackChunkName: "FlipTheCard" */ '../FlipTheCard'));
 const TabsComponent = lazy(() =>
-	import(/* webpackChunkName: "TabsComponent" */ '../TabsComponent')
+	import(/* webpackChunkName: "TabsComponent" */ '../TabsComponent'),
 );
 
 const TrafficLight = lazy(() =>
-	import(/* webpackChunkName: "TrafficLight" */ '../TrafficLight')
+	import(/* webpackChunkName: "TrafficLight" */ '../TrafficLight'),
+);
+
+const DigitalClock = lazy(() =>
+	import(/* webpackChunkName: "DigitalClock" */ '../DigitalClock'),
+);
+
+const AccordionDemo = lazy(() =>
+	import(/* webpackChunkName: "AccordionDemo" */ '../AccordionDemo'),
 );
 
 const Modal = lazy(() => import(/* webpackChunkName: "Modal" */ '../Common/Modal/Modal'));
@@ -81,6 +89,8 @@ const pages = {
 	FlipTheCard: FlipTheCard,
 	TabsComponent: TabsComponent,
 	TrafficLight: TrafficLight,
+	DigitalClock: DigitalClock,
+	AccordionDemo: AccordionDemo,
 };
 
 function App(props) {
@@ -119,7 +129,7 @@ function App(props) {
 						<Component {...Component.props} />
 					</Header>
 				)}
-			/>
+			/>,
 		);
 	}
 

@@ -32,7 +32,7 @@ const AutoComplete = (props) => {
 		setActiveSuggestion(0);
 		if (searchedText) {
 			const matchedSuggestions = suggestions.filter(
-				(suggestion) => suggestion.toLowerCase().indexOf(searchedText) > -1
+				(suggestion) => suggestion.toLowerCase().indexOf(searchedText) > -1,
 			);
 			setFilteredSuggestions(() => matchedSuggestions);
 			if (matchedSuggestions.length === 0) {
@@ -82,7 +82,11 @@ const AutoComplete = (props) => {
 							className = styles['suggestion-active'];
 						}
 						return (
-							<li className={className} key={suggestion} onClick={(e) => onSuggestionClick(e)}>
+							<li
+								className={className}
+								key={suggestion}
+								onClick={(e) => onSuggestionClick(e)}
+							>
 								{suggestion}
 							</li>
 						);
