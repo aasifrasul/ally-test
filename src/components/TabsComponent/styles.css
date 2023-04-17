@@ -1,29 +1,29 @@
 .tabs-container {
-    /* Add your container styles here */
+	/* Add your container styles here */
 }
 
 .tabs {
-    display: flex;
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
+	display: flex;
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
 }
 
 .tabs li {
-    flex: 1;
+	flex: 1;
 }
 
 .tabs a {
-    display: block;
-    padding: 10px;
-    text-align: center;
-    text-decoration: none;
+	display: block;
+	padding: 10px;
+	text-align: center;
+	text-decoration: none;
 }
 
 .tabs-panel {
-    display: none;
+	display: none;
 }
 
 .tabs-panel.active {
-    display: block;
+	display: block;
 }

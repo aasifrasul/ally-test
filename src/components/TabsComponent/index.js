@@ -21,10 +21,14 @@ const TabsComponent = () => {
 		<div className={styles['tabs-container']}>
 			<ul className={styles.tabs}>
 				{Tabs.map(({ name }, index) => {
-                    let className = activeTab === index ? styles['active'] : '';
-                    let key = `nav-${name}`;
+					let className = activeTab === index ? styles['active'] : '';
+					let key = `nav-${name}`;
 					return (
-						<li key={key} className={className} onClick={(e) => handleClick(e, index)}>
+						<li
+							key={key}
+							className={className}
+							onClick={(e) => handleClick(e, index)}
+						>
 							<a href="#">{name}</a>
 						</li>
 					);
@@ -33,7 +37,7 @@ const TabsComponent = () => {
 			<div className={styles['tabs-content']}>
 				{Tabs.map(({ name, content }, index) => {
 					let className = styles['tabs-panel'];
-                    let key = `content-${name}`;
+					let key = `content-${name}`;
 
 					if (index === activeTab) {
 						className = `${className} ${styles['active']}`;

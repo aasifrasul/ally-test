@@ -26,7 +26,7 @@ function TrafficLight(props) {
 		durations.forEach((item, index) =>
 			index === instance.current
 				? addClass(item.ref, styles.on)
-				: removeClass(item.ref, styles.on)
+				: removeClass(item.ref, styles.on),
 		);
 		timeoutRef.current = setTimeout(switchLights, delay);
 	};

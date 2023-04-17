@@ -59,7 +59,7 @@ export default function FlipTheCard() {
 						<div key={`${name}-${index}`} className={styles.child}>
 							<img src={blankCard} onClick={() => handleClick(index)} />
 						</div>
-					)
+					),
 				)}
 			</div>
 		</>
