@@ -11,6 +11,7 @@ const clientConfig = require('../webpack-configs/webpack.config');
 const CONFIGTYPE = {
 	CLIENT: 'CLIENT',
 	HBS: 'HBS',
+	SERVER: 'SERVER',
 };
 
 const getWebpackConfig = (type) => {
@@ -29,21 +30,21 @@ const runWebpack = (type, hash) => {
 				reject('Error while building webpack');
 			}
 
-			if (stats.hasErrors() || stats.hasWarnings()) {
+			if (stats?.errors?.length || stats?.warnings?.length) {
 				/* toJson() is expensive operation so moving under this condition when it is required */
 				const info = stats.toJson();
 
-				if (stats.hasWarnings()) {
+				if (stats?.warnings?.length) {
 					console.warn(chalk.yellow(info.warnings));
 				}
-				if (stats.hasErrors()) {
+				if (stats?.errors?.length) {
 					console.error(chalk.red(info.errors));
 					reject('Error while building webpack');
 				}
 			}
 
 			console.log(
-				stats.toString({
+				stats?.toString({
 					entrypoints: false,
 					children: false,
 					chunks: false,

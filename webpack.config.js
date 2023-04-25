@@ -24,7 +24,7 @@ const CONFIG = {
 		publicPath: DEV ? '/' : '//assets/' + APP_NAME + '/',
 		pathinfo: DEV,
 		chunkFilename: DEV ? '[name].bundle.js' : '[name].[chunkhash].js',
-		jsonpFunction: 'webpackJsonp',
+		chunkLoadingGlobal: 'webpackJsonp',
 	},
 	resolve: {
 		extensions: ['*', '.js', '.css'],

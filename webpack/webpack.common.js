@@ -1,6 +1,6 @@
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const path = require('path');
 const PROD = process.env.NODE_ENV === 'production';
 const PATHS = {
@@ -35,8 +35,11 @@ function getCompressionPlugin() {
 }
 
 function cleanWebpackPlugin() {
-	return new CleanWebpackPlugin([PATHS.build, PATHS.public], {
-		allowExternal: true,
+	return new CleanWebpackPlugin({
+		dry: true,
+		verbose: true,
+		cleanStaleWebpackAssets: false,
+		protectWebpackAssets: false,
 	});
 }
 

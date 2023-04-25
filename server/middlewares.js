@@ -2,7 +2,7 @@ const idx = require('idx');
 const path = require('path');
 const fs = require('fs');
 
-const AppHelper = require('./helper');
+const { isMobileApp, nocache } = require('./helper');
 const htmlEncode = require('htmlencode');
 const { parse } = require('./UAParser');
 const { fetchCSVasJSON } = require('./fetchCSVasJSON');
@@ -37,7 +37,7 @@ const userAgentHandler = (req, res, next) => {
 		req.userAgentData = parse(userAgent);
 
 		// Msite requires a custom string to be appended with usual user agent
-		if (AppHelper.isMobileApp(req.userAgentData) === false) {
+		if (isMobileApp(req.userAgentData) === false) {
 			const { source } = idx(req, (_) => _.userAgentData.userAgent) || {};
 			req.fkUA = `${source || userAgent} FKUA/msite/0.0.1/msite/Mobile`;
 		} else {
