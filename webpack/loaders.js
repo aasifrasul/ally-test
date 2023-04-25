@@ -44,6 +44,7 @@ var loaders = [
 				},
 			},
 		],
+		type: 'javascript/auto',
 	},
 	{
 		test: /\.(eot|ttf|woff|woff2)$/,
@@ -66,7 +67,7 @@ if (PROD) {
 			MiniCssExtractPlugin.loader,
 			{
 				loader: 'css-loader',
-				query: {
+				options: {
 					modules: true,
 					importLoaders: 1,
 					localIdentName: '[sha512:hash:base64:6]',
@@ -88,13 +89,13 @@ if (PROD) {
 		use: [
 			{
 				loader: 'style-loader',
-				query: {
+				options: {
 					singleton: true,
 				},
 			},
 			{
 				loader: 'css-loader',
-				query: {
+				options: {
 					modules: true,
 					localIdentName: '[path][name]_[local]_[hash:base64:6]',
 					getLocalIdent: getDefaultLocalIdent,

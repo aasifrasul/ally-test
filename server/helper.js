@@ -1,8 +1,15 @@
 /**
  * File contains list of utilities for handling configs and rendering the page
  */
+const path = require('path');
+const fs = require('fs');
 const idx = require('idx');
 const htmlEncode = require('htmlencode');
+
+const enc = {
+	encoding: 'utf-8',
+};
+
 /**
  * Returns the current platform string (android/ios/windows)
  * @param uaData
@@ -119,13 +126,51 @@ const constructReqDataObject = (req) => {
  * @returns {*}
  * @private
  */
-const _getValueFromCookie = function (request, paramName) {
-	if (request.cookies && request.cookies[paramName]) {
-		return htmlEncode.XSSEncode(request.cookies[paramName]);
-	}
+const _getValueFromCookie = (request, paramName) =>
+	request.cookies &&
+	request.cookies[paramName] &&
+	htmlEncode.XSSEncode(request.cookies[paramName]);
+
+const generateBuildTime = async function () {
+	fs.writeFile(
+		path.join(__dirname, '..', 'public', 'server', 'buildtime'),
+		new Date().toUTCString(),
+		(err) =>
+			err &&
+			error('Error occured while writing to generateBuildTime :: ' + err.toString()),
+	);
 };
+
+const getStartTime = () => {
+	if (process.env.NODE_ENV !== 'production') {
+		return fs.readFileSync(
+			path.join(__dirname, '..', 'public', 'server', 'buildtime'),
+			enc,
+		);
+	}
+
+	let startTime = fs.readFileSync(
+		path.join(__dirname, 'public', 'server', 'buildtime'),
+		enc,
+	);
+	startTime = new Date(Date.parse(startTime) + 1000000000).toUTCString();
+	return startTime;
+};
+
+// Last modified header
+// Assumtion here is that the everytime any file is modified, the build is restarted hence last-modified == build time.
+const nocache = (res) =>
+	res.set({
+		'Cache-Control': 'private, no-cache, no-store, must-revalidate, max-age=0',
+		Expires: 'Thu, 01 Jan 1970 00:00:00 GMT',
+		Pragma: 'no-cache',
+		'Last-Modified': getStartTime(),
+	});
 
 module.exports = {
 	isMobileApp,
 	constructReqDataObject,
+	generateBuildTime,
+	getStartTime,
+	nocache,
 };

@@ -1,7 +1,7 @@
 import React, { Suspense, useState } from 'react';
-import ReactDOM from 'react-dom';
+import * as ReactDOM from 'react-dom/client';
 
-import { fetchProfileData } from '../../utils/fakeApi';
+import { fetchProfileData } from '../../utils/fakeAPi';
 
 const initialResource = fetchProfileData(0);
 

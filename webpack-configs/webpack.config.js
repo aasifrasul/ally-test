@@ -13,7 +13,8 @@ const makeConfig = () => {
 	return {
 		context: path.join(__dirname, '..', 'src'),
 		mode: webpackCommonConfig.getNodeEnv(),
-		target: 'web',
+		target: ['web', 'es5'],
+		plugins: ['web'],
 		recordsPath: path.join(__dirname, '..', 'records.json'),
 		parallelism: 1,
 		profile: true,
@@ -31,7 +32,7 @@ const makeConfig = () => {
 			publicPath,
 			pathinfo: !isProduction,
 			chunkFilename: isProduction ? '[name].[chunkhash].js' : '[name].bundle.js',
-			jsonpFunction: 'webpackJsonp',
+			chunkLoadingGlobal: 'webpackJsonp',
 		},
 		devServer: {
 			hot: true,
@@ -74,12 +75,11 @@ const makeConfig = () => {
 		},
 		optimization: {
 			minimizer: [webpackCommonConfig.getUglifyJs(), new OptimizeCssAssetsPlugin()],
-			namedModules: true,
+			moduleIds: 'named',
 			splitChunks: {
-				name: true,
 				cacheGroups: {
 					default: false,
-					vendors: false,
+					defaultVendors: false,
 					vendor: {
 						name: 'vendor',
 						test: new RegExp(

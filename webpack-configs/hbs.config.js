@@ -28,7 +28,7 @@ module.exports = function (env) {
 			path: path.join(__dirname, '..', outputPath, 'server'),
 			filename: 'hbs.bundle.js',
 			libraryTarget: 'commonjs2',
-			jsonpFunction: 'webpackJsonp',
+			chunkLoadingGlobal: 'webpackJsonp',
 			publicPath: publicPath,
 		},
 		mode: webpackCommonConfig.getNodeEnv(),
@@ -47,7 +47,7 @@ module.exports = function (env) {
 						},
 						{
 							loader: htmlminifier,
-							query: htmlminifierQuery,
+							options: htmlminifierQuery,
 						},
 					],
 				},

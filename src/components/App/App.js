@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useState } from 'react';
-import { BrowserRouter as Router, Switch, Route, useHistory } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+
 import regeneratorRuntime from 'regenerator-runtime';
 
 import Header from '../Common/Header/Header';
@@ -59,6 +60,10 @@ const AccordionDemo = lazy(() =>
 	import(/* webpackChunkName: "AccordionDemo" */ '../AccordionDemo'),
 );
 
+const ErrorPage = lazy(() =>
+	import(/* webpackChunkName: "ErrorPage" */ '../Common/ErrorPage'),
+);
+
 const Modal = lazy(() => import(/* webpackChunkName: "Modal" */ '../Common/Modal/Modal'));
 
 import Spinner from '../Common/Spinner/Spinner';
@@ -93,9 +98,7 @@ const pages = {
 	AccordionDemo: AccordionDemo,
 };
 
-function App(props) {
-	const history = useHistory();
-
+const App = (props) => {
 	const [showModal, setShowModal] = useState(false);
 
 	const modal = showModal ? (
@@ -116,39 +119,36 @@ function App(props) {
 	const handleShow = () => setShowModal(true);
 	const handleHide = () => setShowModal(false);
 
-	const pagesHtml = [];
+	const routesArray = [
+		{
+			path: '/',
+			element: (
+				<Suspense fallback={<Spinner />}>
+					<Home handleShow={handleShow} pages={pages} />
+				</Suspense>
+			),
+			errorElement: <ErrorPage />,
+		},
+	];
+
 	for (let name in pages) {
 		const Component = pages[name];
-		pagesHtml.push(
-			<Route
-				key={name}
-				exact
-				path={`/${name}`}
-				component={() => (
+		routesArray.push({
+			path: `/${name}`,
+			element: (
+				<Suspense fallback={<Spinner />}>
 					<Header>
 						<Component {...Component.props} />
 					</Header>
-				)}
-			/>,
-		);
+				</Suspense>
+			),
+			errorElement: <ErrorPage />,
+		});
 	}
 
-	return (
-		<Suspense fallback={<Spinner />}>
-			<ErrorBoundary>
-				<Router>
-					<Switch>
-						<Route
-							exact
-							path="/"
-							component={() => <Home handleShow={handleShow} pages={pages} />}
-						/>
-						{pagesHtml}
-					</Switch>
-				</Router>
-			</ErrorBoundary>
-		</Suspense>
-	);
-}
+	const router = createBrowserRouter(routesArray);
+
+	return <RouterProvider router={router} />;
+};
 
 export default App;
