@@ -16,6 +16,7 @@ const config = {
 		'@babel/plugin-transform-modules-commonjs',
 		'@babel/plugin-transform-runtime',
 		'macros',
+		'production' !== process.env.NODE_ENV && require.resolve('react-refresh/babel'),
 	],
 };
 

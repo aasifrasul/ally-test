@@ -1,5 +1,6 @@
 const path = require('path');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const paths = require('./paths');
 const webpackCommonConfig = require('../webpack/webpack.common');
 const fs = require('fs');
@@ -13,7 +14,7 @@ const makeConfig = () => {
 	return {
 		context: path.join(__dirname, '..', 'src'),
 		mode: webpackCommonConfig.getNodeEnv(),
-		target: ['web', 'es5'],
+		target: ['web'],
 		plugins: ['web'],
 		recordsPath: path.join(__dirname, '..', 'records.json'),
 		parallelism: 1,
@@ -36,6 +37,7 @@ const makeConfig = () => {
 		},
 		devServer: {
 			hot: true,
+			client: { overlay: false, logging: 'warn' },
 		},
 		resolve: {
 			extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
