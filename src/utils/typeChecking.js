@@ -14,12 +14,11 @@ const isSet = (data) => isType(data, 'set');
 const isGeneratorFunction = (data) => isType(data, 'generatorfunction');
 const isPromise = (data) => isType(data, 'promise');
 const isDate = (data) => isType(data, 'date');
+const isEmpty = (data) => isUndefined(data) || isNull(data) || (isString(data) && data === '');
 
-const getArrayCount = (arr) => isArray(arr) && arr.length;
+const getArrayCount = (arr) => (isArray(arr) && arr.length) || 0;
 
-const safelyExecuteFunction = (...params) => {
-	const func = params.shift();
-	const context = params.shift();
+const safelyExecuteFunction = (func, context, ...params) => {
 	if (!isFunction(func)) {
 		return null;
 	}
@@ -32,6 +31,12 @@ const safelyExecuteFunction = (...params) => {
 };
 
 module.exports = {
+	isMap,
+	isSet,
+	isGeneratorFunction,
+	isPromise,
+	isDate,
+	isEmpty,
 	isFunction,
 	isArray,
 	isObject,

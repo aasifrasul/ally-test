@@ -1,6 +1,6 @@
 const webpack = require('webpack');
 const path = require('path');
-
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const ATL = require('awesome-typescript-loader');
 const CompressionPlugin = require('compression-webpack-plugin');
 const CssExtractPlugin = require('mini-css-extract-plugin');
@@ -51,6 +51,8 @@ let plugins = [
 	 * Source: https://github.com/s-panferov/awesome-typescript-loader
 	 */
 	new ATL.CheckerPlugin(),
+
+	DEV && new ReactRefreshWebpackPlugin(),
 
 	/**
 	 * Creates smaller builds by discarding unused lodash modules

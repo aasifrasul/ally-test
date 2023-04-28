@@ -122,11 +122,7 @@ const App = (props) => {
 	const routesArray = [
 		{
 			path: '/',
-			element: (
-				<Suspense fallback={<Spinner />}>
-					<Home handleShow={handleShow} pages={pages} />
-				</Suspense>
-			),
+			element: <Home handleShow={handleShow} pages={pages} />,
 			errorElement: <ErrorPage />,
 		},
 	];
@@ -136,11 +132,9 @@ const App = (props) => {
 		routesArray.push({
 			path: `/${name}`,
 			element: (
-				<Suspense fallback={<Spinner />}>
-					<Header>
-						<Component {...Component.props} />
-					</Header>
-				</Suspense>
+				<Header>
+					<Component {...Component.props} />
+				</Header>
 			),
 			errorElement: <ErrorPage />,
 		});
@@ -148,7 +142,11 @@ const App = (props) => {
 
 	const router = createBrowserRouter(routesArray);
 
-	return <RouterProvider router={router} />;
+	return (
+		<Suspense fallback={<Spinner />}>
+			<RouterProvider router={router} />
+		</Suspense>
+	);
 };
 
 export default App;
