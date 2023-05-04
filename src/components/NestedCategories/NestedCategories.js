@@ -12,7 +12,9 @@ import { FetchStoreProvider } from '../../Context/dataFetchContext';
 
 import { constants } from '../../utils/Constants';
 
-import styles from './NestedCategories.css';
+import css from './NestedCategories.css';
+
+const styles = css?.locals;
 
 const { url, schema } = constants?.nestedCategories;
 

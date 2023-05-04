@@ -72,7 +72,9 @@ import Spinner from '../Common/Spinner/Spinner';
 import ErrorBoundary from '../Common/ErrorBoundary/ErrorBoundary';
 
 import { constants } from '../../utils/Constants';
-import styles from './App.css';
+import css from './App.css';
+
+const styles = css?.locals;
 
 AutoComplete.props = {};
 AutoComplete.props.suggestions = constants?.autoComplete?.initialFeed;

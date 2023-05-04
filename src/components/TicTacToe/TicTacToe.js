@@ -3,7 +3,9 @@ import { Button } from 'semantic-ui-react';
 
 import { constants } from '../../utils/Constants';
 
-import styles from './styles.css';
+import css from './styles.css';
+
+const styles = css?.locals;
 
 const { allPossibleWinningCombo, allowedOptions } = constants?.tictactoe;
 

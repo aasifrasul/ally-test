@@ -11,7 +11,9 @@ import { FetchStoreProvider } from '../../Context/dataFetchContext';
 import UserCard from './UserCard';
 
 import { constants } from '../../utils/Constants';
-import styles from './InfiniteScroll.css';
+import css from './InfiniteScroll.css';
+
+const styles = css?.locals;
 
 const { TOTAL_PAGES, BASE_URL, schema, queryParams } = constants?.infiniteScroll;
 

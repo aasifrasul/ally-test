@@ -15,7 +15,9 @@ import Movie from './Movie.js';
 
 import { debounce } from '../../utils/throttleAndDebounce';
 
-import styles from './MovieList.css';
+import css from './MovieList.css';
+
+const styles = css?.locals;
 
 const { BASE_URL, schema, queryParams } = constants?.movieList;
 

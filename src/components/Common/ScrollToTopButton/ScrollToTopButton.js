@@ -1,6 +1,8 @@
 import React from 'react';
 
-import styles from './ScrollToTopButton.css';
+import css from './ScrollToTopButton.css';
+
+const styles = css?.locals;
 
 const ScrollToTopButton = () => {
 	const didMount = React.useRef(false);

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import socketClient from 'socket.io-client';
 
-import styles from './OSStatistics.css';
+import css from './OSStatistics.css';
+
+const styles = css?.locals;
 
 const socket = socketClient.connect('http://localhost:3100');
 
