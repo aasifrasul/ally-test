@@ -1,6 +1,5 @@
 const path = require('path');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const paths = require('./paths');
 const webpackCommonConfig = require('../webpack/webpack.common');
 const fs = require('fs');

@@ -3,8 +3,9 @@ import React from 'react';
 import { shuffle, arrayChunks } from '../../utils/ArrayUtils';
 import { MOCK, blankCard } from './mock';
 
-import styles from './styles.css';
+import css from './styles.css';
 
+const styles = css?.locals || {};
 let flipCards = shuffle(MOCK);
 
 export default function FlipTheCard() {
@@ -59,7 +60,7 @@ export default function FlipTheCard() {
 						<div key={`${name}-${index}`} className={styles.child}>
 							<img src={blankCard} onClick={() => handleClick(index)} />
 						</div>
-					),
+					)
 				)}
 			</div>
 		</>

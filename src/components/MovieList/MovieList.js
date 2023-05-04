@@ -31,19 +31,19 @@ function DisplayList() {
 	const rowsCount = state?.data?.results?.length;
 	queryParams.page = pagerObject[schema]?.pageNum || 0;
 
-	useEffect(() => {
-		updateQueryParams(queryParams);
-	}, [queryParams.page]);
+	useEffect(() => updateQueryParams(queryParams), [queryParams.page]);
 
 	useInfiniteScrollIO(ioObserverRef, () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' }));
 	useImageLazyLoadIO('img[data-src]', rowsCount);
 
 	function handleChange(e) {
-		const value = searchRef.current?.trim();
 		searchRef.current = null;
 		ioObserverRef.current = null;
-		console.log(value);
-		dispatch({ schema, type: 'FILTER_BY_TEXT', payload: { filterText: value } });
+		dispatch({
+			schema,
+			type: 'FILTER_BY_TEXT',
+			payload: { filterText: searchRef.current?.trim() },
+		});
 	}
 
 	return (

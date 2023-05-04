@@ -1,13 +1,11 @@
 const webpack = require('webpack');
 const path = require('path');
-const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const ATL = require('awesome-typescript-loader');
 const CompressionPlugin = require('compression-webpack-plugin');
 const CssExtractPlugin = require('mini-css-extract-plugin');
 const FkEmitAssetsPlugin = require('./fk-emit-assets-plugin');
 const Visualizer = require('webpack-visualizer-plugin');
 const StatsPlugin = require('stats-webpack-plugin');
-const webpackCommonConfig = require('./webpack.common');
 const DEV = process.env.NODE_ENV !== 'production';
 const PROD = !DEV;
 const Constants = require('./constants');
@@ -51,8 +49,6 @@ let plugins = [
 	 * Source: https://github.com/s-panferov/awesome-typescript-loader
 	 */
 	new ATL.CheckerPlugin(),
-
-	DEV && new ReactRefreshWebpackPlugin(),
 
 	/**
 	 * Creates smaller builds by discarding unused lodash modules

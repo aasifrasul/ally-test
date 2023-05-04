@@ -7,8 +7,7 @@ import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
 import useFetch from '../../hooks/useFetch';
 
-import { buildNestedWithParentId, alphabets } from '../../utils/ArrayUtils';
-import { getArrayCount } from '../../utils/typeChecking';
+import { buildNestedWithParentId, alphabets, getArrayCount } from '../../utils/ArrayUtils';
 import { FetchStoreProvider } from '../../Context/dataFetchContext';
 
 import { constants } from '../../utils/Constants';
@@ -31,7 +30,7 @@ function DisplayList(props) {
 	const categoriesHtml = [];
 	let count = 0;
 
-	const { state, errorMessage, updateUrl } = useFetch(schema, url);
+	const { state, errorMessage } = useFetch(schema, url);
 
 	useEffect(() => {
 		successCallback();

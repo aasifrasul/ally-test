@@ -3,7 +3,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const babelConfig = require('./babel.config');
 const postCSSConfig = require('./postcss.config');
 var PROD = process.env.NODE_ENV === 'production';
-const getDefaultLocalIdent = require('css-loader/lib/getLocalIdent.js');
+// const getDefaultLocalIdent = require('css-loader/lib/getLocalIdent.js');
 const appName = process.env.APP_NAME;
 
 var loaders = [
@@ -85,20 +85,15 @@ if (PROD) {
 	});
 } else {
 	loaders.push({
-		test: /.css$/,
+		test: /\.css$/i,
 		use: [
-			{
-				loader: 'style-loader',
-				options: {
-					singleton: true,
-				},
-			},
 			{
 				loader: 'css-loader',
 				options: {
-					modules: true,
-					localIdentName: '[path][name]_[local]_[hash:base64:6]',
-					getLocalIdent: getDefaultLocalIdent,
+					modules: {
+						//localIdentName: '[path][name]__[local]--[hash:base64:5]',
+						localIdentName: '[path][name]_[local]_[hash:base64:6]',
+					},
 					importLoaders: 1,
 				},
 			},

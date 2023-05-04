@@ -11,20 +11,19 @@ import styles from './WineConnoisseur.css';
 
 import { constants } from '../../utils/Constants';
 
-const { baseURL, schema } = constants?.wineConnoisseur;
+const { baseURL, schema, queryParams } = constants?.wineConnoisseur;
 
 function DisplayList(props) {
 	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });
 	const ioObserverRef = useRef(null);
 	const pageNum = pagerObject[schema]?.pageNum || 0;
 
-	const url = `${baseURL}${pageNum}`;
-	const { state, updateUrl } = useFetch(schema, url);
+	queryParams.page = pageNum || 0;
+
+	const { state, errorMessage, updateQueryParams } = useFetch(schema, baseURL, queryParams);
 	const { headers = [], pageData = [] } = state?.data || {};
 
-	useEffect(() => {
-		updateUrl(url);
-	}, [pageNum]);
+	useEffect(() => updateQueryParams(queryParams), [pageNum]);
 
 	useInfiniteScrollIO(ioObserverRef, () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' }));
 

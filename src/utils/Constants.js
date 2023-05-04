@@ -31,6 +31,9 @@ export const constants = {
 	wineConnoisseur: {
 		baseURL: `http://localhost:3100/api/fetchWineData/`,
 		schema: 'wineConnoisseur',
+		queryParams: {
+			page: 0,
+		},
 	},
 	tictactoe: {
 		allPossibleWinningCombo: [

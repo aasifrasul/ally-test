@@ -23,7 +23,7 @@ class FkEmitAssetsPlugin {
 				appendPublicPath: true,
 				preloadConfig: {},
 			},
-			options || {},
+			options || {}
 		);
 	}
 
@@ -55,47 +55,48 @@ class FkEmitAssetsPlugin {
 			 * assets belonging to other chunks.
 			 */
 
-			compilation.namedChunks &&
-				compilation.namedChunks.forEach((item) => {
-					const name = item.name;
-					if (entries.find((entry) => name.includes(entry))) {
-						item.files.forEach((item) => {
-							const extension = path.extname(item);
-							const fileUrl = `${publicPath}${item}`;
-							switch (extension) {
-								case '.js':
-									output.js.push(fileUrl);
-									break;
-								case '.css':
-									output.css.push(fileUrl);
-									break;
-							}
-						});
-					} else {
-						output.chunks[name] = {
-							js: [],
-							css: [],
-						};
-						output.localeChunks[name] = [];
-						item.files.forEach((item) => {
-							const extension = path.extname(item);
-							const fileUrl = `${publicPath}${item}`;
+			compilation?.namedChunks?.forEach((item) => {
+				const name = item.name;
+				if (entries.find((entry) => name.includes(entry))) {
+					item.files.forEach((item) => {
+						const extension = path.extname(item);
+						const fileUrl = `${publicPath}${item}`;
+						console.log('fileUrl:', fileUrl)
+						switch (extension) {
+							case '.js':
+								output.js.push(fileUrl);
+								break;
+							case '.css':
+								
+								output.css.push(fileUrl);
+								break;
+						}
+					});
+				} else {
+					output.chunks[name] = {
+						js: [],
+						css: [],
+					};
+					output.localeChunks[name] = [];
+					item.files.forEach((item) => {
+						const extension = path.extname(item);
+						const fileUrl = `${publicPath}${item}`;
 
-							switch (extension) {
-								case '.js':
-									output.chunks[name]['js'].push(fileUrl);
-									output.localeChunks[name].push(fileUrl);
-									break;
-								case '.css':
-									output.chunks[name]['css'].push(fileUrl);
-									break;
-							}
-						});
-					}
-				});
+						switch (extension) {
+							case '.js':
+								output.chunks[name]['js'].push(fileUrl);
+								output.localeChunks[name].push(fileUrl);
+								break;
+							case '.css':
+								output.chunks[name]['css'].push(fileUrl);
+								break;
+						}
+					});
+				}
+			});
 
 			let orderedBundles = [];
-			entries.forEach((entryName) => {
+			entries?.forEach((entryName) => {
 				output.js.forEach((rawOutput) => {
 					const filename = rawOutput.split('/').pop();
 					const outputName = filename.split('.').shift();
@@ -117,24 +118,23 @@ class FkEmitAssetsPlugin {
 			/**
 			 * Build a list of all other assets
 			 */
-			compilation.assets &&
-				Object.keys(compilation.assets).map((fileName) => {
-					const extension = path.extname(fileName);
-					const fileUrl = `${publicPath}${fileName}`;
-					switch (extension) {
-						case '.json':
-							output.json.push(fileUrl);
-							break;
-						case '.gif':
-						case '.jpg':
-						case '.png':
-						case '.svg':
-						case '.jpeg':
-						case '.webp':
-							output.img.push(fileUrl);
-							break;
-					}
-				});
+			Object.keys(compilation?.assets).map((fileName) => {
+				const extension = path.extname(fileName);
+				const fileUrl = `${publicPath}${fileName}`;
+				switch (extension) {
+					case '.json':
+						output.json.push(fileUrl);
+						break;
+					case '.gif':
+					case '.jpg':
+					case '.png':
+					case '.svg':
+					case '.jpeg':
+					case '.webp':
+						output.img.push(fileUrl);
+						break;
+				}
+			});
 			output.sentryKey = Constants.SENTRY_KEY;
 			output.sentryRelease = Constants.SENTRY_VERSION;
 			output.sentryURL = Constants.SENTRY_URL;
