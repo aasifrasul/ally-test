@@ -71,7 +71,7 @@ module.exports = function (env) {
 						},
 						'postcss-loader',
 					],
-				}
+				},
 			),
 		},
 	};

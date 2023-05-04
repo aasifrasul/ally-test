@@ -64,9 +64,7 @@ const ErrorPage = lazy(() =>
 	import(/* webpackChunkName: "ErrorPage" */ '../Common/ErrorPage'),
 );
 
-const ProgressBar = lazy(() =>
-	import(/* webpackChunkName: "ProgressBar" */ '../ProgressBar'),
-);
+const ProgressBar = lazy(() => import(/* webpackChunkName: "ProgressBar" */ '../ProgressBar'));
 
 import Spinner from '../Common/Spinner/Spinner';
 import ErrorBoundary from '../Common/ErrorBoundary/ErrorBoundary';

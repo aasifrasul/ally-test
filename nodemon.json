@@ -1,22 +1,13 @@
 {
-    "verbose": true,
-    "watch": [
-        "src",
-        "server",
-        "webpack/**"
-    ],
-    "ignore": [
-        "*.test.js",
-        "*.bundle.js",
-        "**/fixtures/**",
-        "**/node_modules/**"
-    ],
-    "execMap": {
-        "rb": "ruby",
-        "pde": "processing --sketch={{pwd}} --run"
-    },
-    "events": {
-        "restart": "yarn build"
-    },
-    "delay": 2500
+	"verbose": true,
+	"watch": ["src", "server", "webpack/**"],
+	"ignore": ["*.test.js", "*.bundle.js", "**/fixtures/**", "**/node_modules/**"],
+	"execMap": {
+		"rb": "ruby",
+		"pde": "processing --sketch={{pwd}} --run"
+	},
+	"events": {
+		"restart": "yarn build"
+	},
+	"delay": 2500
 }

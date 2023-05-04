@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 // const Modal = React.lazy(() => import(/* webpackChunkName: "Modal" */ '../Common/Modal/Modal'));
 
 const Home = (props) => {
-/*
+	/*
 	const [showModal, setShowModal] = React.useState(false);
 
 	const handleShow = () => setShowModal(true);

@@ -23,7 +23,7 @@ class FkEmitAssetsPlugin {
 				appendPublicPath: true,
 				preloadConfig: {},
 			},
-			options || {}
+			options || {},
 		);
 	}
 
@@ -61,13 +61,12 @@ class FkEmitAssetsPlugin {
 					item.files.forEach((item) => {
 						const extension = path.extname(item);
 						const fileUrl = `${publicPath}${item}`;
-						console.log('fileUrl:', fileUrl)
+						console.log('fileUrl:', fileUrl);
 						switch (extension) {
 							case '.js':
 								output.js.push(fileUrl);
 								break;
 							case '.css':
-								
 								output.css.push(fileUrl);
 								break;
 						}

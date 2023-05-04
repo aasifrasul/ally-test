@@ -43,7 +43,7 @@ const useFetch = (schema, initialUrl, initialParams = {}) => {
 			};
 
 			worker.postMessage(
-				JSON.stringify({ endpoint: `${initialUrl}?${queryString}`, options })
+				JSON.stringify({ endpoint: `${initialUrl}?${queryString}`, options }),
 			);
 			worker.onmessage = function (event) {
 				const { type, data } = event.data;
@@ -72,7 +72,7 @@ const useFetch = (schema, initialUrl, initialParams = {}) => {
 			updateQueryParams,
 			abortFetching,
 		}),
-		[schema, errorMessage, updateQueryParams, abortFetching]
+		[schema, errorMessage, updateQueryParams, abortFetching],
 	);
 };
 
