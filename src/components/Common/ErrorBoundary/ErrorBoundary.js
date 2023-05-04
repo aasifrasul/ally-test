@@ -1,7 +1,5 @@
 import React from 'react';
-import css from './ErrorBoundary.css';
-
-const styles = css?.locals;
+import styles from './ErrorBoundary.css';
 
 class ErrorBoundary extends React.Component {
 	state = { hasError: false, error: undefined };

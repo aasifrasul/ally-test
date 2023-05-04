@@ -87,6 +87,7 @@ if (PROD) {
 	loaders.push({
 		test: /\.css$/i,
 		use: [
+			MiniCssExtractPlugin.loader,
 			{
 				loader: 'css-loader',
 				options: {

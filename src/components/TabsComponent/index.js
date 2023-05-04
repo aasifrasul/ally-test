@@ -1,8 +1,6 @@
 import React from 'react';
 
-import css from './styles.css';
-
-const styles = css?.locals;
+import styles from './styles.css';
 
 const Tabs = [
 	{ name: 'Tab 1', content: 'This is the contents of Tab 1' },

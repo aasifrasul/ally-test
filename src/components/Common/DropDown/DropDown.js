@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import css from './DropDown.css';
-
-const styles = css?.locals;
+import styles from './DropDown.css';
 
 export default function DropDown(props) {
 	const { options, selectHandler, title, children } = props;

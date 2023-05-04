@@ -1,8 +1,6 @@
 import React from 'react';
 
-import css from './styles.css';
-
-const styles = css?.locals;
+import styles from './styles.css';
 
 const DigitalClock = (props) => {
 	const [timeString, setTimeString] = React.useState('');

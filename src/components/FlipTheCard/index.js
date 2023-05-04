@@ -3,9 +3,8 @@ import React from 'react';
 import { shuffle, arrayChunks } from '../../utils/ArrayUtils';
 import { MOCK, blankCard } from './mock';
 
-import css from './styles.css';
+import styles from './styles.css';
 
-const styles = css?.locals || {};
 let flipCards = shuffle(MOCK);
 
 export default function FlipTheCard() {

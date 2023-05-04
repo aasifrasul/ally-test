@@ -7,9 +7,7 @@ import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
 import pageReducer from '../../reducers/pageReducer';
 import { FetchStoreProvider, useFetchDispatch } from '../../Context/dataFetchContext';
 
-import css from './WineConnoisseur.css';
-
-const styles = css?.locals;
+import styles from './WineConnoisseur.css';
 
 import { constants } from '../../utils/Constants';
 

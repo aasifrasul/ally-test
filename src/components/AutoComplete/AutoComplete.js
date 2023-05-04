@@ -6,9 +6,7 @@ import { debounce } from '../../utils/throttleAndDebounce';
 import useOutsideClick from '../../hooks/useOutsideClick';
 
 import { constants } from '../../utils/Constants';
-import css from './styles.css';
-
-const styles = css?.locals;
+import styles from './styles.css';
 
 const AutoComplete = (props) => {
 	const [activeSuggestion, setActiveSuggestion] = React.useState(0);

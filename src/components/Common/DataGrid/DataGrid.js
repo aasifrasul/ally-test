@@ -1,9 +1,7 @@
 import * as React from 'react';
 import Cell from './Cell';
 
-import css from './DataGrid.css';
-
-const styles = css?.locals;
+import styles from './DataGrid.css';
 
 function DataGrid(props) {
 	const { headings, rows } = props;

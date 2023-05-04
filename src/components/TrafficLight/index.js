@@ -1,8 +1,6 @@
 import React from 'react';
 
-import css from './styles.css';
-
-const styles = css?.locals;
+import styles from './styles.css';
 
 function TrafficLight(props) {
 	const redRef = React.useRef(null);

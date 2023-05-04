@@ -1,8 +1,6 @@
 import React from 'react';
 
-import css from './spinner.css';
-
-const styles = css?.locals;
+import styles from './spinner.css';
 
 const Spinner = (props) => {
 	return (

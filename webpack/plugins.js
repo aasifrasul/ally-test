@@ -44,6 +44,15 @@ let plugins = [
 	}),
 
 	/**
+	 * Extract CSS from a bundle, or bundles, into a separate file
+	 * Source: https://github.com/webpack-contrib/mini-css-extract-plugin
+	 */
+	new CssExtractPlugin({
+		filename: '[name].[contenthash:20].css',
+		chunkFilename: '[name].[contenthash:20].css',
+	}),
+
+	/**
 	 * Optional plugin that allows awesome-typescript-loader to
 	 * report errors asynchronously
 	 * Source: https://github.com/s-panferov/awesome-typescript-loader
@@ -69,15 +78,6 @@ if (PROD) {
 		 * Source: https://webpack.js.org/plugins/hashed-module-ids-plugin/
 		 */
 		// new webpack.HashedModuleIdsPlugin(),
-
-		/**
-		 * Extract CSS from a bundle, or bundles, into a separate file
-		 * Source: https://github.com/webpack-contrib/mini-css-extract-plugin
-		 */
-		new CssExtractPlugin({
-			filename: '[name].[contenthash:20].css',
-			chunkFilename: '[name].[contenthash:20].css',
-		}),
 
 		/**
 		 * Prepare compressed versions of assets to serve them with Content-Encoding
