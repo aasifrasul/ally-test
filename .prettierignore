@@ -1,0 +1,10 @@
+# Logs
+logs
+*.log
+
+
+records.json
+
+
+node_modules/
+public/*

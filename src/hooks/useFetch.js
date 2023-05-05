@@ -9,15 +9,15 @@ const worker = new WebWorker(MyWorker);
 
 //const worker = new Worker(new URL('apiWorker.js', window.location.origin));
 
-const controller = new AbortController();
-const abortFetching = () => controller.abort();
-
 const useFetch = (schema, initialUrl, initialParams = {}) => {
 	const [params, updateParams] = useState(initialParams);
 	const [errorMessage, setErrorMessage] = useState('');
 	const queryString = Object.keys(params)
 		.map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
 		.join('&');
+
+	const controller = useRef(new AbortController());
+	const abortFetching = () => controller?.current.abort();
 
 	const state = useFetchStore();
 	const dispatch = useFetchDispatch();
@@ -63,7 +63,7 @@ const useFetch = (schema, initialUrl, initialParams = {}) => {
 	useEffect(() => {
 		fetchData();
 		return () => abortFetching();
-	}, [fetchData, abortFetching, schema]);
+	}, [fetchData, schema]);
 
 	return useMemo(
 		() => ({
@@ -72,7 +72,7 @@ const useFetch = (schema, initialUrl, initialParams = {}) => {
 			updateQueryParams,
 			abortFetching,
 		}),
-		[schema, errorMessage, updateQueryParams, abortFetching],
+		[schema, errorMessage, updateQueryParams],
 	);
 };
 

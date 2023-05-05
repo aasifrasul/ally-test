@@ -5,22 +5,23 @@ import { MOCK, blankCard } from './mock';
 
 import styles from './styles.css';
 
-let flipCards = shuffle(MOCK);
-
 export default function FlipTheCard() {
-	const [clickedCards, setClickedCards] = React.useState([]);
+	const flipCards = React.useRef(shuffle(MOCK));
+
+	// To store the indexes of the opened cards
+	const [openCards, setOpenCards] = React.useState([]);
 
 	const handleClick = (index) => {
-		if (clickedCards.length < 2) {
-			setClickedCards((cards) => [...cards, index]);
-			flipCards[index].display = true;
+		if (openCards.length < 2) {
+			setOpenCards((cards) => [...cards, index]);
+			flipCards.current[index].display = true;
 		}
 	};
 
 	React.useEffect(() => {
-		if (clickedCards.length === 2) {
-			const card0 = flipCards[clickedCards[0]];
-			const card1 = flipCards[clickedCards[1]];
+		if (openCards.length === 2) {
+			const card0 = flipCards.current[openCards[0]];
+			const card1 = flipCards.current[openCards[1]];
 			card1.display = true;
 			card0.display = true;
 
@@ -29,19 +30,19 @@ export default function FlipTheCard() {
 					const timerId = setTimeout(() => {
 						card1.display = false;
 						card0.display = false;
-						setClickedCards(() => []);
+						setOpenCards(() => []);
 						clearTimeout(timerId);
 					}, 1000);
 				});
 			} else {
-				setClickedCards(() => []);
+				setOpenCards(() => []);
 			}
 		}
-	}, [clickedCards.length]);
+	}, [openCards.length]);
 
 	const restart = () => {
-		flipCards = shuffle(MOCK);
-		setClickedCards(() => []);
+		flipCards.current = shuffle(MOCK);
+		setOpenCards(() => []);
 	};
 
 	return (
@@ -50,7 +51,7 @@ export default function FlipTheCard() {
 				<button onClick={() => restart()}>Restart</button>
 			</div>
 			<div className={styles.parent}>
-				{flipCards.map(({ pic, display, name }, index) =>
+				{flipCards.current.map(({ pic, display, name }, index) =>
 					display ? (
 						<div key={`${name}-${index}`} className={styles.child}>
 							<img src={pic} />
