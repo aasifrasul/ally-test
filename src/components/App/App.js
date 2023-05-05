@@ -64,7 +64,7 @@ const ErrorPage = lazy(() =>
 	import(/* webpackChunkName: "ErrorPage" */ '../Common/ErrorPage'),
 );
 
-const Modal = lazy(() => import(/* webpackChunkName: "Modal" */ '../Common/Modal/Modal'));
+const ProgressBar = lazy(() => import(/* webpackChunkName: "ProgressBar" */ '../ProgressBar'));
 
 import Spinner from '../Common/Spinner/Spinner';
 import ErrorBoundary from '../Common/ErrorBoundary/ErrorBoundary';
@@ -96,33 +96,14 @@ const pages = {
 	TrafficLight: TrafficLight,
 	DigitalClock: DigitalClock,
 	AccordionDemo: AccordionDemo,
+	ProgressBar: ProgressBar,
 };
 
 const App = (props) => {
-	const [showModal, setShowModal] = useState(false);
-
-	const modal = showModal ? (
-		<Modal>
-			<div className={styles.modal}>
-				<div className={styles['modal-content']}>
-					With a portal, we can render content into a different part of the DOM, as
-					if it were any other React child.
-				</div>
-				This is being rendered inside the #modal-container div.
-				<button className={styles.close} onClick={handleHide}>
-					Hide modal
-				</button>
-			</div>
-		</Modal>
-	) : null;
-
-	const handleShow = () => setShowModal(true);
-	const handleHide = () => setShowModal(false);
-
 	const routesArray = [
 		{
 			path: '/',
-			element: <Home handleShow={handleShow} pages={pages} />,
+			element: <Home pages={pages} />,
 			errorElement: <ErrorPage />,
 		},
 	];

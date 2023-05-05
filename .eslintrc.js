@@ -1,13 +1,29 @@
 module.exports = {
+	root: true,
 	parser: '@typescript-eslint/parser',
 	extends: [
 		'plugin:react/recommended',
 		'plugin:@typescript-eslint/recommended',
-		'prettier',
-		'plugin:prettier/recommended',
 		'plugin:react-hooks/recommended',
 	],
-	plugins: ['core-dev-linting', 'jsdoc', 'react-hooks', 'prettier'],
+	overrides: [
+		{
+			files: ['**/*.js', '**/*.jsx'],
+			plugins: ['@typescript-eslint'],
+			extends: [
+				'eslint:recommended',
+				'plugin:@typescript-eslint/recommended',
+				'eslint:recommended',
+				'plugin:react/recommended',
+			],
+			parser: '@typescript-eslint/parser',
+			parserOptions: {
+				project: ['./tsconfig.json'],
+			},
+		},
+	],
+
+	plugins: ['core-dev-linting', 'jsdoc', 'react-hooks'],
 	parserOptions: {
 		ecmaVersion: 2015, // Allows for the parsing of modern ECMAScript features
 		ecmaFeatures: {
@@ -16,7 +32,6 @@ module.exports = {
 		sourceType: 'module', // Allows for the use of imports
 	},
 	rules: {
-		'prettier/prettier': 'error',
 		'@typescript-eslint/no-var-requires': 'off',
 		'@typescript-eslint/no-inferrable-types': 'off',
 		'@typescript-eslint/no-unused-vars': 'error',

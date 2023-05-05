@@ -11,12 +11,13 @@ const config = {
 		'@babel/preset-typescript',
 	],
 	plugins: [
-		'@babel/plugin-proposal-class-properties',
 		'@babel/plugin-syntax-dynamic-import',
 		'@babel/plugin-transform-modules-commonjs',
 		'@babel/plugin-transform-runtime',
+		['@babel/plugin-proposal-class-properties', { loose: true }],
+		['@babel/plugin-proposal-private-methods', { loose: true }],
+		['@babel/plugin-proposal-private-property-in-object', { loose: true }],
 		'macros',
-		'production' !== process.env.NODE_ENV && require.resolve('react-refresh/babel'),
 	],
 };
 

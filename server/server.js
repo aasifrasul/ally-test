@@ -42,7 +42,7 @@ const port = 3100;
 // middlewares
 app.get('/WebWorker.js', fetchWebWorker);
 app.get('/apiWorker.js', fetchApiWorker);
-app.get('/api/fetchWineData/:pageNum', getCSVData);
+app.get('/api/fetchWineData/*', getCSVData);
 app.get('/images/*', fetchImage);
 
 //Set hbs template config

@@ -1,13 +1,11 @@
 const webpack = require('webpack');
 const path = require('path');
-const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const ATL = require('awesome-typescript-loader');
 const CompressionPlugin = require('compression-webpack-plugin');
 const CssExtractPlugin = require('mini-css-extract-plugin');
 const FkEmitAssetsPlugin = require('./fk-emit-assets-plugin');
 const Visualizer = require('webpack-visualizer-plugin');
 const StatsPlugin = require('stats-webpack-plugin');
-const webpackCommonConfig = require('./webpack.common');
 const DEV = process.env.NODE_ENV !== 'production';
 const PROD = !DEV;
 const Constants = require('./constants');
@@ -46,13 +44,20 @@ let plugins = [
 	}),
 
 	/**
+	 * Extract CSS from a bundle, or bundles, into a separate file
+	 * Source: https://github.com/webpack-contrib/mini-css-extract-plugin
+	 */
+	new CssExtractPlugin({
+		filename: '[name].[contenthash:20].css',
+		chunkFilename: '[name].[contenthash:20].css',
+	}),
+
+	/**
 	 * Optional plugin that allows awesome-typescript-loader to
 	 * report errors asynchronously
 	 * Source: https://github.com/s-panferov/awesome-typescript-loader
 	 */
 	new ATL.CheckerPlugin(),
-
-	DEV && new ReactRefreshWebpackPlugin(),
 
 	/**
 	 * Creates smaller builds by discarding unused lodash modules
@@ -73,15 +78,6 @@ if (PROD) {
 		 * Source: https://webpack.js.org/plugins/hashed-module-ids-plugin/
 		 */
 		// new webpack.HashedModuleIdsPlugin(),
-
-		/**
-		 * Extract CSS from a bundle, or bundles, into a separate file
-		 * Source: https://github.com/webpack-contrib/mini-css-extract-plugin
-		 */
-		new CssExtractPlugin({
-			filename: '[name].[contenthash:20].css',
-			chunkFilename: '[name].[contenthash:20].css',
-		}),
 
 		/**
 		 * Prepare compressed versions of assets to serve them with Content-Encoding

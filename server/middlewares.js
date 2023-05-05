@@ -48,7 +48,7 @@ const userAgentHandler = (req, res, next) => {
 };
 
 const getCSVData = (req, res) => {
-	const pageNum = parseInt(req.params.pageNum, 10);
+	const pageNum = parseInt(req.query.page, 10);
 	const pageData = result.slice(pageNum * 10, (pageNum + 1) * 10);
 	res.end(JSON.stringify(pageNum ? { pageData } : { headers, pageData }));
 };

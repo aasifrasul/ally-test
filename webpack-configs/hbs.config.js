@@ -58,17 +58,18 @@ module.exports = function (env) {
 						{
 							loader: 'css-loader',
 							options: {
-								localIdentName: DEV
-									? '[path][name]_[local]_[hash:base64:6]'
-									: '[sha512:hash:base64:6]',
-								modules: true,
+								modules: {
+									mode: 'local',
+									//localIdentName: '[path][name]__[local]--[hash:base64:5]',
+									localIdentName: DEV
+										? '[path][name]_[local]_[hash:base64:6]'
+										: '[sha512:hash:base64:6]',
+								},
 								importLoaders: 1,
 								minimize: !DEV,
 							},
 						},
-						{
-							loader: 'postcss-loader',
-						},
+						'postcss-loader',
 					],
 				},
 			),

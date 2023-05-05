@@ -31,7 +31,7 @@ const alphabets = [
 	'z',
 ];
 
-const getArrayCount = (arr) => idx(arr, (_) => _.length) || 0;
+const getArrayCount = (arr) => (isArray(arr) && arr.length) || 0;
 
 const dupeArray = (arr) => isArray(arr) && Array.prototype.slice.call(arr);
 

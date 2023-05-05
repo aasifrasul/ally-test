@@ -1,6 +1,6 @@
 const parser = require('ua-parser-js');
 
-const { getArrayCount } = require('../src/utils/typeChecking');
+const { getArrayCount } = require('../src/utils/ArrayUtils');
 
 // Retail Wrapper Android App
 const RETAIL_WRAPPER_ANDROID_APP = 'flipkart_app';
