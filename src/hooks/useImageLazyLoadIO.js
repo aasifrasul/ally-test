@@ -11,12 +11,9 @@ export const useImageLazyLoadIO = (imgSelector, count) => {
 					// only swap out the image source if the new url exists
 
 					ImageSrc &&
-						requestIdleCallback(
-							() => {
-								currentImg.src = ImageSrc;
-							},
-							{ timeout: 1000 },
-						);
+						requestIdleCallback(() => (currentImg.src = ImageSrc), {
+							timeout: 1000,
+						});
 
 					intObs.unobserve(node); // detach the observer when done
 				}
@@ -31,9 +28,7 @@ export const useImageLazyLoadIO = (imgSelector, count) => {
 		imageRef.current = document.querySelectorAll(imgSelector);
 		imageRef?.current.forEach((img) => imageObserver(img));
 
-		return () => {
-			imageRef.current = null;
-		};
+		return () => (imageRef.current = null);
 	}, [imageObserver, imageRef, count]);
 };
 

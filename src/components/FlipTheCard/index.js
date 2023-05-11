@@ -1,5 +1,8 @@
 import React from 'react';
 
+import useTimer from '../../hooks/useTimer';
+
+import { safelyExecuteFunction } from '../../utils/typeChecking';
 import { shuffle, arrayChunks } from '../../utils/ArrayUtils';
 import { MOCK, blankCard } from './mock';
 
@@ -10,6 +13,8 @@ export default function FlipTheCard() {
 
 	// To store the indexes of the opened cards
 	const [openCards, setOpenCards] = React.useState([]);
+
+	const { seconds, fraction, handleReset, handleStop } = useTimer(1000);
 
 	const handleClick = (index) => {
 		if (openCards.length < 2) {
@@ -35,20 +40,31 @@ export default function FlipTheCard() {
 					}, 1000);
 				});
 			} else {
+				if (
+					flipCards.current.filter((item) => item.display).length ===
+					flipCards.current.length
+				) {
+					safelyExecuteFunction(handleStop);
+				}
 				setOpenCards(() => []);
 			}
 		}
+		//return () => safelyExecuteFunction(handleStop);
 	}, [openCards.length]);
 
 	const restart = () => {
 		flipCards.current = shuffle(MOCK);
 		setOpenCards(() => []);
+		safelyExecuteFunction(handleReset);
 	};
 
 	return (
 		<>
 			<div className={styles.center}>
-				<button onClick={() => restart()}>Restart</button>
+				<div>Time: {seconds}</div>
+				<div>
+					<button onClick={() => restart()}>Restart</button>
+				</div>
 			</div>
 			<div className={styles.parent}>
 				{flipCards.current.map(({ pic, display, name }, index) =>
