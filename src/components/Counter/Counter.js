@@ -9,13 +9,8 @@ const Display = () => {
 	const counter = useSelector((state) => state.counter);
 	const dispatch = useDispatch();
 
-	const increment = () => {
-		dispatch({ type: 'INCREMENT' });
-	};
-
-	const decrement = () => {
-		dispatch({ type: 'DECREMENT' });
-	};
+	const increment = () => dispatch({ type: 'INCREMENT' });
+	const decrement = () => dispatch({ type: 'DECREMENT' });
 
 	return (
 		<div>

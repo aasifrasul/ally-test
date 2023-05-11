@@ -11,7 +11,7 @@ const getRandomInt = (min = 1000 * 1000, max = 2000 * 1000) => {
  * Special handling is needed for array/object/time as they are passed by reference
  */
 const deepCopy = (obj, map = new WeakMap()) => {
-	if (obj === null || typeof obj !== 'object' || map.has(obj)) {
+	if (typeof obj === 'undefined' || typeof obj !== 'object' || map.has(obj)) {
 		return obj;
 	}
 
@@ -19,7 +19,7 @@ const deepCopy = (obj, map = new WeakMap()) => {
 
 	let newObj = obj instanceof Date ? new obj.constructor(obj) : obj.constructor();
 
-	Reflect.ownKeys(obj).forEach((key) => (newObj[key] = deepCopy(obj[key])));
+	Reflect.ownKeys(obj).forEach((key) => (newObj[key] = deepCopy(obj[key], map)));
 
 	return newObj;
 };

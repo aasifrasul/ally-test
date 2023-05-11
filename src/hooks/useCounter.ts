@@ -5,8 +5,8 @@ import { useState } from 'react';
 const useCounter: object = (initCount: number = 0) => {
 	const [count, setCount] = useState(initCount);
 
-	const increment = () => setCount((count) => count + 1);
-	const decrement = () => setCount((count) => count - 1);
+	const increment = () => setCount((data) => data + 1);
+	const decrement = () => setCount((data) => data - 1);
 	const reset = (value: number) => setCount(value);
 
 	return {
