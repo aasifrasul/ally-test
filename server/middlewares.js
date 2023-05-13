@@ -1,6 +1,7 @@
 const idx = require('idx');
 const path = require('path');
 const fs = require('fs');
+const handlebars = require('handlebars');
 
 const { isMobileApp, nocache } = require('./helper');
 const htmlEncode = require('htmlencode');
@@ -14,8 +15,17 @@ const enc = {
 	encoding: 'utf-8',
 };
 
+handlebars.registerHelper({
+	if_eq: (a, b, opts) => a === b && opts.fn(Object.create(null)),
+});
+
 const webWorkerContent = fs.readFileSync(`./src/utils/WebWorker.js`, enc);
 const apiWorkerContent = fs.readFileSync(`./src/workers/apiWorker.js`, enc);
+
+// PreeCopile template
+const templatePath = path.join(__dirname, '..', 'Public', 'ally-test');
+const templateContent = fs.readFileSync(`${templatePath}/next1-ally-test.hbs`, enc);
+const compiledTemplate = handlebars.compile(templateContent);
 
 /**
  * Generate user agent object (platform, version, ...)
@@ -82,4 +92,5 @@ module.exports = {
 	fetchImage,
 	fetchWebWorker,
 	fetchApiWorker,
+	compiledTemplate,
 };

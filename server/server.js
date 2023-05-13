@@ -6,19 +6,20 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const express = require('express');
 const exphbs = require('express-handlebars');
-const handlebars = require('handlebars');
+
 const cookieParser = require('cookie-parser');
 const path = require('path');
 
-const webpackConfig = require('../webpack-configs/webpack.config');
-const { constructReqDataObject, generateBuildTime, getStartTime } = require('./helper');
 const {
 	userAgentHandler,
 	getCSVData,
 	fetchImage,
 	fetchWebWorker,
 	fetchApiWorker,
+	compiledTemplate,
 } = require('./middlewares');
+const webpackConfig = require('../webpack-configs/webpack.config');
+const { constructReqDataObject, generateBuildTime } = require('./helper');
 const { onConnection } = require('./socketConnection');
 const { logger } = require('./Logger');
 
@@ -50,12 +51,8 @@ app.engine('.hbs', exphbs({ extname: '.hbs' }));
 app.set('views', path.join(__dirname, '..', 'public', 'ally-test'));
 app.set('view engine', '.hbs');
 
-handlebars.registerHelper({
-	if_eq: (a, b, opts) => a === b && opts.fn(Object.create(null)),
-});
-
 app.use([cors(), cookieParser(), userAgentHandler]);
-const { publicPath } = webpackConfig.output || {};
+const publicPath = webpackConfig?.output?.publicPath;
 
 const server = http.createServer(app);
 
@@ -69,17 +66,17 @@ const bundleConfig = ['en', 'vendor', 'app'].map((i) => `${publicPath}${i}.bundl
 app.use(
 	serveStatic(path.join(__dirname, '..'), {
 		index: ['default.html', 'default.htm', 'next1-ally-test.hbs'],
-	}),
+	})
 );
 
-app.all('/*', (req, res) => {
+app.all('*', (req, res) => {
 	const data = {
 		js: bundleConfig,
 		...constructReqDataObject(req),
 		dev: true,
 		layout: false,
 	};
-	res.render('next1-ally-test', data);
+	res.send(compiledTemplate(data));
 });
 
 //Start the server

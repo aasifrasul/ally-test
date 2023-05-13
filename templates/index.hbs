@@ -1,116 +1,206 @@
 <html lang='en-IN'>
-	<head>
-		<meta charset="utf-8">
-		<meta
-			name='viewport'
-			content='width=device-width, minimum-scale=1.0, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
-		/>
-		<meta http-equiv='Content-Type' content='text/html'/>
-		<meta name='theme-color' content='#2874f0' />
-		<meta name='supported-color-schemes' content='' />
-		<meta name='full-screen' content='yes' />
-		<meta name='apple-mobile-web-app-capable' content='yes' />
-		<meta name='mobile-web-app-capable' content='yes' />
-		<meta name='apple-mobile-web-app-status-bar-style' content='#2874f0' />
-		<meta http-equiv='X-UA-Compatible' content='IE=edge' />
-		<base href="http://localhost:3100/">
-		<title>Ally Test</title>
-		<!-- PREVENT UNWANTED FAVICON REQUEST -->
-		<link rel='icon' href='data:;base64,iVBORw0KGgo=' />
-		<!-- PRECONNECT and DNS-PREFETCH -->
-		<!-- PWA MANIFEST FOR ENABLING ADD TO HOMESCREEN -->
-		{{#if addManifest}}
-			<link rel='manifest' href='/manifest.json' />
-		{{/if}}
-		<style type='text/css'>body, html {margin: 0; padding:
-			0}*{cursor:pointer;-webkit-tap-highlight-color:transparent;}*:not(input):not(textarea):not(button){-webkit-touch-callout:
-			none;-webkit-user-select: none;-moz-user-select: none;user-select:
-			none;}input[type="button"],input[type="submit"]{-webkit-appearance: none;}/* Common Shell styles
-			*/.loading-shell{height:100%;width: 100%;background-color: #ffffff;padding: 16px;}.loader
-			.loading-strip.loading-strip, .loader.loading-strip {color: transparent;background-color: #eee;transform :
-			translateZ(0);-webkit-transform : translateZ(0);margin-bottom: 10px;}.loader .loading-strip::after,
-			.loader.loading-strip::after {content: '';background-color: transparent;background-image:
-			-webkit-gradient(linear, left top, right top, color-stop(0%, transparent),
-			color-stop(50%,rgba(255,255,255,0.75)), color-stop(100%, transparent));background-repeat:
-			no-repeat;-webkit-animation: loading-shell 2s linear infinite;position: absolute;top: 0;left: 0;right:
-			0;bottom: 0;}@-webkit-keyframes loading-shell {0%{background-position: -500px 0}100%{background-position:
-			500px 0}}</style>
-	</head>
 
-	<body style='overflow: auto;'>
-		<div id='root'></div>
-		<div id='modal-root'></div>
-		<script type='text/javascript' crossorigin='anonymous' nonce='\{{{nonce}}}'>
-			switch (document.readyState) {
-				case "loading": // The document is still loading. 
-					break;
-				case "interactive": 
-					// The document has finished loading. We can now access the DOM elements. 
-					// But sub-resources such as scripts, images, stylesheets and frames are still loading. 
-					const span = document.createElement("span");
-					span.textContent = "A <span> element.";
-					document.body.appendChild(span);
-					break;
-				case "complete": // The page is fully loaded.
-					console.log("The first CSS rule is: " + document.styleSheets[0].cssRules[0].cssText);
-					break;
+<head>
+	<meta charset="utf-8">
+	<meta name='viewport'
+		content='width=device-width, minimum-scale=1.0, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover' />
+	<meta http-equiv='Content-Type' content='text/html' />
+	<meta name='theme-color' content='#2874f0' />
+	<meta name='supported-color-schemes' content='' />
+	<meta name='full-screen' content='yes' />
+	<meta name='apple-mobile-web-app-capable' content='yes' />
+	<meta name='mobile-web-app-capable' content='yes' />
+	<meta name='apple-mobile-web-app-status-bar-style' content='#2874f0' />
+	<meta http-equiv='X-UA-Compatible' content='IE=edge' />
+	<base href="http://localhost:3100/">
+	<title>Ally Test</title>
+	<!-- PREVENT UNWANTED FAVICON REQUEST -->
+	<link rel='icon' href='data:;base64,iVBORw0KGgo=' />
+	<!-- PRECONNECT and DNS-PREFETCH -->
+	<!-- PWA MANIFEST FOR ENABLING ADD TO HOMESCREEN -->
+	{{#if addManifest}}
+	<link rel='manifest' href='/manifest.json' />
+	{{/if}}
+	<style type='text/css'>
+		body,
+		html {
+			margin: 0;
+			padding:
+				0
+		}
+
+		* {
+			cursor: pointer;
+			-webkit-tap-highlight-color: transparent;
+		}
+
+		*:not(input):not(textarea):not(button) {
+			-webkit-touch-callout:
+				none;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			user-select:
+				none;
+		}
+
+		input[type="button"],
+		input[type="submit"] {
+			-webkit-appearance: none;
+		}
+
+		/* Common Shell styles
+			*/
+		.loading-shell {
+			height: 100%;
+			width: 100%;
+			background-color: #ffffff;
+			padding: 16px;
+		}
+
+		.loader .loading-strip.loading-strip,
+		.loader.loading-strip {
+			color: transparent;
+			background-color: #eee;
+			transform:
+				translateZ(0);
+			-webkit-transform: translateZ(0);
+			margin-bottom: 10px;
+		}
+
+		.loader .loading-strip::after,
+		.loader.loading-strip::after {
+			content: '';
+			background-color: transparent;
+			background-image:
+				-webkit-gradient(linear, left top, right top, color-stop(0%, transparent),
+					color-stop(50%, rgba(255, 255, 255, 0.75)), color-stop(100%, transparent));
+			background-repeat:
+				no-repeat;
+			-webkit-animation: loading-shell 2s linear infinite;
+			position: absolute;
+			top: 0;
+			left: 0;
+			right:
+				0;
+			bottom: 0;
+		}
+
+		@-webkit-keyframes loading-shell {
+			0% {
+				background-position: -500px 0
 			}
-			window.loadJS = function (src, crossorigin) {
-				return new Promise(function(resolve, reject) {
-					console.log('Script Invoked', src);
-					const ref = document.querySelectorAll('script')[0];
-					const script = document.createElement('script');
-					script.setAttribute('src', src);
-					script.setAttribute('nonce', '\{{{nonce}}}');
-					crossorigin && script.setAttribute('crossorigin', 'anonymous');
-					ref.parentNode.insertBefore(script, ref);
-					script.onload = function (e) {
-						console.log('Script Resolved', src);
-						resolve(src);
-					};
-					script.onerror = function (err) {
-						console.log('Script Rejected', src, err);
-						resolve(src);
-					};
-					document.head.appendChild(script);
-				});
+
+			100% {
+				background-position:
+					500px 0
 			}
+		}
+	</style>
+</head>
+
+<body style='overflow: auto;'>
+	<div id='root'></div>
+	<div id='modal-root'></div>
+	<script type='text/javascript' crossorigin='anonymous' nonce='\{{{nonce}}}'>
+		switch (document.readyState) {
+			case "loading": // The document is still loading.
+				break;
+			case "interactive":
+				// The document has finished loading. We can now access the DOM elements.
+				// But sub-resources such as scripts, images, stylesheets and frames are still loading.
+				const span = document.createElement("span");
+				span.textContent = "A <span> element.";
+				document.body.appendChild(span);
+				break;
+			case "complete": // The page is fully loaded.
+				console.log("The first CSS rule is: " + document.styleSheets[0].cssRules[0].cssText);
+				break;
+		}
+		window.loadJS = function (src, crossorigin) {
+			return new Promise(function (resolve, reject) {
+				console.log('Script Invoked', src);
+				const ref = document.querySelectorAll('script')[0];
+				const script = document.createElement('script');
+				script.setAttribute('src', src);
+				script.setAttribute('nonce', '\{{{nonce}}}');
+				crossorigin && script.setAttribute('crossorigin', 'anonymous');
+				ref.parentNode.insertBefore(script, ref);
+				script.onload = function (e) {
+					console.log('Script Resolved', src);
+					resolve(src);
+				};
+				script.onerror = function (err) {
+					console.log('Script Rejected', src, err);
+					resolve(src);
+				};
+				document.head.appendChild(script);
+			});
+		}
 
 			// loadJS('https://unpkg.com/web-vitals/dist/web-vitals.iife.js', false, )
-		</script>
+	</script>
 
-		<!-- Append the `?module` param to load the module version of `web-vitals` -->
-		<script type="module">
-			import {getCLS, getFID, getLCP} from 'https://unpkg.com/web-vitals?module';
+	<!-- Append the `?module` param to load the module version of `web-vitals` -->
+	<script type="module">
+		import { getCLS, getFID, getLCP } from 'https://unpkg.com/web-vitals?module';
 
-			getCLS(console.log);
-			getFID(console.log);
-			getLCP(console.log);
-		</script>
+		getCLS(console.log);
+		getFID(console.log);
+		getLCP(console.log);
+	</script>
 
-		<!-- CSS -->
-		<script type='text/javascript' crossorigin='anonymous' nonce='\{{{nonce}}}'>
-			// load styles sheets 
-			function loadStyleSheet(src) {
-				if (document.createStyleSheet) {
-					document.createStyleSheet(src);
-				} else {
-					var stylesheet = document.createElement('link');
-					stylesheet.href = src;
-					stylesheet.rel = 'stylesheet';
-					stylesheet.type = 'text/css';
-					document.head.appendChild(stylesheet);
+	<!-- CSS -->
+	<script type='text/javascript' crossorigin='anonymous' nonce='\{{{nonce}}}'>
+		// load styles sheets
+		if (!document.createStyleSheet) {
+			document.createStyleSheet = (function () {
+				function createStyleSheet(href) {
+					if (typeof href !== 'undefined') {
+						var element = document.createElement('link');
+						element.type = 'text/css';
+						element.rel = 'stylesheet';
+						element.href = href;
+					}
+					else {
+						var element = document.createElement('style');
+						element.type = 'text/css';
+					}
+
+					document.getElementsByTagName('head')[0].appendChild(element);
+					var sheet = document.styleSheets[document.styleSheets.length - 1];
+
+					if (typeof sheet.addRule === 'undefined')
+						sheet.addRule = addRule;
+
+					if (typeof sheet.removeRule === 'undefined')
+						sheet.removeRule = sheet.deleteRule;
+
+					return sheet;
 				}
-			}
-			{{#each css}}
-				loadStyleSheet('{{this}}');
-			{{/each}}
-		</script>
 
-		<!-- JS -->
-		{{#each js}}
-			<script src={{this}} type='text/javascript' crossorigin='anonymous' nonce='\{{{nonce}}}'></script>
+				function addRule(selectorText, cssText, index) {
+					if (typeof index === 'undefined')
+						index = this.cssRules.length;
+
+					this.insertRule(selectorText + ' {' + cssText + '}', index);
+				}
+
+				return createStyleSheet;
+			})();
+		}
+		function loadStyleSheet(src) {
+			document.createStyleSheet(src);
+		}
+		{{#each css}}
+		loadStyleSheet('{{this}}');
 		{{/each}}
-		<!-- MOCKS -->
-	</body>
+	</script>
+
+	<!-- JS -->
+	{{#each js}}
+	<script src={{this}} type='text/javascript' crossorigin='anonymous' nonce='\{{{nonce}}}'></script>
+	{{/each}}
+	<!-- MOCKS -->
+</body>
+
 </html>
