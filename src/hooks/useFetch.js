@@ -1,13 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 import { useFetchStore, useFetchDispatch } from '../Context/dataFetchContext';
-import WebWorker from '../workers/WebWorkerHelper';
-import MyWorker from '../workers/MyWorker';
-
-// Worker initialisation
-const worker = new WebWorker(MyWorker);
-
-//const worker = new Worker(new URL('apiWorker.js', window.location.origin));
+import worker from '../workers/MyWorker';
 
 const useFetch = (schema, initialUrl, initialParams = {}) => {
 	const [params, updateParams] = useState(initialParams);

@@ -9,9 +9,7 @@ const useOutsideClick = (ref) => {
 
 	useEffect(() => {
 		document.addEventListener('click', handleClickOutside);
-		return () => {
-			document.removeEventListener('click', handleClickOutside);
-		};
+		return () => document.removeEventListener('click', handleClickOutside);
 	}, [ref]);
 
 	return clickedOutside;

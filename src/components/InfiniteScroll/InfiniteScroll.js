@@ -16,7 +16,7 @@ import styles from './InfiniteScroll.css';
 const { TOTAL_PAGES, BASE_URL, schema, queryParams } = constants?.infiniteScroll;
 
 const DisplayList = (props) => {
-	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 1 } });
+	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });
 	const { state, errorMessage, updateQueryParams } = useFetch(schema, BASE_URL, queryParams);
 	const [observerElement, setObserverElement] = useState(null);
 
