@@ -20,9 +20,7 @@ ReactDOM.render(
 
 const root = ReactDOM.createRoot(document.querySelector('#root'));
 root.render(
-	<React.StrictMode>
-		<Provider store={store}>
-			<App />
-		</Provider>
-	</React.StrictMode>,
+	<Provider store={store}>
+		<App />
+	</Provider>
 );

@@ -1,15 +1,26 @@
 class Queue {
 	constructor() {
-		this.items = [];
+		this.reset();
 	}
 	enqueue(item) {
-		this.items.push(item);
+		item && this.hash.set(++this.upperLimit, item);
 	}
 	dequeue() {
-		return this.items.shift();
+		if (this.size === 0) {
+			return;
+		}
+
+		const result = this.hash.get(++this.lowerLimit);
+		this.hash.delete(this.lowerLimit);
+		return result;
+	}
+	reset() {
+		this.hash = new Map();
+		this.upperLimit = 0;
+		this.lowerLimit = 0;
 	}
 	get size() {
-		return this.items.length;
+		return Object.keys(this).length;
 	}
 }
 
@@ -34,8 +45,8 @@ class AsyncQueue extends Queue {
 
 		try {
 			this.pendingPromise = true;
-			const payload = await item.action;
-			item.resolve(payload);
+			const payload = await item?.action;
+			item?.resolve(payload);
 		} catch (e) {
 			item.reject(e);
 		} finally {
