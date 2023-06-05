@@ -4,7 +4,7 @@ import { safelyExecuteFunction } from '../utils/typeChecking';
 
 const useInfiniteScrollIO = (scrollRef, callback) => {
 	const scrollObserver = useCallback(
-		() =>
+		(node) =>
 			new IntersectionObserver(
 				(entries) =>
 					entries.forEach(
@@ -15,12 +15,12 @@ const useInfiniteScrollIO = (scrollRef, callback) => {
 					rootMargin: '2000px',
 					threshold: 0,
 				},
-			).observe(scrollRef?.current),
-		[scrollRef?.current],
+			).observe(node),
+		[scrollRef],
 	);
 
 	useEffect(() => {
-		scrollObserver();
+		scrollRef?.current && scrollObserver(scrollRef.current);
 		return () => scrollRef?.current && (scrollRef.current = null);
 	}, [scrollObserver, scrollRef]);
 };

@@ -1,9 +1,9 @@
 // Reading the file using default
 // fs npm package
-const fs = require('fs');
+const { getFileContents } = require('./helper');
 
 const fetchCSVasJSON = (filePath) => {
-	csv = fs.readFileSync(filePath);
+	csv = getFileContents(filePath);
 
 	// Convert the data to String and
 	// split it in an array

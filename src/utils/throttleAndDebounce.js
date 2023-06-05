@@ -2,8 +2,9 @@ const throttleFunction = function throttle(func, delay) {
 	let timerId = false;
 	const wrapper = function (...args) {
 		if (!timerId) {
-			func.apply(null, ...args);
+			func.apply(this, ...args);
 			timerId = setTimeout(() => {
+				func.apply(this, ...args);
 				clearTimeout(timerId);
 				timerId = false;
 			}, delay);
@@ -20,7 +21,7 @@ const debounceFunction = function (func, delay) {
 		clearTimeout(timerId);
 
 		// Executes the func after delay time.
-		timerId = setTimeout(func, delay, ...args);
+		timerId = setTimeout(func.bind(this), delay, ...args);
 	};
 	wrapper.cancel = () => clearTimeout(timerId);
 	return wrapper;

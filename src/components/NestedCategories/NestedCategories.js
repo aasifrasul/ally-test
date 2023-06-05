@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useRef, useReducer } from 'react';
+import React, { useState, useEffect } from 'react';
 
-import Checkbox from '../Common/Checkbox';
 import Spacer from '../Common/Spacer/Spacer1';
 import DropDown from '../Common/DropDown/DropDown';
 import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
 import useFetch from '../../hooks/useFetch';
 
-import { buildNestedWithParentId, alphabets, getArrayCount } from '../../utils/ArrayUtils';
+import { buildNestedWithParentId, alphabets } from '../../utils/ArrayUtils';
 import { FetchStoreProvider } from '../../Context/dataFetchContext';
 
 import { constants } from '../../utils/Constants';
@@ -18,80 +17,30 @@ const { url, schema } = constants?.nestedCategories;
 
 function DisplayList(props) {
 	const [categories, setCategories] = useState([]);
-	const [selectedParents, setSelectedParents] = useState(new Map());
 	const [categoriesChecked, setCategoresChecked] = useState(new Map());
-	const [filteredData, setFilteredData] = useState(Object.create(null));
-	const [allData, setAllData] = useState(Object.create(null));
+	const [filteredData, setFilteredData] = useState({});
+	const [allData, setAllData] = useState({});
 
-	const didMount = useRef(false);
-	const addEvents = useRef(false);
 	const parent = [];
 	let childHtml = [];
-	const categoriesHtml = [];
 	let count = 0;
 
-	const { state, errorMessage } = useFetch(schema, url);
+	const { state } = useFetch(schema, url);
 
 	useEffect(() => {
 		successCallback();
 	}, [state.data]);
-	useEffect(() => {
-		if (!didMount.current) {
-			didMount.current = true;
-		} else {
-			if (addEvents.current) {
-				const arrowUpDown = styles['arrow-up-down'];
-				const arrowUpDownUp = styles['up'];
-				const hidden = styles['hidden'];
-				document.body.addEventListener(
-					'click',
-					(event) => {
-						const { target } = event;
-						if (!target.classList.contains(arrowUpDown)) {
-							return;
-						}
-						if (target.classList.contains(arrowUpDownUp)) {
-							target.classList.remove(arrowUpDownUp);
-							target.parentElement.parentElement.childNodes[1].children[1].classList.remove(
-								hidden,
-							);
-						} else {
-							target.classList.add(arrowUpDownUp);
-							target.parentElement.parentElement.childNodes[1].children[1].classList.add(
-								hidden,
-							);
-						}
-					},
-					false,
-				);
-			}
-			addEvents.current = true;
-		}
-
-		return () => {
-			document.body.removeEventListener('click', (event) => {});
-		};
-	}, [categories, categoriesChecked, filteredData, selectedParents]);
-
-	function failureCallback(res) {}
 
 	function successCallback(res) {
 		if (!state.isLoading && !state.isError && state.data) {
 			const { nestedStructure, categories: allCategories } = buildNestedWithParentId(
-				state.data,
+				state.data
 			);
 			setAllData(nestedStructure);
 			setFilteredData(nestedStructure);
 			setCategories(allCategories);
 		}
 	}
-
-	const handleParentSelection = (checked, value) => {
-		// Handling the elemnt checked
-		console.log('checked, value', checked, value);
-		checked ? selectedParents.set(value, true) : selectedParents.delete(value);
-		setSelectedParents(new Map(selectedParents));
-	};
 
 	const handleCategoriesSelection = (value) => {
 		// Collecting all the checked categories
@@ -118,28 +67,36 @@ function DisplayList(props) {
 		setFilteredData(hash);
 	};
 
+	const handleToggleChildren = (id) => {
+		setFilteredData((items) => {
+			const newItems = { ...items };
+			newItems[id].hideChildren = !newItems[id].hideChildren;
+			return newItems;
+		});
+	};
+
 	for (let key in filteredData) {
 		let childCount = 0;
-		const { id, title, children } = filteredData[key];
+		const { id, title, children, hideChildren } = filteredData[key];
 		childHtml = [];
-		key = <span>{key + (selectedParents.has(key) ? ' Children Hidden' : '')}</span>;
 
-		!selectedParents.has(id) &&
-			getArrayCount(children) &&
-			children.forEach((item, key) => {
+		!hideChildren &&
+			children?.forEach((item, key) => {
 				const { id, title } = item || {};
 				title &&
 					childHtml.push(
 						<div key={id}>
 							{alphabets[childCount++]}. {title}
-						</div>,
+						</div>
 					);
 			});
 
 		parent.push(
 			<div key={id}>
 				<div className={styles['dev-wrapper']}>
-					<div className={styles['arrow-up-down']}></div>
+					<div onClick={() => handleToggleChildren(id)}>
+						{hideChildren ? '▶' : '▼'}
+					</div>
 				</div>
 				<div>
 					<span className={styles['category_parent']}>
@@ -148,24 +105,9 @@ function DisplayList(props) {
 					<div className={styles['category_children']}>{childHtml}</div>
 				</div>
 				<Spacer size={16} />
-			</div>,
+			</div>
 		);
 	}
-
-	const toggleItem = (id, key) => {
-		const temp = [...categories];
-
-		temp[id].selected = !temp[id].selected;
-		setCategories(temp);
-	};
-
-	const resetThenSet = (id, key) => {
-		const temp = [...categories];
-
-		temp.forEach((item) => (item.selected = false));
-		temp[id].selected = true;
-		setCategories(temp);
-	};
 
 	return (
 		<>
@@ -176,15 +118,6 @@ function DisplayList(props) {
 				options={categories}
 				selectHandler={handleCategoriesSelection}
 			/>
-			{/*
-				<DropDown
-					titleHelper="Category"
-					titleHelperPlural="Categories"
-					title="Select Category"
-					list={categories}
-					toggleItem={toggleItem}
-				/>
-	*/}
 			<div className={styles['home']}>{parent}</div>
 		</>
 	);

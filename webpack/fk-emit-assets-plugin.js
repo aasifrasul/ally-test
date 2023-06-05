@@ -61,7 +61,6 @@ class FkEmitAssetsPlugin {
 					item.files.forEach((item) => {
 						const extension = path.extname(item);
 						const fileUrl = `${publicPath}${item}`;
-						console.log('fileUrl:', fileUrl);
 						switch (extension) {
 							case '.js':
 								output.js.push(fileUrl);
@@ -144,10 +143,11 @@ class FkEmitAssetsPlugin {
 
 			/**
 			 * Emit the generated list to console, for developer convenience while reviewing Jenkins logs
-			 */
+
 			console.log('FkEmitAssetsPlugin :: Start output');
 			console.log(output);
 			console.log('FkEmitAssetsPlugin :: End output');
+			*/
 
 			callback && callback();
 		});

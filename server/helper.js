@@ -1,10 +1,11 @@
 /**
  * File contains list of utilities for handling configs and rendering the page
  */
-const path = require('path');
 const fs = require('fs');
 const idx = require('idx');
 const htmlEncode = require('htmlencode');
+
+const { pathBuildTime } = require('./paths');
 
 const enc = {
 	encoding: 'utf-8',
@@ -15,9 +16,8 @@ const enc = {
  * @param uaData
  * @returns {*}
  */
-const getPlatformString = (uaData) => {
-	return idx(uaData, (_) => _.fkApp.platform.toLowerCase()) || 'web';
-};
+const getPlatformString = (uaData) =>
+	idx(uaData, (_) => _.fkApp.platform.toLowerCase()) || 'web';
 
 /**
  * Return if its mobile app
@@ -82,14 +82,12 @@ const _getWebEnvParams = (req) => {
  * @returns {{omnitureVisitorId: *, SN: *, SC: *, secureToken: *}}
  * @private
  */
-const _getLoginParams = function (request) {
-	return {
-		omnitureVisitorId: _getValueFromHeaderAndParam(request, 'appVisitorId'),
-		SN: _getValueFromHeaderAndParam(request, '_sn_') || _getValueFromCookie(request, 'SN'),
-		SC: _getValueFromHeaderAndParam(request, '_sc_') || _getValueFromCookie(request, 'SC'),
-		secureToken: _getValueFromHeaderAndParam(request, 'secureToken'),
-	};
-};
+const _getLoginParams = (request) => ({
+	omnitureVisitorId: _getValueFromHeaderAndParam(request, 'appVisitorId'),
+	SN: _getValueFromHeaderAndParam(request, '_sn_') || _getValueFromCookie(request, 'SN'),
+	SC: _getValueFromHeaderAndParam(request, '_sc_') || _getValueFromCookie(request, 'SC'),
+	secureToken: _getValueFromHeaderAndParam(request, 'secureToken'),
+});
 
 /**
  * Returns a given parameter value either from header or from request body
@@ -99,10 +97,10 @@ const _getLoginParams = function (request) {
  * @private
  */
 const _getValueFromHeaderAndParam = function (request, paramName) {
-	if (request.body && request.body[paramName]) {
-		return htmlEncode.XSSEncode(request.body[paramName]);
-	} else if (request.headers[paramName]) {
-		return htmlEncode.XSSEncode(request.headers[paramName]);
+	if (paramName in request.body) {
+		return getParsedUserAgentData(request.body[paramName]);
+	} else if (paramName in request.headers) {
+		return getParsedUserAgentData(request.headers[paramName]);
 	}
 };
 
@@ -129,11 +127,11 @@ const constructReqDataObject = (req) => {
 const _getValueFromCookie = (request, paramName) =>
 	request.cookies &&
 	request.cookies[paramName] &&
-	htmlEncode.XSSEncode(request.cookies[paramName]);
+	getParsedUserAgentData(request.cookies[paramName]);
 
 const generateBuildTime = async function () {
 	fs.writeFile(
-		path.join(__dirname, '..', 'public', 'server', 'buildtime'),
+		pathBuildTime,
 		new Date().toUTCString(),
 		(err) =>
 			err &&
@@ -143,16 +141,10 @@ const generateBuildTime = async function () {
 
 const getStartTime = () => {
 	if (process.env.NODE_ENV !== 'production') {
-		return fs.readFileSync(
-			path.join(__dirname, '..', 'public', 'server', 'buildtime'),
-			enc,
-		);
+		return getFileContents(pathBuildTime);
 	}
 
-	let startTime = fs.readFileSync(
-		path.join(__dirname, 'public', 'server', 'buildtime'),
-		enc,
-	);
+	let startTime = getFileContents(pathBuildTime);
 	startTime = new Date(Date.parse(startTime) + 1000000000).toUTCString();
 	return startTime;
 };
@@ -167,10 +159,15 @@ const nocache = (res) =>
 		'Last-Modified': getStartTime(),
 	});
 
+const getParsedUserAgentData = (userAgentData) => htmlEncode.XSSEncode(userAgentData);
+const getFileContents = (filePath) => fs.readFileSync(filePath, enc);
+
 module.exports = {
 	isMobileApp,
 	constructReqDataObject,
 	generateBuildTime,
 	getStartTime,
 	nocache,
+	getParsedUserAgentData,
+	getFileContents,
 };
