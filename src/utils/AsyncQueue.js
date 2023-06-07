@@ -29,7 +29,6 @@ class AsyncQueue extends Queue {
 		super();
 		this.pendingPromise = false;
 	}
-
 	enqueue(action) {
 		return new Promise((resolve, reject) => {
 			super.enqueue({ action, resolve, reject });

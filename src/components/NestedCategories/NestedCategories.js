@@ -34,7 +34,7 @@ function DisplayList(props) {
 	function successCallback(res) {
 		if (!state.isLoading && !state.isError && state.data) {
 			const { nestedStructure, categories: allCategories } = buildNestedWithParentId(
-				state.data
+				state.data,
 			);
 			setAllData(nestedStructure);
 			setFilteredData(nestedStructure);
@@ -87,7 +87,7 @@ function DisplayList(props) {
 					childHtml.push(
 						<div key={id}>
 							{alphabets[childCount++]}. {title}
-						</div>
+						</div>,
 					);
 			});
 
@@ -105,7 +105,7 @@ function DisplayList(props) {
 					<div className={styles['category_children']}>{childHtml}</div>
 				</div>
 				<Spacer size={16} />
-			</div>
+			</div>,
 		);
 	}
 

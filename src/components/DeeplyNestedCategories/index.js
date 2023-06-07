@@ -71,7 +71,7 @@ function fetchData() {
 	});
 }
 
-function BuildCategories() {
+function DeeplyNestedCategories() {
 	const [categories, setCategories] = useState([]);
 	const [hiddenChildren, setHiddenChildren] = useState({});
 
@@ -110,4 +110,4 @@ function BuildCategories() {
 	return <div>{buildHtml(categories)}</div>;
 }
 
-export default BuildCategories;
+export default DeeplyNestedCategories;

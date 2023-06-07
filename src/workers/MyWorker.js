@@ -23,7 +23,7 @@ self.addEventListener('message', (event) => {
 }, false);
 	`,
 	],
-	{ type: 'text/javascript' }
+	{ type: 'text/javascript' },
 );
 
 // Obtain a blob URL reference to our worker 'file'.
