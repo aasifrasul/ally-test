@@ -1,59 +1,58 @@
-class Queue {
-	constructor() {
-		this.reset();
-	}
-	enqueue(item) {
-		item && this.hash.set(++this.upperLimit, item);
-	}
-	dequeue() {
-		if (this.size === 0) {
-			return;
-		}
+import BaseQueue from 'BaseQueue';
 
-		const result = this.hash.get(++this.lowerLimit);
-		this.hash.delete(this.lowerLimit);
-		return result;
-	}
-	reset() {
-		this.hash = new Map();
-		this.upperLimit = 0;
-		this.lowerLimit = 0;
-	}
-	get size() {
-		return Object.keys(this).length;
-	}
-}
-
-class AsyncQueue extends Queue {
+class AsyncQueue extends BaseQueue {
 	constructor() {
 		super();
-		this.pendingPromise = false;
+		this._pendingPromise = false;
+		this._stop = false;
+		this._pause = false;
 	}
-	enqueue(action) {
+	enqueue(action, autoDequeue = true) {
 		return new Promise((resolve, reject) => {
 			super.enqueue({ action, resolve, reject });
-			this.dequeue();
+			autoDequeue && this.dequeue();
 		});
 	}
 
 	async dequeue() {
-		if (this.pendingPromise) return false;
+		if (this._pendingPromise) return false;
+		if (this._pause) return false;
+
+		if (this._stop) {
+			this.reset();
+			this._stop = false;
+			return false;
+		}
 
 		const item = super.dequeue();
 		if (!item) return false;
 
 		try {
-			this.pendingPromise = true;
+			this._pendingPromise = true;
 			const payload = await item?.action;
 			item?.resolve(payload);
 		} catch (e) {
 			item.reject(e);
 		} finally {
-			this.pendingPromise = false;
+			this._pendingPromise = false;
 			this.dequeue();
 		}
 
 		return true;
+	}
+
+	stop() {
+		this._stop = true;
+	}
+
+	pause() {
+		this._pause = true;
+	}
+
+	async start() {
+		this._stop = false;
+		this._pause = false;
+		return await this.dequeue();
 	}
 }
 

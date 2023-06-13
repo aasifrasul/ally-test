@@ -32,26 +32,20 @@ const articleIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 const ArticleList = () => {
 	const [articles, setArticles] = useState([]);
-	const didMount = useRef(false);
 
 	useEffect(() => {
-		if (!didMount.current) {
-			articleIds.forEach((id) =>
-				asyncQueue
-					.enqueue(getMockArticle(id))
-					.then((item) => setArticles((items) => [...items, item])),
-			);
-			didMount.current = true;
-		}
+		articleIds.forEach((id) =>
+			asyncQueue
+				.enqueue(getMockArticle(id))
+				.then((item) => setArticles((items) => [...items, item]))
+		);
 	}, []);
 
-	const html = articles.map((id) => {
-		return (
-			<div key={id.id}>
-				<b>{id.id}</b>.{id.title}
-			</div>
-		);
-	});
+	const html = articles.map((id) => (
+		<div key={id.id}>
+			<b>{id.id}</b>.{id.title}
+		</div>
+	));
 	/** --------- 2 -----------
 	 * (i) Render a list of first 10 articles showing ID and title
 	 * (ii) Render in sequence from top to bottom rather than randomly (as they would because of random timeouts)

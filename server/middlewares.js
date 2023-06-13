@@ -8,7 +8,7 @@ const { schema } = require('./schema/schema');
 const { parse } = require('./UAParser');
 const { fetchCSVasJSON } = require('./fetchCSVasJSON');
 
-const csvData = fetchCSVasJSON('../../Downloads/winemag-data-130k-v2.csv');
+const csvData = fetchCSVasJSON(`${path.join(__dirname, '..', 'assets')}/winemag-data-130k-v2.csv`);
 const { headers, result } = csvData;
 
 handlebars.registerHelper({
@@ -21,8 +21,8 @@ const webWorkerContent = getFileContents(`./src/utils/WebWorker.js`);
 const apiWorkerContent = getFileContents(`./src/workers/apiWorker.js`);
 
 // PreeCopile template
-const templatePath = path.join(__dirname, '..', 'Public', 'ally-test');
-const templateContent = getFileContents(`${templatePath}/next1-ally-test.hbs`);
+const templatePath = path.join(__dirname, '..', 'public', 'ally-test', 'index.hbs');
+const templateContent = getFileContents(templatePath);
 const compiledTemplate = handlebars.compile(templateContent);
 
 /**
@@ -81,9 +81,7 @@ const fetchWebWorker = (req, res) => fetchWorker(req, res, webWorkerContent);
 
 const fetchApiWorker = (req, res) => fetchWorker(req, res, apiWorkerContent);
 
-const handleGraphql = (req, res) => {
-	handler(req, res);
-};
+const handleGraphql = (req, res) => handler(req, res);
 
 module.exports = {
 	userAgentHandler,
