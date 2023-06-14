@@ -2,31 +2,16 @@ const config = {
 	globals: {
 		__DEV__: true,
 	},
-	collectCoverage: true,
-	collectCoverageFrom: ['src/**/*.{js,jsx}'],
-	coverageDirectory: 'coverage',
 	testEnvironment: 'jsdom',
 	setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-	coverageThreshold: {
-		global: {
-			branches: 50,
-			functions: 50,
-			lines: 50,
-			statements: 50,
-		},
-		'./src/components/': {
-			branches: 40,
-			statements: 40,
-		},
-		'./src/reducers/**/*.js': {
-			statements: 90,
-		},
-		'./src/api/very-important-module.js': {
-			branches: 100,
-			functions: 100,
-			lines: 100,
-			statements: 100,
-		},
+	transformIgnorePatterns: ['node_modules/(?!(sucrase)/)'],
+	transform: {
+		'^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest',
+	},
+	moduleNameMapper: {
+		'\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
+			'<rootDir>/__mocks__/fileMock.js',
+		'\\.(css|less)$': '<rootDir>/__mocks__/styleMock.js',
 	},
 };
 

@@ -1,15 +1,9 @@
 import React, { useContext } from 'react';
 import { Button } from 'semantic-ui-react';
+
 import { CounterContext } from '../../Context/CounterContext';
 
-const CustomButton = (props) => {
-	const { text, color, callback } = props;
-	return (
-		<Button color={color} onClick={callback()}>
-			{text}
-		</Button>
-	);
-};
+import CustomButton from './CustomButton';
 
 export default function CounterButtons() {
 	const [count, setCount] = useContext(CounterContext);

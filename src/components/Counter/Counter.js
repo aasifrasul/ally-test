@@ -14,7 +14,7 @@ const Display = () => {
 
 	return (
 		<div>
-			<h2 data-testid="counter">Counter: {counter}</h2>
+			<h2>Counter: {counter}</h2>
 			<button onClick={increment}>+</button>
 			<button onClick={decrement}>-</button>
 		</div>
