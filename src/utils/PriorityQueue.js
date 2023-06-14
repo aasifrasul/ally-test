@@ -13,7 +13,7 @@ class PriorityQueue {
 			this.upperLimit = priority;
 		}
 
-		this.items.set(priority, item);
+		this.map.set(priority, item);
 	}
 
 	dequeue() {
@@ -22,8 +22,8 @@ class PriorityQueue {
 			return;
 		}
 
-		const item = this.items.get(this.lowerLimit);
-		this.items.delete(this.lowerLimit);
+		const item = this.map.get(this.lowerLimit);
+		this.map.delete(this.lowerLimit);
 		++this.lowerLimit;
 		return item;
 	}
@@ -33,7 +33,7 @@ class PriorityQueue {
 			console.log('No elements in Queue');
 			return;
 		}
-		return this.items.get(this.lowerLimit);
+		return this.map.get(this.lowerLimit);
 	}
 
 	rear() {
@@ -41,28 +41,28 @@ class PriorityQueue {
 			console.log('No elements in Queue');
 			return;
 		}
-		return this.items.get(this.upperLimit);
+		return this.map.get(this.upperLimit);
 	}
 
 	printPQueue() {
-		return [...this.items.keys()]
+		return [...this.map.keys()]
 			?.sort()
-			?.map((key) => this.items.get(key))
+			?.map((key) => this.map.get(key))
 			?.join(' -> ');
 	}
 
 	reset() {
-		this.items = new Map();
+		this.map = new Map();
 		this.lowerLimit = 0;
 		this.upperLimit = 0;
 	}
 
 	get size() {
-		return this.items.size;
+		return this.map.size;
 	}
 
 	isEmpty() {
-		return this.size === 0;
+		return this.map.size === 0;
 	}
 }
 

@@ -1,29 +1,10 @@
 // webpack
+require('dotenv').config();
 const socketio = require('socket.io');
 const http = require('http');
-const serveStatic = require('serve-static');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const express = require('express');
-const exphbs = require('express-handlebars');
-const cookieParser = require('cookie-parser');
 
-const {
-	userAgentHandler,
-	getCSVData,
-	fetchImage,
-	fetchWebWorker,
-	fetchApiWorker,
-	compiledTemplate,
-	handleGraphql,
-} = require('./middlewares');
-const webpackConfig = require('../webpack-configs/webpack.config');
-const { constructReqDataObject, generateBuildTime } = require('./helper');
+const { app } = require('./app');
 const { onConnection } = require('./socketConnection');
-const { logger } = require('./Logger');
-const { pathTemplate, pathRootDir } = require('./paths');
-
-// mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true });
 
 const log = (msg) => console.log.bind(console, msg);
 const error = (msg) => console.error.bind(console, msg);
@@ -34,54 +15,15 @@ db.on('error', error('connection error:'));
 db.once('open', () => log('connection successfull'));
 */
 
-generateBuildTime();
-
-const app = express();
-// port to use
-const port = 3100;
-
-// middlewares
-app.get('/WebWorker.js', fetchWebWorker);
-app.get('/apiWorker.js', fetchApiWorker);
-app.get('/api/fetchWineData/*', getCSVData);
-app.get('/images/*', fetchImage);
-app.use('/graphql/*', handleGraphql);
-
-//Set hbs template config
-app.engine('.hbs', exphbs({ extname: '.hbs' }));
-app.set('views', pathTemplate);
-app.set('view engine', '.hbs');
-
-app.use([cors(), cookieParser(), userAgentHandler]);
-const publicPath = webpackConfig?.output?.publicPath;
+//Start the server
 
 const server = http.createServer(app);
 
 server.on('connection', (socket) => socket.on('close', () => log('server.connection')));
-
 server.on('request', () => log('server.request'));
-
-// const bundleConfig = [publicPath + 'en.bundle.js', publicPath + 'vendor.bundle.js', publicPath + 'app.bundle.js'];
-const bundleConfig = ['en', 'vendor', 'app'].map((i) => `${publicPath}${i}.bundle.js`);
-
-app.use(
-	serveStatic(pathRootDir, {
-		index: ['default.html', 'default.htm', 'next1-ally-test.hbs'],
-	}),
+server.listen(process.env.PORT, 'localhost', () =>
+	log(`webpack-dev-server listening on port ${process.env.PORT}`)
 );
-
-app.all('*', (req, res) => {
-	const data = {
-		js: bundleConfig,
-		...constructReqDataObject(req),
-		dev: true,
-		layout: false,
-	};
-	res.send(compiledTemplate(data));
-});
-
-//Start the server
-server.listen(port, 'localhost', () => log(`webpack-dev-server listening on port ${port}`));
 
 const io = socketio(server);
 

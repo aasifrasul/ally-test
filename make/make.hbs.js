@@ -27,8 +27,8 @@ const fetchBuildConfig = () => {
 const generateHBS = function () {
 	const [hbsJson, hbsTemplate] = fetchBuildConfig();
 	const html = hbsTemplate.template({ ...hbsJson });
-	const PROMO_ENV = process.env.PROMO_ENV;
-	writeFile(`${PROMO_ENV}-${APP_NAME}.hbs`, html);
+	//vconst PROMO_ENV = process.env.PROMO_ENV;
+	writeFile(`index.hbs`, html);
 };
 
 module.exports = {
