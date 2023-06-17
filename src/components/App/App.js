@@ -38,7 +38,7 @@ const InfiniteScroll = lazy(() =>
 	import(/* webpackChunkName: "InfiniteScroll" */ '../InfiniteScroll/InfiniteScroll'),
 );
 const Counter = lazy(() => import(/* webpackChunkName: "Counter" */ '../Counter/Counter'));
-const Contacts = lazy(() => import(/* webpackChunkName: "Contacts" */ '../Contacts/view'));
+const Contacts = lazy(() => import(/* webpackChunkName: "Contacts" */ '../Contacts/Contacts'));
 const AutoComplete = lazy(() =>
 	import(/* webpackChunkName: "AutoComplete" */ '../AutoComplete/AutoComplete'),
 );

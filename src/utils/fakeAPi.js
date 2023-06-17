@@ -37,7 +37,7 @@ function wrapPromise(promise) {
 	};
 }
 
-function fetchUser() {
+export function fetchUser() {
 	console.log('fetch user...');
 	return new Promise((resolve) => {
 		setTimeout(() => {
@@ -49,7 +49,7 @@ function fetchUser() {
 	});
 }
 
-function fetchPosts() {
+export function fetchPosts() {
 	console.log('fetch posts...');
 	return new Promise((resolve) => {
 		setTimeout(() => {

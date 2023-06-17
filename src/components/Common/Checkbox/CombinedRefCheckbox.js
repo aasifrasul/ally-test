@@ -36,6 +36,7 @@ const CombinedRefCheckbox = forwardRef(
 				<label htmlFor="my-checkbox">
 					<input
 						id="my-checkbox"
+						label={label}
 						style={{ display: 'none' }}
 						ref={combinedRef}
 						type="checkbox"

@@ -4,7 +4,7 @@ import { safelyExecuteFunction } from '../../../utils/typeChecking';
 
 const InputText = (props) => {
 	const { label, name, inputTextRef } = props;
-	const [value, setValue] = useState(inputTextRef.current || undefined);
+	const [value, setValue] = useState(inputTextRef.current || '');
 
 	useEffect(() => {
 		setValue(inputTextRef.current);
@@ -15,7 +15,7 @@ const InputText = (props) => {
 		const value = e.target.value;
 		setValue(value);
 		inputTextRef && (inputTextRef.current = value);
-		safelyExecuteFunction(props.onChange, null, e);
+		safelyExecuteFunction(props.onChangeCallback, null, value);
 	};
 
 	const onKeyDown = (e) => {
