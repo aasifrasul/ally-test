@@ -3,7 +3,11 @@ const config = {
 		__DEV__: true,
 	},
 	testEnvironment: 'jsdom',
-	setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+	setupFilesAfterEnv: [
+		'<rootDir>/jest.setup.js',
+		//'<rootDir>/enzyme.setup.js',
+		`<rootDir>/jest-shim.js`,
+	],
 	transformIgnorePatterns: ['node_modules/(?!(sucrase)/)'],
 	transform: {
 		'^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest',

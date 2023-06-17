@@ -1,5 +1,4 @@
 import React, { Suspense, useState } from 'react';
-import * as ReactDOM from 'react-dom/client';
 
 import { fetchProfileData } from '../../utils/fakeAPi';
 

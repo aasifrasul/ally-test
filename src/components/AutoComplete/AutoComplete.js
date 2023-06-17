@@ -111,7 +111,7 @@ const AutoComplete = (props) => {
 			<div>Search Item:</div>
 			<InputText
 				inputTextRef={inputTextRef}
-				onChange={debouncedOnChange}
+				onChangeCallback={debouncedOnChange}
 				onKeyDown={onKeyDown}
 			/>
 			{suggestionsHtml}

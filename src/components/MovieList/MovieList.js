@@ -37,7 +37,6 @@ function DisplayList() {
 	useImageLazyLoadIO('img[data-src]', rowsCount);
 
 	function handleChange(e) {
-		searchRef.current = null;
 		ioObserverRef.current = null;
 		dispatch({
 			schema,
@@ -52,7 +51,7 @@ function DisplayList() {
 				<InputText
 					label="Search Item:"
 					inputTextRef={searchRef}
-					onChange={debouncedHandleChange}
+					onChangeCallback={debouncedHandleChange}
 				/>
 			</div>
 			{state?.isLoading && <p className="text-center">isLoading...</p>}

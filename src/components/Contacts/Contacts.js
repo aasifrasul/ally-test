@@ -1,7 +1,7 @@
 import React from 'react';
 import { Segment, Header } from 'semantic-ui-react';
-import Form from './Form';
-import Table from './Table';
+import Form from './ContactForm';
+import Table from './ContactTable';
 import { ContactStoreProvider } from '../../Context/ContactContext';
 
 function Contacts() {
