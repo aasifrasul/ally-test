@@ -26,12 +26,11 @@ const AutoComplete = (props) => {
 	};
 
 	const onChange = (e) => {
-		const { suggestions } = props;
 		const searchedText = inputTextRef.current?.toLowerCase();
 
 		setActiveSuggestion(0);
 		if (searchedText) {
-			const matchedSuggestions = suggestions.filter(
+			const matchedSuggestions = props.suggestions.filter(
 				(suggestion) => suggestion.toLowerCase().indexOf(searchedText) > -1,
 			);
 			setFilteredSuggestions(() => matchedSuggestions);
