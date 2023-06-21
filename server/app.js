@@ -32,6 +32,12 @@ app.get('/api/fetchWineData/*', getCSVData);
 app.get('/images/*', fetchImage);
 app.use('/graphql/*', handleGraphql);
 
+app.use('/login', (req, res) => {
+	res.send({
+		token: 'test123',
+	});
+});
+
 //Set hbs template config
 app.engine('.hbs', exphbs({ extname: '.hbs' }));
 app.set('views', pathTemplate);

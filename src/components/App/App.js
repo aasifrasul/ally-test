@@ -74,6 +74,8 @@ const ErrorPage = lazy(() =>
 
 const ProgressBar = lazy(() => import(/* webpackChunkName: "ProgressBar" */ '../ProgressBar'));
 
+const Dashboard = lazy(() => import(/* webpackChunkName: "Dashboard" */ '../Dashboard'));
+
 const Graphql = lazy(() => import(/* webpackChunkName: "Graphql" */ '../Graphql'));
 
 import Spinner from '../Common/Spinner/Spinner';
@@ -110,6 +112,7 @@ const pages = {
 	Graphql: Graphql,
 	DeeplyNestedCategories: DeeplyNestedCategories,
 	AsyncArticles: AsyncArticles,
+	Dashboard: Dashboard,
 };
 
 const App = (props) => {

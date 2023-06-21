@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 import { useFetchStore, useFetchDispatch } from '../Context/dataFetchContext';
-import worker from '../workers/MyWorker';
+import useWebWorker from './useWebWorker';
 
 const useFetch = (schema, initialUrl, initialParams = {}) => {
+	const { fetchAPIData } = useWebWorker();
 	const [params, updateParams] = useState(initialParams);
 	const [errorMessage, setErrorMessage] = useState('');
 	const queryString = Object.keys(params)
@@ -19,7 +20,7 @@ const useFetch = (schema, initialUrl, initialParams = {}) => {
 	const updateQueryParams = (queryParams) =>
 		updateParams((currentData) => ({ ...currentData, ...queryParams }));
 
-	const fetchData = useCallback(() => {
+	const fetchData = useCallback(async () => {
 		dispatch({ schema, type: 'FETCH_INIT' });
 		try {
 			const options = {
@@ -36,23 +37,15 @@ const useFetch = (schema, initialUrl, initialParams = {}) => {
 				//body: body ? JSON.stringify(data) : {},
 			};
 
-			worker.postMessage(
-				JSON.stringify({ endpoint: `${initialUrl}?${queryString}`, options }),
-			);
-			worker.onmessage = function (event) {
-				const { type, data } = event.data;
-
-				if (type === 'apiResponse') {
-					dispatch({ schema, type: 'FETCH_SUCCESS', payload: data });
-				}
-			};
+			const data = await fetchAPIData(`${initialUrl}?${queryString}`, options);
+			dispatch({ schema, type: 'FETCH_SUCCESS', payload: data });
 		} catch (err) {
 			setErrorMessage(err.message);
 			dispatch({ schema, type: 'FETCH_FAILURE' });
 		} finally {
 			dispatch({ schema, type: 'FETCH_STOP' });
 		}
-	}, [`${initialUrl}?${queryString}`, worker]);
+	}, [`${initialUrl}?${queryString}`]);
 
 	useEffect(() => {
 		fetchData();
@@ -66,7 +59,7 @@ const useFetch = (schema, initialUrl, initialParams = {}) => {
 			updateQueryParams,
 			abortFetching,
 		}),
-		[schema, errorMessage, updateQueryParams],
+		[schema, errorMessage, updateQueryParams]
 	);
 };
 

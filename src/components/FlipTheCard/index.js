@@ -9,7 +9,8 @@ import { MOCK, blankCard } from './mock';
 import styles from './styles.css';
 
 export default function FlipTheCard() {
-	const flipCards = React.useRef(shuffle(MOCK));
+	const cards = React.useRef(shuffle(MOCK));
+	const solvedCards = React.useRef(0);
 
 	// To store the indexes of the opened cards
 	const [openCards, setOpenCards] = React.useState([]);
@@ -18,32 +19,32 @@ export default function FlipTheCard() {
 
 	const handleClick = (index) => {
 		if (openCards.length < 2) {
-			setOpenCards((cards) => [...cards, index]);
-			flipCards.current[index].display = true;
+			setOpenCards((items) => [...items, index]);
+			cards.current[index].display = true;
 		}
 	};
 
 	React.useEffect(() => {
 		if (openCards.length === 2) {
-			const card0 = flipCards.current[openCards[0]];
-			const card1 = flipCards.current[openCards[1]];
+			const card0 = cards.current[openCards[0]];
+			const card1 = cards.current[openCards[1]];
 			card1.display = true;
 			card0.display = true;
+			solvedCards.current += 2;
 
 			if (card1.name !== card0.name) {
 				requestAnimationFrame(() => {
 					const timerId = setTimeout(() => {
 						card1.display = false;
 						card0.display = false;
+						solvedCards.current -= 2;
 						setOpenCards(() => []);
+						//setCards((items) => [...items]);
 						clearTimeout(timerId);
 					}, 1000);
 				});
 			} else {
-				if (
-					flipCards.current.filter((item) => item.display).length ===
-					flipCards.current.length
-				) {
+				if (solvedCards.current === cards.current.length) {
 					safelyExecuteFunction(handleStop);
 				}
 				setOpenCards(() => []);
@@ -53,7 +54,7 @@ export default function FlipTheCard() {
 	}, [openCards.length]);
 
 	const restart = () => {
-		flipCards.current = shuffle(MOCK);
+		cards.current = shuffle(MOCK);
 		setOpenCards(() => []);
 		safelyExecuteFunction(handleReset);
 	};
@@ -67,7 +68,7 @@ export default function FlipTheCard() {
 				</div>
 			</div>
 			<div className={styles.parent}>
-				{flipCards.current.map(({ pic, display, name }, index) =>
+				{cards.current.map(({ pic, display, name }, index) =>
 					display ? (
 						<div key={`${name}-${index}`} className={styles.child}>
 							<img src={pic} />
@@ -76,7 +77,7 @@ export default function FlipTheCard() {
 						<div key={`${name}-${index}`} className={styles.child}>
 							<img src={blankCard} onClick={() => handleClick(index)} />
 						</div>
-					),
+					)
 				)}
 			</div>
 		</>
