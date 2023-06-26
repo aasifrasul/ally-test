@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
-import { useFetchStore, useFetchDispatch } from '../Context/dataFetchContext';
-import useWebWorker from './useWebWorker';
+import { useFetchStore, useFetchDispatch } from '../../Context/dataFetchContext';
+import useWebWorker from '../useWebWorker';
 
 const useFetch = (schema, initialUrl, initialParams = {}) => {
 	const { fetchAPIData } = useWebWorker();

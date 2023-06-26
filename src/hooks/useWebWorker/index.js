@@ -1,4 +1,4 @@
-import worker from '../workers/MyWorker';
+import worker from '../../workers/MyWorker';
 
 function useWebWorker() {
 	function fetchAPIData(endpoint, options) {

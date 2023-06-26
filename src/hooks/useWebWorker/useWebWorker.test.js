@@ -1,4 +1,4 @@
-import useWebWorker from './useWebWorker';
+import useWebWorker from '.';
 
 describe('useWebWorker', () => {
 	let mockWorker;

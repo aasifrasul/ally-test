@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 
+import useStorage from './useStorage';
+
 const useToken = () => {
+	const { getItem, setItem } = useStorage('sessionStorage');
 	const getToken = () => {
-		const tokenString = sessionStorage.getItem('token');
-		const userToken = JSON.parse(tokenString);
+		const userToken = getItem('token');
 		return userToken?.token;
 	};
 
 	const [token, setToken] = useState(getToken());
 	const saveToken = (userToken) => {
-		sessionStorage.setItem('token', JSON.stringify(userToken));
+		setItem('token', userToken);
 		setToken(userToken?.token);
 	};
 	return {
