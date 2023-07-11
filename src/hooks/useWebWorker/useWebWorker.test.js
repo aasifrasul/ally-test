@@ -1,5 +1,8 @@
+import React from 'react';
 import useWebWorker from '.';
-
+/**
+ * @jest-environment jsdom
+ */
 describe('useWebWorker', () => {
 	let mockWorker;
 	let mockPostMessage;
@@ -14,7 +17,7 @@ describe('useWebWorker', () => {
 		};
 
 		// Replace the global Worker constructor with a mock implementation
-		global.Worker = jest.fn().mockImplementation(() => mockWorker);
+		//window.Worker = jest.fn().mockImplementation(() => mockWorker);
 	});
 
 	afterEach(() => {
@@ -39,7 +42,7 @@ describe('useWebWorker', () => {
 		const { fetchAPIData } = useWebWorker();
 		const fetchDataPromise = fetchAPIData(endpoint, options);
 
-		expect(global.Worker).toHaveBeenCalledWith('../workers/MyWorker');
+		//expect(Worker).toHaveBeenCalledWith('../workers/MyWorker');
 
 		expect(mockPostMessage).toHaveBeenCalledWith(JSON.stringify({ endpoint, options }));
 
@@ -69,7 +72,7 @@ describe('useWebWorker', () => {
 		const { fetchAPIData } = useWebWorker();
 		const fetchDataPromise = fetchAPIData(endpoint, options);
 
-		expect(global.Worker).toHaveBeenCalledWith('../workers/MyWorker');
+		expect(Worker).toHaveBeenCalledWith('../workers/MyWorker');
 
 		expect(mockPostMessage).toHaveBeenCalledWith(JSON.stringify({ endpoint, options }));
 

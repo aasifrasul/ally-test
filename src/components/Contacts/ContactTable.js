@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Segment, Table, Button, Icon } from 'semantic-ui-react';
 import { useContactStore, useContactDispatch } from '../../Context/ContactContext';
 

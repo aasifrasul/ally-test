@@ -1,31 +1,60 @@
-// MyWorker.js
+self.addEventListener(
+	'message',
+	(event) => {
+		if (typeof event.data === 'string') {
+			const { type, data } = JSON.parse(event.data) || {};
 
-const blob = new Blob(
-	[
-		`
-self.addEventListener('message', (event) => {
-	if (typeof event.data === 'string') {
-		const { endpoint, options } = JSON.parse(event.data) || {};
+			switch (type) {
+				case 'fetchAPIData':
+					return handleFetchAPIData(data);
+				case 'loadImages':
+					return handleLoadImages(data);
+				default:
+					throw new Error('Some issue');
+			}
+		}
 
-		endpoint &&
-			fetch(endpoint, options)
-				.then((response) => {
-					if (response.status == 200) {
-						return response.json();
-					} else {
-						throw new Error(response);
+		function handleLoadImages(imageUrls) {
+			const promises = imageUrls.map(async (url) => {
+				try {
+					const response = await fetch(url);
+					const fileBlob = response.blob();
+					if (fileBlob.type === 'image/jpeg') {
+						return URL.createObjectURL(fileBlob);
 					}
-				})
-				.then((data) => {
-					postMessage({ type: 'apiResponse', data });
-				});
-	}
-}, false);
-	`,
-	],
-	{ type: 'text/javascript' },
-);
+				} catch (e) {
+					return null;
+				}
+			});
 
-// Obtain a blob URL reference to our worker 'file'.
-const blobURL = window.URL.createObjectURL(blob);
-export default new Worker(blobURL);
+			Promise.all(promises).then((data) =>
+				postMessage({ type: 'loadImagesResponse', data })
+			);
+		}
+
+		function handleFetchAPIData({ endpoint, options }) {
+			try {
+				const req = new Request(endpoint, options);
+
+				req.signal.addEventListener('abort', () => {
+					console.log('abort');
+				});
+
+				fetch(req)
+					.then((response) => {
+						if (response.status == 200) {
+							return response.json();
+						} else {
+							throw new Error(response);
+						}
+					})
+					.then((data) => {
+						postMessage({ type: 'fetchAPIDataResponse', data });
+					});
+			} catch (error) {
+				console.log(error);
+			}
+		}
+	},
+	false
+);
