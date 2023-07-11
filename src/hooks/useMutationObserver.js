@@ -4,17 +4,18 @@ import { safelyExecuteFunction, isUndefined } from '../utils/typeChecking';
 
 function useMutationObserver(targetNode, config, callback) {
 	const [value, setValue] = useState(undefined);
-	const observer = useMemo(
-		() =>
-			new MutationObserver((mutationList, observer) => {
-				const result = safelyExecuteFunction(callback, null, mutationList, observer);
-				setValue(result);
-			}),
-		[callback],
-	);
+
+	const moCallback = () =>
+		new MutationObserver((mutationList, observer) => {
+			const result = safelyExecuteFunction(callback, null, mutationList, observer);
+			setValue(result);
+		});
+
+	const memoizedMOCallback = useMemo(moCallback, [callback]);
+
 	useEffect(() => {
-		targetNode && observer.observe(targetNode, config);
-		return () => observer.disconnect();
+		targetNode && memoizedMOCallback.observe(targetNode, config);
+		return () => memoizedMOCallback.disconnect();
 	}, [targetNode, config]);
 
 	return value;

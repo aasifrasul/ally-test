@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useReducer, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useReducer } from 'react';
 
 import useFetch from '../../hooks/useFetch';
 import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
@@ -22,21 +22,20 @@ const DisplayList = (props) => {
 
 	queryParams.page = pagerObject[schema]?.pageNum || 0;
 
-	const observer = useRef(
-		new IntersectionObserver((entries) =>
-			entries.forEach(
-				(entry) =>
-					entry.intersectionRatio > 0 &&
-					pagerDispatch({ schema, type: 'ADVANCE_PAGE' }),
-			),
-		),
-	);
+	const observer = useRef(false);
 
 	useEffect(() => {
 		updateQueryParams(queryParams);
 	}, [queryParams.page]);
 
 	useEffect(() => {
+		observer.current = new IntersectionObserver((entries) =>
+			entries.forEach(
+				(entry) =>
+					entry.intersectionRatio > 0 &&
+					pagerDispatch({ schema, type: 'ADVANCE_PAGE' })
+			)
+		);
 		observerElement && observer.current.observe(observerElement);
 		return () => observerElement && observer.current.unobserve(observerElement);
 	}, [observerElement]);
@@ -54,12 +53,12 @@ const DisplayList = (props) => {
 						{Math.floor(state.data.results.length / 1.2) === i ? (
 							<div
 								ref={setObserverElement}
-								key={`${user.name?.first}-${i}-observer`}
+								key={`${user.id?.value}-${i}-observer`}
 							>
 								Loading...
 							</div>
 						) : null}
-						<UserCard data={user} key={`${user.name?.first}-${i}`} />
+						<UserCard data={user} key={user.id?.value} />
 					</>
 				))}
 			</div>
