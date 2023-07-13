@@ -1,59 +1,75 @@
+const hashMap = new Map();
+
+function handleLoadImages(imageUrls) {
+	const promises = imageUrls.map(async (url) => {
+		try {
+			const response = await fetch(url);
+			const fileBlob = response.blob();
+			if (fileBlob.type === 'image/jpeg') {
+				return URL.createObjectURL(fileBlob);
+			}
+		} catch (e) {
+			return null;
+		}
+	});
+
+	Promise.all(promises).then((data) => postMessage({ type: 'loadImagesResponse', data }));
+}
+
+async function handleFetchAPIData({ endpoint, options = {} }) {
+	const abortController = new AbortController();
+	const signal = abortController.signal;
+
+	hashMap.set(endpoint, () => abortController.abort());
+
+	const enhancedOptions = {
+		...options,
+		signal,
+	};
+
+	const req = new Request(endpoint, enhancedOptions);
+
+	try {
+		const res = await fetch(req);
+		const data = await res.json();
+		postMessage({ type: 'fetchAPIDataResponse', data });
+	} catch (error) {
+		if (error?.name === 'AbortError') {
+			console.log('Request Aborted', error);
+			throw error;
+		} else {
+			postMessage({
+				type: 'fetchError',
+				data: error,
+			});
+		}
+	} finally {
+		hashMap.delete(endpoint);
+	}
+}
+
+function handleAbortFetchRequest(data) {
+	if (hashMap.has(data)) {
+		const callback = hashMap.get(data);
+		hashMap.delete(data);
+		callback && callback();
+	}
+}
+
 self.addEventListener(
 	'message',
 	(event) => {
-		if (typeof event.data === 'string') {
-			const { type, data } = JSON.parse(event.data) || {};
+		const { type, data } = event?.data || {};
 
-			switch (type) {
-				case 'fetchAPIData':
-					return handleFetchAPIData(data);
-				case 'loadImages':
-					return handleLoadImages(data);
-				default:
-					throw new Error('Some issue');
-			}
-		}
-
-		function handleLoadImages(imageUrls) {
-			const promises = imageUrls.map(async (url) => {
-				try {
-					const response = await fetch(url);
-					const fileBlob = response.blob();
-					if (fileBlob.type === 'image/jpeg') {
-						return URL.createObjectURL(fileBlob);
-					}
-				} catch (e) {
-					return null;
-				}
-			});
-
-			Promise.all(promises).then((data) =>
-				postMessage({ type: 'loadImagesResponse', data })
-			);
-		}
-
-		function handleFetchAPIData({ endpoint, options }) {
-			try {
-				const req = new Request(endpoint, options);
-
-				req.signal.addEventListener('abort', () => {
-					console.log('abort');
-				});
-
-				fetch(req)
-					.then((response) => {
-						if (response.status == 200) {
-							return response.json();
-						} else {
-							throw new Error(response);
-						}
-					})
-					.then((data) => {
-						postMessage({ type: 'fetchAPIDataResponse', data });
-					});
-			} catch (error) {
-				console.log(error);
-			}
+		switch (type) {
+			case 'fetchAPIData':
+				return handleFetchAPIData(data);
+			case 'loadImages':
+				return handleLoadImages(data);
+			case 'abortFetchRequest':
+				return handleAbortFetchRequest(data);
+			default:
+				throw new Error('Some issue');
 		}
 	},
 	false
