@@ -6,12 +6,10 @@ import useWebWorker from '../useWebWorker';
 const hashMap = new Map();
 
 const useFetch = (schema, baseUrl, initialParams = {}, timeout = 2000) => {
-	const { fetchAPIData } = useWebWorker();
+	const { fetchAPIData, abortFetchRequest } = useWebWorker();
 	const [params, setParams] = useState(initialParams);
 	const [errorMessage, setErrorMessage] = useState('');
 	const timeoutId = React.useRef(false);
-	let ignore = false;
-	//const abortController = React.useRef(false);
 
 	const state = useFetchStore();
 	const dispatch = useFetchDispatch();
@@ -24,18 +22,15 @@ const useFetch = (schema, baseUrl, initialParams = {}, timeout = 2000) => {
 	const endPoint = `${baseUrl}?${queryString}`;
 	const key = `${schema}:${endPoint}`;
 
-	//const abortFetch = () => abortController.current.abort();
-
 	const cleanup = () => {
 		clearTimeout(timeoutId.current);
-		ignore = true;;
-		//!abortController.current?.signal?.aborted && abortFetch();
+		abortFetch();
 	};
+
+	const abortFetch = () => abortFetchRequest(endPoint);
 
 	const fetchData = async () => {
 		dispatch({ schema, type: 'FETCH_INIT' });
-
-		//abortController.current = new AbortController();
 
 		try {
 			if (hashMap.has(key)) {
@@ -61,31 +56,27 @@ const useFetch = (schema, baseUrl, initialParams = {}, timeout = 2000) => {
 				};
 
 				const data = await fetchAPIData(endPoint, options);
-				if (!ignore) {
-					hashMap.set(key, data);
+				if (data) {
 					dispatch({ schema, type: 'FETCH_SUCCESS', payload: data });
+					hashMap.set(key, data);
 				}
 			}
 		} catch (err) {
-			setErrorMessage(err.message);
 			dispatch({ schema, type: 'FETCH_FAILURE' });
 			if (err?.name === 'AbortError') {
 				console.log('Request Aborted');
-				// Aborting a fetch throws an error
-				// So we can't update state afterwards
+			} else {
+				setErrorMessage(() => err.message);
 			}
 		} finally {
-			cleanup();
 			dispatch({ schema, type: 'FETCH_STOP' });
+			cleanup();
 		}
 	};
 
 	useEffect(() => {
-		ignore = false;
 		fetchData();
-		return () => {
-			cleanup();
-		};
+		return cleanup;
 	}, [queryString]);
 
 	return {

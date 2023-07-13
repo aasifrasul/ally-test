@@ -3,42 +3,47 @@ const worker = new Worker(workerPath);
 
 function useWebWorker() {
 	function fetchAPIData(endpoint, options) {
-		worker.postMessage(
-			JSON.stringify({ type: 'fetchAPIData', data: { endpoint, options } })
-		);
+		worker.postMessage({ type: 'fetchAPIData', data: { endpoint, options } });
 
 		return new Promise((resolve, reject) => {
-			worker.onmessage = function (event) {
+			worker.onmessage = (event) => {
+				event.preventDefault();
 				const { type, data } = event.data;
 
 				if (type === 'fetchAPIDataResponse') {
 					resolve(data);
 				} else {
-					reject(new Error('There was some error.'));
+					reject(data);
 				}
 			};
 		});
 	}
 
 	function loadImages(imageUrls = []) {
-		worker.postMessage(JSON.stringify({ type: 'loadImages', data: imageUrls }));
+		worker.postMessage({ type: 'loadImages', data: imageUrls });
 
 		return new Promise((resolve, reject) => {
-			worker.onmessage = function (event) {
+			worker.onmessage = (event) => {
+				event.preventDefault();
 				const { type, data } = event.data;
 
 				if (type === 'loadImagesResponse') {
 					resolve(data);
 				} else {
-					reject(new Error('There was some error.'));
+					reject(data);
 				}
 			};
 		});
 	}
 
+	function abortFetchRequest(endPoint) {
+		worker.postMessage({ type: 'abortFetchRequest', data: endPoint });
+	}
+
 	return {
 		fetchAPIData,
 		loadImages,
+		abortFetchRequest,
 	};
 }
 
