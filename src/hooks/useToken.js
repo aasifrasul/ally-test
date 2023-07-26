@@ -1,21 +1,27 @@
 import React, { useState } from 'react';
 
-import useStorage from './useStorage';
+import { Storage } from '../utils/Storage';
+
+const storage = new Storage('sessionStorage');
 
 const useToken = () => {
-	const { getItem, setItem } = useStorage('sessionStorage');
-	const getToken = () => {
-		const userToken = getItem('token');
-		return userToken?.token;
+	const [token, setToken] = useState(null);
+
+	const getToken = async () => {
+		const token = await storage.getItem('token');
+		setToken(token);
 	};
 
-	const [token, setToken] = useState(getToken());
-	const saveToken = (userToken) => {
-		setItem('token', userToken);
-		setToken(userToken?.token);
-	};
+	useState(() => {
+		getToken();
+	}, []);
+
+	useState(() => {
+		storage.setItem('token', token);
+	}, [token]);
+
 	return {
-		setToken: saveToken,
+		setToken,
 		token,
 	};
 };
