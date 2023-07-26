@@ -1,12 +1,20 @@
 const workerPath = new URL('../../workers/MyWorker', import.meta.url);
-const worker = new Worker(workerPath);
+const worker = new Worker(workerPath, { type: 'module' });
+
+worker.addEventListener('error', (error) => {
+	console.error('Error in worker:', error);
+});
+
+worker.addEventListener('exit', (exitCode) => {
+	console.log('Worker exited with code:', exitCode);
+});
 
 function useWebWorker() {
 	function fetchAPIData(endpoint, options) {
 		worker.postMessage({ type: 'fetchAPIData', data: { endpoint, options } });
 
 		return new Promise((resolve, reject) => {
-			worker.onmessage = (event) => {
+			worker.addEventListener('message', (event) => {
 				event.preventDefault();
 				const { type, data } = event.data;
 
@@ -15,7 +23,7 @@ function useWebWorker() {
 				} else {
 					reject(data);
 				}
-			};
+			});
 		});
 	}
 
@@ -23,7 +31,7 @@ function useWebWorker() {
 		worker.postMessage({ type: 'loadImages', data: imageUrls });
 
 		return new Promise((resolve, reject) => {
-			worker.onmessage = (event) => {
+			worker.addEventListener('message', (event) => {
 				event.preventDefault();
 				const { type, data } = event.data;
 
@@ -32,7 +40,7 @@ function useWebWorker() {
 				} else {
 					reject(data);
 				}
-			};
+			});
 		});
 	}
 

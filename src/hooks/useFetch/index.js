@@ -3,8 +3,6 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useFetchStore, useFetchDispatch } from '../../Context/dataFetchContext';
 import useWebWorker from '../useWebWorker';
 
-const hashMap = new Map();
-
 const useFetch = (schema, baseUrl, initialParams = {}, timeout = 2000) => {
 	const { fetchAPIData, abortFetchRequest } = useWebWorker();
 	const [params, setParams] = useState(initialParams);
@@ -33,34 +31,27 @@ const useFetch = (schema, baseUrl, initialParams = {}, timeout = 2000) => {
 		dispatch({ schema, type: 'FETCH_INIT' });
 
 		try {
-			if (hashMap.has(key)) {
-				dispatch({ schema, type: 'FETCH_SUCCESS', payload: hashMap.get(key) });
-			} else {
-				timeoutId.current = setTimeout(() => {
-					cleanup();
-				}, timeout);
+			timeoutId.current = setTimeout(() => {
+				cleanup();
+			}, timeout);
 
-				const options = {
-					method: 'GET',
-					//mode: 'cors',
-					//cache: 'no-cache',
-					//credentials: 'same-origin',
-					/*headers: {
+			const options = {
+				method: 'GET',
+				//mode: 'cors',
+				//cache: 'no-cache',
+				//credentials: 'same-origin',
+				/*headers: {
 					'Content-Type': 'application/json',
 					//...headers
 					},*/
-					//redirect: 'follow',
-					//referrerPolicy: 'no-referrer',
-					//signal: abortController.current.signal,
-					//body: body ? JSON.stringify(data) : {},
-				};
+				//redirect: 'follow',
+				//referrerPolicy: 'no-referrer',
+				//signal: abortController.current.signal,
+				//body: body ? JSON.stringify(data) : {},
+			};
 
-				const data = await fetchAPIData(endPoint, options);
-				if (data) {
-					dispatch({ schema, type: 'FETCH_SUCCESS', payload: data });
-					hashMap.set(key, data);
-				}
-			}
+			const data = await fetchAPIData(endPoint, options);
+			data && dispatch({ schema, type: 'FETCH_SUCCESS', payload: data });
 		} catch (err) {
 			dispatch({ schema, type: 'FETCH_FAILURE' });
 			if (err?.name === 'AbortError') {
@@ -83,7 +74,7 @@ const useFetch = (schema, baseUrl, initialParams = {}, timeout = 2000) => {
 		state: state[schema],
 		errorMessage,
 		updateQueryParams,
-		//abortFetch,
+		abortFetch,
 	};
 };
 

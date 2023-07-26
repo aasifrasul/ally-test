@@ -1,4 +1,8 @@
-const hashMap = new Map();
+//import { Storage } from '../utils/Storage';
+//const storage = new Storage('map');
+
+const hashMapEndPoints = new Map();
+const hashMapData = new Map();
 
 function handleLoadImages(imageUrls) {
 	const promises = imageUrls.map(async (url) => {
@@ -20,7 +24,12 @@ async function handleFetchAPIData({ endpoint, options = {} }) {
 	const abortController = new AbortController();
 	const signal = abortController.signal;
 
-	hashMap.set(endpoint, () => abortController.abort());
+	if (hashMapData.has(endpoint)) {
+		postMessage({ type: 'fetchAPIDataResponse', data: hashMapData.get(endpoint) });
+		return;
+	}
+
+	hashMapEndPoints.set(endpoint, () => abortController.abort());
 
 	const enhancedOptions = {
 		...options,
@@ -33,6 +42,7 @@ async function handleFetchAPIData({ endpoint, options = {} }) {
 		const res = await fetch(req);
 		const data = await res.json();
 		postMessage({ type: 'fetchAPIDataResponse', data });
+		hashMapData.set(endpoint, data);
 	} catch (error) {
 		if (error?.name === 'AbortError') {
 			console.log('Request Aborted', error);
@@ -44,14 +54,14 @@ async function handleFetchAPIData({ endpoint, options = {} }) {
 			});
 		}
 	} finally {
-		hashMap.delete(endpoint);
+		hashMapEndPoints.delete(endpoint);
 	}
 }
 
 function handleAbortFetchRequest(data) {
-	if (hashMap.has(data)) {
-		const callback = hashMap.get(data);
-		hashMap.delete(data);
+	if (hashMapEndPoints.has(data)) {
+		const callback = hashMapEndPoints.get(data);
+		hashMapEndPoints.delete(data);
 		callback && callback();
 	}
 }

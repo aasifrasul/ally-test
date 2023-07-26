@@ -14,35 +14,39 @@ const storgaeMappings = {
 		removeItem: window.sessionStorage.removeItem.bind(window.localStorage),
 	},
 	map: {
-		getItem: hashMap.get.bind(hashMap),
-		setItem: hashMap.set.bind(hashMap),
-		removeItem: hashMap.delete.bind(hashMap),
-		contains: hashMap.has.bind(hashMap),
-	},
+		getItem: hashMap?.get.bind(hashMap),
+		setItem: hashMap?.set.bind(hashMap),
+		removeItem: hashMap?.delete.bind(hashMap),
+		contains: hashMap?.has.bind(hashMap),
+	}
 };
 
-function useStorage(storage = 'localStorage') {
-	if (storage === 'map') {
-		hashMap = new Map();
+class Storage {
+	constructor(storage = 'localStorage') {
+		this.storage = storage;
+
+		if (this.storage === 'map') {
+			hashMap = new Map();
+		}
 	}
 
-	function getItem(key) {
+	getItem(key) {
 		return new Promise((resolve, reject) => {
 			try {
-				const data = storgaeMappings[storage]?.getItem(key);
-				resolve(storgaeMappings[storage].stringify ? JSON.parse(data) : data);
+				const data = storgaeMappings[this.storage]?.getItem(key);
+				resolve(storgaeMappings[this.storage].stringify ? JSON.parse(data) : data);
 			} catch (e) {
 				reject(new Error('Error ', e));
 			}
 		});
 	}
 
-	function setItem(key, value) {
+	setItem(key, value) {
 		return new Promise((resolve, reject) => {
 			try {
-				const data = storgaeMappings[storage]?.setItem(
+				const data = storgaeMappings[this.storage]?.setItem(
 					key,
-					storgaeMappings[storage].stringify ? JSON.stringify(value) : value
+					storgaeMappings[this.storage].stringify ? JSON.stringify(value) : value
 				);
 				resolve();
 			} catch (e) {
@@ -51,10 +55,10 @@ function useStorage(storage = 'localStorage') {
 		});
 	}
 
-	function removeItem(key) {
+	removeItem(key) {
 		return new Promise((resolve, reject) => {
 			try {
-				const data = storgaeMappings[storage]?.removeItem(key);
+				const data = storgaeMappings[this.storage]?.removeItem(key);
 				resolve(data);
 			} catch (e) {
 				reject(new Error('Error ', e));
@@ -62,17 +66,9 @@ function useStorage(storage = 'localStorage') {
 		});
 	}
 
-	function contains(key) {
-		return storgaeMappings[storage]?.contains(key);
+	contains(key) {
+		return storgaeMappings[this.storage]?.contains(key);
 	}
-
-	return {
-		hashMap,
-		getItem,
-		setItem,
-		removeItem,
-		contains,
-	};
 }
 
-export default useStorage;
+module.exports = { Storage };
