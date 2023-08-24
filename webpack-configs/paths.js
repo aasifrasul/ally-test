@@ -1,9 +1,11 @@
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
+
 const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 const platform = process.env.PLATFORM;
-module.exports = {
+
+export default {
 	appBuild: resolveApp('build'),
 	appBuildDev: resolveApp('public'),
 	appVendor: (rootDir) => resolveApp(path.join(rootDir, 'vendor.js')),

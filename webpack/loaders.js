@@ -1,7 +1,11 @@
-const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const babelConfig = require('./babel.config');
-const postCSSConfig = require('./postcss.config');
+import path from 'path';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+
+import babelConfig from './babel.config.js';
+import postCSSConfig from './postcss.config.js';
+
+import { pathTSConfig, pathSource } from '../server/paths.js';
+
 var PROD = process.env.NODE_ENV === 'production';
 // const getDefaultLocalIdent = require('css-loader/lib/getLocalIdent.js');
 const appName = process.env.APP_NAME;
@@ -15,7 +19,7 @@ var loaders = [
 				options: {
 					useBabel: true,
 					useCache: true,
-					configFileName: path.join(__dirname, '../tsconfig.json'),
+					configFileName: pathTSConfig,
 					reportFiles: ['../../../../src/**/*.{ts,tsx}'],
 				},
 			},
@@ -77,7 +81,7 @@ if (PROD) {
 				loader: 'postcss-loader',
 				options: {
 					config: {
-						path: __dirname,
+						path: pathSource,
 					},
 				},
 			},
@@ -99,6 +103,10 @@ if (PROD) {
 				},
 			},
 			{
+				loader: 'style-loader',
+				options: {},
+			},
+			{
 				loader: 'postcss-loader',
 				options: postCSSConfig,
 			},
@@ -106,4 +114,4 @@ if (PROD) {
 	});
 }
 
-module.exports = loaders;
+export default loaders;

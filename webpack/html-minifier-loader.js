@@ -1,8 +1,9 @@
-var minify = require('html-minifier').minify;
-var loaderUtils = require('loader-utils');
+import { minify } from 'html-minifier';
+import loaderUtils from 'loader-utils';
+
 const options = loaderUtils.getOptions(this);
 
-module.exports = function (source) {
+export default function (source) {
 	this.cacheable && this.cacheable();
 	var callback = this.async(),
 		defaultOptions = {

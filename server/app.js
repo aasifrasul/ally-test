@@ -1,23 +1,24 @@
-const cors = require('cors');
-const express = require('express');
-const exphbs = require('express-handlebars');
-const cookieParser = require('cookie-parser');
-const serveStatic = require('serve-static');
-const mongoose = require('mongoose');
+import cors from 'cors';
+import express from 'express';
+import exphbs from 'express-handlebars';
+import cookieParser from 'cookie-parser';
+import serveStatic from 'serve-static';
+import mongoose from 'mongoose';
 
-const {
-	userAgentHandler,
-	getCSVData,
-	fetchImage,
-	fetchWebWorker,
-	fetchApiWorker,
-	compiledTemplate,
-	handleGraphql,
-} = require('./middlewares');
-const webpackConfig = require('../webpack-configs/webpack.config');
-const { constructReqDataObject, generateBuildTime } = require('./helper');
-const { logger } = require('./Logger');
-const { pathTemplate, pathRootDir } = require('./paths');
+import {
+    userAgentHandler,
+    getCSVData,
+    fetchImage,
+    fetchWebWorker,
+    fetchApiWorker,
+    compiledTemplate,
+    handleGraphql,
+} from './middlewares.js';
+
+import webpackConfig from '../webpack-configs/webpack.config.js';
+import { constructReqDataObject, generateBuildTime } from './helper.js';
+import { logger } from './Logger.js';
+import { pathTemplate, pathRootDir } from './paths.js';
 
 // mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -65,6 +66,4 @@ app.all('*', (req, res) => {
 	res.send(compiledTemplate(data));
 });
 
-module.exports = {
-	app,
-};
+export default app;

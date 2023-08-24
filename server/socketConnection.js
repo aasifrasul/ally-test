@@ -1,5 +1,5 @@
-const os = require('os');
-const { logger } = require('./Logger');
+import os from 'os';
+import { logger } from './Logger.js';
 
 const currencyPairs = [
 	{
@@ -44,7 +44,7 @@ const currencyPairs = [
 	},
 ];
 
-const onConnection = (socket) => {
+export const onConnection = (socket) => {
 	const getRandomInt = (max) => Math.floor(Math.random() * max);
 
 	let IntervalId;
@@ -67,8 +67,4 @@ const onConnection = (socket) => {
 	socket.on('stopFetchCurrencyPair', () => {
 		IntervalId && clearInterval(IntervalId);
 	});
-};
-
-module.exports = {
-	onConnection,
 };

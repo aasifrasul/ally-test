@@ -1,10 +1,10 @@
 // webpack
 require('dotenv').config();
-const socketio = require('socket.io');
-const http = require('http');
+import { Server } from 'socket.io';
+import http from 'http';
+import app from './app.js';
 
-const { app } = require('./app');
-const { onConnection } = require('./socketConnection');
+import { onConnection } from './socketConnection.js';
 
 const log = (msg) => console.log.bind(console, msg);
 const error = (msg) => console.error.bind(console, msg);
@@ -25,6 +25,6 @@ server.listen(process.env.PORT, 'localhost', () =>
 	log(`webpack-dev-server listening on port ${process.env.PORT}`)
 );
 
-const io = socketio(server);
+const io = new Server(server);
 
 io.on('connection', onConnection);

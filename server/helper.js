@@ -1,11 +1,11 @@
 /**
  * File contains list of utilities for handling configs and rendering the page
  */
-const fs = require('fs');
-const idx = require('idx');
-const htmlEncode = require('htmlencode');
+import fs from 'fs';
+import idx from 'idx';
+import htmlEncode from 'htmlencode';
 
-const { pathBuildTime } = require('./paths');
+import { pathBuildTime } from './paths.js';
 
 const enc = {
 	encoding: 'utf-8',
@@ -16,7 +16,7 @@ const enc = {
  * @param uaData
  * @returns {*}
  */
-const getPlatformString = (uaData) =>
+export const getPlatformString = (uaData) =>
 	idx(uaData, (_) => _.fkApp.platform.toLowerCase()) || 'web';
 
 /**
@@ -24,7 +24,7 @@ const getPlatformString = (uaData) =>
  * @param uaData
  * @returns {boolean}
  */
-const isMobileApp = (uaData) =>
+export const isMobileApp = (uaData) =>
 	['android', 'ios', 'windows'].includes(getPlatformString(uaData));
 
 /**
@@ -32,9 +32,9 @@ const isMobileApp = (uaData) =>
  * @param {*} req
  * @param {*} appName
  */
-const getAppEnvironment = (req) =>
+export const getAppEnvironment = (req) =>
 	JSON.stringify(
-		isMobileApp(req.userAgentData) === true ? _getAppParams(req) : _getWebEnvParams(req),
+		isMobileApp(req.userAgentData) === true ? _getAppParams(req) : _getWebEnvParams(req)
 	);
 
 /**
@@ -109,7 +109,7 @@ const _getValueFromHeaderAndParam = function (request, paramName) {
  * @param request
  * @returns {*}
  */
-const constructReqDataObject = (req) => {
+export const constructReqDataObject = (req) => {
 	const data = {};
 	data.appEnvDetails = getAppEnvironment(req);
 	data.nonce = req.nonce;
@@ -129,17 +129,17 @@ const _getValueFromCookie = (request, paramName) =>
 	request.cookies[paramName] &&
 	getParsedUserAgentData(request.cookies[paramName]);
 
-const generateBuildTime = async function () {
+export const generateBuildTime = async function () {
 	fs.writeFile(
 		pathBuildTime,
 		new Date().toUTCString(),
 		(err) =>
 			err &&
-			error('Error occured while writing to generateBuildTime :: ' + err.toString()),
+			error('Error occured while writing to generateBuildTime :: ' + err.toString())
 	);
 };
 
-const getStartTime = () => {
+export const getStartTime = () => {
 	if (process.env.NODE_ENV !== 'production') {
 		return getFileContents(pathBuildTime);
 	}
@@ -151,7 +151,7 @@ const getStartTime = () => {
 
 // Last modified header
 // Assumtion here is that the everytime any file is modified, the build is restarted hence last-modified == build time.
-const nocache = (res) =>
+export const nocache = (res) =>
 	res.set({
 		'Cache-Control': 'private, no-cache, no-store, must-revalidate, max-age=0',
 		Expires: 'Thu, 01 Jan 1970 00:00:00 GMT',
@@ -159,15 +159,5 @@ const nocache = (res) =>
 		'Last-Modified': getStartTime(),
 	});
 
-const getParsedUserAgentData = (userAgentData) => htmlEncode.XSSEncode(userAgentData);
-const getFileContents = (filePath) => fs.readFileSync(filePath, enc);
-
-module.exports = {
-	isMobileApp,
-	constructReqDataObject,
-	generateBuildTime,
-	getStartTime,
-	nocache,
-	getParsedUserAgentData,
-	getFileContents,
-};
+export const getParsedUserAgentData = (userAgentData) => htmlEncode.XSSEncode(userAgentData);
+export const getFileContents = (filePath) => fs.readFileSync(filePath, enc);

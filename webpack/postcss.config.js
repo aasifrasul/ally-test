@@ -1,14 +1,24 @@
-module.exports = {
+import postcssImport from 'postcss-import';
+import postcssFor from 'postcss-for';
+import postcssRandom from 'postcss-random';
+import postcssNested from 'postcss-nested';
+import postcssMixins from 'postcss-mixins';
+import postcssSimpleVars from 'postcss-simple-vars';
+import postcssCssnext from 'postcss-cssnext';
+
+import { pathRootDir } from '../server/paths.js';
+
+export default {
 	plugins: [
-		require('postcss-import')({
-			path: [__dirname, './styles'],
+		postcssImport({
+			path: [pathRootDir, './styles'],
 		}),
-		require('postcss-for'),
-		require('postcss-random'),
-		require('postcss-nested'),
-		require('postcss-mixins'),
-		require('postcss-simple-vars'),
-		require('postcss-cssnext')({
+		postcssFor,
+		postcssRandom,
+		postcssNested,
+		postcssMixins,
+		postcssSimpleVars,
+		postcssCssnext({
 			browsers: [
 				'Chrome > 27',
 				'android >= 4.0',

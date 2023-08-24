@@ -1,15 +1,25 @@
-const idx = require('idx');
-const path = require('path');
-const handlebars = require('handlebars');
-const { createHandler } = require('graphql-http/lib/use/http');
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
 
-const { isMobileApp, nocache, getParsedUserAgentData, getFileContents } = require('./helper');
-const { schema } = require('./schema/schema');
-const { parse } = require('./UAParser');
-const { fetchCSVasJSON } = require('./fetchCSVasJSON');
+import idx from 'idx';
+import path from 'path';
+import handlebars from 'handlebars';
+import { createHandler } from 'graphql-http/lib/use/http';
 
-const csvData = fetchCSVasJSON(`${path.join(__dirname, '..', 'assets')}/winemag-data-130k-v2.csv`);
+// import App from '../src/components/App/App.js';
+
+import { isMobileApp, nocache, getParsedUserAgentData, getFileContents } from './helper.js';
+import { schema } from './schema/schema.js';
+import { parse } from './UaParser.js';
+import { fetchCSVasJSON } from './fetchCSVasJSON.js';
+import { pathRootDir, pathImage, pathTemplate } from './paths.js';
+
+const csvData = fetchCSVasJSON(
+	`${path.join(pathRootDir, 'assets')}/winemag-data-130k-v2.csv`
+);
 const { headers, result } = csvData;
+
+//const app = ReactDOMServer.renderToString(React.createElement(App));
 
 handlebars.registerHelper({
 	if_eq: (a, b, opts) => a === b && opts.fn(Object.create(null)),
@@ -21,9 +31,9 @@ const webWorkerContent = getFileContents(`./src/utils/WebWorker.js`);
 const apiWorkerContent = getFileContents(`./src/workers/apiWorker.js`);
 
 // PreeCopile template
-const templatePath = path.join(__dirname, '..', 'public', 'ally-test', 'index.hbs');
+const templatePath = path.join(pathTemplate, 'index.hbs');
 const templateContent = getFileContents(templatePath);
-const compiledTemplate = handlebars.compile(templateContent);
+export const compiledTemplate = handlebars.compile(templateContent);
 
 /**
  * Generate user agent object (platform, version, ...)
@@ -32,7 +42,7 @@ const compiledTemplate = handlebars.compile(templateContent);
  * @param next
  */
 
-const userAgentHandler = (req, res, next) => {
+export const userAgentHandler = (req, res, next) => {
 	const { headers } = req;
 	let userAgent =
 		headers['X-User-Agent'] ||
@@ -54,15 +64,14 @@ const userAgentHandler = (req, res, next) => {
 	next();
 };
 
-const getCSVData = (req, res) => {
+export const getCSVData = (req, res) => {
 	const pageNum = parseInt(req.query.page, 10);
 	const pageData = result.slice(pageNum * 10, (pageNum + 1) * 10);
 	res.end(JSON.stringify(pageNum ? { pageData } : { headers, pageData }));
 };
 
-const fetchImage = (req, res) => {
-	const imagePath = path.join(__dirname, '..', 'assets', 'images');
-	const img = getFileContents(`${imagePath}/${req.params[0]}`);
+export const fetchImage = (req, res) => {
+	const img = getFileContents(`${pathImage}/${req.params[0]}`);
 
 	// Set the response headers
 	res.writeHead(200, { 'Content-Type': 'image/jpeg' });
@@ -71,24 +80,14 @@ const fetchImage = (req, res) => {
 	res.end(img, 'binary');
 };
 
-const fetchWorker = (req, res, fileContent) => {
+export const fetchWorker = (req, res, fileContent) => {
 	res.set('Content-Type', `application/javascript; charset=utf-8`);
 	nocache(res);
 	res.end(fileContent);
 };
 
-const fetchWebWorker = (req, res) => fetchWorker(req, res, webWorkerContent);
+export const fetchWebWorker = (req, res) => fetchWorker(req, res, webWorkerContent);
 
-const fetchApiWorker = (req, res) => fetchWorker(req, res, apiWorkerContent);
+export const fetchApiWorker = (req, res) => fetchWorker(req, res, apiWorkerContent);
 
-const handleGraphql = (req, res) => handler(req, res);
-
-module.exports = {
-	userAgentHandler,
-	getCSVData,
-	fetchImage,
-	fetchWebWorker,
-	fetchApiWorker,
-	compiledTemplate,
-	handleGraphql,
-};
+export const handleGraphql = (req, res) => handler(req, res);

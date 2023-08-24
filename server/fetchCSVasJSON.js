@@ -1,9 +1,9 @@
 // Reading the file using default
 // fs npm package
-const { getFileContents } = require('./helper');
+import { getFileContents } from './helper.js';
 
-const fetchCSVasJSON = (filePath) => {
-	csv = getFileContents(filePath);
+export const fetchCSVasJSON = (filePath) => {
+	const csv = getFileContents(filePath);
 
 	// Convert the data to String and
 	// split it in an array
@@ -74,8 +74,4 @@ const fetchCSVasJSON = (filePath) => {
 	// generate the JSON output file.
 	// let json = JSON.stringify(result);
 	return { headers, result };
-};
-
-module.exports = {
-	fetchCSVasJSON,
 };

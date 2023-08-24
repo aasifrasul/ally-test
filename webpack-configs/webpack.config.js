@@ -1,29 +1,34 @@
-const path = require('path');
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const paths = require('./paths');
-const webpackCommonConfig = require('../webpack/webpack.common');
-const fs = require('fs');
-const LOADERS = require('../webpack/loaders');
-const PLUGINS = require('../webpack/plugins');
-const vendorlibs = require('./vendor.js');
-const isProduction = process.env.NODE_ENV === 'production';
-const { APP_NAME, publicPath } = require('../webpack/constants');
+import path from 'path';
+import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin';
+import fs from 'fs';
 
-const makeConfig = () => {
+import paths from './paths.js';
+import webpackCommonConfig from '../webpack/webpack.common.js';
+import LOADERS from '../webpack/loaders.js';
+import PLUGINS from '../webpack/plugins.js';
+import vendorlibs from './vendor.js';
+import { APP_NAME, publicPath } from '../webpack/constants.js';
+import { pathSource, pathRootDir, pathWebpackConfigs } from '../server/paths.js';
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+export const makeConfig = () => {
 	return {
-		context: path.join(__dirname, '..', 'src'),
+		context: pathSource,
 		mode: webpackCommonConfig.getNodeEnv(),
 		target: ['web'],
 		plugins: ['web'],
-		recordsPath: path.join(__dirname, '..', 'records.json'),
+		recordsPath: path.join(pathRootDir, 'records.json'),
 		parallelism: 1,
 		profile: true,
 		entry: {
-			...(fs.existsSync(paths.langEn(__dirname)) && {
-				en: paths.langEn(__dirname),
-				hi: paths.langHi(__dirname),
+			...(fs.existsSync(paths.langEn(pathWebpackConfigs)) && {
+				en: paths.langEn(pathWebpackConfigs),
+				hi: paths.langHi(pathWebpackConfigs),
 			}),
-			app: paths.appIndexJs(__dirname),
+			vendor: ['react', 'react-dom', 'react-router-dom', 'react-redux', 'redux-saga'],
+			app: paths.appIndexJs(pathWebpackConfigs),
+			webWorker: ['./workers/MyWorker.js'],
 		},
 		output: {
 			path: isProduction ? path.join(paths.appBuild, APP_NAME) : paths.appBuildDev,
@@ -33,6 +38,7 @@ const makeConfig = () => {
 			pathinfo: !isProduction,
 			chunkFilename: isProduction ? '[name].[chunkhash].js' : '[name].bundle.js',
 			chunkLoadingGlobal: 'webpackJsonp',
+			globalObject: `typeof self !== 'undefined' ? self : this`,
 		},
 		devServer: {
 			hot: true,
@@ -54,19 +60,16 @@ const makeConfig = () => {
 			],
 			alias: {
 				'fk-cp-utils': path.resolve(
-					__dirname,
-					'..',
-					'node_modules/@fpg-modules/fk-cp-utils',
+					pathRootDir,
+					'node_modules/@fpg-modules/fk-cp-utils'
 				),
 				'fk-ui-common': path.resolve(
-					__dirname,
-					'..',
-					'node_modules/@fpg-modules/fk-ui-common/src',
+					pathRootDir,
+					'node_modules/@fpg-modules/fk-ui-common/src'
 				),
 				'fk-ui-common-components': path.resolve(
-					__dirname,
-					'..',
-					'node_modules/@fpg-modules/fk-ui-common/src/components',
+					pathRootDir,
+					'node_modules/@fpg-modules/fk-ui-common/src/components'
 				),
 			},
 		},
@@ -84,7 +87,7 @@ const makeConfig = () => {
 					vendor: {
 						name: 'vendor',
 						test: new RegExp(
-							`[\\/]node_modules[\\/](${vendorlibs.join('|')})[\\/]`,
+							`[\\/]node_modules[\\/](${vendorlibs.join('|')})[\\/]`
 						),
 						enforce: true,
 						minChunks: 1,
@@ -112,5 +115,3 @@ const makeConfig = () => {
 };
 
 // PROD && (CONFIG.devtool = 'hidden-source-map');
-
-module.exports = makeConfig();

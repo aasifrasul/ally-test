@@ -1,13 +1,17 @@
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
-const CompressionPlugin = require('compression-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const path = require('path');
+import UglifyJSPlugin from 'uglifyjs-webpack-plugin';
+import CompressionPlugin from 'compression-webpack-plugin';
+import { CleanWebpackPlugin } from 'clean-webpack-plugin';
+
+import { pathSource, pathBuild, pathPublic } from '../server/paths.js';
+
 const PROD = process.env.NODE_ENV === 'production';
+
 const PATHS = {
-	src: path.join(__dirname, '..', 'src'),
-	build: path.join(__dirname, '..', 'build'),
-	public: path.join(__dirname, '..', 'public'),
+	src: pathSource,
+	build: pathBuild,
+	public: pathPublic,
 };
+
 function getNodeEnv() {
 	return PROD ? 'production' : 'development';
 }
@@ -43,7 +47,7 @@ function cleanWebpackPlugin() {
 	});
 }
 
-module.exports = {
+export default {
 	getNodeEnv,
 	getUglifyJs,
 	getCompressionPlugin,

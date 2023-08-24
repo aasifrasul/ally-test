@@ -1,8 +1,10 @@
-module.exports = {
-	template: require('../templates/index.hbs'),
-	helper: {
-		if_eq: (a, b, opt) => {
-			return opt.fn({});
-		},
+import hbsTemplate from '../templates/index.hbs';
+
+console.log('template: ==============================', hbsTemplate);
+/*
+export const helper = {
+	if_eq: (a, b, opt) => {
+		return opt.fn({});
 	},
 };
+*/

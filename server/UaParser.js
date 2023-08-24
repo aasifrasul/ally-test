@@ -1,6 +1,5 @@
-const parser = require('ua-parser-js');
-
-const { getArrayCount } = require('../src/utils/ArrayUtils');
+import parser from 'ua-parser-js';
+import { getArrayCount } from '../src/utils/ArrayUtils.js';
 
 // Retail Wrapper Android App
 const RETAIL_WRAPPER_ANDROID_APP = 'flipkart_app';
@@ -40,7 +39,7 @@ const getFkString = (fkAgentString) => {
 	return null;
 };
 
-const parse = (userAgent) => {
+export const parse = (userAgent) => {
 	const uaParsedObj = parser(userAgent);
 	const fkAgentString = getFkString(userAgent);
 
@@ -91,8 +90,4 @@ const parse = (userAgent) => {
 	fkApp.version = version;
 	uaParsedObj.fkApp = fkApp;
 	return uaParsedObj;
-};
-
-module.exports = {
-	parse,
 };

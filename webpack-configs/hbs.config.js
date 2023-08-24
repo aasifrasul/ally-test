@@ -1,10 +1,14 @@
 /* eslint-disable no-console */
-var path = require('path');
-var loaders = require('../webpack/loaders');
-var publicPath = require('../webpack/constants').publicPath;
-var htmlminifier = path.join(__dirname, '..', 'webpack', 'html-minifier-loader.js');
-var webpackCommonConfig = require('../webpack/webpack.common');
-var MiniCssExtractPlugin = require('mini-css-extract-plugin');
+import path from 'path';
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+
+import loaders from '../webpack/loaders.js';
+import { pathRootDir, pathWebpack, pathWebpackConfigs, pathPublic } from '../server/paths.js';
+
+import webpackCommonConfig from '../webpack/webpack.common.js';
+
+var htmlminifier = path.join(pathWebpack, 'html-minifier-loader.js');
+
 var DEV = process.env.NODE_ENV !== 'production';
 
 var htmlminifierQuery = JSON.stringify({
@@ -17,19 +21,21 @@ var htmlminifierQuery = JSON.stringify({
 	},
 });
 
-module.exports = function (env) {
+export const hbsConfig = () => {
 	console.log('\n\nHBS:: Running as:', process.env.BUILD_TYPE || 'release');
 	console.log('HBS:: ENVIRONMENTS');
 	console.log('--------------------------------------------------');
 	var outputPath = DEV ? 'public' : 'build';
 	return {
-		entry: __dirname + '/hbs.js',
+		entry: path.join(pathWebpackConfigs, 'hbs.js'),
 		output: {
-			path: path.join(__dirname, '..', outputPath, 'server'),
+			path: path.join(pathPublic, 'server'),
 			filename: 'hbs.bundle.js',
-			libraryTarget: 'commonjs2',
+			// libraryTarget: 'commonjs2',
 			chunkLoadingGlobal: 'webpackJsonp',
-			publicPath: publicPath,
+			publicPath: pathPublic,
+			pathinfo: DEV,
+			globalObject: `typeof self !== 'undefined' ? self : this`,
 		},
 		mode: webpackCommonConfig.getNodeEnv(),
 		plugins: [webpackCommonConfig.cleanWebpackPlugin()],
@@ -44,10 +50,6 @@ module.exports = function (env) {
 					use: [
 						{
 							loader: 'handlebars-loader',
-						},
-						{
-							loader: htmlminifier,
-							options: htmlminifierQuery,
 						},
 					],
 				},
@@ -71,7 +73,7 @@ module.exports = function (env) {
 						},
 						'postcss-loader',
 					],
-				},
+				}
 			),
 		},
 	};

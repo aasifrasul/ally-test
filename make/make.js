@@ -1,12 +1,15 @@
 /* eslint-disable no-console */
-const chalk = require('chalk');
-const webpack = require('webpack');
-const { generateHBS } = require('./make.hbs');
+import chalk from 'chalk';
+import webpack from 'webpack';
+
+import { generateHBS } from './make.hbs.js';
+
 /**
  * Get Webpack configs
  */
-const hbsConfig = require('../webpack-configs/hbs.config');
-const clientConfig = require('../webpack-configs/webpack.config');
+import { hbsConfig } from '../webpack-configs/hbs.config.js';
+
+import { makeConfig } from '../webpack-configs/webpack.config.js';
 
 const CONFIGTYPE = {
 	CLIENT: 'CLIENT',
@@ -15,7 +18,7 @@ const CONFIGTYPE = {
 };
 
 const getWebpackConfig = (type) => {
-	return type === CONFIGTYPE.CLIENT ? clientConfig : hbsConfig();
+	return type === CONFIGTYPE.CLIENT ? makeConfig() : hbsConfig();
 };
 
 const runWebpack = (type, hash) => {
@@ -50,21 +53,18 @@ const runWebpack = (type, hash) => {
 					chunks: false,
 					assets: type !== CONFIGTYPE.SERVER, // disabling assets primted only for server since they don't manifest in what goes to end users, hiding noise
 					colors: true, // Shows colors in the console
-				}),
+				})
 			);
 			resolve();
 		});
 	});
 };
 
-const generate = () => {
+const generate = async () => {
 	console.log(':: RUN WEBPACK CONFIGURATION :: ');
-	return new Promise(async (resolve, reject) => {
-		await runWebpack(CONFIGTYPE.HBS).catch();
-		await runWebpack(CONFIGTYPE.CLIENT).catch();
-		await generateHBS();
-		resolve();
-	});
+	await runWebpack(CONFIGTYPE.HBS).catch();
+	await runWebpack(CONFIGTYPE.CLIENT).catch();
+	await generateHBS();
 };
 
 generate();

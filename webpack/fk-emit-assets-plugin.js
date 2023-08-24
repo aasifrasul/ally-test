@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
-const { RawSource } = require('webpack-sources');
-const path = require('path');
-const Constants = require('./constants');
+import { RawSource } from 'webpack-sources';
+import path from 'path';
+
+import { SENTRY_KEY, SENTRY_VERSION, SENTRY_URL } from './constants.js';
 
 /**
  * This plugin emits the list of assets as a version file to be read and
@@ -23,7 +24,7 @@ class FkEmitAssetsPlugin {
 				appendPublicPath: true,
 				preloadConfig: {},
 			},
-			options || {},
+			options || {}
 		);
 	}
 
@@ -133,9 +134,9 @@ class FkEmitAssetsPlugin {
 						break;
 				}
 			});
-			output.sentryKey = Constants.SENTRY_KEY;
-			output.sentryRelease = Constants.SENTRY_VERSION;
-			output.sentryURL = Constants.SENTRY_URL;
+			output.sentryKey = SENTRY_KEY;
+			output.sentryRelease = SENTRY_VERSION;
+			output.sentryURL = SENTRY_URL;
 			/**
 			 * Emit the list of assets as a file
 			 */
@@ -154,4 +155,4 @@ class FkEmitAssetsPlugin {
 	}
 }
 
-module.exports = FkEmitAssetsPlugin;
+export default FkEmitAssetsPlugin;

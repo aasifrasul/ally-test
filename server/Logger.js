@@ -1,4 +1,4 @@
-const { createLogger, format, transports } = require('winston');
+import { createLogger, format, transports } from 'winston';
 const { combine, timestamp, label, printf } = format;
 
 const myFormat = printf(({ level, message, label, timestamp }) => {
@@ -7,7 +7,7 @@ const myFormat = printf(({ level, message, label, timestamp }) => {
 
 const filename = module.filename.split('/').slice(-1);
 
-const logger = createLogger({
+export const logger = createLogger({
 	level: 'info',
 	format: combine(label({ label: filename }), timestamp(), myFormat, format.json()),
 	transports: [
@@ -19,7 +19,3 @@ const logger = createLogger({
 		new transports.File({ filename: 'combined.log' }),
 	],
 });
-
-module.exports = {
-	logger,
-};

@@ -1,18 +1,14 @@
-const path = require('path');
+import path from 'path';
 
-const paths = {
-	pathRoot: path.join(__dirname),
-	pathRootDir: path.join(__dirname, '..'),
-	pathSource: path.join(__dirname, '..', 'src'),
-	pathBuild: path.join(__dirname, '..', 'build'),
-	pathPublic: path.join(__dirname, '..', 'public'),
-	pathTemplate: path.join(__dirname, '..', 'public', 'ally-test'),
-	pathImage: path.join(__dirname, '..', 'assets', 'images'),
-	pathBuildTime: path.join(__dirname, '..', 'public', 'server', 'buildtime'),
-	pathTSConfig: path.join(__dirname, '..', 'tsconfig.json'),
-	pathRecordsJSON: path.join(__dirname, '..', 'records.json'),
-};
-
-module.exports = {
-	...paths,
-};
+export const pathRoot = process.cwd();
+export const pathRootDir = pathRoot;
+export const pathSource = path.join(pathRoot, 'src');
+export const pathBuild = path.join(pathRoot, 'build');
+export const pathPublic = path.join(pathRoot, 'public');
+export const pathWebpack = path.join(pathRoot, 'webpack');
+export const pathWebpackConfigs = path.join(pathRoot, 'webpack-configs');
+export const pathTemplate = path.join(pathPublic, 'ally-test');
+export const pathImage = path.join(pathRoot, 'assets', 'images');
+export const pathBuildTime = path.join(pathPublic, 'server', 'buildtime');
+export const pathTSConfig = path.join(pathRoot, 'tsconfig.json');
+export const pathRecordsJSON = path.join(pathRoot, 'records.json');
