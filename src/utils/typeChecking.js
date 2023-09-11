@@ -1,49 +1,35 @@
-const typeCheck = (data, type) =>
+export const typeCheck = (data, type) =>
 	Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type;
 
-const isFunction = (data) => typeCheck(data, 'function');
-const isArray = (data) => typeCheck(data, 'array');
-const isObject = (data) => typeCheck(data, 'object');
-const isNull = (data) => typeCheck(data, 'null');
-const isUndefined = (data) => typeCheck(data, 'undefined');
-const isNumber = (data) => typeCheck(data, 'number');
-const isString = (data) => typeCheck(data, 'string');
-const isBoolean = (data) => typeCheck(data, 'boolean');
-const isMap = (data) => typeCheck(data, 'map');
-const isSet = (data) => typeCheck(data, 'set');
-const isGeneratorFunction = (data) => typeCheck(data, 'generatorfunction');
-const isPromise = (data) => typeCheck(data, 'promise');
-const isDate = (data) => typeCheck(data, 'date');
-const isEmpty = (data) => isUndefined(data) || isNull(data) || data === '';
-const isSymbol = (data) => typeCheck(data, 'symbol');
+export const isFunction = (data) => typeCheck(data, 'function');
+export const isArray = (data) => typeCheck(data, 'array');
+export const isObject = (data) => typeCheck(data, 'object');
+export const isNull = (data) => typeCheck(data, 'null');
+export const isUndefined = (data) => typeCheck(data, 'undefined');
+export const isNumber = (data) => typeCheck(data, 'number');
+export const isString = (data) => typeCheck(data, 'string');
+export const isBoolean = (data) => typeCheck(data, 'boolean');
+export const isMap = (data) => typeCheck(data, 'map');
+export const isSet = (data) => typeCheck(data, 'set');
+export const isGeneratorFunction = (data) => typeCheck(data, 'generatorfunction');
+export const isPromise = (data) => typeCheck(data, 'promise');
+export const isDate = (data) => typeCheck(data, 'date');
+export const isSymbol = (data) => typeCheck(data, 'symbol');
+export const isRegExp = (data) => typeCheck(data, 'regexp');
 
-const safelyExecuteFunction = (func, context, ...params) => {
+export const isEmpty = (data) => isUndefined(data) || isNull(data) || data === '';
+
+export const arraySize = (arr) => (isArray(arr) && arr.length) || null;
+
+export const safelyExecuteFunction = (func, context, ...params) => {
 	if (!isFunction(func)) {
-		return null;
+		console.log('Please pass a valid function!');
+		return;
 	}
 
-	if (isObject(context) && isFunction(context[func.name])) {
+	if (isObject(context)) {
 		return func.apply(context, params);
 	}
 
 	return func(...params);
-};
-
-module.exports = {
-	isMap,
-	isSymbol,
-	isSet,
-	isGeneratorFunction,
-	isPromise,
-	isDate,
-	isEmpty,
-	isFunction,
-	isArray,
-	isObject,
-	isNull,
-	isUndefined,
-	isNumber,
-	isString,
-	isBoolean,
-	safelyExecuteFunction,
 };

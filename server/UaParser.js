@@ -1,7 +1,5 @@
 const parser = require('ua-parser-js');
 
-const { getArrayCount } = require('../src/utils/ArrayUtils');
-
 // Retail Wrapper Android App
 const RETAIL_WRAPPER_ANDROID_APP = 'flipkart_app';
 // Retail Native Android App
@@ -56,13 +54,13 @@ const parse = (userAgent) => {
 				platform = 'Android';
 				device = 'Mobile';
 				matches = userAgent.match(FKUA_APP_REGEX);
-				if (getArrayCount(matches)) {
+				if (Array.isArray(matches)) {
 					version = matches[2];
 				}
 				break;
 			case FLIPKART_USER_AGENT:
 				matches = userAgent.match(FKUA_APP_REGEX);
-				if (getArrayCount(matches)) {
+				if (Array.isArray(matches)) {
 					type = matches[1];
 					version = matches[2];
 					platform = matches[4];

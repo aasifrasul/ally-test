@@ -1,80 +1,71 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
-import { useFetchStore, useFetchDispatch } from '../../Context/dataFetchContext';
+import { useFetchDispatch } from '../../Context/dataFetchContext';
 import useWebWorker from '../useWebWorker';
 
-const useFetch = (schema, baseUrl, initialParams = {}, timeout = 2000) => {
-	const { fetchAPIData, abortFetchRequest } = useWebWorker();
-	const [params, setParams] = useState(initialParams);
-	const [errorMessage, setErrorMessage] = useState('');
+import { buildQueryParams } from '../../utils/common';
+
+const useFetch = (schema, timeout = 2000) => {
+	const [ignore, setIgnore] = useState(false);
 	const timeoutId = React.useRef(false);
 
-	const state = useFetchStore();
+	const { fetchAPIData, abortFetchRequest } = useWebWorker();
 	const dispatch = useFetchDispatch();
 
-	const updateQueryParams = (data) => setParams((oldData) => ({ ...oldData, ...data }));
-	const queryString = Object.keys(params)
-		.map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
-		.join('&');
-
-	const endPoint = `${baseUrl}?${queryString}`;
-	const key = `${schema}:${endPoint}`;
-
-	const cleanup = () => {
-		clearTimeout(timeoutId.current);
-		abortFetch();
-	};
-
-	const abortFetch = () => abortFetchRequest(endPoint);
-
-	const fetchData = async () => {
+	const fetchData = useCallback((endPoint, queryParams = {}, options = {}) => {
 		dispatch({ schema, type: 'FETCH_INIT' });
 
-		try {
-			timeoutId.current = setTimeout(() => {
-				cleanup();
-			}, timeout);
+		const abortFetch = () => abortFetchRequest(url);
 
-			const options = {
-				method: 'GET',
-				//mode: 'cors',
-				//cache: 'no-cache',
-				//credentials: 'same-origin',
-				/*headers: {
+		const cleanUp = () => {
+			clearTimeout(timeoutId.current);
+			abortFetch();
+		};
+
+		timeoutId.current = setTimeout(() => cleanUp(), timeout);
+		const url = `${endPoint}${buildQueryParams(queryParams)}`;
+
+		const enhancedOptions = {
+			method: 'GET',
+			//mode: 'cors',
+			//cache: 'no-cache',
+			//credentials: 'same-origin',
+			/*headers: {
 					'Content-Type': 'application/json',
 					//...headers
 					},*/
-				//redirect: 'follow',
-				//referrerPolicy: 'no-referrer',
-				//signal: abortController.current.signal,
-				//body: body ? JSON.stringify(data) : {},
-			};
+			//redirect: 'follow',
+			//referrerPolicy: 'no-referrer',
+			//body: body ? JSON.stringify(data) : {},
+			...options,
+		};
 
-			const data = await fetchAPIData(endPoint, options);
-			data && dispatch({ schema, type: 'FETCH_SUCCESS', payload: data });
-		} catch (err) {
-			dispatch({ schema, type: 'FETCH_FAILURE' });
-			if (err?.name === 'AbortError') {
-				console.log('Request Aborted');
-			} else {
-				setErrorMessage(() => err.message);
+		const fetchLazy = async () => {
+			try {
+				const data = await fetchAPIData(url, enhancedOptions);
+				!ignore && dispatch({ schema, type: 'FETCH_SUCCESS', payload: data });
+			} catch (err) {
+				dispatch({ schema, type: 'FETCH_FAILURE' });
+				console.log(err);
+			} finally {
+				dispatch({ schema, type: 'FETCH_STOP' });
+				cleanUp();
 			}
-		} finally {
-			dispatch({ schema, type: 'FETCH_STOP' });
-			cleanup();
-		}
-	};
+		};
+
+		fetchLazy();
+
+		return cleanUp;
+	}, []);
 
 	useEffect(() => {
-		fetchData();
-		return cleanup;
-	}, [queryString]);
+		return () => {
+			setIgnore(true);
+		};
+	});
 
 	return {
-		state: state[schema],
-		errorMessage,
-		updateQueryParams,
-		abortFetch,
+		fetchData,
 	};
 };
 

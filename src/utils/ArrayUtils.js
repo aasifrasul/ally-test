@@ -1,8 +1,4 @@
-const idx = require('idx');
-const { isArray } = require('./typeChecking');
-const { deepCopy } = require('./common');
-
-const alphabets = [
+export const alphabets = [
 	'a',
 	'b',
 	'c',
@@ -31,11 +27,11 @@ const alphabets = [
 	'z',
 ];
 
-const getArrayCount = (arr) => (isArray(arr) && arr.length) || 0;
+export const getArrayCount = (arr) => (Array.isArray(arr) && arr.length) || 0;
 
-const dupeArray = (arr) => isArray(arr) && Array.prototype.slice.call(arr);
+export const dupeArray = (arr) => Array.isArray(arr) && Array.prototype.slice.call(arr);
 
-const buildNestedWithParentId = (items) => {
+export const buildNestedWithParentId = (items) => {
 	const nestedStructure = Object.create(null);
 	const categories = [];
 	const uniqueCategories = {};
@@ -72,12 +68,12 @@ const buildNestedWithParentId = (items) => {
  * Shuffles a given array
  * Randomize the indexes
  */
-const shuffle = (array) => {
-	if (!isArray(array)) {
+export const shuffle = (array) => {
+	if (!Array.isArray(array)) {
 		throw new Error('Please provide a valid array');
 	}
 
-	const newArray = deepCopy(array);
+	const newArray = JSON.parse(JSON.stringify(array));
 
 	newArray.sort(function () {
 		return Math.random() - 0.5;
@@ -89,16 +85,7 @@ const shuffle = (array) => {
 /**
  * Create equal chunks of the given array by size
  */
-const arrayChunks = (a, size) =>
+export const arrayChunks = (a, size) =>
 	Array.from(new Array(Math.ceil(a.length / size)), (_, i) =>
-		a.slice(i * size, i * size + size),
+		a.slice(i * size, i * size + size)
 	);
-
-module.exports = {
-	dupeArray,
-	alphabets,
-	getArrayCount,
-	buildNestedWithParentId,
-	shuffle,
-	arrayChunks,
-};

@@ -6,7 +6,7 @@ import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
 import pageReducer from '../../reducers/pageReducer';
 
-import { FetchStoreProvider } from '../../Context/dataFetchContext';
+import { useFetchStore, FetchStoreProvider } from '../../Context/dataFetchContext';
 
 import UserCard from './UserCard';
 
@@ -17,15 +17,18 @@ const { TOTAL_PAGES, BASE_URL, schema, queryParams } = constants?.infiniteScroll
 
 const DisplayList = (props) => {
 	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });
-	const { state, errorMessage, updateQueryParams } = useFetch(schema, BASE_URL, queryParams);
+	const { fetchData } = useFetch(schema);
 	const [observerElement, setObserverElement] = useState(null);
-
-	queryParams.page = pagerObject[schema]?.pageNum || 0;
-
+	const state = useFetchStore();
 	const observer = useRef(false);
 
+	const usersData = state[schema];
+	queryParams.page = pagerObject[schema]?.pageNum || 0;
+	const items = usersData?.data?.results || [];
+
 	useEffect(() => {
-		updateQueryParams(queryParams);
+		const abortFetch = fetchData(BASE_URL, queryParams);
+		return () => abortFetch();
 	}, [queryParams.page]);
 
 	useEffect(() => {
@@ -40,7 +43,7 @@ const DisplayList = (props) => {
 		return () => observerElement && observer.current.unobserve(observerElement);
 	}, [observerElement]);
 
-	useImageLazyLoadIO('img[data-src]', state?.data?.results?.length);
+	useImageLazyLoadIO('img[data-src]', items.length);
 
 	return (
 		<div className={styles.scrollParent}>
@@ -48,21 +51,18 @@ const DisplayList = (props) => {
 			<h1 className="text-3xl text-center mt-4 mb-10">All users</h1>
 			<ScrollToTop />
 			<div className={styles.scrollArea}>
-				{state?.data?.results?.map((user, i) => (
+				{items.map((user, i) => (
 					<>
-						{Math.floor(state.data.results.length / 1.2) === i ? (
-							<div
-								ref={setObserverElement}
-								key={`${user.id?.value}-${i}-observer`}
-							>
+						{Math.floor(items.length / 1.2) === i ? (
+							<div ref={setObserverElement} key={`${user.email}-obserbver`}>
 								Loading...
 							</div>
 						) : null}
-						<UserCard data={user} key={user.id?.value} />
+						<UserCard data={user} key={`${user.email}-${i}`} />
 					</>
 				))}
 			</div>
-			{state?.isLoading && <p className="text-center">isLoading...</p>}
+			{usersData?.isLoading && <p className="text-center">Loading...</p>}
 			{queryParams.page - 1 === TOTAL_PAGES && <p className="text-center my-10">♥</p>}
 		</div>
 	);

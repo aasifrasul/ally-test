@@ -71,7 +71,7 @@ export default function FlipTheCard() {
 				{cards.current.map(({ pic, display, name }, index) =>
 					display ? (
 						<div key={`${name}-${index}`} className={styles.child}>
-							<img src={pic} />
+							<img src={pic.src} />
 						</div>
 					) : (
 						<div key={`${name}-${index}`} className={styles.child}>

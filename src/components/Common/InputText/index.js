@@ -1,39 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
-import { safelyExecuteFunction } from '../../../utils/typeChecking';
+import useFormField from '../../../hooks/useFormField';
 
-const InputText = (props) => {
-	const { label, name, inputTextRef } = props;
-	const [value, setValue] = useState(inputTextRef.current || '');
+import { debounce } from '../../../utils/common';
 
-	useEffect(() => {
-		setValue(inputTextRef.current);
-	}, [inputTextRef.current]);
+const InputText = ({
+	id,
+	name,
+	initialValue,
+	validate,
+	placeholder = '',
+	callback,
+	isCallbackDebounced = false,
+	debounceDelay = 250,
+}) => {
+	const { value, onChange, reset, error } = useFormField(
+		id,
+		initialValue,
+		validate,
+		isCallbackDebounced ? debounce(callback, debounceDelay) : callback
+	);
 
-	const onChange = (e) => {
-		e.preventDefault();
-		const value = e.target.value;
-		setValue(value);
-		inputTextRef && (inputTextRef.current = value);
-		safelyExecuteFunction(props.onChangeCallback, null, value);
-	};
-
-	const onKeyDown = (e) => {
-		safelyExecuteFunction(props.onKeyDown, null, e);
-	};
+	// Reset the field value when the initialValue changes
+	React.useEffect(() => {
+		return () => reset();
+	}, [reset]);
 
 	return (
-		<label>
-			{label}
+		<div>
 			<input
 				type="text"
-				label={label}
+				id={id}
 				name={name}
 				value={value}
+				placeholder={placeholder}
 				onChange={onChange}
-				onKeyDown={onKeyDown}
 			/>
-		</label>
+			{error && <div className="error">{error}</div>}
+		</div>
 	);
 };
 

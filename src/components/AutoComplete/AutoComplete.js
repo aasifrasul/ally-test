@@ -12,7 +12,6 @@ const AutoComplete = (props) => {
 	const [activeSuggestion, setActiveSuggestion] = React.useState(0);
 	const [filteredSuggestions, setFilteredSuggestions] = React.useState([]);
 	const [showNoMatch, setShowNoMatch] = React.useState(false);
-	const inputTextRef = React.useRef('');
 	const displayRef = React.useRef(null);
 	let suggestionsHtml;
 	const clickedOutside = useOutsideClick(displayRef);
@@ -22,16 +21,15 @@ const AutoComplete = (props) => {
 		setFilteredSuggestions(() => []);
 		setShowNoMatch(() => false);
 		suggestionsHtml = '';
-		inputTextRef.current = '';
 	};
 
-	const onChange = (e) => {
-		const searchedText = inputTextRef.current?.toLowerCase();
-
+	const onChange = (searchedText) => {
 		setActiveSuggestion(0);
+
 		if (searchedText) {
 			const matchedSuggestions = props.suggestions.filter(
-				(suggestion) => suggestion.toLowerCase().indexOf(searchedText) > -1,
+				(suggestion) =>
+					suggestion.toLowerCase().indexOf(searchedText.toLowerCase()) > -1
 			);
 			setFilteredSuggestions(() => matchedSuggestions);
 			if (matchedSuggestions.length === 0) {
@@ -43,7 +41,6 @@ const AutoComplete = (props) => {
 	};
 
 	const onSuggestionClick = (e) => {
-		inputTextRef.current = e.target.innerText;
 		setActiveSuggestion(0);
 		setFilteredSuggestions(() => []);
 	};
@@ -108,11 +105,7 @@ const AutoComplete = (props) => {
 				<button onClick={() => reset()}>Reset</button>
 			</div>
 			<div>Search Item:</div>
-			<InputText
-				inputTextRef={inputTextRef}
-				onChangeCallback={debouncedOnChange}
-				onKeyDown={onKeyDown}
-			/>
+			<InputText callback={debouncedOnChange} onKeyDown={onKeyDown} />
 			{suggestionsHtml}
 		</>
 	);

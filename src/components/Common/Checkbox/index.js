@@ -2,24 +2,27 @@ import React, { useState } from 'react';
 
 import { safelyExecuteFunction } from '../../../utils/typeChecking';
 
-const Checkbox = (props) => {
-	const [checked, setChecked] = useState(false);
-	const { label = '', name = '', style = '', callback, value = null } = props;
+const Checkbox = ({ id, label = '', name = '', style = '', callback, value = null }) => {
+	const [isChecked, setIsChecked] = useState(false);
+
+	React.useEffect(() => {
+		return () => setIsChecked(() => false);
+	}, []);
+
 	const handleChange = () => (e) => {
-		const { checked } = e.target;
-		console.log('checked', checked);
-		setChecked(checked);
-		safelyExecuteFunction(callback, checked, value);
+		console.log('isChecked', isChecked);
+		setIsChecked((checked) => !checked);
+		safelyExecuteFunction(callback, null, isChecked, id);
 	};
 
 	return (
 		<label>
 			<input
+				id={id}
 				type="checkbox"
 				className={style}
 				name={name}
-				value={value}
-				checked={checked}
+				checked={isChecked}
 				onChange={handleChange()}
 			/>
 			{label || name}

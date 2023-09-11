@@ -68,6 +68,12 @@ const AccordionDemo = lazy(() =>
 	import(/* webpackChunkName: "AccordionDemo" */ '../AccordionDemo')
 );
 
+const SearchForm = lazy(() => import(/* webpackChunkName: "SearchForm" */ '../SearchForm'));
+const ListExchange = lazy(() =>
+	import(/* webpackChunkName: "ListExchange" */ '../ListExchange')
+);
+const SortUsers = lazy(() => import(/* webpackChunkName: "SortUsers" */ '../SortUsers'));
+
 const ErrorPage = lazy(() =>
 	import(/* webpackChunkName: "ErrorPage" */ '../Common/ErrorPage')
 );
@@ -115,6 +121,9 @@ const pages = {
 	AsyncArticles: AsyncArticles,
 	Dashboard: Dashboard,
 	Comments: Comments,
+	SearchForm: SearchForm,
+	ListExchange: ListExchange,
+	SortUsers: SortUsers,
 };
 
 const App = (props) => {

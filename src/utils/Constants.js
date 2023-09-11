@@ -21,7 +21,7 @@ export const constants = {
 		queryParams: {
 			page: 1,
 			sort_by: 'popularity.desc',
-			api_key: '04c35731a5ee918f014970082a0088b1',
+			api_key: '41e1d96d45908b49a03a5699ec69bb16',
 		},
 	},
 	nestedCategories: {
