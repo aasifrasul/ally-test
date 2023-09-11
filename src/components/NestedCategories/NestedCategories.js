@@ -7,7 +7,7 @@ import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 import useFetch from '../../hooks/useFetch';
 
 import { buildNestedWithParentId, alphabets } from '../../utils/ArrayUtils';
-import { FetchStoreProvider } from '../../Context/dataFetchContext';
+import { useFetchStore, FetchStoreProvider } from '../../Context/dataFetchContext';
 
 import { constants } from '../../utils/Constants';
 
@@ -16,6 +16,7 @@ import styles from './NestedCategories.css';
 const { url, schema } = constants?.nestedCategories;
 
 function DisplayList(props) {
+	const result = useFetchStore();
 	const [categories, setCategories] = useState([]);
 	const [categoriesChecked, setCategoresChecked] = useState(new Map());
 	const [filteredData, setFilteredData] = useState({});
@@ -24,17 +25,23 @@ function DisplayList(props) {
 	const parent = [];
 	let childHtml = [];
 	let count = 0;
+	const state = result[schema];
 
-	const { state } = useFetch(schema, url);
+	const { fetchData } = useFetch(schema);
+
+	useEffect(() => {
+		const abortFetch = fetchData(url);
+		return () => abortFetch();
+	}, []);
 
 	useEffect(() => {
 		successCallback();
 	}, [state.data]);
 
-	function successCallback(res) {
+	function successCallback() {
 		if (!state.isLoading && !state.isError && state.data) {
 			const { nestedStructure, categories: allCategories } = buildNestedWithParentId(
-				state.data,
+				state.data
 			);
 			setAllData(nestedStructure);
 			setFilteredData(nestedStructure);
@@ -87,7 +94,7 @@ function DisplayList(props) {
 					childHtml.push(
 						<div key={id}>
 							{alphabets[childCount++]}. {title}
-						</div>,
+						</div>
 					);
 			});
 
@@ -105,7 +112,7 @@ function DisplayList(props) {
 					<div className={styles['category_children']}>{childHtml}</div>
 				</div>
 				<Spacer size={16} />
-			</div>,
+			</div>
 		);
 	}
 

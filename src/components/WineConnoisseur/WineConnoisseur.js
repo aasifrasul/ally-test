@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useReducer } from 'react';
 import DataGrid from '../Common/DataGrid/DataGrid';
+import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
 import useFetch from '../../hooks/useFetch';
 import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
@@ -16,20 +17,24 @@ const { baseURL, schema, queryParams } = constants?.wineConnoisseur;
 function DisplayList(props) {
 	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });
 	const ioObserverRef = useRef(null);
-	const pageNum = pagerObject[schema]?.pageNum || 0;
+	queryParams.page = pagerObject[schema]?.pageNum || 0;
 
-	queryParams.page = pageNum || 0;
-
-	const { state, errorMessage, updateQueryParams } = useFetch(schema, baseURL, queryParams);
+	const { state, fetchData } = useFetch(schema);
 	const { headers = [], pageData = [] } = state?.data || {};
 
-	useEffect(() => updateQueryParams(queryParams), [pageNum]);
+	useEffect(() => {
+		const abortFetch = fetchData(baseURL, queryParams);
+		return () => abortFetch();
+	}, [queryParams.page]);
 
-	useInfiniteScrollIO(ioObserverRef, () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' }));
+	useInfiniteScrollIO(ioObserverRef.current, () =>
+		pagerDispatch({ schema, type: 'ADVANCE_PAGE' })
+	);
 
 	return (
 		<div className={styles.alignCenter}>
 			<span>Wine Connoisseur</span>
+			<ScrollToTop />
 			<DataGrid headings={headers} rows={pageData} rowsCount={40} minHeight={1000} />
 			<div ref={ioObserverRef}>Loading...</div>
 		</div>

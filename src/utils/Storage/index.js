@@ -18,10 +18,10 @@ const storgaeMappings = {
 		setItem: hashMap?.set.bind(hashMap),
 		removeItem: hashMap?.delete.bind(hashMap),
 		contains: hashMap?.has.bind(hashMap),
-	}
+	},
 };
 
-class Storage {
+export class Storage {
 	constructor(storage = 'localStorage') {
 		this.storage = storage;
 
@@ -70,5 +70,3 @@ class Storage {
 		return storgaeMappings[this.storage]?.contains(key);
 	}
 }
-
-module.exports = { Storage };

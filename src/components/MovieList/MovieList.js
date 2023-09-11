@@ -1,11 +1,15 @@
-import React, { useState, useEffect, useRef, useReducer } from 'react';
+import React, { useEffect, useState, useReducer } from 'react';
 
 import useFetch from '../../hooks/useFetch';
 import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
 import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
 
 import pageReducer from '../../reducers/pageReducer';
-import { FetchStoreProvider, useFetchDispatch } from '../../Context/dataFetchContext';
+import {
+	useFetchStore,
+	FetchStoreProvider,
+	useFetchDispatch,
+} from '../../Context/dataFetchContext';
 
 import InputText from '../Common/InputText';
 import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
@@ -13,35 +17,37 @@ import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 import { constants } from '../../utils/Constants';
 import Movie from './Movie.js';
 
-import { debounce } from '../../utils/throttleAndDebounce';
-
 import styles from './MovieList.css';
 
 const { BASE_URL, schema, queryParams } = constants?.movieList;
 
 function DisplayList() {
 	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 1 } });
-	const ioObserverRef = useRef(null);
-	const searchRef = useRef('');
+	const [observerElement, setObserverElement] = useState(null);
 	const dispatch = useFetchDispatch();
-	const debouncedHandleChange = debounce(handleChange, 400);
+	const state = useFetchStore();
+	const { fetchData } = useFetch(schema);
 
-	const { state, errorMessage, updateQueryParams } = useFetch(schema, BASE_URL, queryParams);
-
-	const rowsCount = state?.data?.results?.length;
+	const items = state[schema]?.data?.results || [];
 	queryParams.page = pagerObject[schema]?.pageNum || 0;
 
-	useEffect(() => updateQueryParams(queryParams), [queryParams.page]);
+	useEffect(() => {
+		const cleanUp = fetchData(BASE_URL, queryParams);
+		return () => cleanUp();
+	}, [queryParams.page]);
 
-	useInfiniteScrollIO(ioObserverRef, () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' }));
-	useImageLazyLoadIO('img[data-src]', rowsCount);
+	useInfiniteScrollIO(observerElement?.current, () =>
+		pagerDispatch({ schema, type: 'ADVANCE_PAGE' })
+	);
 
-	function handleChange(e) {
-		ioObserverRef.current = null;
+	useImageLazyLoadIO('img[data-src]', items.length);
+
+	function handleChange(searchedText) {
+		observerElement.current = null;
 		dispatch({
 			schema,
 			type: 'FILTER_BY_TEXT',
-			payload: { filterText: searchRef.current?.trim() },
+			payload: { filterText: searchedText?.trim() },
 		});
 	}
 
@@ -50,20 +56,25 @@ function DisplayList() {
 			<div>
 				<InputText
 					label="Search Item:"
-					inputTextRef={searchRef}
-					onChangeCallback={debouncedHandleChange}
+					name="movieSearch"
+					id="movieSearch"
+					placeholder="Search a Movie"
+					callback={handleChange}
+					isCallbackDebounced={true}
+					debounceDelay={300}
 				/>
 			</div>
-			{state?.isLoading && <p className="text-center">isLoading...</p>}
 			<ScrollToTop />
 			<div>
 				<div className={styles.container} id="container">
-					{state?.data?.results?.map((item, i) => (
-						<Movie key={item?.id} item={item} styles={styles} />
+					{items.map((item, i) => (
+						<>
+							<Movie key={item?.id} item={item} styles={styles} />
+						</>
 					))}
 				</div>
 			</div>
-			<div ref={ioObserverRef}>Loading...</div>
+			<div ref={setObserverElement}>Loading...</div>
 		</div>
 	);
 }

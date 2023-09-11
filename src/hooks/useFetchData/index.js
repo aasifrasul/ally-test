@@ -1,20 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-const useFetchData = (url) => {
+import useWebWorker from '../useWebWorker';
+
+const useFetchData = () => {
+	const { fetchAPIData, abortFetchRequest } = useWebWorker();
 	const [data, setData] = useState(null);
-	const [loading, setLoading] = useState(true);
+	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
-	const abortController = new AbortController();
-	const signal = abortController.signal;
 
-	useEffect(() => {
-		setLoading(true);
+	const fetchData = useCallback((endPoint, options) => {
+		if (!endPoint) {
+			return;
+		}
 
-		const fetchData = async () => {
+		setIsLoading(true);
+
+		const abortFetch = () => abortFetchRequest(endPoint);
+
+		const fetchLazy = async () => {
 			try {
-				let response = await fetch(url, { signal });
-				response = await response.json();
-				setData(response);
+				const data = await fetchAPIData(endPoint, options);
+				setData(data);
 			} catch (err) {
 				if (err.name === 'AbortError') {
 					console.log(err);
@@ -22,19 +28,21 @@ const useFetchData = (url) => {
 					setError(err);
 				}
 			} finally {
-				setLoading(false);
+				abortFetch();
+				setIsLoading(false);
 			}
 		};
 
-		fetchData();
+		fetchLazy();
 
-		return () => {
-			setLoading(false);
-			abortController.abort();
-		};
-	}, [url]);
+		return abortFetch;
+	}, []);
 
-	return { data, loading, error };
+	useEffect(() => {
+		return () => setIsLoading(false);
+	}, []);
+
+	return { data, isLoading, error, fetchData };
 };
 
 export default useFetchData;

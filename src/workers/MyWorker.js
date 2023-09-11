@@ -1,13 +1,11 @@
-//import { Storage } from '../utils/Storage';
-//const storage = new Storage('map');
-
 const hashMapEndPoints = new Map();
 const hashMapData = new Map();
 
-function handleLoadImages(imageUrls) {
+function handleLoadImages(type, imageUrls) {
 	const promises = imageUrls.map(async (url) => {
 		try {
-			const response = await fetch(url);
+			const req = new Request(url);
+			const response = await fetch(req);
 			const fileBlob = response.blob();
 			if (fileBlob.type === 'image/jpeg') {
 				return URL.createObjectURL(fileBlob);
@@ -17,15 +15,15 @@ function handleLoadImages(imageUrls) {
 		}
 	});
 
-	Promise.all(promises).then((data) => postMessage({ type: 'loadImagesResponse', data }));
+	Promise.all(promises).then((data) => postMessage({ type: `${type}Response`, data }));
 }
 
-async function handleFetchAPIData({ endpoint, options = {} }) {
+async function handleFetchAPIData(type, { endpoint, options = {} }) {
 	const abortController = new AbortController();
 	const signal = abortController.signal;
 
 	if (hashMapData.has(endpoint)) {
-		postMessage({ type: 'fetchAPIDataResponse', data: hashMapData.get(endpoint) });
+		postMessage({ type: `${type}Response`, data: hashMapData.get(endpoint) });
 		return;
 	}
 
@@ -41,18 +39,10 @@ async function handleFetchAPIData({ endpoint, options = {} }) {
 	try {
 		const res = await fetch(req);
 		const data = await res.json();
-		postMessage({ type: 'fetchAPIDataResponse', data });
+		postMessage({ type: `${type}Response`, data });
 		hashMapData.set(endpoint, data);
 	} catch (error) {
-		if (error?.name === 'AbortError') {
-			console.log('Request Aborted', error);
-			throw error;
-		} else {
-			postMessage({
-				type: 'fetchError',
-				data: error,
-			});
-		}
+		throw new Error(error);
 	} finally {
 		hashMapEndPoints.delete(endpoint);
 	}
@@ -66,16 +56,18 @@ function handleAbortFetchRequest(data) {
 	}
 }
 
-self.addEventListener(
+const globalObject = typeof self !== 'undefined' ? self : global;
+
+globalObject.addEventListener(
 	'message',
 	(event) => {
 		const { type, data } = event?.data || {};
 
 		switch (type) {
 			case 'fetchAPIData':
-				return handleFetchAPIData(data);
+				return handleFetchAPIData(type, data);
 			case 'loadImages':
-				return handleLoadImages(data);
+				return handleLoadImages(type, data);
 			case 'abortFetchRequest':
 				return handleAbortFetchRequest(data);
 			default:
