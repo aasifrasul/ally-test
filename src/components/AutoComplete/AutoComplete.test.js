@@ -8,16 +8,16 @@ AutoComplete.props = {};
 AutoComplete.props.suggestions = constants?.autoComplete?.initialFeed;
 
 describe('AutoComplete', () => {
-    let getByText;
+	let getByText;
 	beforeEach(() => {
-        getByText = render(<AutoComplete />).getByText;
+		getByText = render(<AutoComplete />).getByText;
 	});
 
 	test('renders AutoComplete component', () => {
-		getByText('Search Item:'); ;
+		getByText('Search Item:');
 	});
 
-    afterEach(() => {
+	afterEach(() => {
 		jest.clearAllMocks();
 	});
 });

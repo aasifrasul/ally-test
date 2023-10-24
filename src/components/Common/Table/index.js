@@ -52,7 +52,10 @@ export default function Table({ headers, rowData, keyIdentifier, tableWidth, sor
 
 	return (
 		<div className={styles['table']} style={inlineStyle}>
-			<div className={`${styles['row']} ${styles['header']}`} onClick={handleHeaderClick}>
+			<div
+				className={`${styles['row']} ${styles['header']}`}
+				onClick={handleHeaderClick}
+			>
 				{headerHtml}
 			</div>
 			{rowDataHtml}

@@ -18,7 +18,7 @@ describe('CombinedRefCheckbox', () => {
 				value="test"
 				callback={callback}
 				isCheckedRef={isCheckedRef}
-			/>
+			/>,
 		);
 
 		const checkbox = getByLabelText('Test');

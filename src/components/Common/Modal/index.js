@@ -7,7 +7,7 @@ const Modal = ({ children }) => {
 	if (!el.current) el.current = document.createElement('div');
 
 	useEffect(() => {
-        const modalRoot = document.querySelector('#modal-root');
+		const modalRoot = document.querySelector('#modal-root');
 		modalRoot.appendChild(el.current);
 
 		return () => modalRoot.removeChild(el.current);

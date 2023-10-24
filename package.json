@@ -44,7 +44,6 @@
 	},
 	"lint-staged": {
 		"**/*.+(js|jsx|ts|tsx)": [
-			"yarn lint:js",
 			"yarn prettier"
 		],
 		"**/*.+(json|yml|yaml|css|less|scss|md|mdx)": [

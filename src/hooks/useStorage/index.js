@@ -42,7 +42,7 @@ function useStorage(storage = 'localStorage') {
 			try {
 				const data = storgaeMappings[storage]?.setItem(
 					key,
-					storgaeMappings[storage].stringify ? JSON.stringify(value) : value
+					storgaeMappings[storage].stringify ? JSON.stringify(value) : value,
 				);
 				resolve();
 			} catch (e) {

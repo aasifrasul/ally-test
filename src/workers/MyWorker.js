@@ -74,5 +74,5 @@ globalObject.addEventListener(
 				throw new Error('Some issue');
 		}
 	},
-	false
+	false,
 );

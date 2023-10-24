@@ -55,7 +55,7 @@ describe('useFetch', () => {
 		});
 
 		const { result, waitForNextUpdate } = renderHook(() =>
-			useFetch(schema, initialUrl, initialParams)
+			useFetch(schema, initialUrl, initialParams),
 		);
 
 		expect(result.current.state).toEqual(storeMock[schema]);
@@ -73,7 +73,7 @@ describe('useFetch', () => {
 					redirect: 'follow',
 					referrerPolicy: 'no-referrer',
 				},
-			})
+			}),
 		);
 
 		// Simulate receiving the response
@@ -99,7 +99,7 @@ describe('useFetch', () => {
 
 		// Render the hook
 		const { result } = renderHook(() =>
-			useFetch('schema', 'https://example.com', { param: 'value' })
+			useFetch('schema', 'https://example.com', { param: 'value' }),
 		);
 
 		// Assert the initial state
@@ -122,11 +122,11 @@ describe('useFetch', () => {
 
 		// Render the hook
 		const { result, waitForNextUpdate } = renderHook(() =>
-			useFetch('schema', 'https://example.com', { param: 'value' })
+			useFetch('schema', 'https://example.com', { param: 'value' }),
 		);
 
 		// Assert the loading state and dispatch calls
-		console.log(result.current.state)
+		console.log(result.current.state);
 		expect(result.current.state).toEqual({ fetching: true });
 		expect(dispatchMock).toHaveBeenCalledWith({
 			schema: 'schema',

@@ -37,7 +37,7 @@ const ArticleList = () => {
 		articleIds.forEach((id) =>
 			asyncQueue
 				.enqueue(getMockArticle(id))
-				.then((item) => setArticles((items) => [...items, item]))
+				.then((item) => setArticles((items) => [...items, item])),
 		);
 	}, []);
 

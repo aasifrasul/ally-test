@@ -46,7 +46,7 @@ export class Storage {
 			try {
 				const data = storgaeMappings[this.storage]?.setItem(
 					key,
-					storgaeMappings[this.storage].stringify ? JSON.stringify(value) : value
+					storgaeMappings[this.storage].stringify ? JSON.stringify(value) : value,
 				);
 				resolve();
 			} catch (e) {

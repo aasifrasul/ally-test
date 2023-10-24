@@ -5,7 +5,7 @@ import { safelyExecuteFunction } from '../../utils/typeChecking';
 const useInfiniteScrollIO = (scrollRef, callback) => {
 	const ioCallback = (entries) =>
 		entries.forEach(
-			(entry) => entry.intersectionRatio > 0 && safelyExecuteFunction(callback)
+			(entry) => entry.intersectionRatio > 0 && safelyExecuteFunction(callback),
 		);
 
 	const scrollObserver = (node) => {

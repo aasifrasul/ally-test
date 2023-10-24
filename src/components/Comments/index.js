@@ -46,7 +46,11 @@ function DropDown({ users }) {
 
 	return (
 		<div className={styles['dropdown']}>
-			<select className={styles['dropdown-menu']} aria-labelledby="dropdownMenuButton" ref={displayRef}>
+			<select
+				className={styles['dropdown-menu']}
+				aria-labelledby="dropdownMenuButton"
+				ref={displayRef}
+			>
 				{users.map((user) => (
 					<option className={styles['dropdown-item']} key={user}>
 						<input type="checkbox" value={user} /> {user}

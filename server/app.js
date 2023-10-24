@@ -52,7 +52,7 @@ const bundleConfig = ['en', 'vendor', 'app'].map((i) => `${publicPath}${i}.bundl
 app.use(
 	serveStatic(pathRootDir, {
 		index: ['default.html', 'default.htm', 'index.hbs'],
-	})
+	}),
 );
 
 app.all('*', (req, res) => {

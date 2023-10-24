@@ -21,8 +21,8 @@ function openDatabase() {
 		});
 
 		objectStore.transaction.addEventListener('complete', function (event) {
-            debugger;
-        });
+			debugger;
+		});
 
 		// You can define additional indexes for searching or sorting data using `objectStore.createIndex()`
 	});
