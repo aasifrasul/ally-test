@@ -15,8 +15,7 @@ import styles from './NestedCategories.css';
 
 const { url, schema } = constants?.nestedCategories;
 
-function DisplayList(props) {
-	const result = useFetchStore();
+function DisplayList({ isLoading, data, isError, fetchData }) {
 	const [categories, setCategories] = useState([]);
 	const [categoriesChecked, setCategoresChecked] = useState(new Map());
 	const [filteredData, setFilteredData] = useState({});
@@ -25,9 +24,6 @@ function DisplayList(props) {
 	const parent = [];
 	let childHtml = [];
 	let count = 0;
-	const state = result[schema];
-
-	const { fetchData } = useFetch(schema);
 
 	useEffect(() => {
 		const abortFetch = fetchData(url);
@@ -36,13 +32,12 @@ function DisplayList(props) {
 
 	useEffect(() => {
 		successCallback();
-	}, [state.data]);
+	}, [data]);
 
 	function successCallback() {
-		if (!state.isLoading && !state.isError && state.data) {
-			const { nestedStructure, categories: allCategories } = buildNestedWithParentId(
-				state.data
-			);
+		if (!isLoading && !isError && data) {
+			const { nestedStructure, categories: allCategories } =
+				buildNestedWithParentId(data);
 			setAllData(nestedStructure);
 			setFilteredData(nestedStructure);
 			setCategories(allCategories);
@@ -94,7 +89,7 @@ function DisplayList(props) {
 					childHtml.push(
 						<div key={id}>
 							{alphabets[childCount++]}. {title}
-						</div>
+						</div>,
 					);
 			});
 
@@ -112,7 +107,7 @@ function DisplayList(props) {
 					<div className={styles['category_children']}>{childHtml}</div>
 				</div>
 				<Spacer size={16} />
-			</div>
+			</div>,
 		);
 	}
 
@@ -130,10 +125,22 @@ function DisplayList(props) {
 	);
 }
 
-const NestedCategories = (props) => (
+const NestedCategories = (props) => {
+	const { store, dispatch } = useFetchStore();
+	const state = store.getState();
+	const { isLoading, data, isError } = state[schema];
+
+	const { fetchData } = useFetch(schema, dispatch);
+
+	const combinedProps = { ...props, isLoading, data, isError, fetchData };
+
+	return <DisplayList {...combinedProps} />;
+};
+
+const NestedCategoriesContainer = (props) => (
 	<FetchStoreProvider>
-		<DisplayList {...props} />
+		<NestedCategories {...props} />
 	</FetchStoreProvider>
 );
 
-export default NestedCategories;
+export default NestedCategoriesContainer;

@@ -1,16 +1,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
 
-import { useFetchDispatch } from '../../Context/dataFetchContext';
 import useWebWorker from '../useWebWorker';
 
 import { buildQueryParams } from '../../utils/common';
 
-const useFetch = (schema, timeout = 2000) => {
+const useFetch = (schema, dispatch, timeout = 2000) => {
 	const [ignore, setIgnore] = useState(false);
 	const timeoutId = React.useRef(false);
 
 	const { fetchAPIData, abortFetchRequest } = useWebWorker();
-	const dispatch = useFetchDispatch();
 
 	const fetchData = useCallback((endPoint, queryParams = {}, options = {}) => {
 		dispatch({ schema, type: 'FETCH_INIT' });

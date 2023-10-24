@@ -11,7 +11,7 @@ export const constants = {
 		queryParams: {
 			page: 1,
 			results: 10,
-			seed: 'asf',
+			key: 'FVGW-PN4G-TA7Z-FZBW',
 		},
 	},
 	movieList: {

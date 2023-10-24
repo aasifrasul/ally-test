@@ -1,7 +1,7 @@
 /**
  * File contains list of utilities for handling configs and rendering the page
  */
-const fs = require('fs');
+const fs = require('fs-extra');
 const idx = require('idx');
 const htmlEncode = require('htmlencode');
 
@@ -144,9 +144,8 @@ const getStartTime = () => {
 		return getFileContents(pathBuildTime);
 	}
 
-	let startTime = getFileContents(pathBuildTime);
-	startTime = new Date(Date.parse(startTime) + 1000000000).toUTCString();
-	return startTime;
+	const startTime = getFileContents(pathBuildTime);
+	return new Date(Date.parse(startTime) + 1000000000).toUTCString();
 };
 
 // Last modified header
@@ -162,6 +161,13 @@ const nocache = (res) =>
 const getParsedUserAgentData = (userAgentData) => htmlEncode.XSSEncode(userAgentData);
 const getFileContents = (filePath) => fs.readFileSync(filePath, enc);
 
+const readJson = async (filePath) => {
+	if (await fs.exists(filePath)) {
+		return fs.readJson(filePath);
+	}
+	return null;
+};
+
 module.exports = {
 	isMobileApp,
 	constructReqDataObject,
@@ -170,4 +176,5 @@ module.exports = {
 	nocache,
 	getParsedUserAgentData,
 	getFileContents,
+	readJson,
 };
