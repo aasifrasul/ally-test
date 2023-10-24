@@ -5,11 +5,7 @@ import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
 import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
 
 import pageReducer from '../../reducers/pageReducer';
-import {
-	useFetchStore,
-	FetchStoreProvider,
-	useFetchDispatch,
-} from '../../Context/dataFetchContext';
+import { useFetchStore, FetchStoreProvider } from '../../Context/dataFetchContext';
 
 import InputText from '../Common/InputText';
 import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
@@ -21,24 +17,17 @@ import styles from './MovieList.css';
 
 const { BASE_URL, schema, queryParams } = constants?.movieList;
 
-function DisplayList() {
-	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 1 } });
+const DisplayList = ({ items, pageNum, nextPage, fetchData }) => {
 	const [observerElement, setObserverElement] = useState(null);
-	const dispatch = useFetchDispatch();
-	const state = useFetchStore();
-	const { fetchData } = useFetch(schema);
 
-	const items = state[schema]?.data?.results || [];
-	queryParams.page = pagerObject[schema]?.pageNum || 0;
+	queryParams.page = pageNum;
 
 	useEffect(() => {
 		const cleanUp = fetchData(BASE_URL, queryParams);
 		return () => cleanUp();
 	}, [queryParams.page]);
 
-	useInfiniteScrollIO(observerElement?.current, () =>
-		pagerDispatch({ schema, type: 'ADVANCE_PAGE' })
-	);
+	useInfiniteScrollIO(observerElement?.current, () => nextPage());
 
 	useImageLazyLoadIO('img[data-src]', items.length);
 
@@ -77,14 +66,38 @@ function DisplayList() {
 			<div ref={setObserverElement}>Loading...</div>
 		</div>
 	);
-}
+};
 
 const MovieList = (props) => {
+	const { store, dispatch } = useFetchStore();
+	const state = store.getState();
+	const { isLoading, data } = state[schema];
+	const items = data?.results || [];
+
+	const { fetchData } = useFetch(schema, dispatch);
+
+	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });
+	const pageNum = pagerObject[schema]?.pageNum || 0;
+	const nextPage = () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' });
+
+	const combinedProps = {
+		...props,
+		items,
+		isLoading,
+		pageNum,
+		nextPage,
+		fetchData,
+	};
+
+	return <DisplayList {...combinedProps} />;
+};
+
+const MovieListContainer = (props) => {
 	return (
 		<FetchStoreProvider>
-			<DisplayList />
+			<MovieList {...props} />
 		</FetchStoreProvider>
 	);
 };
 
-export default MovieList;
+export default MovieListContainer;

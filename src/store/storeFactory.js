@@ -4,23 +4,22 @@ import useContextFactory from '../Context/useContextFactory';
 
 function storeFactory(reducer, initialState) {
 	const storeContext = createContext();
-	const dispatchContext = createContext();
+	const store = {};
 
 	const StoreProvider = ({ children }) => {
-		let [store, dispatch] = useReducer(reducer, initialState);
-		[store, dispatch] = useMemo(() => [store, dispatch], [store, dispatch]);
+		const [state, dispatch] = useReducer(reducer, initialState);
+		store.getState = () => state;
 
 		return (
-			<dispatchContext.Provider value={dispatch}>
-				<storeContext.Provider value={store}>{children}</storeContext.Provider>
-			</dispatchContext.Provider>
+			<storeContext.Provider value={{ store, dispatch }}>
+				{children}
+			</storeContext.Provider>
 		);
 	};
 
 	const useStore = useContextFactory('dispatchContext.Provider', storeContext);
-	const useDispatch = useContextFactory('dispatchContext.Provider', dispatchContext);
 
-	return [StoreProvider, useStore, useDispatch];
+	return [StoreProvider, useStore];
 }
 
 export default storeFactory;

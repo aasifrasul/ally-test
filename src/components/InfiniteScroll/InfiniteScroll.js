@@ -15,16 +15,12 @@ import styles from './InfiniteScroll.css';
 
 const { TOTAL_PAGES, BASE_URL, schema, queryParams } = constants?.infiniteScroll;
 
-const DisplayList = (props) => {
-	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });
-	const { fetchData } = useFetch(schema);
+const DisplayList = ({ items, isLoading, pageNum, nextPage, fetchData }) => {
 	const [observerElement, setObserverElement] = useState(null);
-	const state = useFetchStore();
+
 	const observer = useRef(false);
 
-	const usersData = state[schema];
-	queryParams.page = pagerObject[schema]?.pageNum || 0;
-	const items = usersData?.data?.results || [];
+	queryParams.page = pageNum;
 
 	useEffect(() => {
 		const abortFetch = fetchData(BASE_URL, queryParams);
@@ -33,11 +29,7 @@ const DisplayList = (props) => {
 
 	useEffect(() => {
 		observer.current = new IntersectionObserver((entries) =>
-			entries.forEach(
-				(entry) =>
-					entry.intersectionRatio > 0 &&
-					pagerDispatch({ schema, type: 'ADVANCE_PAGE' })
-			)
+			entries.forEach((entry) => entry.intersectionRatio > 0 && nextPage()),
 		);
 		observerElement && observer.current.observe(observerElement);
 		return () => observerElement && observer.current.unobserve(observerElement);
@@ -62,16 +54,42 @@ const DisplayList = (props) => {
 					</>
 				))}
 			</div>
-			{usersData?.isLoading && <p className="text-center">Loading...</p>}
+			{isLoading && <p className="text-center">Loading...</p>}
 			{queryParams.page - 1 === TOTAL_PAGES && <p className="text-center my-10">♥</p>}
 		</div>
 	);
 };
 
-const InfiniteScroll = (props) => (
-	<FetchStoreProvider>
-		<DisplayList {...props} />
-	</FetchStoreProvider>
-);
+const InfiniteScroll = (props) => {
+	const { store, dispatch } = useFetchStore();
+	const state = store.getState();
+	const { isLoading, data } = state[schema];
+	const items = data?.results || [];
 
-export default InfiniteScroll;
+	const { fetchData } = useFetch(schema, dispatch);
+
+	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });
+	const pageNum = pagerObject[schema]?.pageNum || 0;
+	const nextPage = () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' });
+
+	const combinedProps = {
+		...props,
+		items,
+		isLoading,
+		pageNum,
+		nextPage,
+		fetchData,
+	};
+
+	return <DisplayList {...combinedProps} />;
+};
+
+const InfiniteScrollContainer = (props) => {
+	return (
+		<FetchStoreProvider>
+			<InfiniteScroll {...props} />
+		</FetchStoreProvider>
+	);
+};
+
+export default InfiniteScrollContainer;

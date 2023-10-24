@@ -14,9 +14,6 @@ const initialState = {};
 	};
 });
 
-const [FetchStoreProvider, useFetchStore, useFetchDispatch] = storeFactory(
-	dataFetchReducer,
-	initialState,
-);
+const [FetchStoreProvider, useFetchStore] = storeFactory(dataFetchReducer, initialState);
 
-export { FetchStoreProvider, useFetchStore, useFetchDispatch };
+export { FetchStoreProvider, useFetchStore };

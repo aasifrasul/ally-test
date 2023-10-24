@@ -6,7 +6,7 @@ import useFetch from '../../hooks/useFetch';
 import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
 
 import pageReducer from '../../reducers/pageReducer';
-import { FetchStoreProvider, useFetchDispatch } from '../../Context/dataFetchContext';
+import { FetchStoreProvider, useFetchStore } from '../../Context/dataFetchContext';
 
 import styles from './WineConnoisseur.css';
 
@@ -14,22 +14,18 @@ import { constants } from '../../utils/Constants';
 
 const { baseURL, schema, queryParams } = constants?.wineConnoisseur;
 
-function DisplayList(props) {
-	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });
+function DisplayList({ data, pageNum, nextPage, fetchData }) {
 	const ioObserverRef = useRef(null);
-	queryParams.page = pagerObject[schema]?.pageNum || 0;
+	queryParams.page = pageNum;
 
-	const { state, fetchData } = useFetch(schema);
-	const { headers = [], pageData = [] } = state?.data || {};
+	const { headers = [], pageData = [] } = data;
 
 	useEffect(() => {
 		const abortFetch = fetchData(baseURL, queryParams);
 		return () => abortFetch();
 	}, [queryParams.page]);
 
-	useInfiniteScrollIO(ioObserverRef.current, () =>
-		pagerDispatch({ schema, type: 'ADVANCE_PAGE' })
-	);
+	useInfiniteScrollIO(ioObserverRef.current, nextPage);
 
 	return (
 		<div className={styles.alignCenter}>
@@ -41,10 +37,30 @@ function DisplayList(props) {
 	);
 }
 
-const WineConnoisseur = (props) => (
+const WineConnoisseur = (props) => {
+	const { store, dispatch } = useFetchStore();
+	const state = store.getState();
+	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });
+	const pageNum = pagerObject[schema]?.pageNum || 0;
+	const nextPage = () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' });
+	const { fetchData } = useFetch(schema, dispatch);
+	const data = state[schema]?.data || {};
+
+	const combinedProps = {
+		...props,
+		data,
+		pageNum,
+		nextPage,
+		fetchData,
+	};
+
+	return <DisplayList {...combinedProps} />;
+};
+
+const WineConnoisseurContainer = (props) => (
 	<FetchStoreProvider>
-		<DisplayList {...props} />
+		<WineConnoisseur {...props} />
 	</FetchStoreProvider>
 );
 
-export default WineConnoisseur;
+export default WineConnoisseurContainer;

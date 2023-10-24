@@ -8,7 +8,9 @@ const { schema } = require('./schema/schema');
 const { parse } = require('./UAParser');
 const { fetchCSVasJSON } = require('./fetchCSVasJSON');
 
-const csvData = fetchCSVasJSON(`${path.join(__dirname, '..', 'assets')}/winemag-data-130k-v2.csv`);
+const csvData = fetchCSVasJSON(
+	`${path.join(__dirname, '..', 'assets')}/winemag-data-130k-v2.csv`,
+);
 const { headers, result } = csvData;
 
 handlebars.registerHelper({
@@ -55,7 +57,7 @@ const userAgentHandler = (req, res, next) => {
 };
 
 const getCSVData = (req, res) => {
-	const pageNum = parseInt(req.query.page, 10);
+	const pageNum = parseInt(req.query.page || 0, 10);
 	const pageData = result.slice(pageNum * 10, (pageNum + 1) * 10);
 	res.end(JSON.stringify(pageNum ? { pageData } : { headers, pageData }));
 };

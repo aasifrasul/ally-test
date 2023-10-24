@@ -17,12 +17,7 @@ function useWebWorker() {
 			worker.addEventListener('message', (event) => {
 				event.preventDefault();
 				const { type, data } = event.data;
-
-				if (type === 'fetchAPIDataResponse') {
-					resolve(data);
-				} else {
-					reject(data);
-				}
+				type === 'fetchAPIDataResponse' ? resolve(data) : reject(data);
 			});
 		});
 	}
@@ -34,12 +29,7 @@ function useWebWorker() {
 			worker.addEventListener('message', (event) => {
 				event.preventDefault();
 				const { type, data } = event.data;
-
-				if (type === 'loadImagesResponse') {
-					resolve(data);
-				} else {
-					reject(data);
-				}
+				type === 'loadImagesResponse' ? resolve(data) : reject(data);
 			});
 		});
 	}

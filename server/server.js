@@ -1,5 +1,5 @@
-// webpack
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const socketio = require('socket.io');
 const http = require('http');
 
@@ -21,8 +21,8 @@ const server = http.createServer(app);
 
 server.on('connection', (socket) => socket.on('close', () => log('server.connection')));
 server.on('request', () => log('server.request'));
-server.listen(process.env.PORT, 'localhost', () =>
-	log(`webpack-dev-server listening on port ${process.env.PORT}`)
+server.listen(process.env.NODE_PORT, 'localhost', () =>
+	log(`webpack-dev-server listening on port ${process.env.NODE_PORT}`),
 );
 
 const io = socketio(server);
