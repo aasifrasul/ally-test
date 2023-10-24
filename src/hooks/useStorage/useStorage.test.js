@@ -21,7 +21,7 @@ describe('useStorage', () => {
 	it('should throw an error if the specified storage is not available', () => {
 		// Mock window object without localStorage
 		delete window.localStorage;
-        console.log(window.localStorage)
+		console.log(window.localStorage);
 
 		expect(() => {
 			renderHook(() => useStorage());

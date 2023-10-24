@@ -9,7 +9,7 @@ export function renderWithProviders(
 		preloadedState = {},
 		store = configureStore({ reducer: { user: userReducer }, preloadedState }),
 		...renderOptions
-	} = {}
+	} = {},
 ) {
 	function Wrapper({ children }) {
 		return <Provider store={store}>{children}</Provider>;

@@ -29,7 +29,7 @@ const AutoComplete = (props) => {
 		if (searchedText) {
 			const matchedSuggestions = props.suggestions.filter(
 				(suggestion) =>
-					suggestion.toLowerCase().indexOf(searchedText.toLowerCase()) > -1
+					suggestion.toLowerCase().indexOf(searchedText.toLowerCase()) > -1,
 			);
 			setFilteredSuggestions(() => matchedSuggestions);
 			if (matchedSuggestions.length === 0) {

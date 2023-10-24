@@ -18,7 +18,7 @@ const InputText = ({
 		id,
 		initialValue,
 		validate,
-		isCallbackDebounced ? debounce(callback, debounceDelay) : callback
+		isCallbackDebounced ? debounce(callback, debounceDelay) : callback,
 	);
 
 	// Reset the field value when the initialValue changes

@@ -18,7 +18,7 @@ export const useImageLazyLoadIO = (imgSelector, count) => {
 						},
 						{
 							timeout: 1000,
-						}
+						},
 					);
 
 				ioObject?.unobserve(currentNode); // detach the observer when done

@@ -18,7 +18,7 @@ describe('Counter component', () => {
 		component = render(
 			<Provider store={store}>
 				<Counter />
-			</Provider>
+			</Provider>,
 		);
 		counterText = component.getByText(/Counter:/);
 	});

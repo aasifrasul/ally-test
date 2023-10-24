@@ -10,7 +10,9 @@ test('should call the callback function when element is intersecting', () => {
 
 	// Simulate intersection
 	const observer = new IntersectionObserver((entries) =>
-		entries.forEach((entry) => entry.isIntersecting && expect(callback).toHaveBeenCalled())
+		entries.forEach(
+			(entry) => entry.isIntersecting && expect(callback).toHaveBeenCalled(),
+		),
 	);
 	observer.observe(scrollRef.current);
 });
@@ -24,8 +26,8 @@ test('should not call the callback function when scrollRef is null', () => {
 	// Simulate intersection
 	const observer = new IntersectionObserver((entries) =>
 		entries.forEach(
-			(entry) => entry.isIntersecting && expect(callback).not.toHaveBeenCalled()
-		)
+			(entry) => entry.isIntersecting && expect(callback).not.toHaveBeenCalled(),
+		),
 	);
 	observer.observe(scrollRef.current);
 });
@@ -38,7 +40,9 @@ test('should stop observing when component is unmounted', () => {
 
 	// Simulate intersection
 	const observer = new IntersectionObserver((entries) =>
-		entries.forEach((entry) => entry.isIntersecting && expect(callback).toHaveBeenCalled())
+		entries.forEach(
+			(entry) => entry.isIntersecting && expect(callback).toHaveBeenCalled(),
+		),
 	);
 	observer.observe(scrollRef.current);
 
