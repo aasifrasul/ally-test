@@ -1,12 +1,9 @@
-import React, { useState, useEffect, useRef, useReducer } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-import useFetch from '../../hooks/useFetch';
 import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
 import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
-import pageReducer from '../../reducers/pageReducer';
-
-import { useFetchStore, FetchStoreProvider } from '../../Context/dataFetchContext';
+import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
 
 import UserCard from './UserCard';
 
@@ -15,12 +12,14 @@ import styles from './InfiniteScroll.css';
 
 const { TOTAL_PAGES, BASE_URL, schema, queryParams } = constants?.infiniteScroll;
 
-const DisplayList = ({ items, isLoading, pageNum, nextPage, fetchData }) => {
+const InfiniteScroll = ({ data, isLoading, currentPage, fetchNextPage, fetchData }) => {
 	const [observerElement, setObserverElement] = useState(null);
 
 	const observer = useRef(false);
 
-	queryParams.page = pageNum;
+	queryParams.page = currentPage;
+
+	const items = data?.results || [];
 
 	useEffect(() => {
 		const abortFetch = fetchData(BASE_URL, queryParams);
@@ -29,7 +28,7 @@ const DisplayList = ({ items, isLoading, pageNum, nextPage, fetchData }) => {
 
 	useEffect(() => {
 		observer.current = new IntersectionObserver((entries) =>
-			entries.forEach((entry) => entry.intersectionRatio > 0 && nextPage()),
+			entries.forEach((entry) => entry.intersectionRatio > 0 && fetchNextPage()),
 		);
 		observerElement && observer.current.observe(observerElement);
 		return () => observerElement && observer.current.unobserve(observerElement);
@@ -60,36 +59,6 @@ const DisplayList = ({ items, isLoading, pageNum, nextPage, fetchData }) => {
 	);
 };
 
-const InfiniteScroll = (props) => {
-	const { store, dispatch } = useFetchStore();
-	const state = store.getState();
-	const { isLoading, data } = state[schema];
-	const items = data?.results || [];
+InfiniteScroll.schema = schema;
 
-	const { fetchData } = useFetch(schema, dispatch);
-
-	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });
-	const pageNum = pagerObject[schema]?.pageNum || 0;
-	const nextPage = () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' });
-
-	const combinedProps = {
-		...props,
-		items,
-		isLoading,
-		pageNum,
-		nextPage,
-		fetchData,
-	};
-
-	return <DisplayList {...combinedProps} />;
-};
-
-const InfiniteScrollContainer = (props) => {
-	return (
-		<FetchStoreProvider>
-			<InfiniteScroll {...props} />
-		</FetchStoreProvider>
-	);
-};
-
-export default InfiniteScrollContainer;
+export default ConnectDataFetch(InfiniteScroll);

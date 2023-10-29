@@ -35,6 +35,11 @@ const wineConnoisseurReducer = (state, action) => {
 				...state,
 				data: state.data.filter(({ title }) => title.includes(filterText)),
 			};
+		case 'ADVANCE_PAGE':
+			return {
+				...state,
+				currentPage: state.currentPage + 1,
+			};
 		default:
 			return {
 				...state,

@@ -1,11 +1,8 @@
 import React, { useEffect, useState, useReducer } from 'react';
 
-import useFetch from '../../hooks/useFetch';
 import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
 import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
-
-import pageReducer from '../../reducers/pageReducer';
-import { useFetchStore, FetchStoreProvider } from '../../Context/dataFetchContext';
+import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
 
 import InputText from '../Common/InputText';
 import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
@@ -17,17 +14,19 @@ import styles from './MovieList.css';
 
 const { BASE_URL, schema, queryParams } = constants?.movieList;
 
-const DisplayList = ({ items, pageNum, nextPage, fetchData }) => {
+const MovieList = ({ data, currentPage, fetchNextPage, fetchData }) => {
 	const [observerElement, setObserverElement] = useState(null);
 
-	queryParams.page = pageNum;
+	queryParams.page = currentPage;
+
+	const items = data?.results || [];
 
 	useEffect(() => {
 		const cleanUp = fetchData(BASE_URL, queryParams);
 		return () => cleanUp();
 	}, [queryParams.page]);
 
-	useInfiniteScrollIO(observerElement?.current, () => nextPage());
+	useInfiniteScrollIO(observerElement?.current, () => fetchNextPage());
 
 	useImageLazyLoadIO('img[data-src]', items.length);
 
@@ -68,36 +67,6 @@ const DisplayList = ({ items, pageNum, nextPage, fetchData }) => {
 	);
 };
 
-const MovieList = (props) => {
-	const { store, dispatch } = useFetchStore();
-	const state = store.getState();
-	const { isLoading, data } = state[schema];
-	const items = data?.results || [];
+MovieList.schema = schema;
 
-	const { fetchData } = useFetch(schema, dispatch);
-
-	const [pagerObject, pagerDispatch] = useReducer(pageReducer, { [schema]: { pageNum: 0 } });
-	const pageNum = pagerObject[schema]?.pageNum || 0;
-	const nextPage = () => pagerDispatch({ schema, type: 'ADVANCE_PAGE' });
-
-	const combinedProps = {
-		...props,
-		items,
-		isLoading,
-		pageNum,
-		nextPage,
-		fetchData,
-	};
-
-	return <DisplayList {...combinedProps} />;
-};
-
-const MovieListContainer = (props) => {
-	return (
-		<FetchStoreProvider>
-			<MovieList {...props} />
-		</FetchStoreProvider>
-	);
-};
-
-export default MovieListContainer;
+export default ConnectDataFetch(MovieList);

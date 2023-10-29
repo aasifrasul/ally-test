@@ -43,6 +43,11 @@ const movieListReducer = (state, action) => {
 				originalData: filterText ? state?.data : {},
 				data: filterText ? { results: filteredData } : state?.originalData,
 			};
+		case 'ADVANCE_PAGE':
+			return {
+				...state,
+				currentPage: state.currentPage + 1,
+			};
 		default:
 			return {
 				...state,

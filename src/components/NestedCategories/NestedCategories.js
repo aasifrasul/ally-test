@@ -4,18 +4,16 @@ import Spacer from '../Common/Spacer/Spacer1';
 import DropDown from '../Common/DropDown/DropDown';
 import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
-import useFetch from '../../hooks/useFetch';
+import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
 
 import { buildNestedWithParentId, alphabets } from '../../utils/ArrayUtils';
-import { useFetchStore, FetchStoreProvider } from '../../Context/dataFetchContext';
-
 import { constants } from '../../utils/Constants';
 
 import styles from './NestedCategories.css';
 
 const { url, schema } = constants?.nestedCategories;
 
-function DisplayList({ isLoading, data, isError, fetchData }) {
+function NestedCategories({ isLoading, data, isError, fetchData }) {
 	const [categories, setCategories] = useState([]);
 	const [categoriesChecked, setCategoresChecked] = useState(new Map());
 	const [filteredData, setFilteredData] = useState({});
@@ -125,22 +123,6 @@ function DisplayList({ isLoading, data, isError, fetchData }) {
 	);
 }
 
-const NestedCategories = (props) => {
-	const { store, dispatch } = useFetchStore();
-	const state = store.getState();
-	const { isLoading, data, isError } = state[schema];
+NestedCategories.schema = schema;
 
-	const { fetchData } = useFetch(schema, dispatch);
-
-	const combinedProps = { ...props, isLoading, data, isError, fetchData };
-
-	return <DisplayList {...combinedProps} />;
-};
-
-const NestedCategoriesContainer = (props) => (
-	<FetchStoreProvider>
-		<NestedCategories {...props} />
-	</FetchStoreProvider>
-);
-
-export default NestedCategoriesContainer;
+export default ConnectDataFetch(NestedCategories);

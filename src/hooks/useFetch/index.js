@@ -10,6 +10,8 @@ const useFetch = (schema, dispatch, timeout = 2000) => {
 
 	const { fetchAPIData, abortFetchRequest } = useWebWorker();
 
+	const fetchNextPage = () => dispatch({ schema, type: 'ADVANCE_PAGE' });
+
 	const fetchData = useCallback((endPoint, queryParams = {}, options = {}) => {
 		dispatch({ schema, type: 'FETCH_INIT' });
 
@@ -21,7 +23,7 @@ const useFetch = (schema, dispatch, timeout = 2000) => {
 		};
 
 		timeoutId.current = setTimeout(() => cleanUp(), timeout);
-		const url = `${endPoint}${buildQueryParams(queryParams)}`;
+		const url = `${endPoint}?${buildQueryParams(queryParams)}`;
 
 		const enhancedOptions = {
 			method: 'GET',
@@ -64,6 +66,7 @@ const useFetch = (schema, dispatch, timeout = 2000) => {
 
 	return {
 		fetchData,
+		fetchNextPage,
 	};
 };
 
