@@ -6,12 +6,12 @@ export const constants = {
 	},
 	infiniteScroll: {
 		TOTAL_PAGES: 25,
-		BASE_URL: `https://randomuser.me/api/`,
+		BASE_URL: `https://randomuser.me/api`,
 		schema: 'infiniteScroll',
 		queryParams: {
 			page: 1,
 			results: 10,
-			key: 'FVGW-PN4G-TA7Z-FZBW',
+			seed: 'FVGW-PN4G-TA7Z-FZBW',
 		},
 	},
 	movieList: {
