@@ -4,16 +4,17 @@ import storeFactory from '../store/storeFactory';
 import dataFetchReducer from '../reducers/dataFetchReducer';
 import { constants } from '../utils/Constants';
 
+const { dataFetchModules } = constants;
 const initialState = {};
 
-['wineConnoisseur', 'infiniteScroll', 'movieList', 'nestedCategories'].forEach((key) => {
+for (const key in dataFetchModules) {
 	initialState[key] = {
 		isLoading: false,
 		isError: false,
 		data: {},
-		currentPage: constants[key]?.queryParams?.page,
+		currentPage: dataFetchModules[key]?.queryParams?.page,
 	};
-});
+}
 
 const [FetchStoreProvider, useFetchStore] = storeFactory(dataFetchReducer, initialState);
 

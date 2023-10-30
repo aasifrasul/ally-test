@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useReducer } from 'react';
+import React, { useEffect, useRef } from 'react';
 import DataGrid from '../Common/DataGrid/DataGrid';
 import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
@@ -10,7 +10,7 @@ import styles from './WineConnoisseur.css';
 
 import { constants } from '../../utils/Constants';
 
-const { baseURL, schema, queryParams } = constants?.wineConnoisseur;
+const { baseURL, schema, queryParams } = constants?.dataFetchModules?.wineConnoisseur;
 
 function WineConnoisseur({ data, currentPage, fetchNextPage, fetchData }) {
 	const ioObserverRef = useRef(null);

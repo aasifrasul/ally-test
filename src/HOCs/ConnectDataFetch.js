@@ -1,12 +1,12 @@
 import React from 'react';
-import { useFetchStore } from '../Context/dataFetchContext';
 import useFetch from '../hooks/useFetch';
+import useSelector from '../hooks/useSelector';
 
 const ConnectDataFetch = (WrappedComponent) => {
 	function Wrapper(props) {
-		const { store, dispatch } = useFetchStore();
-		const state = store.getState();
-		const { isLoading, data, currentPage } = state[WrappedComponent.schema];
+		const { isError, isLoading, data, currentPage, dispatch } = useSelector((store) =>
+			store.getState(WrappedComponent.schema),
+		);
 
 		const { fetchData, fetchNextPage } = useFetch(WrappedComponent.schema, dispatch);
 
@@ -14,6 +14,7 @@ const ConnectDataFetch = (WrappedComponent) => {
 			...props,
 			data,
 			isLoading,
+			isError,
 			currentPage,
 			fetchNextPage,
 			fetchData,

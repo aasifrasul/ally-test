@@ -1,16 +1,5 @@
-import nestedCategoriesReducer from './nestedCategoriesReducer.js';
-import wineConnoisseurReducer from './wineConnoisseurReducer.js';
-import infiniteScrollReducer from './infiniteScrollReducer.js';
-import movieListReducer from './movieListReducer.js';
-
 import { safelyExecuteFunction } from '../utils/typeChecking';
-
-const reducers = {
-	nestedCategories: nestedCategoriesReducer,
-	wineConnoisseur: wineConnoisseurReducer,
-	infiniteScroll: infiniteScrollReducer,
-	movieList: movieListReducer,
-};
+import { constants } from '../utils/Constants';
 
 const dataFetchReducer = (state = {}, action) => {
 	const { schema } = action;
@@ -19,7 +8,7 @@ const dataFetchReducer = (state = {}, action) => {
 	};
 	if (schema) {
 		newState[schema] = safelyExecuteFunction(
-			reducers[schema],
+			constants.dataFetchModules[schema]?.reducer,
 			null,
 			newState[schema],
 			action,

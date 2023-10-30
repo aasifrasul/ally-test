@@ -10,7 +10,8 @@ import UserCard from './UserCard';
 import { constants } from '../../utils/Constants';
 import styles from './InfiniteScroll.css';
 
-const { TOTAL_PAGES, BASE_URL, schema, queryParams } = constants?.infiniteScroll;
+const { TOTAL_PAGES, BASE_URL, schema, queryParams } =
+	constants?.dataFetchModules?.infiniteScroll;
 
 const InfiniteScroll = ({ data, isLoading, currentPage, fetchNextPage, fetchData }) => {
 	const [observerElement, setObserverElement] = useState(null);

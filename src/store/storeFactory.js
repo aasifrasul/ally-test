@@ -8,13 +8,12 @@ function storeFactory(reducer, initialState) {
 
 	const StoreProvider = ({ children }) => {
 		const [state, dispatch] = useReducer(reducer, initialState);
-		store.getState = () => state;
+		const value = useMemo(() => ({ state, dispatch }), [state, dispatch]);
+		store.getState = (schema = null) => (schema in state ? state[schema] : state);
+		delete value.state;
+		value.store = store;
 
-		return (
-			<storeContext.Provider value={{ store, dispatch }}>
-				{children}
-			</storeContext.Provider>
-		);
+		return <storeContext.Provider value={value}>{children}</storeContext.Provider>;
 	};
 
 	const useStore = useContextFactory('dispatchContext.Provider', storeContext);

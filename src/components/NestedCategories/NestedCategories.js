@@ -11,7 +11,7 @@ import { constants } from '../../utils/Constants';
 
 import styles from './NestedCategories.css';
 
-const { url, schema } = constants?.nestedCategories;
+const { url, schema } = constants?.dataFetchModules?.nestedCategories;
 
 function NestedCategories({ isLoading, data, isError, fetchData }) {
 	const [categories, setCategories] = useState([]);

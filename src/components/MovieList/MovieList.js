@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useReducer } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
 import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
@@ -12,7 +12,7 @@ import Movie from './Movie.js';
 
 import styles from './MovieList.css';
 
-const { BASE_URL, schema, queryParams } = constants?.movieList;
+const { BASE_URL, schema, queryParams } = constants?.dataFetchModules?.movieList;
 
 const MovieList = ({ data, currentPage, fetchNextPage, fetchData }) => {
 	const [observerElement, setObserverElement] = useState(null);
