@@ -28,5 +28,5 @@ There are 4 aspects to it.
    e.g. src/components/SearchForm/index.js From is geberated from a json file. Yje idea is to change the from structure without any code change/commit on the FE.
    Of course for this to happen the json data has to flow from some API.
 
-4. It provides some handy utlity functions like isFunction/isPromise/isObject and a function which safely executes a callback function with checks for presence etc.
+4. It provides some handy utlity functions src/utils/typeChecking.js like isFunction/isPromise/isObject and a function which safely executes a callback function with checks for presence etc.
    A lot of these could be avoided by Typescript, but there might be still some usecases for it.
