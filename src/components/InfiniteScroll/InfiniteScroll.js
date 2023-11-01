@@ -62,4 +62,4 @@ const InfiniteScroll = ({ data, isLoading, currentPage, fetchNextPage, fetchData
 
 InfiniteScroll.schema = schema;
 
-export default ConnectDataFetch(InfiniteScroll);
+export default ConnectDataFetch(null, null)(InfiniteScroll);

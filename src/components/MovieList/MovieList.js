@@ -69,4 +69,4 @@ const MovieList = ({ data, currentPage, fetchNextPage, fetchData }) => {
 
 MovieList.schema = schema;
 
-export default ConnectDataFetch(MovieList);
+export default ConnectDataFetch(null, null)(MovieList);
