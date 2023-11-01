@@ -37,4 +37,4 @@ function WineConnoisseur({ data, currentPage, fetchNextPage, fetchData }) {
 
 WineConnoisseur.schema = schema;
 
-export default ConnectDataFetch(WineConnoisseur);
+export default ConnectDataFetch(null, null)(WineConnoisseur);

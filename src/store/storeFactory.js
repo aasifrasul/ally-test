@@ -10,8 +10,17 @@ function storeFactory(reducer, initialState) {
 		const [state, dispatch] = useReducer(reducer, initialState);
 		const value = useMemo(() => ({ state, dispatch }), [state, dispatch]);
 		store.getState = (schema = null) => (schema in state ? state[schema] : state);
+		const handler = {
+			get(target, prop) {
+				console.log('Accessing property ' + prop);
+				return store.getState(prop);
+			},
+		};
+
+		const proxyStore = new Proxy(store, handler);
+
 		delete value.state;
-		value.store = store;
+		value.store = proxyStore;
 
 		return <storeContext.Provider value={value}>{children}</storeContext.Provider>;
 	};

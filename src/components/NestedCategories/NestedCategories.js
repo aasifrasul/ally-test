@@ -125,4 +125,4 @@ function NestedCategories({ isLoading, data, isError, fetchData }) {
 
 NestedCategories.schema = schema;
 
-export default ConnectDataFetch(NestedCategories);
+export default ConnectDataFetch(null, null)(NestedCategories);
