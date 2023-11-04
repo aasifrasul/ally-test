@@ -1,17 +1,17 @@
 import React from 'react';
 
-export default function Form({ name, children, onSubmit }) {
+import { safelyExecuteFunction } from '../../../utils/typeChecking';
+
+export default function Form({ name, children, onSubmit, defaultSubmit }) {
 	const handleSubmit = (e) => {
 		e.preventDefault();
-		if (onSubmit) {
-			onSubmit(e);
-		}
+		safelyExecuteFunction(onSubmit, null, e);
 	};
 
 	return (
 		<form onSubmit={handleSubmit} name={name}>
 			{children}
-			<button type="submit">Submit</button>
+			{defaultSubmit ? <button type="submit">Submit</button> : null}
 		</form>
 	);
 }

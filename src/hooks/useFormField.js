@@ -1,22 +1,35 @@
 import { useState, useCallback } from 'react';
 
+import { isFunction, isArray, safelyExecuteFunction } from '../utils/typeChecking';
+
 export default function useFormField(id, initialValue, validate = null, callback = null) {
 	const [value, setValue] = useState(initialValue);
 	const [error, setError] = useState('');
 
 	const handleChange = (e) => {
+		e.preventDefault();
 		const newValue = e.target.value;
-		setValue(newValue);
 
-		let errors;
+		setValue(() => newValue);
 
-		if (validate) {
-			errors = validate(newValue);
-			errors && setError(errors);
+		let errors = '';
+
+		if (newValue && validate) {
+			if (isFunction(validate)) {
+				errors = validate(newValue);
+			} else {
+				const matches = String(newValue).match(validate);
+
+				if (!isArray(matches) || !matches[0]) {
+					errors = 'Please add valid input';
+				}
+			}
 		}
 
-		if (!error && callback) {
-			callback(newValue, id);
+		setError(errors);
+
+		if (!errors) {
+			safelyExecuteFunction(callback, null, newValue, id);
 		}
 	};
 
