@@ -2,10 +2,11 @@ import React from 'react';
 
 import ProductList from './ProudctList';
 
-import InputText from '../Common/InputText';
-import TextArea from '../Common/TextArea';
 import Pagination from '../Common/Pagination';
-import Form from '../Common/Form';
+import FormGenerator from '../Common/FormGenerator';
+import { constants } from '../../utils/Constants';
+
+import { deepCopy } from '../../utils/common';
 
 import useFetchData from '../../hooks/useFetchData';
 
@@ -22,7 +23,7 @@ const headers = {
 	api_key: API_KEY,
 };
 
-export default function App() {
+export default function SearchForm() {
 	const [displayData, setDisplayData] = React.useState([]);
 	const pageNum = React.useRef(1);
 
@@ -94,20 +95,7 @@ export default function App() {
 
 	return (
 		<div className={styles['App']}>
-			<Form name="formData" onSubmit={handleSubmit}>
-				<InputText name="product_name" placeholder="Product Name" />
-				<hr />
-				<InputText name="original_price" placeholder="Original Price" />
-				<hr />
-				<InputText name="sale_price" placeholder="Sale Price" />
-				<hr />
-				<InputText name="product_type" placeholder="Product Type" />
-				<hr />
-				<TextArea name="description" placeholder="Description" rows={5} cols={21} />
-				<hr />
-			</Form>
-			<hr />
-			<hr />
+			<FormGenerator {...deepCopy(constants?.FormMetaData)} onSubmit={handleSubmit} />
 			{displayData?.length ? (
 				<>
 					<ProductList
