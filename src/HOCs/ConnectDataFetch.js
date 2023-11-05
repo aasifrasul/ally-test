@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import useFetch from '../hooks/useFetch';
 import useSelector from '../hooks/useSelector';
 
@@ -23,6 +23,11 @@ const ConnectDataFetch = (derivedProps) => (WrappedComponent) => {
 			fetchNextPage,
 			fetchData,
 		};
+
+		useEffect(() => {
+			const cleanUp = fetchData();
+			return () => cleanUp();
+		}, []);
 
 		return <WrappedComponent {...combinedProps} />;
 	}

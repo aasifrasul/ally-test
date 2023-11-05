@@ -15,11 +15,6 @@ function WineConnoisseur({ data, fetchNextPage, fetchData }) {
 
 	const { headers = [], pageData = [] } = data;
 
-	useEffect(() => {
-		const abortFetch = fetchData();
-		return () => abortFetch();
-	}, []);
-
 	useInfiniteScrollIO(ioObserverRef.current, fetchNextPage);
 
 	return (

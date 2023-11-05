@@ -23,11 +23,6 @@ function NestedCategories({ isLoading, data, isError, fetchData }) {
 	let count = 0;
 
 	useEffect(() => {
-		const abortFetch = fetchData();
-		return () => abortFetch();
-	}, []);
-
-	useEffect(() => {
 		successCallback();
 	}, [data]);
 
