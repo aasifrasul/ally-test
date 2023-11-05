@@ -15,11 +15,6 @@ const schema = 'movieList';
 const MovieList = ({ data, fetchNextPage, fetchData }) => {
 	const [observerElement, setObserverElement] = useState(null);
 
-	useEffect(() => {
-		const cleanUp = fetchData();
-		return () => cleanUp();
-	}, []);
-
 	useInfiniteScrollIO(observerElement?.current, () => fetchNextPage());
 
 	useImageLazyLoadIO('img[data-src]', data?.results?.length);

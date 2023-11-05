@@ -19,11 +19,6 @@ const InfiniteScroll = ({ data, isLoading, fetchNextPage, fetchData }) => {
 	const observer = useRef(false);
 
 	useEffect(() => {
-		const abortFetch = fetchData();
-		return () => abortFetch();
-	}, []);
-
-	useEffect(() => {
 		observer.current = new IntersectionObserver((entries) =>
 			entries.forEach((entry) => entry.intersectionRatio > 0 && fetchNextPage()),
 		);
