@@ -7,28 +7,22 @@ import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
 import InputText from '../Common/InputText';
 import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
-import { constants } from '../../utils/Constants';
 import Movie from './Movie.js';
 
 import styles from './MovieList.css';
+const schema = 'movieList';
 
-const { BASE_URL, schema, queryParams } = constants?.dataFetchModules?.movieList;
-
-const MovieList = ({ data, currentPage, fetchNextPage, fetchData }) => {
+const MovieList = ({ data, fetchNextPage, fetchData }) => {
 	const [observerElement, setObserverElement] = useState(null);
 
-	queryParams.page = currentPage;
-
-	const items = data?.results || [];
-
 	useEffect(() => {
-		const cleanUp = fetchData(BASE_URL, queryParams);
+		const cleanUp = fetchData();
 		return () => cleanUp();
-	}, [queryParams.page]);
+	}, []);
 
 	useInfiniteScrollIO(observerElement?.current, () => fetchNextPage());
 
-	useImageLazyLoadIO('img[data-src]', items.length);
+	useImageLazyLoadIO('img[data-src]', data?.results?.length);
 
 	function handleChange(searchedText) {
 		observerElement.current = null;
@@ -55,7 +49,7 @@ const MovieList = ({ data, currentPage, fetchNextPage, fetchData }) => {
 			<ScrollToTop />
 			<div>
 				<div className={styles.container} id="container">
-					{items.map((item, i) => (
+					{data?.results?.map((item, i) => (
 						<>
 							<Movie key={item?.id} item={item} styles={styles} />
 						</>

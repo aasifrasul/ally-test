@@ -125,7 +125,7 @@ export const searchTextOnData = (searchText, searchData, searchFields) => {
 		: data;
 };
 
-export const buildQueryParams = (queryParams) =>
+export const buildQueryParams = (queryParams = {}) =>
 	Object.keys(queryParams).reduce((accu, key) => `${accu}&${key}=${queryParams[key]}`, '');
 
 export const range = (start, end) => {

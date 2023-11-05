@@ -3,17 +3,28 @@ import React, { useState, useCallback, useEffect } from 'react';
 import useWebWorker from '../useWebWorker';
 
 import { buildQueryParams } from '../../utils/common';
+import { constants } from '../../utils/Constants';
 
 const useFetch = (schema, dispatch, timeout = 2000) => {
 	const [ignore, setIgnore] = useState(false);
+
+	const { BASE_URL, queryParams } = constants?.dataFetchModules[schema];
+
 	const timeoutId = React.useRef(false);
+	const pageRef = React.useRef(queryParams?.page);
 
 	const { fetchAPIData, abortFetchRequest } = useWebWorker();
 
-	const fetchNextPage = () => dispatch({ schema, type: 'ADVANCE_PAGE' });
+	const fetchNextPage = () => {
+		queryParams.page = ++pageRef.current;
+		fetchData();
+	};
 
-	const fetchData = useCallback((endPoint, queryParams = {}, options = {}) => {
+	const fetchData = useCallback((options = {}) => {
 		dispatch({ schema, type: 'FETCH_INIT' });
+
+		timeoutId.current = setTimeout(() => cleanUp(), timeout);
+		const url = `${BASE_URL}?${buildQueryParams(queryParams)}`;
 
 		const abortFetch = () => abortFetchRequest(url);
 
@@ -21,9 +32,6 @@ const useFetch = (schema, dispatch, timeout = 2000) => {
 			clearTimeout(timeoutId.current);
 			abortFetch();
 		};
-
-		timeoutId.current = setTimeout(() => cleanUp(), timeout);
-		const url = `${endPoint}?${buildQueryParams(queryParams)}`;
 
 		const enhancedOptions = {
 			method: 'GET',
@@ -43,8 +51,11 @@ const useFetch = (schema, dispatch, timeout = 2000) => {
 		const fetchLazy = async () => {
 			try {
 				const data = await fetchAPIData(url, enhancedOptions);
-				!ignore && dispatch({ schema, type: 'FETCH_SUCCESS', payload: data });
+				if (!ignore) {
+					dispatch({ schema, type: 'FETCH_SUCCESS', payload: data });
+				}
 			} catch (err) {
+				--pageRef.current;
 				dispatch({ schema, type: 'FETCH_FAILURE' });
 				console.log(err);
 			} finally {
