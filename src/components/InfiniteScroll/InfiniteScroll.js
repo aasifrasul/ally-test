@@ -18,24 +18,22 @@ const InfiniteScroll = ({ data, isLoading, currentPage, fetchNextPage, fetchData
 
 	const observer = useRef(false);
 
-	queryParams.page = currentPage;
-
-	const items = data?.results || [];
-
 	useEffect(() => {
-		const abortFetch = fetchData(BASE_URL, queryParams);
+		const abortFetch = fetchData();
 		return () => abortFetch();
-	}, [queryParams.page]);
+	}, []);
 
 	useEffect(() => {
 		observer.current = new IntersectionObserver((entries) =>
-			entries.forEach((entry) => entry.intersectionRatio > 0 && fetchNextPage()),
+			entries.forEach(
+				(entry) => entry.intersectionRatio > 0 && fetchNextPage(currentPage),
+			),
 		);
 		observerElement && observer.current.observe(observerElement);
 		return () => observerElement && observer.current.unobserve(observerElement);
 	}, [observerElement]);
 
-	useImageLazyLoadIO('img[data-src]', items.length);
+	useImageLazyLoadIO('img[data-src]', data?.results?.length);
 
 	return (
 		<div className={styles.scrollParent}>
@@ -43,9 +41,9 @@ const InfiniteScroll = ({ data, isLoading, currentPage, fetchNextPage, fetchData
 			<h1 className="text-3xl text-center mt-4 mb-10">All users</h1>
 			<ScrollToTop />
 			<div className={styles.scrollArea}>
-				{items.map((user, i) => (
+				{data?.results?.map((user, i) => (
 					<>
-						{Math.floor(items.length / 1.2) === i ? (
+						{Math.floor(data?.results.length / 1.2) === i ? (
 							<div ref={setObserverElement} key={`${user.email}-obserbver`}>
 								Loading...
 							</div>

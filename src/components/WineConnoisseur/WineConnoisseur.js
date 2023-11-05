@@ -8,20 +8,17 @@ import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
 
 import styles from './WineConnoisseur.css';
 
-import { constants } from '../../utils/Constants';
+const schema = 'wineConnoisseur';
 
-const { baseURL, schema, queryParams } = constants?.dataFetchModules?.wineConnoisseur;
-
-function WineConnoisseur({ data, currentPage, fetchNextPage, fetchData }) {
+function WineConnoisseur({ data, fetchNextPage, fetchData }) {
 	const ioObserverRef = useRef(null);
-	queryParams.page = currentPage;
 
 	const { headers = [], pageData = [] } = data;
 
 	useEffect(() => {
-		const abortFetch = fetchData(baseURL, queryParams);
+		const abortFetch = fetchData();
 		return () => abortFetch();
-	}, [queryParams.page]);
+	}, []);
 
 	useInfiniteScrollIO(ioObserverRef.current, fetchNextPage);
 

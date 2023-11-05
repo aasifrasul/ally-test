@@ -7,11 +7,10 @@ import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
 
 import { buildNestedWithParentId, alphabets } from '../../utils/ArrayUtils';
-import { constants } from '../../utils/Constants';
 
 import styles from './NestedCategories.css';
 
-const { url, schema } = constants?.dataFetchModules?.nestedCategories;
+const schema = 'nestedCategories';
 
 function NestedCategories({ isLoading, data, isError, fetchData }) {
 	const [categories, setCategories] = useState([]);
@@ -24,7 +23,7 @@ function NestedCategories({ isLoading, data, isError, fetchData }) {
 	let count = 0;
 
 	useEffect(() => {
-		const abortFetch = fetchData(url);
+		const abortFetch = fetchData();
 		return () => abortFetch();
 	}, []);
 

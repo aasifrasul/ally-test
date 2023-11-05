@@ -33,12 +33,12 @@ export const constants = Object.freeze({
 			reducer: movieListReducer,
 		},
 		nestedCategories: {
-			url: `https://okrcentral.github.io/sample-okrs/db.json`,
+			BASE_URL: `https://okrcentral.github.io/sample-okrs/db.json`,
 			schema: 'nestedCategories',
 			reducer: nestedCategoriesReducer,
 		},
 		wineConnoisseur: {
-			baseURL: `http://localhost:3100/api/fetchWineData/`,
+			BASE_URL: `http://localhost:3100/api/fetchWineData/`,
 			schema: 'wineConnoisseur',
 			queryParams: {
 				page: 0,
