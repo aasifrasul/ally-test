@@ -13,7 +13,7 @@ import styles from './InfiniteScroll.css';
 const { TOTAL_PAGES, BASE_URL, schema, queryParams } =
 	constants?.dataFetchModules?.infiniteScroll;
 
-const InfiniteScroll = ({ data, isLoading, currentPage, fetchNextPage, fetchData }) => {
+const InfiniteScroll = ({ data, isLoading, fetchNextPage, fetchData }) => {
 	const [observerElement, setObserverElement] = useState(null);
 
 	const observer = useRef(false);
@@ -25,9 +25,7 @@ const InfiniteScroll = ({ data, isLoading, currentPage, fetchNextPage, fetchData
 
 	useEffect(() => {
 		observer.current = new IntersectionObserver((entries) =>
-			entries.forEach(
-				(entry) => entry.intersectionRatio > 0 && fetchNextPage(currentPage),
-			),
+			entries.forEach((entry) => entry.intersectionRatio > 0 && fetchNextPage()),
 		);
 		observerElement && observer.current.observe(observerElement);
 		return () => observerElement && observer.current.unobserve(observerElement);
