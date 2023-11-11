@@ -12,10 +12,10 @@ import Movie from './Movie.js';
 import styles from './MovieList.css';
 const schema = 'movieList';
 
-const MovieList = ({ data, fetchNextPage, fetchData }) => {
+const MovieList = ({ data, fetchNextPage }) => {
 	const [observerElement, setObserverElement] = useState(null);
 
-	useInfiniteScrollIO(observerElement?.current, () => fetchNextPage());
+	useInfiniteScrollIO(observerElement?.current, fetchNextPage);
 
 	useImageLazyLoadIO('img[data-src]', data?.results?.length);
 
@@ -45,9 +45,7 @@ const MovieList = ({ data, fetchNextPage, fetchData }) => {
 			<div>
 				<div className={styles.container} id="container">
 					{data?.results?.map((item, i) => (
-						<>
-							<Movie key={item?.id} item={item} styles={styles} />
-						</>
+						<Movie key={item?.id} item={item} styles={styles} />
 					))}
 				</div>
 			</div>
@@ -58,4 +56,4 @@ const MovieList = ({ data, fetchNextPage, fetchData }) => {
 
 MovieList.schema = schema;
 
-export default ConnectDataFetch(null, null)(MovieList);
+export default ConnectDataFetch({}, {})(MovieList);

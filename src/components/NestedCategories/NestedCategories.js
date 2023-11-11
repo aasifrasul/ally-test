@@ -12,7 +12,7 @@ import styles from './NestedCategories.css';
 
 const schema = 'nestedCategories';
 
-function NestedCategories({ isLoading, data, isError, fetchData }) {
+function NestedCategories({ isLoading, data, isError }) {
 	const [categories, setCategories] = useState([]);
 	const [categoriesChecked, setCategoresChecked] = useState(new Map());
 	const [filteredData, setFilteredData] = useState({});
@@ -119,4 +119,4 @@ function NestedCategories({ isLoading, data, isError, fetchData }) {
 
 NestedCategories.schema = schema;
 
-export default ConnectDataFetch(null, null)(NestedCategories);
+export default ConnectDataFetch({}, {})(NestedCategories);

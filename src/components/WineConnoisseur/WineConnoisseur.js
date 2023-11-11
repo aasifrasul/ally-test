@@ -10,7 +10,7 @@ import styles from './WineConnoisseur.css';
 
 const schema = 'wineConnoisseur';
 
-function WineConnoisseur({ data, fetchNextPage, fetchData }) {
+function WineConnoisseur({ data, fetchNextPage }) {
 	const ioObserverRef = useRef(null);
 
 	const { headers = [], pageData = [] } = data;
@@ -29,4 +29,4 @@ function WineConnoisseur({ data, fetchNextPage, fetchData }) {
 
 WineConnoisseur.schema = schema;
 
-export default ConnectDataFetch(null, null)(WineConnoisseur);
+export default ConnectDataFetch({}, {})(WineConnoisseur);
