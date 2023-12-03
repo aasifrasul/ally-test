@@ -1,6 +1,7 @@
 export const typeCheck = (data, type) =>
 	Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type;
 
+export const isAsyncfunction = (data) => typeCheck(data, 'asyncfunction');
 export const isFunction = (data) => typeCheck(data, 'function');
 export const isArray = (data) => typeCheck(data, 'array');
 export const isObject = (data) => typeCheck(data, 'object');
@@ -22,7 +23,7 @@ export const isEmpty = (data) => isUndefined(data) || isNull(data) || data === '
 export const arraySize = (arr) => (isArray(arr) && arr.length) || null;
 
 export const safelyExecuteFunction = (func, context, ...params) => {
-	if (!isFunction(func)) {
+	if (typeof func !== 'function') {
 		console.log('Please pass a valid function!');
 		return;
 	}

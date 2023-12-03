@@ -9,7 +9,7 @@ function storeFactory(reducer, initialState) {
 	const StoreProvider = ({ children }) => {
 		const [state, dispatch] = useReducer(reducer, initialState);
 		const value = useMemo(() => ({ state, dispatch }), [state, dispatch]);
-		store.getState = (schema = null) => (schema in state ? state[schema] : state);
+		store.getState = (schema = null) => (schema in state ? state[schema] : {});
 		const handler = {
 			get(target, prop) {
 				console.log('Accessing property ' + prop);

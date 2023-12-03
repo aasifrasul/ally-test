@@ -5,7 +5,7 @@ import { debounce } from '../../utils/throttleAndDebounce';
 
 import useOutsideClick from '../../hooks/useOutsideClick';
 
-import { constants } from '../../utils/Constants';
+import { constants } from '../../constants';
 import styles from './styles.css';
 
 const AutoComplete = (props) => {

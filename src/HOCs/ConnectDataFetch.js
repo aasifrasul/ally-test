@@ -1,54 +1,42 @@
 import React, { useEffect } from 'react';
-import useFetch from '../hooks/useFetch';
-import useSelector from '../hooks/useSelector';
+
+import { useFetchStore } from '../Context/dataFetchContext';
 
 import { safelyExecuteFunction, isObject, isFunction } from '../utils/typeChecking';
 
-const connectDataFetchInner = (derivedProps) => (WrappedComponent) => {
-	return function Wrapper(props) {
-		const { schema } = WrappedComponent;
-		const { isError, isLoading, data, currentPage, dispatch } = useSelector(
-			(store) => store[schema],
-		);
+const connectDataFetch =
+	(mapStateToProps = {}, mapDispatchToProps = {}) =>
+	(WrappedComponent) => {
+		return function Wrapper(props) {
+			const { dispatch } = useFetchStore();
+			const customDispatch = new CustomEvent('customDispatch', {
+				detail: {
+					dispatch,
+				},
+			});
 
-		const { fetchData, fetchNextPage } = useFetch(schema, dispatch);
+			window.dispatchEvent(customDispatch);
 
-		const combinedProps = {
-			...props,
-			...derivedProps,
-			data,
-			isLoading,
-			isError,
-			currentPage,
-			fetchNextPage,
-			fetchData,
+			const combinedProps = {
+				...props,
+				...buildProps(mapStateToProps),
+				...buildProps(mapDispatchToProps),
+			};
+
+			return <WrappedComponent {...combinedProps} />;
 		};
-
-		useEffect(() => {
-			const cleanUp = fetchData();
-			return () => cleanUp();
-		}, []);
-
-		return <WrappedComponent {...combinedProps} />;
 	};
-};
 
-const buildProps = (propsfetcher = {}) => {
-	if (isFunction(propsfetcher)) {
-		return safelyExecuteFunction(propsfetcher);
-	} else if (isObject(propsfetcher)) {
+const buildProps = (propsFetcher = {}) => {
+	if (isFunction(propsFetcher)) {
+		return safelyExecuteFunction(propsFetcher);
+	} else if (isObject(propsFetcher)) {
 		return {
-			...propsfetcher,
+			...propsFetcher,
 		};
 	} else {
 		throw new Error('Type mismatch: Param needs to be either a Function or an object');
 	}
 };
-
-const connectDataFetch = (mapStateToProps = {}, mapDispatchToProps = {}) =>
-	connectDataFetchInner({
-		...buildProps(mapStateToProps),
-		...buildProps(mapDispatchToProps),
-	});
 
 export default connectDataFetch;

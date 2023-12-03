@@ -3,12 +3,12 @@ import React, { useState, useCallback, useEffect } from 'react';
 import useWebWorker from '../useWebWorker';
 
 import { buildQueryParams } from '../../utils/common';
-import { constants } from '../../utils/Constants';
+import { constants } from '../../constants';
 
 const useFetch = (schema, dispatch, timeout = 2000) => {
 	const [ignore, setIgnore] = useState(false);
 
-	const { BASE_URL, queryParams } = constants?.dataFetchModules[schema];
+	const { BASE_URL, queryParams } = constants?.dataSources[schema];
 
 	const timeoutId = React.useRef(false);
 	const pageRef = React.useRef(queryParams?.page);

@@ -125,8 +125,12 @@ export const searchTextOnData = (searchText, searchData, searchFields) => {
 		: data;
 };
 
-export const buildQueryParams = (queryParams = {}) =>
-	Object.keys(queryParams).reduce((accu, key) => `${accu}&${key}=${queryParams[key]}`, '');
+export const buildQueryParams = (queryParams) => {
+	const keys = Object.keys(queryParams || {});
+	return keys.length
+		? keys.reduce((accu, key) => `${accu}&${key}=${queryParams[key]}`, '?')
+		: '';
+};
 
 export const range = (start, end) => {
 	return {

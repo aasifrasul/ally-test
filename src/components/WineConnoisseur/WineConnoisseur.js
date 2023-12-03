@@ -4,18 +4,14 @@ import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
 import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
 
-import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
-
 import styles from './WineConnoisseur.css';
 
-const schema = 'wineConnoisseur';
-
-function WineConnoisseur({ data, fetchNextPage }) {
+function WineConnoisseur({ data, fetchNextPage, currentPage }) {
 	const ioObserverRef = useRef(null);
 
 	const { headers = [], pageData = [] } = data;
 
-	useInfiniteScrollIO(ioObserverRef.current, fetchNextPage);
+	useInfiniteScrollIO(ioObserverRef.current, () => fetchNextPage(currentPage + 1));
 
 	return (
 		<div className={styles.alignCenter}>
@@ -27,6 +23,4 @@ function WineConnoisseur({ data, fetchNextPage }) {
 	);
 }
 
-WineConnoisseur.schema = schema;
-
-export default ConnectDataFetch({}, {})(WineConnoisseur);
+export default WineConnoisseur;
