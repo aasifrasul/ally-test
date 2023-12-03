@@ -20,9 +20,7 @@ const infiniteScrollReducer = (state, action) => {
 			};
 
 		default:
-			return {
-				...state,
-			};
+			return null;
 	}
 };
 

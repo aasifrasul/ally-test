@@ -15,9 +15,7 @@ const wineConnoisseurReducer = (state, action) => {
 			};
 
 		default:
-			return {
-				...state,
-			};
+			return null;
 	}
 };
 

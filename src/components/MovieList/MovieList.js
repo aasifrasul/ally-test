@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 
 import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
 import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
-import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
 
 import InputText from '../Common/InputText';
 import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
@@ -10,7 +9,6 @@ import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 import Movie from './Movie.js';
 
 import styles from './MovieList.css';
-const schema = 'movieList';
 
 const MovieList = ({ data, fetchNextPage }) => {
 	const [observerElement, setObserverElement] = useState(null);
@@ -54,6 +52,4 @@ const MovieList = ({ data, fetchNextPage }) => {
 	);
 };
 
-MovieList.schema = schema;
-
-export default ConnectDataFetch({}, {})(MovieList);
+export default MovieList;

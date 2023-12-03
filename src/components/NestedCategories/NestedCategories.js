@@ -4,13 +4,9 @@ import Spacer from '../Common/Spacer/Spacer1';
 import DropDown from '../Common/DropDown/DropDown';
 import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
-import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
-
 import { buildNestedWithParentId, alphabets } from '../../utils/ArrayUtils';
 
 import styles from './NestedCategories.css';
-
-const schema = 'nestedCategories';
 
 function NestedCategories({ isLoading, data, isError }) {
 	const [categories, setCategories] = useState([]);
@@ -45,7 +41,7 @@ function NestedCategories({ isLoading, data, isError }) {
 	};
 
 	const handleFilteredData = (parentCategoresChecked) => {
-		let hash = Object.create(null);
+		let hash = {};
 		let item = null;
 
 		if (parentCategoresChecked.size) {
@@ -117,6 +113,4 @@ function NestedCategories({ isLoading, data, isError }) {
 	);
 }
 
-NestedCategories.schema = schema;
-
-export default ConnectDataFetch({}, {})(NestedCategories);
+export default NestedCategories;

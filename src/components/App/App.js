@@ -15,12 +15,12 @@ const KeyBoardShortcutPage = lazy(() =>
 	),
 );
 const WineConnoisseur = lazy(() =>
-	import(/* webpackChunkName: "WineConnoisseur" */ '../WineConnoisseur/WineConnoisseur'),
+	import(/* webpackChunkName: "WineConnoisseur" */ '../WineConnoisseur'),
 );
 // const Profile = lazy(() => import(/* webpackChunkName: "Profile" */ '../Profile/Profile'));
 const Todos = lazy(() => import(/* webpackChunkName: "Todos" */ '../Todos'));
 const NestedCategories = lazy(() =>
-	import(/* webpackChunkName: "NestedCategories" */ '../NestedCategories/NestedCategories'),
+	import(/* webpackChunkName: "NestedCategories" */ '../NestedCategories'),
 );
 const Stopwatch = lazy(() =>
 	import(/* webpackChunkName: "Stopwatch" */ '../stopwatch/stopwatch'),
@@ -28,14 +28,12 @@ const Stopwatch = lazy(() =>
 const CurrencyStream = lazy(() =>
 	import(/* webpackChunkName: "CurrencyStream" */ '../CurrencyStream/CurrencyStream'),
 );
-const MovieList = lazy(() =>
-	import(/* webpackChunkName: "MovieList" */ '../MovieList/MovieList'),
-);
+const MovieList = lazy(() => import(/* webpackChunkName: "MovieList" */ '../MovieList'));
 const TicTacToe = lazy(() =>
 	import(/* webpackChunkName: "TicTacToe" */ '../TicTacToe/TicTacToe'),
 );
 const InfiniteScroll = lazy(() =>
-	import(/* webpackChunkName: "InfiniteScroll" */ '../InfiniteScroll/InfiniteScroll'),
+	import(/* webpackChunkName: "InfiniteScroll" */ '../InfiniteScroll'),
 );
 // const Counter = lazy(() => import(/* webpackChunkName: "Counter" */ '../Counter/Counter'));
 //const Contacts = lazy(() => import(/* webpackChunkName: "Contacts" */ '../Contacts/Contacts'));
@@ -88,13 +86,13 @@ const Comments = lazy(() => import(/* webpackChunkName: "Comments" */ '../Commen
 import Spinner from '../Common/Spinner/Spinner';
 // import ErrorBoundary from '../Common/ErrorBoundary/ErrorBoundary';
 
-import { constants } from '../../utils/Constants';
+import { constants } from '../../constants';
 import styles from './App.css';
 
 AutoComplete.props = {};
 AutoComplete.props.suggestions = constants?.autoComplete?.initialFeed;
 
-const pages = {
+const landingPages = {
 	//Counter: Counter,
 	Todos: Todos,
 	//Contacts: Contacts,
@@ -130,13 +128,13 @@ const App = (props) => {
 	const routesArray = [
 		{
 			path: '/',
-			element: <Home pages={pages} />,
+			element: <Home pages={landingPages} />,
 			errorElement: <ErrorPage />,
 		},
 	];
 
-	for (let name in pages) {
-		const Component = pages[name];
+	for (let name in landingPages) {
+		const Component = landingPages[name];
 		routesArray.push({
 			path: `/${name}`,
 			element: (

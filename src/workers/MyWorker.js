@@ -22,7 +22,9 @@ async function handleFetchAPIData(type, { endpoint, options = {} }) {
 	const abortController = new AbortController();
 	const signal = abortController.signal;
 
-	if (hashMapData.has(endpoint)) {
+	const isGetRequest = options.method?.toUpperCase() === 'GET';
+
+	if (isGetRequest && hashMapData.has(endpoint)) {
 		postMessage({ type: `${type}Response`, data: hashMapData.get(endpoint) });
 		return;
 	}
@@ -40,7 +42,7 @@ async function handleFetchAPIData(type, { endpoint, options = {} }) {
 		const res = await fetch(req);
 		const data = await res.json();
 		postMessage({ type: `${type}Response`, data });
-		hashMapData.set(endpoint, data);
+		isGetRequest && hashMapData.set(endpoint, data);
 	} catch (error) {
 		throw new Error(error);
 	} finally {

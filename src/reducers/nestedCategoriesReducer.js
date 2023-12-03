@@ -11,9 +11,7 @@ const nestedCategoriesReducer = (state, action) => {
 			};
 
 		default:
-			return {
-				...state,
-			};
+			return null;
 	}
 };
 

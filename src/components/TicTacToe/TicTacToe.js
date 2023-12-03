@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from 'semantic-ui-react';
 
-import { constants } from '../../utils/Constants';
+import { constants } from '../../constants';
 
 import styles from './styles.css';
 

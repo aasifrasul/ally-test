@@ -2,17 +2,17 @@ import React from 'react';
 
 import storeFactory from '../store/storeFactory';
 import dataFetchReducer from '../reducers/dataFetchReducer';
-import { constants } from '../utils/Constants';
+import { constants } from '../constants';
 
-const { dataFetchModules } = constants;
+const { dataSources } = constants;
 const initialState = {};
 
-for (const key in dataFetchModules) {
+for (const key in dataSources) {
 	initialState[key] = {
 		isLoading: false,
 		isError: false,
 		data: {},
-		currentPage: dataFetchModules[key]?.queryParams?.page,
+		currentPage: dataSources[key]?.queryParams?.page,
 	};
 }
 
