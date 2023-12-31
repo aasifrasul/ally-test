@@ -4,6 +4,7 @@ const exphbs = require('express-handlebars');
 const cookieParser = require('cookie-parser');
 const serveStatic = require('serve-static');
 const mongoose = require('mongoose');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const {
 	userAgentHandler,
@@ -30,8 +31,19 @@ app.get('/WebWorker.js', fetchWebWorker);
 app.get('/apiWorker.js', fetchApiWorker);
 app.get('/api/fetchWineData/*', getCSVData);
 app.get('/images/*', fetchImage);
-app.use('/graphql/*', handleGraphql);
+//app.use('/graphql/*', handleGraphql);
+app.all('/graphql', handleGraphql);
 
+app.use(
+	'/proxy/okrcentral',
+	createProxyMiddleware({
+		target: 'https://okrcentral.github.io',
+		changeOrigin: true,
+		pathRewrite: {
+			'^/proxy/okrcentral': '/sample-okrs/db.json', // rewrite path
+		},
+	}),
+);
 app.use('/login', (req, res) => {
 	res.send({
 		token: 'test123',

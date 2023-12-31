@@ -29,7 +29,7 @@ export const dataSources = {
 		reducer: movieListReducer,
 	},
 	nestedCategories: {
-		BASE_URL: `https://okrcentral.github.io/sample-okrs/db.json`,
+		BASE_URL: `https://localhost:3100/proxy/okrcentral`,
 		schema: 'nestedCategories',
 		timeout: 2000,
 		reducer: nestedCategoriesReducer,
