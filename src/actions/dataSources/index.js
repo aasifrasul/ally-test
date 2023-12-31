@@ -1,5 +1,3 @@
-import React from 'react';
-
 import APIHelper from '../../utils/APIHelper';
 import useSelector from '../../hooks/useSelector';
 
@@ -10,8 +8,12 @@ const nextPageHash = {};
 const apiHelper = new APIHelper();
 
 export function fetchData(schema, options) {
-	const dataSource = constants.dataSources[schema];
-	const { BASE_URL, queryParams, timeout } = dataSource;
+	const {
+		BASE_URL,
+		queryParams,
+		timeout,
+		options: defaultOptions,
+	} = constants.dataSources[schema];
 	if (nextPageHash[schema]) {
 		queryParams.page = nextPageHash[schema];
 		delete nextPageHash[schema];
@@ -20,7 +22,7 @@ export function fetchData(schema, options) {
 		schema,
 		BASE_URL,
 		queryParams,
-		options || dataSource.options,
+		options || defaultOptions,
 		timeout,
 	);
 }
@@ -38,14 +40,13 @@ export function getList(schema) {
 }
 
 export function addItem(schema, data, options) {
-	const dataSource = constants.dataSources[schema];
-	const { ADD_ITEM_URL, timeout } = dataSource;
+	const { ADD_ITEM_URL, timeout, options: defaultOptions } = constants.dataSources[schema];
 	return apiHelper.updateData(
 		schema,
 		data,
 		ADD_ITEM_URL,
 		null,
-		options || dataSource.options,
+		options || defaultOptions,
 		timeout,
 	);
 }

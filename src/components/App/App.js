@@ -80,7 +80,9 @@ const ProgressBar = lazy(() => import(/* webpackChunkName: "ProgressBar" */ '../
 
 const Dashboard = lazy(() => import(/* webpackChunkName: "Dashboard" */ '../Dashboard'));
 
-const Graphql = lazy(() => import(/* webpackChunkName: "Graphql" */ '../Graphql'));
+const DisplayGraphql = lazy(() =>
+	import(/* webpackChunkName: "DisplayGraphql" */ '../DisplayGraphql'),
+);
 const Comments = lazy(() => import(/* webpackChunkName: "Comments" */ '../Comments'));
 
 import Spinner from '../Common/Spinner/Spinner';
@@ -114,7 +116,7 @@ const landingPages = {
 	DigitalClock: DigitalClock,
 	AccordionDemo: AccordionDemo,
 	ProgressBar: ProgressBar,
-	Graphql: Graphql,
+	DisplayGraphql: DisplayGraphql,
 	DeeplyNestedCategories: DeeplyNestedCategories,
 	AsyncArticles: AsyncArticles,
 	Dashboard: Dashboard,
