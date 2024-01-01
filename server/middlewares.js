@@ -2,9 +2,10 @@ const idx = require('idx');
 const path = require('path');
 const handlebars = require('handlebars');
 const { createHandler } = require('graphql-http/lib/use/http');
+//const { graphqlHTTP } = require('express-graphql');
 
 const { isMobileApp, nocache, getParsedUserAgentData, getFileContents } = require('./helper');
-const { schema } = require('./schema/schema');
+const { schema } = require('./schema');
 const { parse } = require('./UAParser');
 const { fetchCSVasJSON } = require('./fetchCSVasJSON');
 
@@ -17,7 +18,16 @@ handlebars.registerHelper({
 	if_eq: (a, b, opts) => a === b && opts.fn(Object.create(null)),
 });
 
-const handler = createHandler({ schema });
+const handler = createHandler({
+	schema: schema,
+	graphiql: true,
+});
+/*
+const handler = graphqlHTTP({
+	schema: schema,
+	graphiql: true,
+});
+*/
 
 const webWorkerContent = getFileContents(`./src/utils/WebWorker.js`);
 const apiWorkerContent = getFileContents(`./src/workers/apiWorker.js`);
