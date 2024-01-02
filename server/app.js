@@ -3,7 +3,6 @@ const express = require('express');
 const exphbs = require('express-handlebars');
 const cookieParser = require('cookie-parser');
 const serveStatic = require('serve-static');
-const mongoose = require('mongoose');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const {
@@ -19,8 +18,6 @@ const webpackConfig = require('../webpack-configs/webpack.config');
 const { constructReqDataObject, generateBuildTime } = require('./helper');
 const { logger } = require('./Logger');
 const { pathTemplate, pathRootDir } = require('./paths');
-
-// mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true });
 
 const app = express();
 
