@@ -10,6 +10,7 @@ const filename = module.filename.split('/').slice(-1);
 const logger = createLogger({
 	level: 'info',
 	format: combine(label({ label: filename }), timestamp(), myFormat, format.json()),
+	defaultMeta: { service: 'ally-test' },
 	transports: [
 		//
 		// - Write to all logs with level `info` and below to `combined.log`
@@ -19,6 +20,12 @@ const logger = createLogger({
 		new transports.File({ filename: 'combined.log' }),
 	],
 });
+
+logger.add(
+	new transports.Console({
+		format: format.simple(),
+	}),
+);
 
 module.exports = {
 	logger,

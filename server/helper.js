@@ -168,6 +168,24 @@ const readJson = async (filePath) => {
 	return null;
 };
 
+const safeStringify = (obj) => {
+	function replacer(key, value) {
+		if (value === root) return '[Circular]';
+		if (value instanceof RegExp) return String(value);
+		if (Array.isArray(value)) return value.map((ele) => ele);
+		if (typeof value === 'object' && value !== null) {
+			if (seen.has(value)) return;
+			seen.add(value);
+		}
+		return value;
+	}
+
+	const seen = new Set();
+	const root = obj;
+
+	return JSON.stringify(obj, replacer);
+};
+
 module.exports = {
 	isMobileApp,
 	constructReqDataObject,
@@ -177,4 +195,5 @@ module.exports = {
 	getParsedUserAgentData,
 	getFileContents,
 	readJson,
+	safeStringify,
 };

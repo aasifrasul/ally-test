@@ -6,7 +6,6 @@ module.exports = [
 	'react-query',
 	'redux',
 	'react-redux',
-	'redux-saga',
 	'redux-thunk',
 	'idx',
 ];
