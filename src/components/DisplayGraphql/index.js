@@ -6,7 +6,7 @@ export default function DisplayGraphql() {
 	const [data, setData] = React.useState('');
 
 	React.useEffect(() => {
-		subscribe('{ user {id, name, age} }').then((result) => {
+		subscribe('{ user {id, firstName, lastName, age} }').then((result) => {
 			setData(result);
 		});
 	}, []);
