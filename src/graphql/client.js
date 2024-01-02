@@ -27,6 +27,6 @@ export const subscribe = async (query) => {
 
 /**
  * query hello { "query": "{ hello }" }
- * query all users { "query": "{ user {id, name, age} }" }
- * query a single user { "query": "{ user(id: 1) {id, name, age} }" }
+ * query all users { "query": "{ users {id, name, age} }" }
+ * query a single user { "query": "{ users(id: 1) {id, name, age} }" }
  */

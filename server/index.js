@@ -8,15 +8,18 @@ const http = require('http');
 const { app } = require('./app');
 const { onConnection } = require('./socketConnection');
 const { logger } = require('./Logger');
+const { safeStringify } = require('./helper');
 
 const { NODE_PORT: port, NODE_HOST: host } = process.env;
 
 //Start the server
 const server = http.createServer(app);
 
-server.on('connection', (socket) => socket.on('close', () => logger.log('server.connection')));
-server.on('request', () => logger.log('server.request'));
-server.listen(port, host, () => logger.log(`webpack-dev-server listening on port ${port}`));
+server.on('connection', (socket) =>
+	socket.on('close', () => logger.info('server.connection')),
+);
+server.on('request', () => logger.info('server.request'));
+server.listen(port, host, () => logger.info(`webpack-dev-server listening on port ${port}`));
 
 const io = socketio(server);
 
@@ -25,9 +28,11 @@ io.on('connection', onConnection);
 let isExitCalled = false;
 
 // eslint-disable-next-line no-console
-process.on('unhandledRejection', (e) => logger.error(e));
+process.on('unhandledRejection', (e) =>
+	logger.error(`unhandledRejection: ${safeStringify(e)}`),
+);
 // eslint-disable-next-line no-console
-process.on('uncaughtException', (e) => logger.error(e));
+process.on('uncaughtException', (e) => logger.error(`uncaughtException: ${safeStringify(e)}`));
 
 process.once('exit', () => {
 	if (isExitCalled) {
