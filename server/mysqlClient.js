@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 
 const { logger } = require('./Logger');
+const { safeStringify } = require('./helper');
 
 const connection = mysql.createConnection({
 	host: 'localhost',
@@ -12,10 +13,17 @@ const connection = mysql.createConnection({
 
 connection.connect((err) => {
 	if (err) {
-		logger.error(JSON.stringify(err));
+		logger.error('Database connection failed', safeStringify(err));
 		return;
 	}
-	logger.log('Database connected');
+	logger.info('Database connected');
 });
 
-module.exports = connection;
+const executeQuery = (query) =>
+	new Promise((resolve, reject) => {
+		connection.query(query, (err, result) => {
+			err ? reject(err) : resolve(result);
+		});
+	});
+
+module.exports = { executeQuery };

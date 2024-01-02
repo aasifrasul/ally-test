@@ -1,14 +1,13 @@
 const graphql = require('graphql');
 
-const connection = require('../mysqlClient');
+const { executeQuery } = require('../mysqlClient');
 const { logger } = require('../Logger');
-const { safeStringify } = require('../helper');
 
 const { GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLID, GraphQLSchema, GraphQLList } =
 	graphql;
 
 const UserType = new GraphQLObjectType({
-	name: 'User',
+	name: 'Users',
 	fields: () => ({
 		id: { type: GraphQLID },
 		firstName: { type: GraphQLString },
@@ -25,6 +24,26 @@ const RootQuery = new GraphQLObjectType({
 			resolve: () => 'world',
 		},
 		user: {
+			type: UserType,
+			args: {
+				id: { type: GraphQLID },
+			},
+			resolve: async (parent, args) => {
+				const whereClause = args.id ? `WHERE id = ${args.id}` : 'LIMIT 1';
+				const query = `SELECT * FROM TEST_USERS ${whereClause}`;
+				logger.info(query);
+				let rows = await executeQuery(query);
+				rows = rows.map(({ id, firstName, lastName, age }) => ({
+					id,
+					firstName,
+					lastName,
+					age,
+				}));
+				logger.info(rows);
+				return rows[0];
+			},
+		},
+		users: {
 			type: new GraphQLList(UserType),
 			args: {
 				id: { type: GraphQLID },
@@ -41,23 +60,16 @@ const RootQuery = new GraphQLObjectType({
 						conditions.map((key) => `${key} = '${args[key]}'`).join(' AND ');
 				}
 				const query = `SELECT * FROM TEST_USERS ${whereClause}`;
-
 				logger.info(query);
 
-				let rows = await new Promise((resolve, reject) => {
-					connection.query(query, (error, results) =>
-						error ? reject(error) : resolve(results),
-					);
-				});
+				let rows = await executeQuery(query);
 				rows = rows.map(({ id, firstName, lastName, age }) => ({
 					id,
 					firstName,
 					lastName,
 					age,
 				}));
-
 				logger.info(rows);
-
 				return rows;
 			},
 		},
