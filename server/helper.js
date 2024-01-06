@@ -170,6 +170,7 @@ const readJson = async (filePath) => {
 
 const safeStringify = (obj) => {
 	function replacer(key, value) {
+		if (key === 'stack') return undefined;
 		if (value === root) return '[Circular]';
 		if (value instanceof RegExp) return String(value);
 		if (Array.isArray(value)) return value.map((ele) => ele);
