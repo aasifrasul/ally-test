@@ -42,7 +42,7 @@ const RootQuery = new GraphQLObjectType({
 			type: GraphQLString,
 			resolve: () => 'world',
 		},
-		user: {
+		getUser: {
 			type: UserType,
 			args: {
 				id: { type: GraphQLID },
@@ -56,7 +56,7 @@ const RootQuery = new GraphQLObjectType({
 				return rows[0];
 			},
 		},
-		users: {
+		getUsers: {
 			type: new GraphQLList(UserType),
 			args: {
 				id: { type: GraphQLID },
@@ -98,6 +98,42 @@ const Mutation = new GraphQLObjectType({
 					return true;
 				} catch (error) {
 					logger.error(`Failed to create user ${error}`);
+				}
+			},
+		},
+		updateUser: {
+			type: new GraphQLNonNull(GraphQLBoolean),
+			args: {
+				id: { type: new GraphQLNonNull(GraphQLID) },
+				firstName: { type: GraphQLString },
+				lastName: { type: GraphQLString },
+				age: { type: GraphQLInt },
+			},
+			resolve: async (parent, args) => {
+				try {
+					const { id, firstName, lastName, age } = args;
+					const query = `UPDATE TEST_USERS SET "firstName" = '${firstName}', "lastName" = '${lastName}', "age" = ${age} WHERE "id" = ${id}`;
+					const result = await executeQuery(query);
+					logger.info(result);
+					return true;
+				} catch (error) {
+					logger.error(`Failed to update user ${error}`);
+				}
+			},
+		},
+		deleteUser: {
+			type: new GraphQLNonNull(GraphQLBoolean),
+			args: {
+				id: { type: new GraphQLNonNull(GraphQLID) },
+			},
+			resolve: async (parent, args) => {
+				try {
+					const query = `DELETE FROM TEST_USERS WHERE "id" = ${args.id}`;
+					const result = await executeQuery(query);
+					logger.info(result);
+					return true;
+				} catch (error) {
+					logger.error(`Failed to DELETE user with id ${args.id} ${error}`);
 				}
 			},
 		},
