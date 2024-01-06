@@ -75,12 +75,32 @@ module.exports = { executeQuery };
 }
  * 
  * {
-  "query": "{ users {id, firstName, lastName, age} }"
+  "query": "{ getUser(id: 1) {id, firstName, lastName, age} }"
 }
  * 
  * 
  * {
-  "query": "{ users {id, firstName, lastName, age} }"
+  "query": "{ getUsers {id, firstName, lastName, age} }"
+}
+ * 
+ * 
+ * {
+ "query": "mutation UpdateUser($id: ID!, $firstName: String, $lastName: String, $age: Int) { updateUser(id: $id, firstName: $firstName, lastName: $lastName, age: $age) }",
+ "variables": {
+   "id": "1",
+   "firstName": "John",
+   "lastName": "Doe",
+   "age": 30
+ }
+}
+ * 
+ * 
+ * 
+ * {
+ "query": "mutation deleteUser($id: ID!) { deleteUser(id: $id) }",
+ "variables": {
+   "id": "2"
+ }
 }
  * 
  * 
