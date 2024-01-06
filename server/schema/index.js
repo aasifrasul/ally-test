@@ -1,10 +1,18 @@
 const graphql = require('graphql');
 
-const { executeQuery } = require('../mysqlClient');
+const { executeQuery } = require('../dbClients/oracle');
 const { logger } = require('../Logger');
 
-const { GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLID, GraphQLSchema, GraphQLList } =
-	graphql;
+const {
+	GraphQLObjectType,
+	GraphQLString,
+	GraphQLInt,
+	GraphQLID,
+	GraphQLSchema,
+	GraphQLList,
+	GraphQLNonNull,
+	GraphQLBoolean,
+} = graphql;
 
 const UserType = new GraphQLObjectType({
 	name: 'Users',
@@ -15,6 +23,17 @@ const UserType = new GraphQLObjectType({
 		age: { type: GraphQLInt },
 	}),
 });
+
+const getLimitCond = (dbType, count) => {
+	switch (dbType) {
+		case 'mysql':
+			return `LIMT ${count}`;
+		case 'oracle':
+			return `FETCH FIRST ${count} ROWS ONLY`;
+		default:
+			return '';
+	}
+};
 
 const RootQuery = new GraphQLObjectType({
 	name: 'RootQueryType',
@@ -29,17 +48,11 @@ const RootQuery = new GraphQLObjectType({
 				id: { type: GraphQLID },
 			},
 			resolve: async (parent, args) => {
-				const whereClause = args.id ? `WHERE id = ${args.id}` : 'LIMIT 1';
-				const query = `SELECT * FROM TEST_USERS ${whereClause}`;
-				logger.info(query);
-				let rows = await executeQuery(query);
-				rows = rows.map(({ id, firstName, lastName, age }) => ({
-					id,
-					firstName,
-					lastName,
-					age,
-				}));
-				logger.info(rows);
+				const whereClause = args.id
+					? `WHERE "id" = ${args.id}`
+					: getLimitCond('oracle', 1);
+				const query = `SELECT "id", "firstName", "lastName", "age" FROM TEST_USERS ${whereClause}`;
+				const rows = await executeQuery(query);
 				return rows[0];
 			},
 		},
@@ -52,25 +65,40 @@ const RootQuery = new GraphQLObjectType({
 				age: { type: GraphQLInt },
 			},
 			resolve: async (parent, args) => {
-				const conditions = Object.keys(args);
-				let whereClause = 'LIMIT 10';
-				if (conditions.length) {
+				const keys = Object.keys(args);
+				let whereClause = getLimitCond('oracle', 10);
+				if (keys.length) {
 					whereClause =
 						'WHERE ' +
-						conditions.map((key) => `${key} = '${args[key]}'`).join(' AND ');
+						keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
 				}
-				const query = `SELECT * FROM TEST_USERS ${whereClause}`;
-				logger.info(query);
+				const query = `SELECT "id", "firstName", "lastName", "age" FROM TEST_USERS ${whereClause}`;
+				return await executeQuery(query);
+			},
+		},
+	},
+});
 
-				let rows = await executeQuery(query);
-				rows = rows.map(({ id, firstName, lastName, age }) => ({
-					id,
-					firstName,
-					lastName,
-					age,
-				}));
-				logger.info(rows);
-				return rows;
+const Mutation = new GraphQLObjectType({
+	name: 'Mutation',
+	fields: {
+		createUser: {
+			type: new GraphQLNonNull(GraphQLBoolean),
+			args: {
+				firstName: { type: new GraphQLNonNull(GraphQLString) },
+				lastName: { type: new GraphQLNonNull(GraphQLString) },
+				age: { type: new GraphQLNonNull(GraphQLInt) },
+			},
+			resolve: async (parent, args) => {
+				try {
+					const { firstName, lastName, age } = args;
+					const query = `INSERT INTO TEST_USERS ("firstName", "lastName", "age") VALUES ('${firstName}', '${lastName}', ${age})`;
+					const result = await executeQuery(query);
+					logger.info(result);
+					return true;
+				} catch (error) {
+					logger.error(`Failed to create user ${error}`);
+				}
 			},
 		},
 	},
@@ -78,6 +106,7 @@ const RootQuery = new GraphQLObjectType({
 
 const schema = new GraphQLSchema({
 	query: RootQuery,
+	mutation: Mutation,
 });
 
 module.exports = {

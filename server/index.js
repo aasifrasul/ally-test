@@ -27,12 +27,13 @@ io.on('connection', onConnection);
 
 let isExitCalled = false;
 
-// eslint-disable-next-line no-console
 process.on('unhandledRejection', (e) =>
-	logger.error(`unhandledRejection: ${safeStringify(e)}`),
+	logger.error(`unhandledRejection: ${JSON.stringify(e)}`),
 );
-// eslint-disable-next-line no-console
-process.on('uncaughtException', (e) => logger.error(`uncaughtException: ${safeStringify(e)}`));
+
+process.on('uncaughtException', (e) =>
+	logger.error(`uncaughtException: ${JSON.stringify(e)}`),
+);
 
 process.once('exit', () => {
 	if (isExitCalled) {
