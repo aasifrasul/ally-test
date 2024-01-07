@@ -9,7 +9,7 @@ const {
 	deleteProduct,
 } = require('./products');
 
-const { closePool } = require('../dbClients/oracle');
+const OracleDBConnection = require('../dbClients/oracle');
 
 const { GraphQLObjectType, GraphQLSchema } = graphql;
 
@@ -41,7 +41,8 @@ const schema = new GraphQLSchema({
 });
 
 const dbCleanup = () => {
-	closePool();
+	const dbConnection = OracleDBConnection.getInstance();
+	dbConnection?.closePool();
 };
 
 module.exports = {
