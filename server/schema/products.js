@@ -1,8 +1,10 @@
 const graphql = require('graphql');
 
 const { getLimitCond } = require('./helper');
-const { executeQuery } = require('../dbClients/oracle');
+const OracleDBConnection = require('../dbClients/oracle');
 const { logger } = require('../Logger');
+
+const dbConnection = OracleDBConnection.getInstance();
 
 const {
 	GraphQLObjectType,
@@ -31,7 +33,7 @@ const getProduct = {
 	resolve: async (parent, args) => {
 		const whereClause = args.id ? `WHERE "id" = ${args.id}` : getLimitCond('oracle', 1);
 		const query = `SELECT "id", "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
-		const rows = await executeQuery(query);
+		const rows = await dbConnection.executeQuery(query);
 		return rows[0];
 	},
 };
@@ -51,7 +53,7 @@ const getProducts = {
 				'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
 		}
 		const query = `SELECT "id", "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
-		return await executeQuery(query);
+		return await dbConnection.executeQuery(query);
 	},
 };
 
@@ -65,7 +67,7 @@ const createProduct = {
 		try {
 			const { name, category } = args;
 			const query = `INSERT INTO TEST_PRODUCTS ("name", "category") VALUES ('${name}', '${category}')`;
-			const result = await executeQuery(query);
+			const result = await dbConnection.executeQuery(query);
 			logger.info(result);
 			return true;
 		} catch (error) {
@@ -85,7 +87,7 @@ const updateProduct = {
 		try {
 			const { id, name, category } = args;
 			const query = `UPDATE TEST_PRODUCTS SET "name" = '${name}', "category" = '${category}' WHERE "id" = ${id}`;
-			const result = await executeQuery(query);
+			const result = await dbConnection.executeQuery(query);
 			logger.info(result);
 			return true;
 		} catch (error) {
@@ -102,7 +104,7 @@ const deleteProduct = {
 	resolve: async (parent, args) => {
 		try {
 			const query = `DELETE FROM TEST_PRODUCTS WHERE "id" = ${args.id}`;
-			const result = await executeQuery(query);
+			const result = await dbConnection.executeQuery(query);
 			logger.info(result);
 			return true;
 		} catch (error) {

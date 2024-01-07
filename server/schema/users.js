@@ -1,8 +1,10 @@
 const graphql = require('graphql');
 
 const { getLimitCond } = require('./helper');
-const { executeQuery } = require('../dbClients/oracle');
+const OracleDBConnection = require('../dbClients/oracle');
 const { logger } = require('../Logger');
+
+const dbConnection = OracleDBConnection.getInstance();
 
 const {
 	GraphQLObjectType,
@@ -32,7 +34,7 @@ const getUser = {
 	resolve: async (parent, args) => {
 		const whereClause = args.id ? `WHERE "id" = ${args.id}` : getLimitCond('oracle', 1);
 		const query = `SELECT "id", "firstName", "lastName", "age" FROM TEST_USERS ${whereClause}`;
-		const rows = await executeQuery(query);
+		const rows = await dbConnection.executeQuery(query);
 		return rows[0];
 	},
 };
@@ -53,7 +55,7 @@ const getUsers = {
 				'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
 		}
 		const query = `SELECT "id", "firstName", "lastName", "age" FROM TEST_USERS ${whereClause}`;
-		return await executeQuery(query);
+		return await dbConnection.executeQuery(query);
 	},
 };
 
@@ -68,7 +70,7 @@ const createUser = {
 		try {
 			const { firstName, lastName, age } = args;
 			const query = `INSERT INTO TEST_USERS ("firstName", "lastName", "age") VALUES ('${firstName}', '${lastName}', ${age})`;
-			const result = await executeQuery(query);
+			const result = await dbConnection.executeQuery(query);
 			logger.info(result);
 			return true;
 		} catch (error) {
@@ -89,7 +91,7 @@ const updateUser = {
 		try {
 			const { id, firstName, lastName, age } = args;
 			const query = `UPDATE TEST_USERS SET "firstName" = '${firstName}', "lastName" = '${lastName}', "age" = ${age} WHERE "id" = ${id}`;
-			const result = await executeQuery(query);
+			const result = await dbConnection.executeQuery(query);
 			logger.info(result);
 			return true;
 		} catch (error) {
@@ -106,7 +108,7 @@ const deleteUser = {
 	resolve: async (parent, args) => {
 		try {
 			const query = `DELETE FROM TEST_USERS WHERE "id" = ${args.id}`;
-			const result = await executeQuery(query);
+			const result = await dbConnection.executeQuery(query);
 			logger.info(result);
 			return true;
 		} catch (error) {

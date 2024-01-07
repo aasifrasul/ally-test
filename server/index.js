@@ -9,6 +9,7 @@ const { app } = require('./app');
 const { onConnection } = require('./socketConnection');
 const { logger } = require('./Logger');
 const { safeStringify } = require('./helper');
+const { dbCleanup } = require('./schema');
 
 const { NODE_PORT: port, NODE_HOST: host } = process.env;
 
@@ -39,6 +40,8 @@ process.once('exit', () => {
 	if (isExitCalled) {
 		return;
 	}
+
+	dbCleanup();
 
 	isExitCalled = true;
 
