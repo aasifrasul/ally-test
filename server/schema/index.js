@@ -9,15 +9,13 @@ const {
 	deleteProduct,
 } = require('./products');
 
-const { GraphQLObjectType, GraphQLSchema, GraphQLString } = graphql;
+const { closePool } = require('../dbClients/oracle');
+
+const { GraphQLObjectType, GraphQLSchema } = graphql;
 
 const RootQuery = new GraphQLObjectType({
 	name: 'RootQueryType',
 	fields: {
-		hello: {
-			type: GraphQLString,
-			resolve: () => 'world',
-		},
 		getUser,
 		getUsers,
 		getProduct,
@@ -42,6 +40,11 @@ const schema = new GraphQLSchema({
 	mutation: Mutation,
 });
 
+const dbCleanup = () => {
+	closePool();
+};
+
 module.exports = {
 	schema,
+	dbCleanup,
 };
