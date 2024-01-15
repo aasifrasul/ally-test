@@ -1,10 +1,10 @@
 const graphql = require('graphql');
 
 const { getLimitCond } = require('./helper');
-const OracleDBConnection = require('../dbClients/oracle');
+const DBConnection = require('../dbClients/postgresql');
 const { logger } = require('../Logger');
 
-const dbConnection = OracleDBConnection.getInstance();
+const dbConnection = DBConnection.getInstance();
 
 const {
 	GraphQLObjectType,
@@ -32,7 +32,9 @@ const getUser = {
 		id: { type: GraphQLID },
 	},
 	resolve: async (parent, args) => {
-		const whereClause = args.id ? `WHERE "id" = ${args.id}` : getLimitCond('oracle', 1);
+		const whereClause = args.id
+			? `WHERE "id" = ${args.id}`
+			: getLimitCond('postgresql', 1);
 		const query = `SELECT "id", "firstName", "lastName", "age" FROM TEST_USERS ${whereClause}`;
 		const rows = await dbConnection.executeQuery(query);
 		return rows[0];
@@ -49,7 +51,7 @@ const getUsers = {
 	},
 	resolve: async (parent, args) => {
 		const keys = Object.keys(args);
-		let whereClause = getLimitCond('oracle', 10);
+		let whereClause = getLimitCond('postgresql', 10);
 		if (keys.length) {
 			whereClause =
 				'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
