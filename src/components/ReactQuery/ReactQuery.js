@@ -65,7 +65,7 @@ function Posts({ setPostId }) {
 												? {
 														fontWeight: 'bold',
 														color: 'green',
-												  }
+													}
 												: {}
 										}
 									>

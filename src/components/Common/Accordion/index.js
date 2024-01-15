@@ -28,7 +28,7 @@ function Accordion(props) {
 				? {
 						...sections,
 						...section,
-				  }
+					}
 				: section;
 		});
 	};
