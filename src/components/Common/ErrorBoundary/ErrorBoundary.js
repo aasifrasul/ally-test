@@ -25,7 +25,7 @@ class ErrorBoundary extends React.Component {
 							{JSON.stringify(error.errorData)}{' '}
 						</div>
 					</div>
-			  )
+				)
 			: children;
 	}
 }

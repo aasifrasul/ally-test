@@ -121,7 +121,7 @@ export const searchTextOnData = (searchText, searchData, searchFields) => {
 				searchFields.some((field) =>
 					item[field]?.toLowerCase().includes(lowerCasedSearchText),
 				),
-		  )
+			)
 		: data;
 };
 
