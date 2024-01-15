@@ -1,70 +1,104 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 
 const { logger } = require('../Logger');
 
-let pool;
+class MysqlDBConnection {
+	static getInstance() {
+		if (!(MysqlDBConnection.instance instanceof MysqlDBConnection)) {
+			MysqlDBConnection.instance = new MysqlDBConnection();
+			MysqlDBConnection.instance.createPool();
+			logger.info(`MysqlDBConnection instantiated`);
+		}
 
-function createPool() {
-	pool = mysql.createPool({
-		host: 'localhost',
-		port: 3306,
-		user: 'test',
-		password: 'test',
-		database: 'test',
-		waitForConnections: true,
-		connectionLimit: 10,
-		maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`
-		idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
-		queueLimit: 0,
-		enableKeepAlive: true,
-		keepAliveInitialDelay: 0,
-		allowPublicKeyRetrieval: true,
-		ssl: false,
-	});
+		return MysqlDBConnection.instance;
+	}
+
+	createPool() {
+		try {
+			this.pool = mysql.createPool({
+				user: 'test',
+				password: 'test',
+				connectString: 'jdbc:mysql://127.0.0.1:3306/test',
+				waitForConnections: true,
+				connectionLimit: 10,
+				maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`
+				idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
+				queueLimit: 0,
+				enableKeepAlive: true,
+				keepAliveInitialDelay: 0,
+				ssl: false,
+			});
+
+			this.pool.on('acquire', ({ threadId }) =>
+				logger.info(`Connection ${threadId} acquired`),
+			);
+
+			this.pool.on('connection', ({ threadId }) =>
+				logger.info(`Connection ${threadId} established`),
+			);
+
+			this.pool.on('enqueue', () =>
+				logger.info('Waiting for available connection slot'),
+			);
+
+			this.pool.on('release', ({ threadId }) =>
+				logger.info(`Connection ${threadId} released`),
+			);
+		} catch (err) {
+			logger.warn(`Pool creation Error: ${err.stack}`);
+		}
+	}
+
+	async releaseConnection() {
+		if (this.connection) {
+			try {
+				await this.pool.releaseConnection(this.connection);
+			} catch (err) {
+				logger.warn(`connection failed to release -> : ${err.stack}`);
+			}
+		}
+	}
+
+	closePool() {
+		if (this.pool) {
+			this.pool.end((err) =>
+				logger.info(`all connections in the pool have ended ${err}`),
+			);
+		}
+	}
+
+	async getConnection() {
+		try {
+			this.connection = await this.pool.getConnection();
+		} catch (err) {
+			logger.error(`Pool failed to create Connection ${err.stack}`);
+		}
+	}
+
+	async executeQuery(query) {
+		logger.info(`query -> ${query}`);
+		/*
+		if (this.pool._closed) {
+			logger.info(`Pool is closed creating again`);
+			this.createPool();
+		}
+
+		await this.getConnection();
+*/
+
+		let rows;
+
+		try {
+			[rows] = await this.pool.execute(query);
+			logger.info(`fetched rows -> ${JSON.stringify(rows)}`);
+		} catch (err) {
+			logger.info(`failed to execute query -> ${JSON.stringify(err.stack)}`);
+		} finally {
+			this.releaseConnection();
+		}
+
+		return rows;
+	}
 }
 
-createPool();
-
-pool.on('acquire', ({ threadId }) => logger.info(`Connection ${threadId} acquired`));
-
-pool.on('connection', ({ threadId }) => logger.info(`Connection ${threadId} established`));
-
-pool.on('enqueue', () => logger.info('Waiting for available connection slot'));
-
-pool.on('release', ({ threadId }) => logger.info(`Connection ${threadId} released`));
-
-const executeQuery = (query) =>
-	new Promise((resolve, reject) => {
-		if (pool._closed) {
-			logger.info(`Pool is closed creating again`);
-			createPool();
-		}
-		pool.getConnection((err, connection) => {
-			if (err) {
-				logger.warn(`Database connection Error: ${err.stack}`);
-				throw err;
-			}
-
-			// Use the connection
-			connection.query(query, (error, results, fields) => {
-				// When done with the connection, release it.
-				logger.info(`results -> ${JSON.stringify(results)}`);
-				logger.info(`fields -> ${JSON.stringify(fields)}`);
-
-				if (error) {
-					logger.info(`failed to execute query -> ${JSON.stringify(error)}`);
-					reject(error);
-				} else {
-					let cleanedData = results.map((row) => ({ ...row }));
-					logger.info(`rows -> ${JSON.stringify(cleanedData)}`);
-					resolve(cleanedData);
-				}
-				pool.releaseConnection(conn);
-			});
-		});
-	});
-
-const closePool = () =>
-	pool.end((err) => logger.info(`all connections in the pool have ended ${err}`));
-
-module.exports = { executeQuery, closePool };
+module.exports = MysqlDBConnection;
