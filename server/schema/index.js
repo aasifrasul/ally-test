@@ -1,4 +1,4 @@
-const graphql = require('graphql');
+const { GraphQLObjectType, GraphQLSchema } = require('graphql');
 
 const { getUser, getUsers, createUser, updateUser, deleteUser } = require('./users');
 const {
@@ -8,10 +8,6 @@ const {
 	updateProduct,
 	deleteProduct,
 } = require('./products');
-
-const DBConnection = require('../dbClients/postgresql');
-
-const { GraphQLObjectType, GraphQLSchema } = graphql;
 
 const RootQuery = new GraphQLObjectType({
 	name: 'RootQueryType',
@@ -40,12 +36,6 @@ const schema = new GraphQLSchema({
 	mutation: Mutation,
 });
 
-const dbCleanup = () => {
-	const dbConnection = DBConnection.getInstance();
-	dbConnection?.closePool();
-};
-
 module.exports = {
 	schema,
-	dbCleanup,
 };

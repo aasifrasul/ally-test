@@ -7,16 +7,6 @@ var webpackCommonConfig = require('../webpack/webpack.common');
 var MiniCssExtractPlugin = require('mini-css-extract-plugin');
 var DEV = process.env.NODE_ENV !== 'production';
 
-var htmlminifierQuery = JSON.stringify({
-	removeComments: true,
-	collapseWhitespace: true,
-	preserveLineBreaks: false,
-	minifyJS: {
-		mangle: false,
-		compress: false,
-	},
-});
-
 module.exports = function (env) {
 	console.log('\n\nHBS:: Running as:', process.env.BUILD_TYPE || 'release');
 	console.log('HBS:: ENVIRONMENTS');
@@ -47,7 +37,15 @@ module.exports = function (env) {
 						},
 						{
 							loader: htmlminifier,
-							options: htmlminifierQuery,
+							options: {
+								removeComments: true,
+								collapseWhitespace: true,
+								preserveLineBreaks: false,
+								minifyJS: {
+									mangle: false,
+									compress: false,
+								},
+							},
 						},
 					],
 				},

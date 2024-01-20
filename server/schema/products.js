@@ -1,11 +1,3 @@
-const graphql = require('graphql');
-
-const { getLimitCond } = require('./helper');
-const DBConnection = require('../dbClients/postgresql');
-const { logger } = require('../Logger');
-
-const dbConnection = DBConnection.getInstance();
-
 const {
 	GraphQLObjectType,
 	GraphQLString,
@@ -13,7 +5,17 @@ const {
 	GraphQLList,
 	GraphQLNonNull,
 	GraphQLBoolean,
-} = graphql;
+} = require('graphql');
+
+const { getLimitCond } = require('./helper');
+const GenericDBConnection = require('../dbClients/GenericDBConnection');
+const { logger } = require('../Logger');
+
+let dBInstance;
+
+GenericDBConnection.getInstance('postgresql').then((genericInstance) => {
+	dBInstance = genericInstance.getDBInstance();
+});
 
 const ProductType = new GraphQLObjectType({
 	name: 'Products',
@@ -34,7 +36,7 @@ const getProduct = {
 			? `WHERE "id" = ${args.id}`
 			: getLimitCond('postgresql', 1);
 		const query = `SELECT "id", "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
-		const rows = await dbConnection.executeQuery(query);
+		const rows = await dBInstance.executeQuery(query);
 		return rows[0];
 	},
 };
@@ -54,7 +56,7 @@ const getProducts = {
 				'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
 		}
 		const query = `SELECT "id", "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
-		return await dbConnection.executeQuery(query);
+		return await dBInstance.executeQuery(query);
 	},
 };
 
@@ -68,7 +70,7 @@ const createProduct = {
 		try {
 			const { name, category } = args;
 			const query = `INSERT INTO TEST_PRODUCTS ("name", "category") VALUES ('${name}', '${category}')`;
-			const result = await dbConnection.executeQuery(query);
+			const result = await dBInstance.executeQuery(query);
 			logger.info(result);
 			return true;
 		} catch (error) {
@@ -88,7 +90,7 @@ const updateProduct = {
 		try {
 			const { id, name, category } = args;
 			const query = `UPDATE TEST_PRODUCTS SET "name" = '${name}', "category" = '${category}' WHERE "id" = ${id}`;
-			const result = await dbConnection.executeQuery(query);
+			const result = await dBInstance.executeQuery(query);
 			logger.info(result);
 			return true;
 		} catch (error) {
@@ -105,7 +107,7 @@ const deleteProduct = {
 	resolve: async (parent, args) => {
 		try {
 			const query = `DELETE FROM TEST_PRODUCTS WHERE "id" = ${args.id}`;
-			const result = await dbConnection.executeQuery(query);
+			const result = await dBInstance.executeQuery(query);
 			logger.info(result);
 			return true;
 		} catch (error) {

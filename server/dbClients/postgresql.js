@@ -42,7 +42,7 @@ class PostgresDBConnection {
 		}
 	}
 
-	async closePool() {
+	async cleanup() {
 		if (this.pool) {
 			try {
 				await this.pool.end();

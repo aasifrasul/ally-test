@@ -1,16 +1,13 @@
 #!/usr/bin/env node
 
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 const socketio = require('socket.io');
 const http = require('http');
 
 const { app } = require('./app');
 const { onConnection } = require('./socketConnection');
 const { logger } = require('./Logger');
-const { safeStringify } = require('./helper');
-const { dbCleanup } = require('./schema');
-
+const GenericDBConnection = require('./dbClients/GenericDBConnection');
 const { NODE_PORT: port, NODE_HOST: host } = process.env;
 
 //Start the server
@@ -28,20 +25,18 @@ io.on('connection', onConnection);
 
 let isExitCalled = false;
 
-process.on('unhandledRejection', (e) =>
-	logger.error(`unhandledRejection: ${JSON.stringify(e)}`),
-);
+process.on('unhandledRejection', (e) => logger.error(`unhandledRejection: ${e.stack}`));
 
-process.on('uncaughtException', (e) =>
-	logger.error(`uncaughtException: ${JSON.stringify(e)}`),
-);
+process.on('uncaughtException', (e) => logger.error(`uncaughtException: ${e.stack}`));
 
-process.once('exit', () => {
+process.on('SIGINT', async () => await GenericDBConnection.cleanup());
+
+process.once('exit', async () => {
 	if (isExitCalled) {
 		return;
 	}
 
-	dbCleanup();
+	await GenericDBConnection.cleanup();
 
 	isExitCalled = true;
 

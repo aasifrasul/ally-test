@@ -16,7 +16,6 @@ const {
 } = require('./middlewares');
 const webpackConfig = require('../webpack-configs/webpack.config');
 const { constructReqDataObject, generateBuildTime } = require('./helper');
-const { logger } = require('./Logger');
 const { pathTemplate, pathRootDir } = require('./paths');
 
 const app = express();
