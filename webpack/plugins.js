@@ -3,7 +3,7 @@ const path = require('path');
 const ATL = require('awesome-typescript-loader');
 const CompressionPlugin = require('compression-webpack-plugin');
 const CssExtractPlugin = require('mini-css-extract-plugin');
-const FkEmitAssetsPlugin = require('./fk-emit-assets-plugin');
+const EmitAssetsPlugin = require('./emit-assets-plugin');
 const Visualizer = require('webpack-visualizer-plugin');
 const StatsPlugin = require('stats-webpack-plugin');
 const DEV = process.env.NODE_ENV !== 'production';
@@ -29,7 +29,7 @@ let plugins = [
 	 * Custom plugin to generate a list of assets which can be used by
 	 * make.hbs file to generate the hbs template with the assets to be served
 	 */
-	new FkEmitAssetsPlugin({
+	new EmitAssetsPlugin({
 		fileName: Constants.APP_NAME + '.json',
 	}),
 
