@@ -4,10 +4,10 @@ const { logger } = require('../Logger');
 class PostgresDBConnection {
 	static instance;
 
-	static getInstance() {
+	static async getInstance() {
 		if (!(PostgresDBConnection.instance instanceof PostgresDBConnection)) {
 			PostgresDBConnection.instance = new PostgresDBConnection();
-			PostgresDBConnection.instance.createPool();
+			await PostgresDBConnection.instance.createPool();
 			logger.info('PostgresDBConnection instantiated');
 		}
 

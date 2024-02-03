@@ -8,15 +8,11 @@ const {
 	GraphQLBoolean,
 } = require('graphql');
 
-const { getLimitCond } = require('./helper');
-const GenericDBConnection = require('../dbClients/GenericDBConnection');
+const { getLimitCond, getDBInstance } = require('./helper');
 const { logger } = require('../Logger');
 
 let dBInstance;
-
-GenericDBConnection.getInstance('postgresql').then((genericInstance) => {
-	dBInstance = genericInstance.getDBInstance();
-});
+const dbType = 'mysql';
 
 const UserType = new GraphQLObjectType({
 	name: 'Users',
@@ -34,10 +30,9 @@ const getUser = {
 		id: { type: GraphQLID },
 	},
 	resolve: async (parent, args) => {
-		const whereClause = args.id
-			? `WHERE "id" = ${args.id}`
-			: getLimitCond('postgresql', 1);
-		const query = `SELECT "id", "firstName", "lastName", "age" FROM TEST_USERS ${whereClause}`;
+		dBInstance = dBInstance || (await getDBInstance(dbType));
+		const whereClause = args.id ? `WHERE id = ${args.id}` : getLimitCond('postgresql', 1);
+		const query = `SELECT id, "firstName", "lastName", age FROM TEST_USERS ${whereClause}`;
 		const rows = await dBInstance.executeQuery(query);
 		return rows[0];
 	},
@@ -52,13 +47,14 @@ const getUsers = {
 		age: { type: GraphQLInt },
 	},
 	resolve: async (parent, args) => {
+		dBInstance = dBInstance || (await getDBInstance(dbType));
 		const keys = Object.keys(args);
 		let whereClause = getLimitCond('postgresql', 10);
 		if (keys.length) {
 			whereClause =
 				'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
 		}
-		const query = `SELECT "id", "firstName", "lastName", "age" FROM TEST_USERS ${whereClause}`;
+		const query = `SELECT id, "firstName", "lastName", "age" FROM TEST_USERS ${whereClause}`;
 		return await dBInstance.executeQuery(query);
 	},
 };
@@ -71,9 +67,10 @@ const createUser = {
 		age: { type: new GraphQLNonNull(GraphQLInt) },
 	},
 	resolve: async (parent, args) => {
+		dBInstance = dBInstance || (await getDBInstance(dbType));
 		try {
 			const { firstName, lastName, age } = args;
-			const query = `INSERT INTO TEST_USERS ("firstName", "lastName", "age") VALUES ('${firstName}', '${lastName}', ${age})`;
+			const query = `INSERT INTO TEST_USERS ("firstName", "lastName", age) VALUES ('${firstName}', '${lastName}', ${age})`;
 			const result = await dBInstance.executeQuery(query);
 			logger.info(result);
 			return true;
@@ -92,9 +89,10 @@ const updateUser = {
 		age: { type: GraphQLInt },
 	},
 	resolve: async (parent, args) => {
+		dBInstance = dBInstance || (await getDBInstance(dbType));
 		try {
 			const { id, firstName, lastName, age } = args;
-			const query = `UPDATE TEST_USERS SET "firstName" = '${firstName}', "lastName" = '${lastName}', "age" = ${age} WHERE "id" = ${id}`;
+			const query = `UPDATE TEST_USERS SET "firstName" = '${firstName}', "lastName" = '${lastName}', age = ${age} WHERE id = ${id}`;
 			const result = await dBInstance.executeQuery(query);
 			logger.info(result);
 			return true;
@@ -110,8 +108,9 @@ const deleteUser = {
 		id: { type: new GraphQLNonNull(GraphQLID) },
 	},
 	resolve: async (parent, args) => {
+		dBInstance = dBInstance || (await getDBInstance(dbType));
 		try {
-			const query = `DELETE FROM TEST_USERS WHERE "id" = ${args.id}`;
+			const query = `DELETE FROM TEST_USERS WHERE id = ${args.id}`;
 			const result = await dBInstance.executeQuery(query);
 			logger.info(result);
 			return true;
