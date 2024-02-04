@@ -10,6 +10,13 @@ const { logger } = require('./Logger');
 const GenericDBConnection = require('./dbClients/GenericDBConnection');
 const { NODE_PORT: port, NODE_HOST: host } = process.env;
 
+process.on('SIGINT', () => {
+	GenericDBConnection.instance.getDBInstance().pool.end(function (err) {
+		// All connections in the pool have ended
+		process.exit(err ? 1 : 0);
+	});
+});
+
 //Start the server
 const server = http.createServer(app);
 
@@ -29,14 +36,10 @@ process.on('unhandledRejection', (e) => logger.error(`unhandledRejection: ${e.st
 
 process.on('uncaughtException', (e) => logger.error(`uncaughtException: ${e.stack}`));
 
-process.on('SIGINT', async () => await GenericDBConnection.cleanup());
-
 process.once('exit', async () => {
 	if (isExitCalled) {
 		return;
 	}
-
-	await GenericDBConnection.cleanup();
 
 	isExitCalled = true;
 

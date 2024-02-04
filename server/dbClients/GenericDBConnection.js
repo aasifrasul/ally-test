@@ -18,13 +18,13 @@ class GenericDBConnection {
 	async createConnection(type) {
 		switch (type) {
 			case 'oracle':
-				this.dbInstance = OracleDBConnection.getInstance();
+				this.dbInstance = await OracleDBConnection.getInstance();
 				return;
 			case 'postgresql':
-				this.dbInstance = PostgresDBConnection.getInstance();
+				this.dbInstance = await PostgresDBConnection.getInstance();
 				return;
 			case 'mysql':
-				this.dbInstance = MysqlDBConnection.getInstance();
+				this.dbInstance = await MysqlDBConnection.getInstance();
 				return;
 			default:
 				return null;

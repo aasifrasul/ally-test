@@ -3,22 +3,25 @@ const mysql = require('mysql2/promise');
 const { logger } = require('../Logger');
 
 class MysqlDBConnection {
-	static getInstance() {
+	static async getInstance() {
 		if (!(MysqlDBConnection.instance instanceof MysqlDBConnection)) {
 			MysqlDBConnection.instance = new MysqlDBConnection();
-			MysqlDBConnection.instance.createPool();
+			await MysqlDBConnection.instance.createPool();
 			logger.info(`MysqlDBConnection instantiated`);
 		}
 
 		return MysqlDBConnection.instance;
 	}
 
-	createPool() {
+	async createPool() {
 		try {
-			this.pool = mysql.createPool({
+			this.pool = await mysql.createPool({
 				user: 'test',
 				password: 'test',
-				connectString: 'jdbc:mysql://127.0.0.1:3306/test',
+				//connectString: 'jdbc:mysql://127.0.0.1:3306/test',
+				host: `127.0.0.1`,
+				port: 3306,
+				database: 'test',
 				waitForConnections: true,
 				connectionLimit: 10,
 				maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`

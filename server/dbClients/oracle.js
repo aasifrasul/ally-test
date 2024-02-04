@@ -3,15 +3,11 @@ const oracledb = require('oracledb');
 const { logger } = require('../Logger');
 
 class OracleDBConnection {
-	static getInstance() {
+	static async getInstance() {
 		if (!(OracleDBConnection.instance instanceof OracleDBConnection)) {
 			OracleDBConnection.instance = new OracleDBConnection();
-			OracleDBConnection.instance.createPool();
-			logger.info(
-				`OracleDBConnection instantiated ${JSON.stringify(
-					OracleDBConnection.instance,
-				)}`,
-			);
+			await OracleDBConnection.instance.createPool();
+			logger.info(`OracleDBConnection instantiated.`);
 		}
 
 		return OracleDBConnection.instance;

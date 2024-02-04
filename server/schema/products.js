@@ -7,15 +7,11 @@ const {
 	GraphQLBoolean,
 } = require('graphql');
 
-const { getLimitCond } = require('./helper');
-const GenericDBConnection = require('../dbClients/GenericDBConnection');
+const { getLimitCond, getDBInstance } = require('./helper');
 const { logger } = require('../Logger');
 
 let dBInstance;
-
-GenericDBConnection.getInstance('postgresql').then((genericInstance) => {
-	dBInstance = genericInstance.getDBInstance();
-});
+const dbType = 'mysql';
 
 const ProductType = new GraphQLObjectType({
 	name: 'Products',
@@ -32,10 +28,9 @@ const getProduct = {
 		id: { type: GraphQLID },
 	},
 	resolve: async (parent, args) => {
-		const whereClause = args.id
-			? `WHERE "id" = ${args.id}`
-			: getLimitCond('postgresql', 1);
-		const query = `SELECT "id", "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
+		dBInstance = dBInstance || (await getDBInstance(dbType));
+		const whereClause = args.id ? `WHERE id = ${args.id}` : getLimitCond('postgresql', 1);
+		const query = `SELECT id, "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
 		const rows = await dBInstance.executeQuery(query);
 		return rows[0];
 	},
@@ -49,13 +44,14 @@ const getProducts = {
 		category: { type: GraphQLString },
 	},
 	resolve: async (parent, args) => {
+		dBInstance = dBInstance || (await getDBInstance(dbType));
 		const keys = Object.keys(args);
 		let whereClause = getLimitCond('postgresql', 10);
 		if (keys.length) {
 			whereClause =
 				'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
 		}
-		const query = `SELECT "id", "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
+		const query = `SELECT id, "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
 		return await dBInstance.executeQuery(query);
 	},
 };
@@ -67,6 +63,7 @@ const createProduct = {
 		category: { type: new GraphQLNonNull(GraphQLString) },
 	},
 	resolve: async (parent, args) => {
+		dBInstance = dBInstance || (await getDBInstance(dbType));
 		try {
 			const { name, category } = args;
 			const query = `INSERT INTO TEST_PRODUCTS ("name", "category") VALUES ('${name}', '${category}')`;
@@ -87,9 +84,10 @@ const updateProduct = {
 		category: { type: GraphQLString },
 	},
 	resolve: async (parent, args) => {
+		dBInstance = dBInstance || (await getDBInstance(dbType));
 		try {
 			const { id, name, category } = args;
-			const query = `UPDATE TEST_PRODUCTS SET "name" = '${name}', "category" = '${category}' WHERE "id" = ${id}`;
+			const query = `UPDATE TEST_PRODUCTS SET "name" = '${name}', "category" = '${category}' WHERE id = ${id}`;
 			const result = await dBInstance.executeQuery(query);
 			logger.info(result);
 			return true;
@@ -105,8 +103,9 @@ const deleteProduct = {
 		id: { type: new GraphQLNonNull(GraphQLID) },
 	},
 	resolve: async (parent, args) => {
+		dBInstance = dBInstance || (await getDBInstance(dbType));
 		try {
-			const query = `DELETE FROM TEST_PRODUCTS WHERE "id" = ${args.id}`;
+			const query = `DELETE FROM TEST_PRODUCTS WHERE id = ${args.id}`;
 			const result = await dBInstance.executeQuery(query);
 			logger.info(result);
 			return true;
@@ -119,7 +118,7 @@ const deleteProduct = {
 module.exports = { getProduct, getProducts, createProduct, updateProduct, deleteProduct };
 
 /**
- * create table TEST_PRODUCTS ( "id" number generated always as identity, "name" varchar2(4000), "category" varchar2(4000), primary key ("id"));
+ * create table TEST_PRODUCTS ( id number generated always as identity, "name" varchar2(4000), "category" varchar2(4000), primary key (id));
  * 
  * {
  "query": "mutation createProduct($name: String!, $category: String!) { createProduct(name: $name, category: $category) }",
@@ -142,7 +141,7 @@ module.exports = { getProduct, getProducts, createProduct, updateProduct, delete
  * {
  "query": "mutation UpdateProduct($id: ID!, $name: String, $category: String) { updateProduct(id: $id, name: $name, category: $category) }",
  "variables": {
-   "id": "1",
+   id: "1",
    "name": "John",
    "category": "Doe"
  }
@@ -153,7 +152,7 @@ module.exports = { getProduct, getProducts, createProduct, updateProduct, delete
  * {
  "query": "mutation deleteProduct($id: ID!) { deleteProduct(id: $id) }",
  "variables": {
-   "id": "2"
+   id: "2"
  }
 }
  * 

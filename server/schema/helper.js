@@ -1,3 +1,5 @@
+const GenericDBConnection = require('../dbClients/GenericDBConnection');
+
 const getLimitCond = (dbType, count) => {
 	switch (dbType) {
 		case 'mysql':
@@ -11,4 +13,9 @@ const getLimitCond = (dbType, count) => {
 	}
 };
 
-module.exports = { getLimitCond };
+const getDBInstance = async (dbType) => {
+	let genericInstance = await GenericDBConnection.getInstance(dbType);
+	return genericInstance.getDBInstance();
+};
+
+module.exports = { getLimitCond, getDBInstance };
