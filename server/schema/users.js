@@ -12,7 +12,7 @@ const { getLimitCond, getDBInstance } = require('./helper');
 const { logger } = require('../Logger');
 
 let dBInstance;
-const dbType = 'mysql';
+const dbType = 'postgresql';
 
 const UserType = new GraphQLObjectType({
 	name: 'Users',
@@ -31,7 +31,7 @@ const getUser = {
 	},
 	resolve: async (parent, args) => {
 		dBInstance = dBInstance || (await getDBInstance(dbType));
-		const whereClause = args.id ? `WHERE id = ${args.id}` : getLimitCond('postgresql', 1);
+		const whereClause = args.id ? `WHERE id = ${args.id}` : getLimitCond(dbType, 1);
 		const query = `SELECT id, "firstName", "lastName", age FROM TEST_USERS ${whereClause}`;
 		const rows = await dBInstance.executeQuery(query);
 		return rows[0];
@@ -49,7 +49,7 @@ const getUsers = {
 	resolve: async (parent, args) => {
 		dBInstance = dBInstance || (await getDBInstance(dbType));
 		const keys = Object.keys(args);
-		let whereClause = getLimitCond('postgresql', 10);
+		let whereClause = getLimitCond(dbType, 10);
 		if (keys.length) {
 			whereClause =
 				'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
@@ -66,12 +66,16 @@ const createUser = {
 		lastName: { type: new GraphQLNonNull(GraphQLString) },
 		age: { type: new GraphQLNonNull(GraphQLInt) },
 	},
-	resolve: async (parent, args) => {
+	resolve: async (parent, args, { pubsub }) => {
 		dBInstance = dBInstance || (await getDBInstance(dbType));
 		try {
 			const { firstName, lastName, age } = args;
 			const query = `INSERT INTO TEST_USERS ("firstName", "lastName", age) VALUES ('${firstName}', '${lastName}', ${age})`;
 			const result = await dBInstance.executeQuery(query);
+
+			// Publish the event
+			pubsub.publish('userCreated', { result });
+
 			logger.info(result);
 			return true;
 		} catch (error) {
@@ -120,7 +124,22 @@ const deleteUser = {
 	},
 };
 
-module.exports = { getUser, getUsers, createUser, updateUser, deleteUser };
+const userCreated = {
+	type: GraphQLString, // Adjust the return type as needed
+	args: {
+		firstName: { type: new GraphQLNonNull(GraphQLString) },
+		lastName: { type: new GraphQLNonNull(GraphQLString) },
+		age: { type: new GraphQLNonNull(GraphQLInt) },
+	}, // Add any necessary arguments
+	resolve: (payload, args, { pubsub }) => pubsub.asyncIterator('userCreated'),
+};
+
+// Example resolver for userCreated subscription
+const getUserCreatedResolver = async (parent, args, context, info) => {
+	return pubsub.asyncIterator('userCreated');
+};
+
+module.exports = { getUser, getUsers, createUser, updateUser, deleteUser, userCreated };
 
 /**
  * create table TEST_USERS ( "id" number generated always as identity, "firstName" varchar2(4000), "lastName" varchar2(4000), "age" number, primary key ("id"));

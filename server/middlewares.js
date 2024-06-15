@@ -2,25 +2,28 @@ const idx = require('idx');
 const path = require('path');
 const handlebars = require('handlebars');
 const { createHandler } = require('graphql-http/lib/use/http');
-//const { graphqlHTTP } = require('express-graphql');
+const { PubSub } = require('graphql-subscriptions');
 
 const { isMobileApp, nocache, getParsedUserAgentData, getFileContents } = require('./helper');
-const { schema } = require('./schema');
+const { schema, rootValue } = require('./schema');
 const { parse } = require('./UAParser');
 const { fetchCSVasJSON } = require('./fetchCSVasJSON');
 
-const csvData = fetchCSVasJSON(
+const { headers, result } = fetchCSVasJSON(
 	`${path.join(__dirname, '..', 'assets')}/winemag-data-130k-v2.csv`,
 );
-const { headers, result } = csvData;
+
+const pubsub = new PubSub();
 
 handlebars.registerHelper({
 	if_eq: (a, b, opts) => a === b && opts.fn(Object.create(null)),
 });
 
 const handler = createHandler({
-	schema: schema,
+	schema,
+	rootValue,
 	graphiql: true,
+	context: ({ req }) => ({ pubsub }),
 });
 /*
 const handler = graphqlHTTP({

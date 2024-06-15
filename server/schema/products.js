@@ -11,7 +11,7 @@ const { getLimitCond, getDBInstance } = require('./helper');
 const { logger } = require('../Logger');
 
 let dBInstance;
-const dbType = 'mysql';
+const dbType = 'postgresql';
 
 const ProductType = new GraphQLObjectType({
 	name: 'Products',
@@ -29,7 +29,7 @@ const getProduct = {
 	},
 	resolve: async (parent, args) => {
 		dBInstance = dBInstance || (await getDBInstance(dbType));
-		const whereClause = args.id ? `WHERE id = ${args.id}` : getLimitCond('postgresql', 1);
+		const whereClause = args.id ? `WHERE id = ${args.id}` : getLimitCond(dbType, 1);
 		const query = `SELECT id, "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
 		const rows = await dBInstance.executeQuery(query);
 		return rows[0];
@@ -46,7 +46,7 @@ const getProducts = {
 	resolve: async (parent, args) => {
 		dBInstance = dBInstance || (await getDBInstance(dbType));
 		const keys = Object.keys(args);
-		let whereClause = getLimitCond('postgresql', 10);
+		let whereClause = getLimitCond(dbType, 10);
 		if (keys.length) {
 			whereClause =
 				'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');

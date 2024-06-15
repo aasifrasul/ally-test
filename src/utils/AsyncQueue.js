@@ -1,4 +1,4 @@
-import BaseQueue from 'BaseQueue';
+import BaseQueue from './BaseQueue';
 
 class AsyncQueue extends BaseQueue {
 	constructor() {

@@ -10,11 +10,15 @@ const { logger } = require('./Logger');
 const GenericDBConnection = require('./dbClients/GenericDBConnection');
 const { NODE_PORT: port, NODE_HOST: host } = process.env;
 
-process.on('SIGINT', () => {
-	GenericDBConnection.instance.getDBInstance().pool.end(function (err) {
+process.on('SIGINT', async (err) => {
+	//const genericInstance = await GenericDBConnection.getInstance()
+	/*
+	genericInstance?.getDBInstance()?.pool?.end(function (err) {
 		// All connections in the pool have ended
 		process.exit(err ? 1 : 0);
 	});
+	*/
+	process.exit(err ? 1 : 0);
 });
 
 //Start the server
@@ -24,7 +28,7 @@ server.on('connection', (socket) =>
 	socket.on('close', () => logger.info('server.connection')),
 );
 server.on('request', () => logger.info('server.request'));
-server.listen(port, host, () => logger.info(`webpack-dev-server listening on port ${port}`));
+server.listen(port, host, () => logger.info(`node server listening on port ${port}`));
 
 const io = socketio(server);
 
