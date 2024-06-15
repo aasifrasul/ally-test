@@ -86,7 +86,7 @@ const DisplayGraphql = lazy(
 );
 const Comments = lazy(() => import(/* webpackChunkName: "Comments" */ '../Comments'));
 
-import Spinner from '../Common/Spinner/Spinner';
+import Spinner from '../Common/Spinner';
 // import ErrorBoundary from '../Common/ErrorBoundary/ErrorBoundary';
 
 import { constants } from '../../constants';

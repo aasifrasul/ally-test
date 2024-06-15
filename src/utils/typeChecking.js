@@ -18,9 +18,31 @@ export const isDate = (data) => typeCheck(data, 'date');
 export const isSymbol = (data) => typeCheck(data, 'symbol');
 export const isRegExp = (data) => typeCheck(data, 'regexp');
 
-export const isEmpty = (data) => isUndefined(data) || isNull(data) || data === '';
-
 export const arraySize = (arr) => (isArray(arr) && arr.length) || null;
+
+export const isEmpty = (data) => {
+	if (isUndefined(data)) {
+		return true;
+	}
+
+	if (isNull(data)) {
+		return true;
+	}
+
+	if (isString(data) && data.length === 0) {
+		return true;
+	}
+
+	if (isArray(data) && data.length === 0) {
+		return true;
+	}
+
+	if (isObject(data) && Object.keys(data).length === 0) {
+		return true;
+	}
+
+	return false;
+};
 
 export const safelyExecuteFunction = (func, context, ...params) => {
 	if (typeof func !== 'function') {
