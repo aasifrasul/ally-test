@@ -23,7 +23,7 @@ export const dataSources = {
 		queryParams: {
 			page: 1,
 			sort_by: 'popularity.desc',
-			api_key: '41e1d96d45908b49a03a5699ec69bb16',
+			api_key: '0cdc4ae2e7e4bf7c2605a838320c2bf9',
 		},
 		timeout: 5000,
 		reducer: movieListReducer,
