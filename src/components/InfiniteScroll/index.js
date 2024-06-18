@@ -24,7 +24,7 @@ const mapStateToProps = () => {
 };
 
 const mapDispatchToProps = {
-	fetchInfiniteScrollNextPage,
+	fetchNextPage: fetchInfiniteScrollNextPage,
 };
 
 export default ConnectDataFetch(mapStateToProps, mapDispatchToProps)(InfiniteScrollContainer);

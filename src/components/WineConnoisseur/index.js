@@ -24,7 +24,7 @@ const mapStateToProps = () => {
 };
 
 const mapDispatchToProps = {
-	fetchWineConnoisseurNextPage,
+	fetchNextPage: fetchWineConnoisseurNextPage,
 };
 
 export default ConnectDataFetch(mapStateToProps, mapDispatchToProps)(WineConnoisseurContainer);

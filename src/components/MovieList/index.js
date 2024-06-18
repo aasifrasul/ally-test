@@ -24,7 +24,7 @@ const mapStateToProps = () => {
 };
 
 const mapDispatchToProps = {
-	fetchMovieListNextPage,
+	fetchNextPage: fetchMovieListNextPage,
 };
 
 export default ConnectDataFetch(mapStateToProps, mapDispatchToProps)(MovieListContainer);
