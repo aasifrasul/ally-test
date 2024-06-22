@@ -1,26 +1,19 @@
 {
 	"compilerOptions": {
-		// Target latest version of ECMAScript.
-		"target": "esnext",
-		// Search under node_modules for non-relative imports.
-		"moduleResolution": "node",
-		// Process & infer types from .js files.
+		"target": "es5",
+		"lib": ["dom", "dom.iterable", "esnext"],
 		"allowJs": true,
-		"sourceMap": true,
-		// Don't emit; allow Babel to transform files.
-		"noEmit": true,
-		// Enable strictest settings like strictNullChecks & noImplicitAny.
-		"strict": true,
-		// Import non-ES modules as default imports.
-		"esModuleInterop": true,
-		"resolveJsonModule": true,
-		"jsx": "react-jsx",
-		"module": "esnext",
-		"typeRoots": ["types", "node_modules/@types"],
 		"skipLibCheck": true,
-		"baseUrl": "."
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"strict": false,
+		"forceConsistentCasingInFileNames": true,
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
+		"isolatedModules": true,
+		"noEmit": true,
+		"jsx": "react-jsx"
 	},
-	"include": [
-		"src" // <-- change this to where your source files are
-	]
+	"include": ["src"]
 }
