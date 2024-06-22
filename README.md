@@ -1,6 +1,6 @@
 # ally-test
 
-run npm i
+yarn install
 
 To build : yarn build;
 
