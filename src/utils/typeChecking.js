@@ -45,7 +45,7 @@ export const isEmpty = (data) => {
 };
 
 export const safelyExecuteFunction = (func, context, ...params) => {
-	if (typeof func !== 'function') {
+	if (!isFunction(func)) {
 		console.log('Please pass a valid function!');
 		return;
 	}
@@ -56,3 +56,21 @@ export const safelyExecuteFunction = (func, context, ...params) => {
 
 	return func(...params);
 };
+
+export function safeExecute(callback) {
+	return new Promise((resolve, reject) => {
+		try {
+			const result = safelyExecuteFunction(callback, null) || callback;
+
+			// Check if the result is a promise
+			if (isPromise(result)) {
+				result.then(resolve).catch(reject);
+			} else {
+				resolve(result); // Resolve with the result directly
+			}
+		} catch (error) {
+			console.error('An error occurred:', error);
+			reject(error); // Reject the promise with the error
+		}
+	});
+}
