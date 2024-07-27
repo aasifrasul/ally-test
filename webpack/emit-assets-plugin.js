@@ -56,7 +56,6 @@ class EmitAssetsPlugin {
 			 */
 
 			compilation?.namedChunks?.forEach((item) => {
-				console.log('item', item);
 				const name = item.name;
 				if (entries.find((entry) => name.includes(entry))) {
 					item.files.forEach((item) => {

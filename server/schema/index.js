@@ -1,4 +1,12 @@
-const { GraphQLObjectType, GraphQLSchema, GraphQLString } = require('graphql');
+const {
+	GraphQLObjectType,
+	GraphQLSchema,
+	GraphQLString,
+	GraphQLInt,
+	GraphQLFloat,
+	GraphQLList,
+	GraphQLNonNull,
+} = require('graphql');
 
 const {
 	getUser,
@@ -16,6 +24,21 @@ const {
 	deleteProduct,
 } = require('./products');
 
+const rootValue = {
+	quoteOfTheDay: {
+		type: GraphQLString,
+		resolve: () => (Math.random() < 0.5 ? 'Take it easy' : 'Salvation lies within'),
+	},
+	random: {
+		type: GraphQLFloat,
+		resolve: () => Math.random(),
+	},
+	rollThreeDice: {
+		type: new GraphQLList(new GraphQLNonNull(GraphQLInt)),
+		resolve: () => [1, 2, 3].map((_) => 1 + Math.floor(Math.random() * 6)),
+	},
+};
+
 const RootQuery = new GraphQLObjectType({
 	name: 'RootQueryType',
 	fields: {
@@ -23,6 +46,7 @@ const RootQuery = new GraphQLObjectType({
 		getUsers,
 		getProduct,
 		getProducts,
+		...rootValue,
 	},
 });
 
@@ -79,19 +103,6 @@ const schema = new GraphQLSchema({
 	subscription: Subscription,
 });
 
-const rootValue = {
-	quoteOfTheDay: () => {
-		return Math.random() < 0.5 ? 'Take it easy' : 'Salvation lies within';
-	},
-	random: () => {
-		return Math.random();
-	},
-	rollThreeDice: () => {
-		return [1, 2, 3].map((_) => 1 + Math.floor(Math.random() * 6));
-	},
-};
-
 module.exports = {
 	schema,
-	rootValue,
 };

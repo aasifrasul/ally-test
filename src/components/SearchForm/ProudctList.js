@@ -16,7 +16,6 @@ export default function ProductList({ data, callback, sortCallback }) {
 						name="product_search"
 						placeholder="Search Data"
 						callback={handleSearch}
-						isCallbackDebounced={true}
 						debounceDelay={300}
 					/>
 				</span>

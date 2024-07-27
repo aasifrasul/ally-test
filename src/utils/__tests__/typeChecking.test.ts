@@ -1,4 +1,4 @@
-const {
+import {
 	isArray,
 	isEmpty,
 	isFunction,
@@ -7,7 +7,7 @@ const {
 	isString,
 	safelyExecuteFunction,
 	safeExecute,
-} = require('../typeChecking');
+} from '../typeChecking';
 
 describe('isNumber', () => {
 	test('returns true for number type', () => {

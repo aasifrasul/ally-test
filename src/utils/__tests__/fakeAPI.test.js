@@ -1,7 +1,7 @@
-import { fetchProfileData, fetchUser, fetchPosts } from './fakeAPi';
+import { fetchProfileData, fetchUser, fetchPosts } from '../fakeAPi';
 
 // Mock the fetchUser and fetchPosts functions
-jest.mock('./fakeAPi', () => ({
+jest.mock('../fakeAPi', () => ({
 	fetchUser: jest.fn(),
 	fetchPosts: jest.fn(),
 	fetchProfileData: jest.fn((userId) => ({

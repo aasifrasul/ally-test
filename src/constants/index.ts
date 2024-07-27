@@ -1,11 +1,18 @@
 import { dataSources } from './dataSources';
 
+interface AutoCompleteConfig {
+	initialFeed: string[];
+	debounceDelay: number;
+}
+
+const autoComplete: AutoCompleteConfig = {
+	initialFeed: ['Oranges', 'Apples', 'Banana', 'Kiwi', 'Mango'],
+	debounceDelay: 150,
+};
+
 export const constants = Object.freeze({
 	common: {},
-	autoComplete: {
-		initialFeed: ['Oranges', 'Apples', 'Banana', 'Kiwi', 'Mango'],
-		debounceDelay: 150,
-	},
+	autoComplete,
 	dataSources,
 	tictactoe: {
 		allPossibleWinningCombo: [

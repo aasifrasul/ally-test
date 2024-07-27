@@ -11,14 +11,13 @@ const InputText = ({
 	validate,
 	placeholder = '',
 	callback,
-	isCallbackDebounced = false,
 	debounceDelay = 250,
 }) => {
 	const { value, onChange, reset, error } = useFormField(
 		id,
 		initialValue,
 		validate,
-		isCallbackDebounced ? debounce(callback, debounceDelay) : callback,
+		debounceDelay ? debounce(callback, debounceDelay) : callback,
 	);
 
 	// Reset the field value when the initialValue changes
@@ -31,6 +30,7 @@ const InputText = ({
 			<input
 				type="text"
 				id={id}
+				data-testid={id}
 				name={name}
 				value={value}
 				placeholder={placeholder}

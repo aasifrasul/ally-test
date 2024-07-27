@@ -5,7 +5,7 @@ const { createHandler } = require('graphql-http/lib/use/http');
 const { PubSub } = require('graphql-subscriptions');
 
 const { isMobileApp, nocache, getParsedUserAgentData, getFileContents } = require('./helper');
-const { schema, rootValue } = require('./schema');
+const { schema } = require('./schema');
 const { parse } = require('./UAParser');
 const { fetchCSVasJSON } = require('./fetchCSVasJSON');
 
@@ -21,7 +21,6 @@ handlebars.registerHelper({
 
 const handler = createHandler({
 	schema,
-	rootValue,
 	graphiql: true,
 	context: ({ req }) => ({ pubsub }),
 });
