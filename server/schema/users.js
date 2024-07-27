@@ -80,6 +80,7 @@ const createUser = {
 			return true;
 		} catch (error) {
 			logger.error(`Failed to create user ${error}`);
+			return false;
 		}
 	},
 };

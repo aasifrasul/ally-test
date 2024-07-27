@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { useImageLazyLoadIO } from '.';
+import { useImageLazyLoadIO } from '../useImageLazyLoadIO';
 
 describe('useImageLazyLoadIO', () => {
 	beforeEach(() => {

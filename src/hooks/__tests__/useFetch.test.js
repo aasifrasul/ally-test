@@ -1,9 +1,9 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import useFetch from '.';
-import { useFetchStore, useFetchDispatch } from '../Context/dataFetchContext';
+import useFetch from '../useFetch';
+import { useFetchStore, useFetchDispatch } from '../../Context/dataFetchContext';
 
 // Mock the dependencies
-jest.mock('../Context/dataFetchContext', () => ({
+jest.mock('../../Context/dataFetchContext', () => ({
 	useFetchStore: jest.fn(),
 	useFetchDispatch: jest.fn(),
 }));
@@ -28,7 +28,7 @@ const mockWorker = {
 };
 global.Worker = jest.fn().mockImplementation(() => mockWorker);
 
-jest.mock('../workers/MyWorker', () => ({
+jest.mock('../../workers/MyWorker', () => ({
 	default: mockWorker,
 }));
 

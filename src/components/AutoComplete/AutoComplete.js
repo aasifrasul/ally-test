@@ -12,18 +12,21 @@ const AutoComplete = (props) => {
 	const [activeSuggestion, setActiveSuggestion] = React.useState(0);
 	const [filteredSuggestions, setFilteredSuggestions] = React.useState([]);
 	const [showNoMatch, setShowNoMatch] = React.useState(false);
+	const [suggestionsHtml, setSuggestionsHtml] = React.useState('');
+	const [inputValue, setInputValue] = React.useState(''); // Added state to track input value
 	const displayRef = React.useRef(null);
-	let suggestionsHtml;
 	const clickedOutside = useOutsideClick(displayRef);
 
 	const reset = () => {
 		setActiveSuggestion(0);
-		setFilteredSuggestions(() => []);
-		setShowNoMatch(() => false);
-		suggestionsHtml = '';
+		setFilteredSuggestions([]);
+		setShowNoMatch(false);
+		setSuggestionsHtml('');
+		setInputValue('');
 	};
 
 	const onChange = (searchedText) => {
+		setInputValue(searchedText);
 		setActiveSuggestion(0);
 
 		if (searchedText) {
@@ -31,18 +34,22 @@ const AutoComplete = (props) => {
 				(suggestion) =>
 					suggestion.toLowerCase().indexOf(searchedText.toLowerCase()) > -1,
 			);
-			setFilteredSuggestions(() => matchedSuggestions);
+			setFilteredSuggestions(matchedSuggestions);
 			if (matchedSuggestions.length === 0) {
-				setShowNoMatch(() => true);
+				setShowNoMatch(true);
+			} else {
+				setShowNoMatch(false);
 			}
 		} else {
-			setFilteredSuggestions(() => []);
+			setFilteredSuggestions([]);
+			setShowNoMatch(false);
 		}
 	};
 
 	const onSuggestionClick = (e) => {
 		setActiveSuggestion(0);
-		setFilteredSuggestions(() => []);
+		setFilteredSuggestions([]);
+		setInputValue(e.target.innerText); // Update input value to the clicked suggestion
 	};
 
 	const onKeyDown = (e) => {
@@ -68,7 +75,7 @@ const AutoComplete = (props) => {
 		if (clickedOutside) {
 			reset();
 		} else {
-			suggestionsHtml = (
+			setSuggestionsHtml(
 				<ul className={styles.suggestions} ref={displayRef}>
 					{filteredSuggestions.map((suggestion, index) => {
 						let className;
@@ -87,15 +94,15 @@ const AutoComplete = (props) => {
 							</li>
 						);
 					})}
-				</ul>
+				</ul>,
 			);
 		}
 	}
 	if (showNoMatch) {
-		suggestionsHtml = (
+		setSuggestionsHtml(
 			<div className={styles['no-suggestions']}>
 				<em>No suggestions available.</em>
-			</div>
+			</div>,
 		);
 	}
 
@@ -105,7 +112,12 @@ const AutoComplete = (props) => {
 				<button onClick={() => reset()}>Reset</button>
 			</div>
 			<div>Search Item:</div>
-			<InputText callback={debouncedOnChange} onKeyDown={onKeyDown} />
+			<InputText
+				id="autoCompleteInput"
+				value={inputValue}
+				callback={debouncedOnChange}
+				onKeyDown={onKeyDown}
+			/>
 			{suggestionsHtml}
 		</>
 	);

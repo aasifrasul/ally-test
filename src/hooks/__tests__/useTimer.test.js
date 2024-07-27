@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import useTimer from '.';
+import useTimer from '../useTimer';
 
 jest.useFakeTimers();
 

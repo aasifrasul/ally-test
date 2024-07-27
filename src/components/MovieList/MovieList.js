@@ -35,7 +35,6 @@ const MovieList = ({ data, fetchNextPage }) => {
 					id="movieSearch"
 					placeholder="Search a Movie"
 					callback={handleChange}
-					isCallbackDebounced={true}
 					debounceDelay={300}
 				/>
 			</div>
