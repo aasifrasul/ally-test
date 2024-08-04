@@ -1,4 +1,4 @@
-import { fetchData, updateData } from '../../utils/APIHelper';
+import * as helpers from '../../utils/APIHelper';
 
 import useSelector from '../../hooks/useSelector';
 
@@ -17,12 +17,18 @@ export function fetchData(schema, options) {
 		queryParams.page = nextPageHash[schema];
 		delete nextPageHash[schema];
 	}
-	return fetchData(schema, BASE_URL, queryParams, options || defaultOptions, timeout);
+	return helpers.fetchData(
+		schema,
+		BASE_URL,
+		queryParams,
+		options || defaultOptions,
+		timeout,
+	);
 }
 
 export function fetchNextPage(schema, nextPage, options) {
 	nextPageHash[schema] = nextPage;
-	return fetchData(schema, options);
+	return helpers.fetchData(schema, options);
 }
 
 export function getList(schema) {
@@ -34,5 +40,12 @@ export function getList(schema) {
 
 export function addItem(schema, data, options) {
 	const { ADD_ITEM_URL, timeout, options: defaultOptions } = constants.dataSources[schema];
-	return updateData(schema, data, ADD_ITEM_URL, null, options || defaultOptions, timeout);
+	return helpers.updateData(
+		schema,
+		data,
+		ADD_ITEM_URL,
+		null,
+		options || defaultOptions,
+		timeout,
+	);
 }

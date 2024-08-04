@@ -88,6 +88,7 @@
 		"socket.io": "4.6.1",
 		"socket.io-client": "4.6.1",
 		"styled-components": "5.3.10",
+		"subscriptions-transport-ws": "^0.11.0",
 		"winston": "3.11.0"
 	},
 	"devDependencies": {
@@ -161,6 +162,7 @@
 		"stats-webpack-plugin": "0.7.0",
 		"style-loader": "3.3.4",
 		"ts-jest": "^29.1.5",
+		"ts-loader": "^9.5.1",
 		"typescript": "5.5.3",
 		"ua-parser-js": "0.7.24",
 		"uglifyjs-webpack-plugin": "2.2.0",

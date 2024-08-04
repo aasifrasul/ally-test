@@ -11,13 +11,8 @@ var loaders = [
 		test: /\.(ts|tsx)$/,
 		use: [
 			{
-				loader: 'awesome-typescript-loader',
-				options: {
-					useBabel: true,
-					useCache: true,
-					configFileName: path.join(__dirname, '../tsconfig.json'),
-					reportFiles: ['../../../../src/**/*.{ts,tsx}'],
-				},
+				loader: 'ts-loader',
+				options: {},
 			},
 		],
 	},
