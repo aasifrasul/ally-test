@@ -85,6 +85,13 @@ const DisplayGraphql = lazy(
 	() => import(/* webpackChunkName: "DisplayGraphql" */ '../DisplayGraphql'),
 );
 const Comments = lazy(() => import(/* webpackChunkName: "Comments" */ '../Comments'));
+const GraphqlSubscription = lazy(
+	() => import(/* webpackChunkName: "GraphqlSubscription" */ '../GraphqlSubscription'),
+);
+
+const UsersGraphql = lazy(
+	() => import(/* webpackChunkName: "UsersGraphql" */ '../UsersGraphql'),
+);
 
 import Spinner from '../Common/Spinner';
 // import ErrorBoundary from '../Common/ErrorBoundary/ErrorBoundary';
@@ -125,6 +132,8 @@ const landingPages = {
 	SearchForm: SearchForm,
 	ListExchange: ListExchange,
 	SortUsers: SortUsers,
+	GraphqlSubscription: GraphqlSubscription,
+	UsersGraphql: UsersGraphql,
 };
 
 const App = (props) => {

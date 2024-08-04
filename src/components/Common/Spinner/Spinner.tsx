@@ -1,4 +1,5 @@
-import React from 'react';
+/**
+ * import React from 'react';
 import classnames from 'classnames';
 import { Icon } from '../Icon';
 
@@ -120,3 +121,5 @@ export class Spinner extends React.Component<SpinnerProps> {
 		);
 	}
 }
+
+*/
