@@ -6,7 +6,7 @@ const { PubSub } = require('graphql-subscriptions');
 
 const { isMobileApp, nocache, getParsedUserAgentData, getFileContents } = require('./helper');
 const { schema } = require('./schema');
-const { parse } = require('./UAParser');
+const { parse } = require('./UaParser');
 const { fetchCSVasJSON } = require('./fetchCSVasJSON');
 
 const { headers, result } = fetchCSVasJSON(

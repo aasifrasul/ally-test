@@ -14,9 +14,8 @@
 		"isolatedModules": true,
 		"noEmit": false,
 		"jsx": "react-jsx",
-		"outDir": "./dist",
-		"rootDir": "./src"
+		"rootDir": "./"
 	},
-	"include": ["src/**/*"],
+	"include": ["src/**/*", "server/**/*"],
 	"exclude": ["node_modules", "dist"]
 }

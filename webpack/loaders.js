@@ -9,6 +9,7 @@ const appName = process.env.APP_NAME;
 var loaders = [
 	{
 		test: /\.(ts|tsx)$/,
+		exclude: /node_modules/,
 		use: [
 			{
 				loader: 'ts-loader',
@@ -26,22 +27,18 @@ var loaders = [
 	},
 	{
 		test: /\.(gif|png|jpe?g|svg)$/i,
+		exclude: /node_modules/,
 		use: [
 			{
-				loader: 'image-size-loader',
-				options: {
-					bypassOnDebug: true, // webpack@1.x
-					options: {
-						name: '[name]-[hash:8].[ext]',
-					},
-					disable: true, // webpack@2.x and newer
-				},
+				loader: 'file-loader',
+				options: {},
 			},
 		],
 		type: 'javascript/auto',
 	},
 	{
 		test: /\.(eot|ttf|woff|woff2)$/,
+		exclude: /node_modules/,
 		use: [
 			{
 				loader: 'file-loader',

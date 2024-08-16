@@ -6,6 +6,8 @@ const platform = process.env.PLATFORM;
 module.exports = {
 	appBuild: resolveApp('build'),
 	appBuildDev: resolveApp('public'),
+	appSrc: resolveApp('src'),
+	appDist: resolveApp('dist'),
 	appVendor: (rootDir) => resolveApp(path.join(rootDir, 'vendor.js')),
 	appRouteConfig: resolveApp('routeConfig.js'),
 	packages: resolveApp('packages'),

@@ -21,7 +21,7 @@ const CONFIG = {
 	output: {
 		path: DEV ? path.join(__dirname, 'public') : path.join(__dirname, 'build', APP_NAME),
 		filename: DEV ? '[name].bundle.js' : '[name].[chunkhash].js',
-		publicPath: DEV ? '/' : '//assets/' + APP_NAME + '/',
+		publicPath: DEV ? path.join(__dirname, 'public') : '//assets/' + APP_NAME + '/',
 		pathinfo: DEV,
 		chunkFilename: DEV ? '[name].bundle.js' : '[name].[chunkhash].js',
 		chunkLoadingGlobal: 'webpackJsonp',
