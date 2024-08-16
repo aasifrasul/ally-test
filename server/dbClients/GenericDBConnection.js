@@ -1,18 +1,19 @@
 const OracleDBConnection = require('./oracle');
 const PostgresDBConnection = require('./postgresql');
 const MysqlDBConnection = require('./mysql');
+// const MongoDBConnection = require('./mongodb');
 
 class GenericDBConnection {
-	static instance;
+	static selfInstance;
 	dbInstance;
 
 	static async getInstance(type) {
-		if (!(GenericDBConnection.instance instanceof GenericDBConnection)) {
-			GenericDBConnection.instance = new GenericDBConnection();
-			await GenericDBConnection.instance.createConnection(type);
+		if (!(GenericDBConnection.selfInstance instanceof GenericDBConnection)) {
+			GenericDBConnection.selfInstance = new GenericDBConnection();
+			await GenericDBConnection.selfInstance.createConnection(type);
 		}
 
-		return GenericDBConnection.instance;
+		return GenericDBConnection.selfInstance;
 	}
 
 	async createConnection(type) {

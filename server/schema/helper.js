@@ -14,7 +14,7 @@ const getLimitCond = (dbType, count) => {
 };
 
 const getDBInstance = async (dbType) => {
-	let genericInstance = await GenericDBConnection.getInstance(dbType);
+	const genericInstance = await GenericDBConnection.getInstance(dbType);
 	return genericInstance.getDBInstance();
 };
 

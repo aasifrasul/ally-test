@@ -1,5 +1,6 @@
 const cors = require('cors');
 const express = require('express');
+const mongoose = require('mongoose');
 const exphbs = require('express-handlebars');
 const cookieParser = require('cookie-parser');
 const serveStatic = require('serve-static');
@@ -16,9 +17,19 @@ const {
 } = require('./middlewares');
 const webpackConfig = require('../webpack-configs/webpack.config');
 const { constructReqDataObject, generateBuildTime } = require('./helper');
-const { pathTemplate, pathRootDir } = require('./paths');
+const { appBuildDev, pathTemplate, pathRootDir } = require('./paths');
 
 const app = express();
+
+const uri = 'mongodb://localhost:27017';
+
+mongoose
+	.connect(uri, {
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+	})
+	.then(() => console.log('MongoDB Connected...'))
+	.catch((err) => console.log(err));
 
 generateBuildTime();
 
@@ -52,10 +63,8 @@ app.set('views', pathTemplate);
 app.set('view engine', '.hbs');
 
 app.use([cors(), cookieParser(), userAgentHandler]);
-const publicPath = webpackConfig?.output?.publicPath;
 
-// const bundleConfig = [publicPath + 'en.bundle.js', publicPath + 'vendor.bundle.js', publicPath + 'app.bundle.js'];
-const bundleConfig = ['en', 'vendor', 'app'].map((i) => `${publicPath}${i}.bundle.js`);
+const bundleConfig = ['en', 'vendor', 'app'].map((i) => `${appBuildDev}${i}.bundle.js`);
 
 app.use(
 	serveStatic(pathRootDir, {
