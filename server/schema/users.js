@@ -8,7 +8,7 @@ const {
 	GraphQLBoolean,
 } = require('graphql');
 
-const { User } = require('../models/User');
+const { User } = require('../models');
 
 const { getLimitCond, getDBInstance } = require('./helper');
 const { logger } = require('../Logger');
@@ -74,10 +74,17 @@ const getUsers = {
 		lastName: { type: GraphQLString },
 		age: { type: GraphQLInt },
 	},
-	resolve: async (parent, args) => {
+	resolve: async (parent, args = {}) => {
+		const keys = Object.keys(args);
+
 		if (dbType === 'mongodb') {
 			try {
-				const users = await fetchUsersMG();
+				const params = keys.reduce((acc, key) => {
+					acc[key] = { $regex: new RegExp(`\\d*${args[key]}\\d*`) };
+					return acc;
+				}, {});
+
+				const users = await User.find(params);
 				return users;
 			} catch (error) {
 				logger.error(`Failed to create user in MongoDB: ${error}`);
@@ -85,7 +92,7 @@ const getUsers = {
 			}
 		} else {
 			dBInstance = dBInstance || (await getDBInstance(dbType));
-			const keys = Object.keys(args);
+
 			let whereClause = getLimitCond(dbType, 10);
 			if (keys.length) {
 				whereClause =

@@ -15,7 +15,6 @@ const {
 	compiledTemplate,
 	handleGraphql,
 } = require('./middlewares');
-const webpackConfig = require('../webpack-configs/webpack.config');
 const { constructReqDataObject, generateBuildTime } = require('./helper');
 const { appBuildDev, pathTemplate, pathRootDir } = require('./paths');
 
