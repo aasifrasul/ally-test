@@ -7,11 +7,13 @@ const {
 	GraphQLBoolean,
 } = require('graphql');
 
+const { Product } = require('../models');
+
 const { getLimitCond, getDBInstance } = require('./helper');
 const { logger } = require('../Logger');
 
 let dBInstance;
-const dbType = 'postgresql';
+const dbType = 'mongodb';
 
 const ProductType = new GraphQLObjectType({
 	name: 'Products',
@@ -28,11 +30,23 @@ const getProduct = {
 		id: { type: GraphQLID },
 	},
 	resolve: async (parent, args) => {
-		dBInstance = dBInstance || (await getDBInstance(dbType));
-		const whereClause = args.id ? `WHERE id = ${args.id}` : getLimitCond(dbType, 1);
-		const query = `SELECT id, "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
-		const rows = await dBInstance.executeQuery(query);
-		return rows[0];
+		const { id } = args;
+
+		if (dbType === 'mongodb') {
+			try {
+				const product = await Product.findById(id);
+				return product;
+			} catch (error) {
+				logger.error(`Failed to create product in MongoDB: ${error}`);
+				return false;
+			}
+		} else {
+			dBInstance = dBInstance || (await getDBInstance(dbType));
+			const whereClause = id ? `WHERE id = ${id}` : getLimitCond(dbType, 1);
+			const query = `SELECT id, "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
+			const rows = await dBInstance.executeQuery(query);
+			return rows[0];
+		}
 	},
 };
 
@@ -43,16 +57,26 @@ const getProducts = {
 		name: { type: GraphQLString },
 		category: { type: GraphQLString },
 	},
-	resolve: async (parent, args) => {
-		dBInstance = dBInstance || (await getDBInstance(dbType));
-		const keys = Object.keys(args);
-		let whereClause = getLimitCond(dbType, 10);
-		if (keys.length) {
-			whereClause =
-				'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
+	resolve: async (parent, args = {}) => {
+		if (dbType === 'mongodb') {
+			try {
+				const products = await Product.find(args);
+				return products;
+			} catch (error) {
+				logger.error(`Failed to create product in MongoDB: ${error}`);
+				return false;
+			}
+		} else {
+			dBInstance = dBInstance || (await getDBInstance(dbType));
+			const keys = Object.keys(args);
+			let whereClause = getLimitCond(dbType, 10);
+			if (keys.length) {
+				whereClause =
+					'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
+			}
+			const query = `SELECT id, "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
+			return await dBInstance.executeQuery(query);
 		}
-		const query = `SELECT id, "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
-		return await dBInstance.executeQuery(query);
 	},
 };
 
@@ -63,15 +87,27 @@ const createProduct = {
 		category: { type: new GraphQLNonNull(GraphQLString) },
 	},
 	resolve: async (parent, args) => {
-		dBInstance = dBInstance || (await getDBInstance(dbType));
-		try {
-			const { name, category } = args;
-			const query = `INSERT INTO TEST_PRODUCTS ("name", "category") VALUES ('${name}', '${category}')`;
-			const result = await dBInstance.executeQuery(query);
-			logger.info(result);
-			return true;
-		} catch (error) {
-			logger.error(`Failed to create product ${error}`);
+		const { name, category } = args;
+
+		if (dbType === 'mongodb') {
+			try {
+				await new Product({ name, category }).save();
+				return true;
+			} catch (error) {
+				logger.error(`Failed to create product in MongoDB: ${error}`);
+				return false;
+			}
+		} else {
+			dBInstance = dBInstance || (await getDBInstance(dbType));
+
+			try {
+				const query = `INSERT INTO TEST_PRODUCTS ("name", "category") VALUES ('${name}', '${category}')`;
+				const result = await dBInstance.executeQuery(query);
+				logger.info(result);
+				return true;
+			} catch (error) {
+				logger.error(`Failed to create product ${error}`);
+			}
 		}
 	},
 };
@@ -84,15 +120,26 @@ const updateProduct = {
 		category: { type: GraphQLString },
 	},
 	resolve: async (parent, args) => {
-		dBInstance = dBInstance || (await getDBInstance(dbType));
-		try {
-			const { id, name, category } = args;
-			const query = `UPDATE TEST_PRODUCTS SET "name" = '${name}', "category" = '${category}' WHERE id = ${id}`;
-			const result = await dBInstance.executeQuery(query);
-			logger.info(result);
-			return true;
-		} catch (error) {
-			logger.error(`Failed to update product ${error}`);
+		const { id, name, category } = args;
+
+		if (dbType === 'mongodb') {
+			try {
+				await Product.findByIdAndUpdate(id, { name, category }, { new: true });
+				return true;
+			} catch (error) {
+				logger.error(`Failed to create product in MongoDB: ${error}`);
+				return false;
+			}
+		} else {
+			dBInstance = dBInstance || (await getDBInstance(dbType));
+			try {
+				const query = `UPDATE TEST_PRODUCTS SET "name" = '${name}', "category" = '${category}' WHERE id = ${id}`;
+				const result = await dBInstance.executeQuery(query);
+				logger.info(result);
+				return true;
+			} catch (error) {
+				logger.error(`Failed to update product ${error}`);
+			}
 		}
 	},
 };
@@ -103,14 +150,26 @@ const deleteProduct = {
 		id: { type: new GraphQLNonNull(GraphQLID) },
 	},
 	resolve: async (parent, args) => {
-		dBInstance = dBInstance || (await getDBInstance(dbType));
-		try {
-			const query = `DELETE FROM TEST_PRODUCTS WHERE id = ${args.id}`;
-			const result = await dBInstance.executeQuery(query);
-			logger.info(result);
-			return true;
-		} catch (error) {
-			logger.error(`Failed to DELETE product with id ${args.id} ${error}`);
+		const { id } = args;
+
+		if (dbType === 'mongodb') {
+			try {
+				await Product.findByIdAndDelete(id, { new: true });
+				return true;
+			} catch (error) {
+				logger.error(`Failed to create product in MongoDB: ${error}`);
+				return false;
+			}
+		} else {
+			dBInstance = dBInstance || (await getDBInstance(dbType));
+			try {
+				const query = `DELETE FROM TEST_PRODUCTS WHERE id = ${id}`;
+				const result = await dBInstance.executeQuery(query);
+				logger.info(result);
+				return true;
+			} catch (error) {
+				logger.error(`Failed to DELETE product with id ${id} ${error}`);
+			}
 		}
 	},
 };
@@ -141,7 +200,7 @@ module.exports = { getProduct, getProducts, createProduct, updateProduct, delete
  * {
  "query": "mutation UpdateProduct($id: ID!, $name: String, $category: String) { updateProduct(id: $id, name: $name, category: $category) }",
  "variables": {
-   id: "1",
+   "id": "1",
    "name": "John",
    "category": "Doe"
  }
@@ -152,7 +211,7 @@ module.exports = { getProduct, getProducts, createProduct, updateProduct, delete
  * {
  "query": "mutation deleteProduct($id: ID!) { deleteProduct(id: $id) }",
  "variables": {
-   id: "2"
+   "id": "2"
  }
 }
  * 
