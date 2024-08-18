@@ -16,46 +16,36 @@ let redisClient;
 })();
 
 async function cacheData(key, value) {
-	await new Promise((resolve, reject) => {
-		redisClient.set(key, JSON.stringify(value), 'EX', 3600, (err, data) => {
-			if (err) {
-				logger.error(`Failed to cache data: ${err}`);
-				reject(err);
-			} else {
-				logger.info(`Data cached successfully for key: ${key}`);
-				resolve(data);
-			}
-		});
-	});
+	try {
+		await redisClient.set(key, JSON.stringify(value), 'EX', 3600);
+		logger.info(`Data cached successfully for key: ${key}`);
+		return true;
+	} catch (err) {
+		logger.error(`Failed to cache data: ${err}`);
+		return false;
+	}
 }
 
 async function getCachedData(key) {
-	await new Promise((resolve, reject) => {
-		logger.info(`Inside Promise for key: ${key}`);
-		redisClient.get(key, (err, data) => {
-			logger.info(`Data  fetched successfully for key: ${key} ${data}`);
-			if (err) {
-				logger.error(`Failed to get cached data: ${err}`);
-				reject(err);
-			} else {
-				logger.info(`Data retrieved successfully for key: ${key}`);
-				resolve(data ? JSON.parse(data) : null);
-			}
-		});
-	});
+	try {
+		const data = await redisClient.get(key);
+		logger.info(`Data  fetched successfully for key: ${key} ${data}`);
+		return data ? JSON.parse(data) : null;
+	} catch (err) {
+		logger.error(`Failed to get cached data: ${err}`);
+		return null;
+	}
 }
 
 async function deleteCachedData(key) {
-	await new Promise((resolve, reject) => {
-		redisClient.del(key, (err, response) => {
-			if (err) {
-				logger.error(`\nFailed to delete cached data: ${err}\n`);
-				reject(err);
-			} else {
-				resolve(response);
-			}
-		});
-	});
+	try {
+		await redisClient.del(key);
+		logger.info(`Data deleted successfully for key: ${key}`);
+		return true;
+	} catch (err) {
+		logger.error(`Failed to delete cached data: ${err}`);
+		return false;
+	}
 }
 
 // Example function to enqueue a task

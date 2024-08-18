@@ -7,6 +7,8 @@ const {
 	GraphQLBoolean,
 } = require('graphql');
 
+const { getCachedData, cacheData, deleteCachedData } = require('../dbClients/redis');
+
 const { Product } = require('../models');
 
 const { getLimitCond, getDBInstance } = require('./helper');
@@ -32,9 +34,16 @@ const getProduct = {
 	resolve: async (parent, args) => {
 		const { id } = args;
 
+		let product = await getCachedData(id);
+
+		if (product) {
+			return product;
+		}
+
 		if (dbType === 'mongodb') {
 			try {
-				const product = await Product.findById(id);
+				product = await Product.findById(id);
+				cacheData(id, product);
 				return product;
 			} catch (error) {
 				logger.error(`Failed to create product in MongoDB: ${error}`);
@@ -91,7 +100,8 @@ const createProduct = {
 
 		if (dbType === 'mongodb') {
 			try {
-				await new Product({ name, category }).save();
+				const product = await new Product({ name, category }).save();
+				cacheData(product.id, product);
 				return true;
 			} catch (error) {
 				logger.error(`Failed to create product in MongoDB: ${error}`);
@@ -124,7 +134,12 @@ const updateProduct = {
 
 		if (dbType === 'mongodb') {
 			try {
-				await Product.findByIdAndUpdate(id, { name, category }, { new: true });
+				const product = await Product.findByIdAndUpdate(
+					id,
+					{ name, category },
+					{ new: true },
+				);
+				cacheData(id, product);
 				return true;
 			} catch (error) {
 				logger.error(`Failed to create product in MongoDB: ${error}`);
@@ -155,6 +170,7 @@ const deleteProduct = {
 		if (dbType === 'mongodb') {
 			try {
 				await Product.findByIdAndDelete(id, { new: true });
+				deleteCachedData(id);
 				return true;
 			} catch (error) {
 				logger.error(`Failed to create product in MongoDB: ${error}`);
@@ -183,7 +199,7 @@ module.exports = { getProduct, getProducts, createProduct, updateProduct, delete
  "query": "mutation createProduct($name: String!, $category: String!) { createProduct(name: $name, category: $category) }",
  "variables": {
    "name": "ABC",
-   "category": "XYZ",
+   "category": "XYZ"
  }
 }
  * 
