@@ -9,26 +9,13 @@ const {
 } = require('graphql');
 
 const { User } = require('../models');
+const { cacheData, getCachedData, deleteCachedData } = require('../dbClients/redis');
 
 const { getLimitCond, getDBInstance } = require('./helper');
 const { logger } = require('../Logger');
 
 let dBInstance;
 const dbType = 'mongodb';
-
-const createUserMG = async (firstName, lastName, age) => {
-	const newUser = new User({ firstName, lastName, age });
-	await newUser.save();
-};
-
-const fetchUserMG = async (id) => {
-	return await User.findById(id);
-};
-
-const fetchUsersMG = async () => {
-	// return await User.find({}).lean().exec();
-	return await User.find({});
-};
 
 const UserType = new GraphQLObjectType({
 	name: 'Users',
@@ -48,9 +35,16 @@ const getUser = {
 	resolve: async (parent, args) => {
 		const { id } = args;
 
+		let result = await getCachedData(id);
+
+		if (result) {
+			return result;
+		}
+
 		if (dbType === 'mongodb') {
 			try {
-				const user = await fetchUserMG(id);
+				const user = await User.findById(id);
+				cacheData(id, user);
 				return user;
 			} catch (error) {
 				logger.error(`Failed to create user in MongoDB: ${error}`);
@@ -116,7 +110,9 @@ const createUser = {
 
 		if (dbType === 'mongodb') {
 			try {
-				await createUserMG(firstName, lastName, age);
+				const user = new User({ firstName, lastName, age });
+				await user.save();
+				cacheData(user.id, user);
 				return true;
 			} catch (error) {
 				logger.error(`Failed to create user in MongoDB: ${error}`);
@@ -155,7 +151,12 @@ const updateUser = {
 
 		if (dbType === 'mongodb') {
 			try {
-				await User.findByIdAndUpdate(id, { firstName, lastName, age }, { new: true });
+				const user = await User.findByIdAndUpdate(
+					id,
+					{ firstName, lastName, age },
+					{ new: true },
+				);
+				cacheData(id, user);
 				return true;
 			} catch (error) {
 				logger.error(`Failed to create user in MongoDB: ${error}`);
@@ -185,6 +186,7 @@ const deleteUser = {
 		if (dbType === 'mongodb') {
 			try {
 				await User.findByIdAndDelete(id, { new: true });
+				deleteCachedData(id);
 				return true;
 			} catch (error) {
 				logger.error(`Failed to create user in MongoDB: ${error}`);
