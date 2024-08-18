@@ -84,6 +84,7 @@
 		"react-query": "3.39.3",
 		"react-redux": "8.0.5",
 		"react-router-dom": "6.10.0",
+		"redis": "^4.7.0",
 		"regenerator-runtime": "0.13.11",
 		"semantic-ui-react": "2.1.4",
 		"serve-static": "1.15.0",
