@@ -24,10 +24,16 @@ process.on('SIGINT', async (err) => {
 //Start the server
 const server = http.createServer(app);
 
-server.on('connection', (socket) =>
+/**
+ * 
+ * server.on('connection', (socket) =>
 	socket.on('close', () => logger.info('server.connection')),
 );
+
 server.on('request', () => logger.info('server.request'));
+
+ */
+
 server.listen(port, host, () => logger.info(`node server listening on port ${port}`));
 
 const io = socketio(server);

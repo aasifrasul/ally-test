@@ -7,15 +7,15 @@ const {
 	GraphQLBoolean,
 } = require('graphql');
 
-const { getCachedData, cacheData, deleteCachedData } = require('../dbClients/redis');
+const { getCachedData, cacheData, deleteCachedData } = require('../cachingClients/redis');
 
 const { Product } = require('../models');
 
 const { getLimitCond, getDBInstance } = require('./helper');
+const { currentDB } = require('../constants').dbLayer;
 const { logger } = require('../Logger');
 
 let dBInstance;
-const dbType = 'mongodb';
 
 const ProductType = new GraphQLObjectType({
 	name: 'Products',
@@ -40,7 +40,7 @@ const getProduct = {
 			return product;
 		}
 
-		if (dbType === 'mongodb') {
+		if (currentDB === 'mongodb') {
 			try {
 				product = await Product.findById(id);
 				cacheData(id, product);
@@ -50,8 +50,8 @@ const getProduct = {
 				return false;
 			}
 		} else {
-			dBInstance = dBInstance || (await getDBInstance(dbType));
-			const whereClause = id ? `WHERE id = ${id}` : getLimitCond(dbType, 1);
+			dBInstance = dBInstance || (await getDBInstance(currentDB));
+			const whereClause = id ? `WHERE id = ${id}` : getLimitCond(currentDB, 1);
 			const query = `SELECT id, "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
 			const rows = await dBInstance.executeQuery(query);
 			return rows[0];
@@ -67,7 +67,7 @@ const getProducts = {
 		category: { type: GraphQLString },
 	},
 	resolve: async (parent, args = {}) => {
-		if (dbType === 'mongodb') {
+		if (currentDB === 'mongodb') {
 			try {
 				const products = await Product.find(args);
 				return products;
@@ -76,9 +76,9 @@ const getProducts = {
 				return false;
 			}
 		} else {
-			dBInstance = dBInstance || (await getDBInstance(dbType));
+			dBInstance = dBInstance || (await getDBInstance(currentDB));
 			const keys = Object.keys(args);
-			let whereClause = getLimitCond(dbType, 10);
+			let whereClause = getLimitCond(currentDB, 10);
 			if (keys.length) {
 				whereClause =
 					'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
@@ -98,7 +98,7 @@ const createProduct = {
 	resolve: async (parent, args) => {
 		const { name, category } = args;
 
-		if (dbType === 'mongodb') {
+		if (currentDB === 'mongodb') {
 			try {
 				const product = await new Product({ name, category }).save();
 				cacheData(product.id, product);
@@ -108,7 +108,7 @@ const createProduct = {
 				return false;
 			}
 		} else {
-			dBInstance = dBInstance || (await getDBInstance(dbType));
+			dBInstance = dBInstance || (await getDBInstance(currentDB));
 
 			try {
 				const query = `INSERT INTO TEST_PRODUCTS ("name", "category") VALUES ('${name}', '${category}')`;
@@ -132,7 +132,7 @@ const updateProduct = {
 	resolve: async (parent, args) => {
 		const { id, name, category } = args;
 
-		if (dbType === 'mongodb') {
+		if (currentDB === 'mongodb') {
 			try {
 				const product = await Product.findByIdAndUpdate(
 					id,
@@ -146,7 +146,7 @@ const updateProduct = {
 				return false;
 			}
 		} else {
-			dBInstance = dBInstance || (await getDBInstance(dbType));
+			dBInstance = dBInstance || (await getDBInstance(currentDB));
 			try {
 				const query = `UPDATE TEST_PRODUCTS SET "name" = '${name}', "category" = '${category}' WHERE id = ${id}`;
 				const result = await dBInstance.executeQuery(query);
@@ -167,7 +167,7 @@ const deleteProduct = {
 	resolve: async (parent, args) => {
 		const { id } = args;
 
-		if (dbType === 'mongodb') {
+		if (currentDB === 'mongodb') {
 			try {
 				await Product.findByIdAndDelete(id, { new: true });
 				deleteCachedData(id);
@@ -177,7 +177,7 @@ const deleteProduct = {
 				return false;
 			}
 		} else {
-			dBInstance = dBInstance || (await getDBInstance(dbType));
+			dBInstance = dBInstance || (await getDBInstance(currentDB));
 			try {
 				const query = `DELETE FROM TEST_PRODUCTS WHERE id = ${id}`;
 				const result = await dBInstance.executeQuery(query);

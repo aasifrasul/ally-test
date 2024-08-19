@@ -9,13 +9,13 @@ const {
 } = require('graphql');
 
 const { User } = require('../models');
-const { cacheData, getCachedData, deleteCachedData } = require('../dbClients/redis');
+const { cacheData, getCachedData, deleteCachedData } = require('../cachingClients/redis');
 
 const { getLimitCond, getDBInstance } = require('./helper');
+const { currentDB } = require('../constants').dbLayer;
 const { logger } = require('../Logger');
 
 let dBInstance;
-const dbType = 'mongodb';
 
 const UserType = new GraphQLObjectType({
 	name: 'Users',
@@ -41,7 +41,7 @@ const getUser = {
 			return result;
 		}
 
-		if (dbType === 'mongodb') {
+		if (currentDB === 'mongodb') {
 			try {
 				const user = await User.findById(id);
 				cacheData(id, user);
@@ -51,8 +51,8 @@ const getUser = {
 				return false;
 			}
 		} else {
-			dBInstance = dBInstance || (await getDBInstance(dbType));
-			const whereClause = id ? `WHERE id = ${id}` : getLimitCond(dbType, 1);
+			dBInstance = dBInstance || (await getDBInstance(currentDB));
+			const whereClause = id ? `WHERE id = ${id}` : getLimitCond(currentDB, 1);
 			const query = `SELECT id, "firstName", "lastName", age FROM TEST_USERS ${whereClause}`;
 			const rows = await dBInstance.executeQuery(query);
 			return rows[0];
@@ -71,7 +71,7 @@ const getUsers = {
 	resolve: async (parent, args = {}) => {
 		const keys = Object.keys(args);
 
-		if (dbType === 'mongodb') {
+		if (currentDB === 'mongodb') {
 			try {
 				const params = keys.reduce((acc, key) => {
 					acc[key] = { $regex: new RegExp(`\\d*${args[key]}\\d*`) };
@@ -85,9 +85,9 @@ const getUsers = {
 				return false;
 			}
 		} else {
-			dBInstance = dBInstance || (await getDBInstance(dbType));
+			dBInstance = dBInstance || (await getDBInstance(currentDB));
 
-			let whereClause = getLimitCond(dbType, 10);
+			let whereClause = getLimitCond(currentDB, 10);
 			if (keys.length) {
 				whereClause =
 					'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
@@ -108,7 +108,7 @@ const createUser = {
 	resolve: async (parent, args, { pubsub }) => {
 		const { firstName, lastName, age } = args;
 
-		if (dbType === 'mongodb') {
+		if (currentDB === 'mongodb') {
 			try {
 				const user = new User({ firstName, lastName, age });
 				await user.save();
@@ -119,7 +119,7 @@ const createUser = {
 				return false;
 			}
 		} else {
-			dBInstance = dBInstance || (await getDBInstance(dbType));
+			dBInstance = dBInstance || (await getDBInstance(currentDB));
 
 			try {
 				const query = `INSERT INTO TEST_USERS ("firstName", "lastName", age) VALUES ('${firstName}', '${lastName}', ${age})`;
@@ -149,7 +149,7 @@ const updateUser = {
 	resolve: async (parent, args) => {
 		const { id, firstName, lastName, age } = args;
 
-		if (dbType === 'mongodb') {
+		if (currentDB === 'mongodb') {
 			try {
 				const user = await User.findByIdAndUpdate(
 					id,
@@ -163,7 +163,7 @@ const updateUser = {
 				return false;
 			}
 		} else {
-			dBInstance = dBInstance || (await getDBInstance(dbType));
+			dBInstance = dBInstance || (await getDBInstance(currentDB));
 			try {
 				const query = `UPDATE TEST_USERS SET "firstName" = '${firstName}', "lastName" = '${lastName}', age = ${age} WHERE id = ${id}`;
 				const result = await dBInstance.executeQuery(query);
@@ -183,7 +183,7 @@ const deleteUser = {
 	resolve: async (parent, args) => {
 		const { id } = args;
 
-		if (dbType === 'mongodb') {
+		if (currentDB === 'mongodb') {
 			try {
 				await User.findByIdAndDelete(id, { new: true });
 				deleteCachedData(id);
@@ -193,7 +193,7 @@ const deleteUser = {
 				return false;
 			}
 		} else {
-			dBInstance = dBInstance || (await getDBInstance(dbType));
+			dBInstance = dBInstance || (await getDBInstance(currentDB));
 			try {
 				const query = `DELETE FROM TEST_USERS WHERE id = ${id}`;
 				const result = await dBInstance.executeQuery(query);
