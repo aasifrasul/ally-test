@@ -1,232 +1,265 @@
 import {
+	arraySize,
+	isEmptyString,
+	isEmptyArray,
+	isEmptyObject,
 	isArray,
+	isAsyncfunction,
+	isBoolean,
 	isEmpty,
+	isMap,
+	isSet,
+	isGeneratorFunction,
+	isPromise,
+	isDate,
+	isSymbol,
+	isRegExp,
+	isNull,
 	isFunction,
 	isNumber,
 	isObject,
 	isString,
+	isUndefined,
 	safelyExecuteFunction,
 	safeExecute,
 } from '../typeChecking';
 
-describe('isNumber', () => {
-	test('returns true for number type', () => {
-		expect(isNumber(5)).toBe(true);
+describe('Type checking functions', () => {
+	test('isArray', () => {
+		expect(isArray([])).toBe(true);
+		expect(isArray({})).toBe(false);
 	});
 
-	test('returns false for non-number type', () => {
-		expect(isNumber('hello')).toBe(false);
-	});
-});
-
-describe('isString', () => {
-	test('returns true for string type', () => {
-		expect(isString('test')).toBe(true);
+	test('isObject', () => {
+		expect(isObject({})).toBe(true);
+		expect(isObject([])).toBe(false);
 	});
 
-	test('returns false for non-string type', () => {
-		expect(isString(123)).toBe(false);
-	});
-});
-
-describe('isArray', () => {
-	test('returns true for array type', () => {
-		expect(isArray([1, 2, 3])).toBe(true);
+	test('isNull', () => {
+		expect(isNull(null)).toBe(true);
+		expect(isNull(undefined)).toBe(false);
 	});
 
-	test('returns false for non-array type', () => {
-		expect(isArray('not array')).toBe(false);
-	});
-});
-
-describe('isObject', () => {
-	test('returns true for object type', () => {
-		expect(isObject({ a: 1 })).toBe(true);
+	test('isUndefined', () => {
+		expect(isUndefined(undefined)).toBe(true);
+		expect(isUndefined(null)).toBe(false);
 	});
 
-	test('returns false for non-object type', () => {
-		expect(isObject(null)).toBe(false);
+	test('isNumber', () => {
+		expect(isNumber(42)).toBe(true);
+		expect(isNumber('42')).toBe(false);
 	});
-});
 
-describe('isFunction', () => {
-	test('returns true for function type', () => {
+	test('isString', () => {
+		expect(isString('hello')).toBe(true);
+		expect(isString(42)).toBe(false);
+	});
+
+	test('isBoolean', () => {
+		expect(isBoolean(true)).toBe(true);
+		expect(isBoolean('true')).toBe(false);
+	});
+
+	test('isMap', () => {
+		expect(isMap(new Map())).toBe(true);
+		expect(isMap({})).toBe(false);
+	});
+
+	test('isSet', () => {
+		expect(isSet(new Set())).toBe(true);
+		expect(isSet([])).toBe(false);
+	});
+
+	test('isFunction', () => {
 		expect(isFunction(() => {})).toBe(true);
+		expect(isFunction({})).toBe(false);
 	});
 
-	test('returns false for non-function type', () => {
-		expect(isFunction(123)).toBe(false);
+	test('isAsyncfunction', () => {
+		const asyncArrowFunc = async () => {};
+		const asyncNamedFunc = async function namedAsync() {};
+		const regularFunc = () => {};
+		const promiseReturningFunc = () => Promise.resolve();
+
+		expect(isAsyncfunction(asyncArrowFunc)).toBe(true);
+		expect(isAsyncfunction(asyncNamedFunc)).toBe(true);
+		expect(isAsyncfunction(regularFunc)).toBe(false);
+		expect(isAsyncfunction(promiseReturningFunc)).toBe(true);
+		expect(isAsyncfunction(function () {})).toBe(false);
+		expect(isAsyncfunction({})).toBe(false);
+		expect(isAsyncfunction(null)).toBe(false);
+	});
+
+	test('isGeneratorFunction', () => {
+		function* generatorFunc() {
+			yield 1;
+		}
+		const arrowFunc = () => {};
+		const regularFunc = function () {};
+
+		expect(isGeneratorFunction(generatorFunc)).toBe(true);
+		expect(isGeneratorFunction(function* () {})).toBe(true);
+		expect(isGeneratorFunction(arrowFunc)).toBe(false);
+		expect(isGeneratorFunction(regularFunc)).toBe(false);
+		expect(isGeneratorFunction({})).toBe(false);
+		expect(isGeneratorFunction(null)).toBe(false);
+	});
+
+	test('isPromise', () => {
+		expect(isPromise(Promise.resolve())).toBe(true);
+		expect(isPromise({})).toBe(false);
+	});
+
+	test('isDate', () => {
+		expect(isDate(new Date())).toBe(true);
+		expect(isDate('2023-05-17')).toBe(false);
+	});
+
+	test('isSymbol', () => {
+		expect(isSymbol(Symbol('test'))).toBe(true);
+		expect(isSymbol('symbol')).toBe(false);
+	});
+
+	test('isRegExp', () => {
+		expect(isRegExp(/test/)).toBe(true);
+		expect(isRegExp('test')).toBe(false);
 	});
 });
 
-describe('isEmpty', () => {
-	test('returns true for empty array', () => {
-		expect(isEmpty([])).toBe(true);
+describe('Utility functions', () => {
+	test('arraySize', () => {
+		expect(arraySize([1, 2, 3])).toBe(3);
+		expect(arraySize({})).toBe(null);
 	});
 
-	test('returns false for non-empty array', () => {
-		expect(isEmpty([1])).toBe(false);
+	test('isEmptyString', () => {
+		expect(isEmptyString('')).toBe(true);
+		expect(isEmptyString('hello')).toBe(false);
+		expect(isEmptyString(42)).toBe(false);
 	});
 
-	test('returns true for empty object', () => {
-		expect(isEmpty({})).toBe(true);
+	test('isEmptyArray', () => {
+		expect(isEmptyArray([])).toBe(true);
+		expect(isEmptyArray([1, 2, 3])).toBe(false);
+		expect(isEmptyArray({})).toBe(false);
 	});
 
-	test('returns false for non-empty object', () => {
-		expect(isEmpty({ a: 1 })).toBe(false);
+	test('isEmptyObject', () => {
+		expect(isEmptyObject({})).toBe(true);
+		expect(isEmptyObject({ a: 1 })).toBe(false);
+		expect(isEmptyObject([])).toBe(false);
 	});
 
-	test('returns true for empty string', () => {
-		expect(isEmpty('')).toBe(true);
-	});
-
-	test('returns false for non-empty string', () => {
-		expect(isEmpty('test')).toBe(false);
-	});
-
-	test('returns true for null', () => {
-		expect(isEmpty(null)).toBe(true);
-	});
-
-	test('returns true for undefined', () => {
+	test('isEmpty', () => {
 		expect(isEmpty(undefined)).toBe(true);
+		expect(isEmpty(null)).toBe(true);
+		expect(isEmpty('')).toBe(true);
+		expect(isEmpty([])).toBe(true);
+		expect(isEmpty({})).toBe(true);
+		expect(isEmpty('hello')).toBe(false);
+		expect(isEmpty([1, 2, 3])).toBe(false);
+		expect(isEmpty({ a: 1 })).toBe(false);
 	});
 });
 
 describe('safelyExecuteFunction', () => {
-	test('safely executes function without error', () => {
-		const func = jest.fn();
-		safelyExecuteFunction(func);
-		expect(func).toHaveBeenCalled();
+	test('executes function with no context', () => {
+		const testFunc = (a, b) => a + b;
+		expect(safelyExecuteFunction(testFunc, null, 1, 2)).toBe(3);
 	});
 
-	test('safely executes function and returns correct value', () => {
-		const func = jest.fn(() => 'result');
-		const result = safelyExecuteFunction(func);
-		expect(func).toHaveBeenCalled();
-		expect(result).toBe('result');
+	test('executes function with context', () => {
+		const context = { multiplier: 2 };
+		const testFunc = function (a, b) {
+			return (a + b) * this.multiplier;
+		};
+		expect(safelyExecuteFunction(testFunc, context, 1, 2)).toBe(6);
 	});
 
-	test('safely executes function with arguments', () => {
-		const func = jest.fn().mockImplementation((a, b) => a + b);
-		const result = safelyExecuteFunction(func, null, 1, 2);
-		expect(func).toHaveBeenCalledWith(1, 2);
-		expect(result).toBe(3);
+	test('returns undefined for non-function input', () => {
+		console.log = jest.fn();
+		expect(safelyExecuteFunction(null, null)).toBeUndefined();
+		expect(console.log).toHaveBeenCalledWith('Please pass a valid function!');
 	});
 
-	test('safely executes function with no arguments', () => {
-		const func = jest.fn();
-		const result = safelyExecuteFunction(func);
-		expect(func).toHaveBeenCalled();
-		expect(result).toBeUndefined();
-	});
-
-	test('safely executes async function and returns resolved value', async () => {
-		const func = jest.fn(async () => 'async result');
-		const result = await safelyExecuteFunction(func);
-		expect(func).toHaveBeenCalled();
-		expect(result).toBe('async result');
-	});
-
-	test('safely executes function with multiple arguments and correct context', () => {
-		const context = { value: 10 };
-		const func = jest.fn(function (a, b) {
-			return this.value + a + b;
-		});
-		const result = safelyExecuteFunction(func, context, 1, 2);
-		expect(func).toHaveBeenCalledWith(1, 2);
-		expect(result).toBe(13);
-	});
-
-	test('safely executes function with undefined context', () => {
-		const func = jest.fn(function () {
-			return this;
-		});
-		const result = safelyExecuteFunction(func);
-		expect(func).toHaveBeenCalled();
-		expect(result).toBeUndefined();
-	});
-
-	test('safely executes function and maintains correct binding', () => {
-		const context = { value: 20 };
-		function testFunc(a) {
-			return this.value + a;
-		}
-		const boundFunc = testFunc.bind(context);
-		const result = safelyExecuteFunction(boundFunc, null, 5);
-		expect(result).toBe(25);
-	});
-
-	test('safely executes function with array arguments', () => {
-		const func = jest.fn((...args) => args);
-		const result = safelyExecuteFunction(func, null, 1, 2, 3);
-		expect(func).toHaveBeenCalledWith(1, 2, 3);
-		expect(result).toEqual([1, 2, 3]);
+	test('handles functions with no return value', () => {
+		const testFunc = jest.fn();
+		expect(safelyExecuteFunction(testFunc, null)).toBeUndefined();
+		expect(testFunc).toHaveBeenCalled();
 	});
 });
 
 describe('safeExecute', () => {
-	test('handles synchronous operations successfully', (done) => {
-		const callback = () => {
-			return 'Synchronous success';
-		};
-
-		safeExecute(callback)
-			.then((result) => {
-				expect(result).toBe('Synchronous success');
-				done();
-			})
-			.catch((error) => {
-				done(error);
-			});
+	test('executes synchronous function and returns promise', async () => {
+		const testFunc = (a, b) => a + b;
+		await expect(safeExecute(testFunc, 1, 2)).resolves.toBe(3);
 	});
 
-	test('handles asynchronous operations successfully', (done) => {
-		const callback = () => {
-			return new Promise((resolve, reject) => {
-				setTimeout(() => {
-					resolve('Asynchronous success');
-				}, 100);
-			});
-		};
-
-		safeExecute(callback)
-			.then((result) => {
-				expect(result).toBe('Asynchronous success');
-				done();
-			})
-			.catch((error) => {
-				done(error);
-			});
+	test('executes asynchronous function and returns promise', async () => {
+		const testFunc = async (a, b) => a + b;
+		await expect(safeExecute(testFunc, 1, 2)).resolves.toBe(3);
 	});
 
-	test('correctly handles errors in synchronous operations', (done) => {
-		const callback = () => {
-			throw new Error('Sync error');
-		};
-
-		safeExecute(callback)
-			.then(() => {
-				done.fail(new Error('Expected an error to be caught'));
-			})
-			.catch((error) => {
-				expect(error.message).toBe('Sync error');
-				done();
-			});
+	test('handles function that returns a promise', async () => {
+		const testFunc = () => Promise.resolve('test');
+		await expect(safeExecute(testFunc)).resolves.toBe('test');
 	});
 
-	test('correctly handles errors in asynchronous operations', (done) => {
-		const callback = () => {
-			return Promise.reject(new Error('Async error'));
+	test('handles function with no return value', async () => {
+		const testFunc = jest.fn();
+		await expect(safeExecute(testFunc)).resolves.toBeUndefined();
+		expect(testFunc).toHaveBeenCalled();
+	});
+
+	test('rejects with error for throwing synchronous function', async () => {
+		const testFunc = () => {
+			throw new Error('Test error');
+		};
+		await expect(safeExecute(testFunc)).rejects.toThrow('Test error');
+	});
+
+	test('rejects with error for rejecting asynchronous function', async () => {
+		const originalConsoleError = console.error;
+		console.error = jest.fn();
+
+		const testFunc = async () => {
+			throw new Error('Async error');
+		};
+		await expect(safeExecute(testFunc)).rejects.toThrow('Async error');
+
+		expect(console.error).toHaveBeenCalledWith('An error occurred:', expect.any(Error));
+
+		console.error = originalConsoleError;
+	});
+
+	test('logs error to console when function throws', async () => {
+		// Mock console.error
+		const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+		const testFunc = () => {
+			throw new Error('Console log test');
 		};
 
-		safeExecute(callback)
-			.then(() => {
-				done.fail(new Error('Expected an error to be caught'));
-			})
-			.catch((error) => {
-				expect(error.message).toBe('Async error');
-				done();
-			});
+		try {
+			await safeExecute(testFunc);
+		} catch (e) {
+			// Expected to throw, so we catch it to prevent the test from failing
+		}
+
+		// Verify console.error was called with the expected message
+		expect(consoleErrorMock).toHaveBeenCalledWith('An error occurred:', expect.any(Error));
+
+		// Restore the original console.error
+		consoleErrorMock.mockRestore();
+	});
+
+	test('handles non-function input', async () => {
+		const originalConsoleWarn = console.warn;
+		console.warn = jest.fn();
+
+		await expect(safeExecute(null)).resolves.toBeNull();
+		expect(console.warn).toHaveBeenCalledWith('Please pass a valid function!');
+
+		console.warn = originalConsoleWarn;
 	});
 });

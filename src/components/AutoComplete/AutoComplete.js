@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 
 import InputText from '../Common/InputText';
-import { debounce } from '../../utils/throttleAndDebounce';
 
 import useOutsideClick from '../../hooks/useOutsideClick';
 
@@ -9,37 +8,33 @@ import { constants } from '../../constants';
 import styles from './styles.css';
 
 const AutoComplete = (props) => {
-	const [activeSuggestion, setActiveSuggestion] = React.useState(0);
-	const [filteredSuggestions, setFilteredSuggestions] = React.useState([]);
-	const [showNoMatch, setShowNoMatch] = React.useState(false);
-	const [suggestionsHtml, setSuggestionsHtml] = React.useState('');
-	const [inputValue, setInputValue] = React.useState(''); // Added state to track input value
-	const displayRef = React.useRef(null);
+	const [activeSuggestion, setActiveSuggestion] = useState(0);
+	const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+	const [showNoMatch, setShowNoMatch] = useState(false);
+	const [inputValue, setInputValue] = useState('');
+	const displayRef = useRef(null);
 	const clickedOutside = useOutsideClick(displayRef);
+	const suggestionsHtmlRef = useRef('');
 
 	const reset = () => {
 		setActiveSuggestion(0);
 		setFilteredSuggestions([]);
 		setShowNoMatch(false);
-		setSuggestionsHtml('');
+		suggestionsHtmlRef.current = '';
 		setInputValue('');
 	};
 
-	const onChange = (searchedText) => {
-		setInputValue(searchedText);
+	const onChange = (searchText) => {
+		setInputValue(searchText);
 		setActiveSuggestion(0);
 
-		if (searchedText) {
+		if (searchText) {
+			const lowerCasedSearchText = searchText.toLowerCase();
 			const matchedSuggestions = props.suggestions.filter(
-				(suggestion) =>
-					suggestion.toLowerCase().indexOf(searchedText.toLowerCase()) > -1,
+				(suggestion) => suggestion.toLowerCase().indexOf(lowerCasedSearchText) > -1,
 			);
 			setFilteredSuggestions(matchedSuggestions);
-			if (matchedSuggestions.length === 0) {
-				setShowNoMatch(true);
-			} else {
-				setShowNoMatch(false);
-			}
+			setShowNoMatch(!matchedSuggestions.length);
 		} else {
 			setFilteredSuggestions([]);
 			setShowNoMatch(false);
@@ -49,7 +44,13 @@ const AutoComplete = (props) => {
 	const onSuggestionClick = (e) => {
 		setActiveSuggestion(0);
 		setFilteredSuggestions([]);
-		setInputValue(e.target.innerText); // Update input value to the clicked suggestion
+		const newValue = e.target.innerText;
+		setInputValue(newValue);
+		suggestionsHtmlRef.current = (
+			<div className={styles['selected']}>
+				<b>{newValue}</b>
+			</div>
+		);
 	};
 
 	const onKeyDown = (e) => {
@@ -69,13 +70,11 @@ const AutoComplete = (props) => {
 		}
 	};
 
-	const debouncedOnChange = debounce(onChange, constants?.autoComplete?.debounceDelay);
-
 	if (filteredSuggestions.length) {
 		if (clickedOutside) {
 			reset();
 		} else {
-			setSuggestionsHtml(
+			suggestionsHtmlRef.current = (
 				<ul className={styles.suggestions} ref={displayRef}>
 					{filteredSuggestions.map((suggestion, index) => {
 						let className;
@@ -94,15 +93,15 @@ const AutoComplete = (props) => {
 							</li>
 						);
 					})}
-				</ul>,
+				</ul>
 			);
 		}
 	}
 	if (showNoMatch) {
-		setSuggestionsHtml(
+		suggestionsHtmlRef.current = (
 			<div className={styles['no-suggestions']}>
 				<em>No suggestions available.</em>
-			</div>,
+			</div>
 		);
 	}
 
@@ -114,11 +113,12 @@ const AutoComplete = (props) => {
 			<div>Search Item:</div>
 			<InputText
 				id="autoCompleteInput"
-				value={inputValue}
-				callback={debouncedOnChange}
+				initialValue={inputValue}
+				onChange={onChange}
 				onKeyDown={onKeyDown}
+				debounceDelay={constants?.autoComplete?.debounceDelay}
 			/>
-			{suggestionsHtml}
+			{suggestionsHtmlRef.current}
 		</>
 	);
 };

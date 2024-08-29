@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import { isFunction, isArray, safelyExecuteFunction } from '../utils/typeChecking';
 
@@ -6,11 +6,15 @@ export default function useFormField(id, initialValue, validate = null, callback
 	const [value, setValue] = useState(initialValue);
 	const [error, setError] = useState('');
 
-	const handleChange = (e) => {
+	useEffect(() => {
+		setValue(initialValue);
+	}, [initialValue]);
+
+	const onChange = (e) => {
 		e.preventDefault();
 		const newValue = e.target.value;
 
-		setValue(() => newValue);
+		setValue(newValue);
 
 		let errors = '';
 
@@ -38,5 +42,5 @@ export default function useFormField(id, initialValue, validate = null, callback
 		setError('');
 	}, [initialValue]);
 
-	return { value, onChange: handleChange, reset, error };
+	return { value, onChange, reset, error, setValue };
 }
