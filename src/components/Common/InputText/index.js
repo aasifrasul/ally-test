@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import useFormField from '../../../hooks/useFormField';
 
-import { debounce } from '../../../utils/common';
+import { useDebouncedCallback } from '../../../hooks/useDebouncedCallback/useDebouncedCallback';
 
 const InputText = ({
 	id,
@@ -10,20 +10,39 @@ const InputText = ({
 	initialValue,
 	validate,
 	placeholder = '',
-	callback,
 	debounceDelay = 250,
+	disabled = false,
+	onChange,
+	inputTextRef,
 }) => {
-	const { value, onChange, reset, error } = useFormField(
+	const {
+		value,
+		onChange: internalOnChange,
+		reset,
+		error,
+		setValue,
+	} = useFormField(
 		id,
-		initialValue,
+		initialValue || inputTextRef?.current,
 		validate,
-		debounceDelay ? debounce(callback, debounceDelay) : callback,
+		debounceDelay ? useDebouncedCallback(onChange, debounceDelay) : onChange,
 	);
 
-	// Reset the field value when the initialValue changes
-	React.useEffect(() => {
-		return () => reset();
-	}, [reset]);
+	useEffect(() => {
+		setValue(initialValue);
+	}, [initialValue]);
+
+	// Create a new handler that calls both the internal and external onChange
+	const handleChange = (e) => {
+		internalOnChange(e);
+		if (onChange) {
+			onChange(e.target.value);
+		}
+
+		if (inputTextRef) {
+			inputTextRef.current = e.target.value;
+		}
+	};
 
 	return (
 		<div>
@@ -34,9 +53,10 @@ const InputText = ({
 				name={name}
 				value={value}
 				placeholder={placeholder}
-				onChange={onChange}
+				onChange={handleChange}
+				disabled={disabled}
 			/>
-			{error && <div className="error">{error}</div>}
+			{error ? <div className="error">{error}</div> : null}
 		</div>
 	);
 };

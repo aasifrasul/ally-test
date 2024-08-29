@@ -12,8 +12,10 @@ const { getCachedData, cacheData, deleteCachedData } = require('../cachingClient
 const { Product } = require('../models');
 
 const { getLimitCond, getDBInstance } = require('./helper');
-const { currentDB } = require('../constants').dbLayer;
+const { constants } = require('../constants');
 const { logger } = require('../Logger');
+
+const currentDB = constants?.dbLayer?.currentDB;
 
 let dBInstance;
 

@@ -9,7 +9,7 @@ const config = {
 		//'<rootDir>/enzyme.setup.js',
 		`<rootDir>/jest-shim.js`,
 	],
-	transformIgnorePatterns: ['node_modules/(?!variables/.*)'],
+	transformIgnorePatterns: ['node_modules/*', 'dist/*', 'build/*', 'public/*'],
 	transform: {
 		'^.+\\.(ts|tsx)$': 'ts-jest',
 		'^.+\\.jsx?$': 'babel-jest',

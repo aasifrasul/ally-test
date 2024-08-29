@@ -1,72 +1,86 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
-import InputText from '.';
+import { render, fireEvent, act } from '@testing-library/react';
+import InputText from './';
+
+const mockData = {
+	value: '',
+	onChange: jest.fn(),
+	reset: jest.fn(),
+	error: '',
+	setValue: jest.fn(),
+};
+
+jest.mock('../../../hooks/useFormField', () => {
+	return jest.fn(() => mockData);
+});
+
+const useFormField = require('../../../hooks/useFormField');
+
+jest.mock('../../../hooks/useDebouncedCallback/useDebouncedCallback', () => ({
+	useDebouncedCallback: (callback) => callback,
+}));
 
 describe('InputText', () => {
-	it('renders without errors', () => {
-		const inputTextRef = { current: '' };
-		render(<InputText label="Test" name="test" inputTextRef={inputTextRef} />);
-		// No error should occur during rendering
+	it('renders without crashing', () => {
+		const { getByTestId } = render(<InputText id="test-input" />);
+		expect(getByTestId('test-input')).toBeInTheDocument();
 	});
 
-	it('sets initial value correctly', () => {
-		const inputTextRef = { current: 'initial value' };
-		const { getByLabelText } = render(
-			<InputText label="Test" name="test" inputTextRef={inputTextRef} />,
-		);
+	it('displays the initial value', () => {
+		useFormField.mockImplementation(() => ({
+			...mockData,
+			value: 'initial value',
+		}));
 
-		const inputElement = getByLabelText('Test');
-		expect(inputElement.value).toBe('initial value');
+		const { getByTestId } = render(
+			<InputText id="test-input" initialValue="initial value" />,
+		);
+		expect(getByTestId('test-input')).toHaveValue('initial value');
 	});
 
-	it('updates the value on input change', () => {
+	it('calls onChange when input changes', () => {
+		const mockOnChange = jest.fn();
+		const { getByTestId } = render(<InputText id="test-input" onChange={mockOnChange} />);
+		fireEvent.change(getByTestId('test-input'), { target: { value: 'new value' } });
+		expect(mockOnChange).toHaveBeenCalledWith('new value');
+	});
+
+	it('displays error message when present', () => {
+		useFormField.mockImplementation(() => ({
+			...mockData,
+
+			error: 'Error message',
+		}));
+
+		const { getByText } = render(<InputText id="test-input" />);
+		expect(getByText('Error message')).toBeInTheDocument();
+	});
+
+	it('disables input when disabled prop is true', () => {
+		const { getByTestId } = render(<InputText id="test-input" disabled={true} />);
+		expect(getByTestId('test-input')).toBeDisabled();
+	});
+
+	it('updates inputTextRef when value changes', () => {
 		const inputTextRef = { current: '' };
-		const { getByLabelText } = render(
-			<InputText label="Test" name="test" inputTextRef={inputTextRef} />,
+		const { getByTestId } = render(
+			<InputText id="test-input" inputTextRef={inputTextRef} />,
 		);
-
-		const inputElement = getByLabelText('Test');
-		fireEvent.change(inputElement, { target: { value: 'new value' } });
-
-		expect(inputElement.value).toBe('new value');
+		fireEvent.change(getByTestId('test-input'), { target: { value: 'new value' } });
 		expect(inputTextRef.current).toBe('new value');
 	});
 
-	it('calls onChangeCallback function when input value changes', () => {
-		const inputTextRef = { current: '' };
-		const onChangeCallback = jest.fn();
-		const { getByLabelText } = render(
-			<InputText
-				label="Test"
-				name="test"
-				onChangeCallback={onChangeCallback}
-				inputTextRef={inputTextRef}
-			/>,
-		);
+	it('updates value when initialValue changes', () => {
+		let setValueMock = jest.fn();
+		useFormField.mockImplementation(() => ({
+			...mockData,
+			setValue: setValueMock,
+		}));
 
-		const inputElement = getByLabelText('Test');
-		fireEvent.change(inputElement, { target: { value: 'new value' } });
+		const { rerender } = render(<InputText id="test-input" initialValue="initial" />);
+		expect(setValueMock).toHaveBeenCalledWith('initial');
 
-		expect(onChangeCallback).toHaveBeenCalledTimes(1);
-		expect(onChangeCallback).toHaveBeenCalledWith('new value');
-	});
-
-	it('calls onKeyDown function when a key is pressed', () => {
-		const inputTextRef = { current: '' };
-		const onKeyDown = jest.fn();
-		const { getByLabelText } = render(
-			<InputText
-				label="Test"
-				name="test"
-				onKeyDown={onKeyDown}
-				inputTextRef={inputTextRef}
-			/>,
-		);
-
-		const inputElement = getByLabelText('Test');
-		fireEvent.keyDown(inputElement, { key: 'Enter', keyCode: 13 });
-
-		expect(onKeyDown).toHaveBeenCalledTimes(1);
-		expect(onKeyDown).toHaveBeenCalledWith(expect.anything());
+		rerender(<InputText id="test-input" initialValue="updated" />);
+		expect(setValueMock).toHaveBeenCalledWith('updated');
 	});
 });

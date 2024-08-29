@@ -1,67 +1,98 @@
 import React from 'react';
-import { render, fireEvent, screen, waitFor } from '@testing-library/react';
-//import userEvent from '@testing-library/user-event';
+import { render, fireEvent, screen, act } from '@testing-library/react';
 import AutoComplete from './AutoComplete';
-import { constants } from '../../constants';
 
-AutoComplete.props = {};
-AutoComplete.props.suggestions = constants?.autoComplete?.initialFeed;
+// Mock the custom hooks
+jest.mock('../../hooks/useDebouncedCallback/useDebouncedCallback', () => ({
+	useDebouncedCallback: (callback) => callback,
+}));
 
-describe('AutoComplete', () => {
-	let getByText;
-	beforeEach(() => {
-		getByText = render(<AutoComplete />).getByText;
+jest.mock('../../hooks/useOutsideClick', () => ({
+	__esModule: true,
+	default: () => false,
+}));
+
+const mockSuggestions = ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry'];
+
+const renderComponent = () => render(<AutoComplete suggestions={mockSuggestions} />);
+
+describe('AutoComplete component', () => {
+	test('renders without crashing', () => {
+		const { getByText, getByTestId } = renderComponent();
+		expect(getByText('Search Item:')).toBeInTheDocument();
 	});
 
-	test('renders AutoComplete component', () => {
-		getByText('Search Item:');
+	test('displays suggestions when typing', async () => {
+		const { getByText, getByTestId } = renderComponent();
+		const input = getByTestId('autoCompleteInput');
+
+		await act(async () => {
+			fireEvent.change(input, { target: { value: 'a' } });
+		});
+
+		expect(getByText('Apple')).toBeInTheDocument();
+		expect(getByText('Banana')).toBeInTheDocument();
 	});
 
-	test('displays suggestions on input focus', async () => {
-		const { getAllByTestId } = render(<AutoComplete />);
-		const input = getAllByTestId('autoCompleteInput')[0];
-		fireEvent.focus(input);
+	test('displays "No suggestions available" when no matches found', async () => {
+		const { getByText, getByTestId } = renderComponent();
+		const input = getByTestId('autoCompleteInput');
 
-		// Assuming suggestions are loaded asynchronously, wait for them to appear
-		const suggestionItem = await screen.findByText(constants.autoComplete.initialFeed[0]);
-		expect(suggestionItem).toBeInTheDocument();
+		await act(async () => {
+			fireEvent.change(input, { target: { value: 'z' } });
+		});
+
+		expect(getByText('No suggestions available.')).toBeInTheDocument();
 	});
 
-	test('filters suggestions based on user input', async () => {
-		const { getByTestId } = render(<AutoComplete />);
+	test('updates input value when suggestion is clicked', () => {
+		const { getByText, getByRole } = renderComponent();
 
-		// Wait for the input to become available
-		const input = await waitFor(() => getByTestId('autoCompleteInput'));
+		const input = getByRole('textbox');
 
-		// Now proceed with simulating user input
-		userEvent.type(input, 'Kiwi');
+		// Simulate typing into the input
+		fireEvent.change(input, { target: { value: 'a' } });
+		expect(input.value).toBe('a');
 
-		// Check if the filtered suggestion is displayed
-		const expectedSuggestion = constants.autoComplete.initialFeed.find((suggestion) =>
-			suggestion.includes('Kiwi'),
-		);
-		expect(await screen.findByText(expectedSuggestion)).toBeInTheDocument();
+		// Simulate clicking the suggestion
+		fireEvent.click(getByText('Apple'));
+
+		// Check that the input value is updated
+		expect(input.value).toBe('Apple');
 	});
 
-	test('clears suggestions on input blur', async () => {
-		const { queryByTestId } = render(<AutoComplete />);
-		const input = queryByTestId('autoCompleteInput');
+	test('navigates through suggestions with arrow keys', async () => {
+		const { getByText, getByTestId } = renderComponent();
+		const input = getByTestId('autoCompleteInput');
 
-		if (input) {
-			fireEvent.focus(input);
+		await act(async () => {
+			fireEvent.change(input, { target: { value: 'a' } });
+		});
 
-			// Simulate blurring the input
-			fireEvent.blur(input);
+		fireEvent.keyDown(input, { keyCode: 40 }); // Arrow down
+		expect(getByText('Apple')).toHaveClass('suggestion-active');
 
-			// Assuming suggestions are cleared on blur, check if they are no longer visible
-			const suggestionItem = screen.queryByText(constants.autoComplete.initialFeed[0]);
-			expect(suggestionItem).not.toBeInTheDocument();
-		} else {
-			throw new Error('Input not found');
-		}
+		fireEvent.keyDown(input, { keyCode: 40 }); // Arrow down
+		expect(getByText('Banana')).toHaveClass('suggestion-active');
+
+		fireEvent.keyDown(input, { keyCode: 38 }); // Arrow up
+		expect(getByText('Apple')).toHaveClass('suggestion-active');
 	});
 
-	afterEach(() => {
-		jest.clearAllMocks();
+	test('resets the component when reset button is clicked', async () => {
+		const { getByText, getByTestId, queryByText } = renderComponent();
+		const input = getByTestId('autoCompleteInput');
+		const resetButton = getByText('Reset');
+
+		await act(async () => {
+			fireEvent.change(input, { target: { value: 'a' } });
+		});
+
+		expect(getByText('Apple')).toBeInTheDocument();
+
+		fireEvent.click(resetButton);
+
+		expect(input.value).toBe('');
+		expect(queryByText('Apple')).not.toBeInTheDocument();
 	});
 });

@@ -58,7 +58,7 @@ const Todos = (props) => {
 			<form onSubmit={handleSubmit}>
 				<InputText
 					label="Search Item:"
-					defaultValue={searchRef.current}
+					initialValue={searchRef.current}
 					inputTextRef={searchRef}
 				/>
 				<CombinedRefCheckbox
