@@ -1,12 +1,4 @@
-const {
-	GraphQLObjectType,
-	GraphQLString,
-	GraphQLInt,
-	GraphQLID,
-	GraphQLList,
-	GraphQLNonNull,
-	GraphQLBoolean,
-} = require('graphql');
+const { PubSub } = require('graphql-subscriptions');
 
 const { User } = require('../models');
 const { cacheData, getCachedData, deleteCachedData } = require('../cachingClients/redis');
@@ -15,206 +7,158 @@ const { getLimitCond, getDBInstance } = require('./helper');
 const { constants } = require('../constants');
 const { logger } = require('../Logger');
 
+const pubsub = new PubSub();
+
 const currentDB = constants?.dbLayer?.currentDB;
 
 let dBInstance;
 
-const UserType = new GraphQLObjectType({
-	name: 'Users',
-	fields: () => ({
-		id: { type: GraphQLID },
-		firstName: { type: GraphQLString },
-		lastName: { type: GraphQLString },
-		age: { type: GraphQLInt },
-	}),
-});
+const getUser = async (parent, args) => {
+	const { id } = args;
 
-const getUser = {
-	type: UserType,
-	args: {
-		id: { type: GraphQLID },
-	},
-	resolve: async (parent, args) => {
-		const { id } = args;
+	let result = await getCachedData(id);
 
-		let result = await getCachedData(id);
+	if (result) {
+		return result;
+	}
 
-		if (result) {
-			return result;
+	if (currentDB === 'mongodb') {
+		try {
+			const user = await User.findById(id);
+			cacheData(id, user);
+			return user;
+		} catch (error) {
+			logger.error(`Failed to create user in MongoDB: ${error}`);
+			return false;
 		}
-
-		if (currentDB === 'mongodb') {
-			try {
-				const user = await User.findById(id);
-				cacheData(id, user);
-				return user;
-			} catch (error) {
-				logger.error(`Failed to create user in MongoDB: ${error}`);
-				return false;
-			}
-		} else {
-			dBInstance = dBInstance || (await getDBInstance(currentDB));
-			const whereClause = id ? `WHERE id = ${id}` : getLimitCond(currentDB, 1);
-			const query = `SELECT id, "firstName", "lastName", age FROM TEST_USERS ${whereClause}`;
-			const rows = await dBInstance.executeQuery(query);
-			return rows[0];
-		}
-	},
+	} else {
+		dBInstance = dBInstance || (await getDBInstance(currentDB));
+		const whereClause = id ? `WHERE id = ${id}` : getLimitCond(currentDB, 1);
+		const query = `SELECT id, "firstName", "lastName", age FROM TEST_USERS ${whereClause}`;
+		const rows = await dBInstance.executeQuery(query);
+		return rows[0];
+	}
 };
 
-const getUsers = {
-	type: new GraphQLList(UserType),
-	args: {
-		id: { type: GraphQLID },
-		firstName: { type: GraphQLString },
-		lastName: { type: GraphQLString },
-		age: { type: GraphQLInt },
-	},
-	resolve: async (parent, args = {}) => {
-		const keys = Object.keys(args);
+const getUsers = async (parent, args = {}) => {
+	const keys = Object.keys(args);
 
-		if (currentDB === 'mongodb') {
-			try {
-				const params = keys.reduce((acc, key) => {
-					acc[key] = { $regex: new RegExp(`\\d*${args[key]}\\d*`) };
-					return acc;
-				}, {});
+	if (currentDB === 'mongodb') {
+		try {
+			const params = keys.reduce((acc, key) => {
+				acc[key] = { $regex: new RegExp(`\\d*${args[key]}\\d*`) };
+				return acc;
+			}, {});
 
-				const users = await User.find(params);
-				return users;
-			} catch (error) {
-				logger.error(`Failed to create user in MongoDB: ${error}`);
-				return false;
-			}
-		} else {
-			dBInstance = dBInstance || (await getDBInstance(currentDB));
-
-			let whereClause = getLimitCond(currentDB, 10);
-			if (keys.length) {
-				whereClause =
-					'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
-			}
-			const query = `SELECT id, "firstName", "lastName", "age" FROM TEST_USERS ${whereClause}`;
-			return await dBInstance.executeQuery(query);
+			const users = await User.find(params);
+			return users;
+		} catch (error) {
+			logger.error(`Failed to create user in MongoDB: ${error}`);
+			return false;
 		}
-	},
+	} else {
+		dBInstance = dBInstance || (await getDBInstance(currentDB));
+
+		let whereClause = getLimitCond(currentDB, 10);
+		if (keys.length) {
+			whereClause =
+				'WHERE ' + keys.map((key) => `"${key}" = '${args[key]}'`).join(' AND ');
+		}
+		const query = `SELECT id, "firstName", "lastName", "age" FROM TEST_USERS ${whereClause}`;
+		return await dBInstance.executeQuery(query);
+	}
 };
 
-const createUser = {
-	type: new GraphQLNonNull(GraphQLBoolean),
-	args: {
-		firstName: { type: new GraphQLNonNull(GraphQLString) },
-		lastName: { type: new GraphQLNonNull(GraphQLString) },
-		age: { type: new GraphQLNonNull(GraphQLInt) },
-	},
-	resolve: async (parent, args, { pubsub }) => {
-		const { firstName, lastName, age } = args;
+const createUser = async (parent, args) => {
+	const { firstName, lastName, age } = args;
 
-		if (currentDB === 'mongodb') {
-			try {
-				const user = new User({ firstName, lastName, age });
-				await user.save();
-				cacheData(user.id, user);
-				return true;
-			} catch (error) {
-				logger.error(`Failed to create user in MongoDB: ${error}`);
-				return false;
-			}
-		} else {
-			dBInstance = dBInstance || (await getDBInstance(currentDB));
+	if (currentDB === 'mongodb') {
+		try {
+			const user = new User({ firstName, lastName, age });
+			await user.save();
 
-			try {
-				const query = `INSERT INTO TEST_USERS ("firstName", "lastName", age) VALUES ('${firstName}', '${lastName}', ${age})`;
-				const result = await dBInstance.executeQuery(query);
+			// Publish the event
+			pubsub.publish('USER_CREATED', { userCreated: user });
 
-				// Publish the event
-				pubsub.publish('userCreated', { result });
-
-				logger.info(result);
-				return true;
-			} catch (error) {
-				logger.error(`Failed to create user ${error}`);
-				return false;
-			}
+			cacheData(user.id, user);
+			return true;
+		} catch (error) {
+			logger.error(`Failed to create user in MongoDB: ${error}`);
+			return false;
 		}
-	},
+	} else {
+		dBInstance = dBInstance || (await getDBInstance(currentDB));
+
+		try {
+			const query = `INSERT INTO TEST_USERS ("firstName", "lastName", age) VALUES ('${firstName}', '${lastName}', ${age})`;
+			const result = await dBInstance.executeQuery(query);
+
+			// Publish the event
+			pubsub.publish('USER_CREATED', { userCreated: result });
+
+			logger.info(result);
+			return true;
+		} catch (error) {
+			logger.error(`Failed to create user ${error}`);
+			return false;
+		}
+	}
 };
 
-const updateUser = {
-	type: new GraphQLNonNull(GraphQLBoolean),
-	args: {
-		id: { type: new GraphQLNonNull(GraphQLID) },
-		firstName: { type: GraphQLString },
-		lastName: { type: GraphQLString },
-		age: { type: GraphQLInt },
-	},
-	resolve: async (parent, args) => {
-		const { id, firstName, lastName, age } = args;
+const updateUser = async (parent, args) => {
+	const { id, firstName, lastName, age } = args;
 
-		if (currentDB === 'mongodb') {
-			try {
-				const user = await User.findByIdAndUpdate(
-					id,
-					{ firstName, lastName, age },
-					{ new: true },
-				);
-				cacheData(id, user);
-				return true;
-			} catch (error) {
-				logger.error(`Failed to create user in MongoDB: ${error}`);
-				return false;
-			}
-		} else {
-			dBInstance = dBInstance || (await getDBInstance(currentDB));
-			try {
-				const query = `UPDATE TEST_USERS SET "firstName" = '${firstName}', "lastName" = '${lastName}', age = ${age} WHERE id = ${id}`;
-				const result = await dBInstance.executeQuery(query);
-				return true;
-			} catch (error) {
-				logger.error(`Failed to update user ${error}`);
-			}
+	if (currentDB === 'mongodb') {
+		try {
+			const user = await User.findByIdAndUpdate(
+				id,
+				{ firstName, lastName, age },
+				{ new: true },
+			);
+			cacheData(id, user);
+			return true;
+		} catch (error) {
+			logger.error(`Failed to create user in MongoDB: ${error}`);
+			return false;
 		}
-	},
+	} else {
+		dBInstance = dBInstance || (await getDBInstance(currentDB));
+		try {
+			const query = `UPDATE TEST_USERS SET "firstName" = '${firstName}', "lastName" = '${lastName}', age = ${age} WHERE id = ${id}`;
+			const result = await dBInstance.executeQuery(query);
+			return true;
+		} catch (error) {
+			logger.error(`Failed to update user ${error}`);
+		}
+	}
 };
 
-const deleteUser = {
-	type: new GraphQLNonNull(GraphQLBoolean),
-	args: {
-		id: { type: new GraphQLNonNull(GraphQLID) },
-	},
-	resolve: async (parent, args) => {
-		const { id } = args;
+const deleteUser = async (parent, args) => {
+	const { id } = args;
 
-		if (currentDB === 'mongodb') {
-			try {
-				await User.findByIdAndDelete(id, { new: true });
-				deleteCachedData(id);
-				return true;
-			} catch (error) {
-				logger.error(`Failed to create user in MongoDB: ${error}`);
-				return false;
-			}
-		} else {
-			dBInstance = dBInstance || (await getDBInstance(currentDB));
-			try {
-				const query = `DELETE FROM TEST_USERS WHERE id = ${id}`;
-				const result = await dBInstance.executeQuery(query);
-				return true;
-			} catch (error) {
-				logger.error(`Failed to DELETE user with id ${id} ${error}`);
-			}
+	if (currentDB === 'mongodb') {
+		try {
+			await User.findByIdAndDelete(id, { new: true });
+			deleteCachedData(id);
+			return true;
+		} catch (error) {
+			logger.error(`Failed to create user in MongoDB: ${error}`);
+			return false;
 		}
-	},
+	} else {
+		dBInstance = dBInstance || (await getDBInstance(currentDB));
+		try {
+			const query = `DELETE FROM TEST_USERS WHERE id = ${id}`;
+			const result = await dBInstance.executeQuery(query);
+			return true;
+		} catch (error) {
+			logger.error(`Failed to DELETE user with id ${id} ${error}`);
+		}
+	}
 };
 
 const userCreated = {
-	type: GraphQLString, // Adjust the return type as needed
-	args: {
-		firstName: { type: new GraphQLNonNull(GraphQLString) },
-		lastName: { type: new GraphQLNonNull(GraphQLString) },
-		age: { type: new GraphQLNonNull(GraphQLInt) },
-	}, // Add any necessary arguments
-	resolve: (payload, args, { pubsub }) => pubsub.asyncIterator('userCreated'),
+	subscribe: () => pubsub.asyncIterator(['USER_CREATED']),
 };
 
 // Example resolver for userCreated subscription
@@ -247,7 +191,7 @@ module.exports = { getUser, getUsers, createUser, updateUser, deleteUser, userCr
  * 
  * 
  * {
- "query": "mutation UpdateUser($id: ID!, $firstName: String, $lastName: String, $age: Int) { updateUser(id: $id, firstName: $firstName, lastName: $lastName, age: $age) }",
+ "query": "mutation updateUser($id: ID!, $firstName: String!, $lastName: String!, $age: Int!) { updateUser(id: $id, firstName: $firstName, lastName: $lastName, age: $age) }",
  "variables": {
    "id": "1",
    "firstName": "John",
