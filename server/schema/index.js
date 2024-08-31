@@ -1,12 +1,7 @@
-const {
-	GraphQLObjectType,
-	GraphQLSchema,
-	GraphQLString,
-	GraphQLInt,
-	GraphQLFloat,
-	GraphQLList,
-	GraphQLNonNull,
-} = require('graphql');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
+const { validateSchema } = require('graphql');
+
+const { typeDefs } = require('./typeDefs');
 
 const {
 	getUser,
@@ -24,35 +19,14 @@ const {
 	deleteProduct,
 } = require('./products');
 
-const rootValue = {
-	quoteOfTheDay: {
-		type: GraphQLString,
-		resolve: () => (Math.random() < 0.5 ? 'Take it easy' : 'Salvation lies within'),
-	},
-	random: {
-		type: GraphQLFloat,
-		resolve: () => Math.random(),
-	},
-	rollThreeDice: {
-		type: new GraphQLList(new GraphQLNonNull(GraphQLInt)),
-		resolve: () => [1, 2, 3].map((_) => 1 + Math.floor(Math.random() * 6)),
-	},
-};
-
-const RootQuery = new GraphQLObjectType({
-	name: 'RootQueryType',
-	fields: {
+const resolvers = {
+	Query: {
 		getUser,
 		getUsers,
 		getProduct,
 		getProducts,
-		...rootValue,
 	},
-});
-
-const Mutation = new GraphQLObjectType({
-	name: 'Mutation',
-	fields: {
+	Mutation: {
 		createUser,
 		updateUser,
 		deleteUser,
@@ -60,49 +34,22 @@ const Mutation = new GraphQLObjectType({
 		updateProduct,
 		deleteProduct,
 	},
-});
-
-const Subscription = new GraphQLObjectType({
-	name: 'Subscription',
-	fields: {
+	Subscription: {
 		userCreated,
 	},
-});
-
-/*
-const Subscription = new GraphQLObjectType({
-	name: 'Subscription',
-	fields: {
-		messageAdded: {
-			type: GraphQLString,
-			subscribe: () => pubsub.asyncIterator([MESSAGE_ADDED_TOPIC]),
-			resolve: (payload) => {
-				return payload;
-			},
-		},
-	},
-});
-*/
-
-/*
-// Example of publishing an event when a user is created
-createUser.resolve = async (parent, args, context, info) => {
-	// Create the user
-	const newUser = await createUser(args);
-
-	// Publish the event
-	pubsub.publish('userCreated', { newUser });
-
-	return newUser;
 };
-*/
 
-const schema = new GraphQLSchema({
-	query: RootQuery,
-	mutation: Mutation,
-	subscription: Subscription,
-});
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+function validateGraphqlSchema() {
+	const errors = validateSchema(schema);
+
+	if (errors.length > 0) {
+		logger.error('Schema validation errors:', errors);
+	}
+}
 
 module.exports = {
 	schema,
+	validateGraphqlSchema,
 };

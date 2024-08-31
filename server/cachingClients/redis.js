@@ -4,6 +4,7 @@ const { constants } = require('../constants');
 const { logger } = require('../Logger');
 
 let client;
+let connected = false;
 
 const { MAX_RETRIES, RETRY_DELAY } = constants.cachingLayer.redisConfig;
 
@@ -37,12 +38,18 @@ async function connectWithRetry(retries = 0) {
 (async () => {
 	try {
 		await connectWithRetry();
+		connected = true;
 	} catch (err) {
 		logger.error(`Failed to connect to Redis: ${err.message}`);
 	}
 })();
 
 async function cacheData(key, value) {
+	if (!connected) {
+		logger.error('Redis client not connected');
+		return false;
+	}
+
 	try {
 		await client.set(key, JSON.stringify(value), 'EX', 3600);
 		logger.info(`Data cached successfully for key: ${key}`);
@@ -54,6 +61,11 @@ async function cacheData(key, value) {
 }
 
 async function getCachedData(key) {
+	if (!connected) {
+		logger.error('Redis client not connected');
+		return false;
+	}
+
 	try {
 		const data = await client.get(key);
 		logger.info(`Data fetched successfully for key: ${key} ${data}`);
@@ -65,6 +77,11 @@ async function getCachedData(key) {
 }
 
 async function deleteCachedData(key) {
+	if (!connected) {
+		logger.error('Redis client not connected');
+		return false;
+	}
+
 	try {
 		await client.del(key);
 		logger.info(`Data deleted successfully for key: ${key}`);

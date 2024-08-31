@@ -2,30 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { useSubscription, gql } from '@apollo/client';
 
 const USER_CREATED_SUBSCRIPTION = gql`
-	subscription UserCreated {
+	subscription {
 		userCreated {
 			id
-			name
-			email
+			firstName
+			lastName
+			age
 		}
 	}
 `;
 
 function GraphqlSubscription() {
-	const [data, setData] = useState(null);
+	const { data, loading } = useSubscription(USER_CREATED_SUBSCRIPTION);
 
-	useEffect(() => {
-		const unsubscribe = useSubscription(USER_CREATED_SUBSCRIPTION).subscribe({
-			next: ({ data }) => setData(data),
-			error: (err) => console.error(err),
-			complete: () => console.log('Done!'),
-		});
+	if (loading) return <p>Listening for new messages...</p>;
 
-		// Cleanup subscription on unmount
-		return () => unsubscribe();
-	}, []);
-
-	return <div>Listening for user creation... {data}</div>;
+	return <p>New message: {JSON.stringify(data.userCreated)}</p>;
 }
 
 export default GraphqlSubscription;
