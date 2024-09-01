@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
 import GridData from '../Common/GridData/GridData';
 import OSStatistics from '../Common/OSStatistics/OSStatistics';

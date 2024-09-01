@@ -4,10 +4,13 @@ const { execute, subscribe } = require('graphql');
 
 const { schema } = require('./schema');
 
+const { logger } = require('./Logger');
+
+let wsServer = null;
 let wsServerCleanup = null;
 
 const connectWSServer = (httpServer) => {
-	const wsServer = new WebSocketServer({
+	wsServer = new WebSocketServer({
 		server: httpServer,
 		path: '/graphql',
 	});
@@ -22,10 +25,22 @@ const connectWSServer = (httpServer) => {
 	);
 };
 
-const disconnectWSServer = async () => {
-	logger.info('Disposing WebSocket server...');
+async function disconnectWSServer() {
 	await wsServerCleanup.dispose();
-	logger.info('WebSocket server disposed.');
-};
+
+	if (wsServer) {
+		logger.info('Closing WebSocket server...');
+		await new Promise((resolve, reject) => {
+			wsServer.close((err) => {
+				if (err) {
+					logger.error('Error closing WebSocket server:', err);
+					return reject(err);
+				}
+				logger.info('WebSocket server closed.');
+				resolve();
+			});
+		});
+	}
+}
 
 module.exports = { connectWSServer, disconnectWSServer };
