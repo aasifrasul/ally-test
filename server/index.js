@@ -1,56 +1,41 @@
 #!/usr/bin/env node
 
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
-const socketio = require('socket.io');
+
 const http = require('http');
-const { WebSocketServer } = require('ws');
-const { useServer } = require('graphql-ws/lib/use/ws');
-const { execute, subscribe } = require('graphql');
+
+const { connectToMongoDB, disconnectFromMongoDB } = require('./dbClients/mongodb');
+const { connectToIOServer, disconnectIOServer } = require('./socketConnection');
+const { connectWSServer, disconnectWSServer } = require('./webSocketConnection');
 
 const { app } = require('./app');
-const { onConnection } = require('./socketConnection');
-
-const { schema, validateGraphqlSchema } = require('./schema');
 
 const { logger } = require('./Logger');
 const GenericDBConnection = require('./dbClients/GenericDBConnection');
 const { NODE_PORT: port, NODE_HOST: host } = process.env;
 
-validateGraphqlSchema(schema);
+(async () => {
+	await connectToMongoDB();
+})();
 
-//Start the server
-const server = http.createServer(app);
+//Start the httpServer
+const httpServer = http.createServer(app);
 
-// Set up WebSocket server for subscriptions
-const wsServer = new WebSocketServer({
-	server,
-	path: '/graphql',
-});
+connectWSServer(httpServer);
 
-const serverCleanup = useServer(
-	{
-		schema,
-		execute,
-		subscribe,
-	},
-	wsServer,
-);
+connectToIOServer(httpServer);
 
 /**
  * 
- * server.on('connection', (socket) =>
-	socket.on('close', () => logger.info('server.connection')),
+ * httpServer.on('connection', (socket) =>
+	socket.on('close', () => logger.info('httpServer.connection')),
 );
 
-server.on('request', () => logger.info('server.request'));
+httpServer.on('request', () => logger.info('httpServer.request'));
 
  */
 
-server.listen(port, host, () => logger.info(`node server listening on port ${port}`));
-
-const io = socketio(server);
-
-io.on('connection', onConnection);
+httpServer.listen(port, host, () => logger.info(`node httpServer listening on port ${port}`));
 
 let isExitCalled = false;
 
@@ -58,24 +43,53 @@ process.on('unhandledRejection', (e) => logger.error(`unhandledRejection: ${e.st
 
 process.on('uncaughtException', (e) => logger.error(`uncaughtException: ${e.stack}`));
 
-// Graceful shutdown
-process.on('SIGINT', () => {
-	wsServerCleanup.dispose();
+// Handle SIGINT (Ctrl+C)
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-	httpServer.close(() => {
-		console.log('Server closed');
-		process.exit(0);
-	});
-});
+// Handle SIGTERM (kill command)
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
-process.once('exit', async () => {
+process.once('exit', () => {
 	if (isExitCalled) {
 		return;
 	}
 
-	await wsServerCleanup.dispose();
-
 	isExitCalled = true;
 
-	process.exit(0);
+	// Perform synchronous cleanup operations here
+	logger.info('Performing final synchronous cleanup');
+	// Note: You can't use async operations here
 });
+
+async function gracefulShutdown(signal) {
+	logger.info(`Received ${signal}. Starting graceful shutdown...`);
+
+	const shutdownTimeout = setTimeout(() => {
+		logger.error('Could not close connections in time, forcefully shutting down');
+		process.exit(1);
+	}, 15000); // Force shutdown after 15 seconds
+
+	try {
+		disconnectIOServer();
+
+		await disconnectWSServer();
+
+		// Close MongoDB connection
+		disconnectFromMongoDB();
+
+		// Close HTTP server
+		logger.info('Closing HTTP server...');
+		await new Promise((resolve) => {
+			httpServer.close(resolve);
+		});
+		logger.info('HTTP server closed.');
+
+		clearTimeout(shutdownTimeout);
+		logger.info('Graceful shutdown completed.');
+		process.exit(0);
+	} catch (error) {
+		logger.error('Error during shutdown:', error);
+		clearTimeout(shutdownTimeout);
+		process.exit(1);
+	}
+}

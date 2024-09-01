@@ -14,7 +14,7 @@
 		"validate": "npm ls",
 		"build:make": "node --trace-deprecation make/make.js",
 		"watch": "npx babel src --out-dir public --watch",
-		"start": "nodemon server/index.js",
+		"start": "nodemon --exit server/index.js",
 		"start-dev": "NODE_ENV=development BABEL_ENV=development yarn start",
 		"build-dev": "NODE_ENV=development BABEL_ENV=development webpack",
 		"test": "jest",
