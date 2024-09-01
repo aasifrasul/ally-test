@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactDataGrid from 'react-data-grid';
 import socketClient from 'socket.io-client';
 
@@ -9,53 +9,44 @@ const columns = [
 	{ key: 'value', name: 'Ratio' },
 ];
 
-function GridData(props) {
-	const { queue } = props;
+function GridData({ queue }) {
 	const [rows, setRows] = useState([]);
-	const didMount = useRef(false);
-	const rafRef = useRef(false);
+	const rafRef = useRef(null);
 
-	function setRowsData() {
+	const setRowsData = useCallback(() => {
 		const data = [];
 		let res = queue.dequeue();
 		while (res) {
-			console.log('res', res);
 			data.push(res);
 			res = queue.dequeue();
 		}
-		setRows((storedData) => {
-			return [...data, ...storedData];
-		});
-		rafRef.current && window.cancelAnimationFrame(rafRef.current);
-	}
+		setRows((storedData) => [...data, ...storedData]);
+		rafRef.current = null;
+	}, [queue]);
 
-	function addInQueue(data) {
-		queue.enqueue(data);
-		rafRef.current = window.requestAnimationFrame(setRowsData);
-	}
+	const addInQueue = useCallback(
+		(data) => {
+			queue.enqueue(data);
+			if (!rafRef.current) {
+				rafRef.current = window.requestAnimationFrame(setRowsData);
+			}
+		},
+		[queue, setRowsData],
+	);
 
 	useEffect(() => {
-		if (!didMount.current) {
-			didMount.current = true;
-
-			socket.emit('fetchCurrencyPair');
-			socket.on('currencyPairData', addInQueue);
-			/*
-			const myWorker = new Worker('WebWorker.js');
-			myWorker.postMessage('Helloooo');
-			console.log('myWorker', myWorker);
-			myWorker.onmessage = (e) => {
-				console.log('myWorker', e.data);
-			};
-*/
-		}
+		socket.emit('fetchCurrencyPair');
+		socket.on('currencyPairData', addInQueue);
 
 		return () => {
-			didMount.current = false;
-			window.cancelAnimationFrame(rafRef.current);
+			if (rafRef.current) {
+				window.cancelAnimationFrame(rafRef.current);
+			}
+			socket.off('currencyPairData', addInQueue);
 			socket.emit('stopFetchCurrencyPair');
 		};
-	}, []);
+	}, [addInQueue]);
+
 	return <ReactDataGrid columns={columns} rows={rows} rowsCount={20} minHeight={150} />;
 }
 

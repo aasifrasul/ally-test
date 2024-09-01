@@ -1,6 +1,11 @@
 const oracledb = require('oracledb');
 
+const { constants } = require('../constants');
+
 const { logger } = require('../Logger');
+
+const { user, password, connectString, poolMin, poolMax, poolIncrement, poolTimeout } =
+	constants.dbLayer.oracle;
 
 class OracleDBConnection {
 	static async getInstance() {
@@ -16,13 +21,13 @@ class OracleDBConnection {
 	async createPool() {
 		try {
 			this.pool = await oracledb.createPool({
-				user: 'zportal',
-				password: 'zportal',
-				connectString: 'dft11-t13-adb01.lab.nordigy.ru:1521/devf13ams_db',
-				poolMin: 10,
-				poolMax: 50,
-				poolIncrement: 5,
-				poolTimeout: 60,
+				user,
+				password,
+				connectString,
+				poolMin,
+				poolMax,
+				poolIncrement,
+				poolTimeout,
 			});
 		} catch (err) {
 			logger.warn(`Pool creation Error: ${err.stack}`);
