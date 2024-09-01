@@ -9,5 +9,8 @@
 	"events": {
 		"restart": "yarn build"
 	},
-	"delay": 2500
+	"delay": 1000,
+	"signal": "SIGTERM",
+	"ext": "js,json",
+	"exec": "node --unhandled-rejections=strict server/index.js"
 }

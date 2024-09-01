@@ -49,7 +49,8 @@ function validateGraphqlSchema() {
 	}
 }
 
+validateGraphqlSchema(schema);
+
 module.exports = {
 	schema,
-	validateGraphqlSchema,
 };

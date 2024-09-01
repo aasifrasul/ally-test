@@ -1,5 +1,19 @@
 const os = require('os');
+const socketio = require('socket.io');
+
 const { logger } = require('./Logger');
+
+let io = null;
+
+const connectToIOServer = (httpServer) => {
+	io = socketio(httpServer);
+
+	io.on('connection', onConnection);
+};
+
+const disconnectIOServer = () => {
+	io && io.close();
+};
 
 const currencyPairs = [
 	{
@@ -44,7 +58,7 @@ const currencyPairs = [
 	},
 ];
 
-const onConnection = (socket) => {
+function onConnection(socket) {
 	const getRandomInt = (max) => Math.floor(Math.random() * max);
 
 	let IntervalId;
@@ -67,8 +81,12 @@ const onConnection = (socket) => {
 	socket.on('stopFetchCurrencyPair', () => {
 		IntervalId && clearInterval(IntervalId);
 	});
-};
 
-module.exports = {
-	onConnection,
-};
+	socket.on('error', (err) => {
+		if (err?.message === 'unauthorized event') {
+			socket.disconnect();
+		}
+	});
+}
+
+module.exports = { connectToIOServer, disconnectIOServer };

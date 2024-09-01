@@ -1,19 +1,32 @@
-const { MongoClient } = require('mongodb');
-// Replace the uri string with your connection string.
-const uri = 'mongodb://localhost:27017';
-const client = new MongoClient(uri);
-async function run() {
+const mongoose = require('mongoose');
+
+const { constants } = require('../constants');
+
+const { logger } = require('../Logger');
+
+const connectToMongoDB = async () => {
 	try {
-		const database = client.db('test');
-		const products = database.collection('products');
-		await products.insertOne({ name: 'ABC2', category: 'XYZ2' });
-		// Query for a product that has the title 'Back to the Future'
-		const query = { name: 'ABC2' };
-		const product = await products.findOne(query);
-		console.log('product', product);
-	} finally {
-		// Ensures that the client will close when you finish/error
-		await client.close();
+		await mongoose.connect(constants.dbLayer.mongodb.uri, {
+			maxPoolSize: 10,
+			serverSelectionTimeoutMS: 5000,
+			socketTimeoutMS: 45000,
+		});
+
+		logger.info('Connected to MongoDB successfully');
+	} catch (error) {
+		logger.error('Failed to connect to MongoDB:', error);
+		process.exit(1);
 	}
-}
-run().catch(console.dir);
+};
+
+const disconnectFromMongoDB = async () => {
+	try {
+		logger.info('Closing MongoDB connection...');
+		await mongoose.connection.close();
+		logger.info('Disconnected from MongoDB successfully');
+	} catch (error) {
+		logger.error('Failed to disconnect from MongoDB:', error);
+	}
+};
+
+module.exports = { connectToMongoDB, disconnectFromMongoDB };

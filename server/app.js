@@ -1,6 +1,5 @@
 const cors = require('cors');
 const express = require('express');
-const mongoose = require('mongoose');
 const exphbs = require('express-handlebars');
 const cookieParser = require('cookie-parser');
 const serveStatic = require('serve-static');
@@ -19,16 +18,6 @@ const { constructReqDataObject, generateBuildTime } = require('./helper');
 const { appBuildDev, pathTemplate, pathRootDir } = require('./paths');
 
 const app = express();
-
-const uri = 'mongodb://localhost:27017';
-
-mongoose
-	.connect(uri, {
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	})
-	.then(() => console.log('MongoDB Connected...'))
-	.catch((err) => console.log(err));
 
 generateBuildTime();
 
