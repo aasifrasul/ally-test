@@ -15,7 +15,7 @@ module.exports = function (env) {
 	return {
 		entry: __dirname + '/hbs.js',
 		output: {
-			path: path.join(__dirname, '..', outputPath, 'server'),
+			path: path.join(__dirname, '..', outputPath, 'server', 'src'),
 			filename: 'hbs.bundle.js',
 			libraryTarget: 'commonjs2',
 			chunkLoadingGlobal: 'webpackJsonp',

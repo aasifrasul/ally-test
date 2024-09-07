@@ -12,5 +12,5 @@
 	"delay": 1000,
 	"signal": "SIGTERM",
 	"ext": "js,json",
-	"exec": "node --unhandled-rejections=strict server/index.js"
+	"exec": "node --unhandled-rejections=strict server/src/index.js"
 }

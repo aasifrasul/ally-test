@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"target": "es2018",
+		"module": "commonjs",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"typeRoots": ["./node_modules/@types", "./types"]
+	},
+	"include": ["src/**/*", "types/**/*.d.ts", "htmlencode.d.ts"],
+	"exclude": ["node_modules"]
+}
