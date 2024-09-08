@@ -1,2 +1,2 @@
-export { User, IUser } from './User';
-export { Product, IProduct } from './Product';
+export { User, type IUser } from './User';
+export { Product, type IProduct } from './Product';

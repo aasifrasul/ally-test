@@ -13,15 +13,24 @@ import App from './components/App/App';
 
 import './index.css';
 
-const root = createRoot(document.querySelector('#root'));
+// Extend the NodeModule interface to include the hot property
+declare const module: {
+	hot?: {
+		accept: (path: string, callback: () => void) => void;
+	};
+};
 
-const renderApp = (rootComponent) => {
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Failed to find the root element');
+const root = createRoot(rootElement);
+
+const render = (AppComponent: typeof App) => {
 	root.render(
 		<StrictMode>
 			<Provider store={store}>
 				<ApolloProvider client={client}>
 					<FetchStoreProvider>
-						<rootComponent />
+						<AppComponent />
 					</FetchStoreProvider>
 				</ApolloProvider>
 			</Provider>
@@ -29,12 +38,12 @@ const renderApp = (rootComponent) => {
 	);
 };
 
-renderApp(hot(App));
+render(App);
 
 if (module.hot) {
 	module.hot.accept('./components/App/App', () => {
 		const NextApp = require('./components/App/App').default;
-		renderApp(NextApp);
+		render(NextApp);
 	});
 
 	module.hot.accept('./index.css', () => {

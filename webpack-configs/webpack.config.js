@@ -36,10 +36,11 @@ const makeConfig = () => {
 		},
 		devServer: {
 			hot: true,
-			client: { overlay: false, logging: 'warn' },
+			contentBase: publicPath,
+			publicPath: '/',
 		},
 		resolve: {
-			extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
+			extensions: ['*', '.ts', '.tsx', '.js', '.jsx', '.css'],
 			modules: [
 				'common',
 				'node_modules',

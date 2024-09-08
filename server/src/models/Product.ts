@@ -34,4 +34,4 @@ productSchema.set('toJSON', {
 
 const Product = model<IProduct>('Product', productSchema);
 
-export { Product, IProduct };
+export { Product, type IProduct };
