@@ -1,9 +1,12 @@
 import cors from 'cors';
 import express, { Request, Response, NextFunction } from 'express';
+import webpack from 'webpack';
 import { engine } from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import serveStatic from 'serve-static';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import webpackDevMiddleware from 'webpack-dev-middleware';
+import webpackHotMiddleware from 'webpack-hot-middleware';
 
 import {
 	userAgentHandler,
@@ -17,8 +20,23 @@ import {
 import { constructReqDataObject, generateBuildTime } from './helper';
 import { pathPublic, pathTemplate, pathRootDir } from './paths';
 import { logger } from './Logger';
+import config from '../../webpack-configs/webpack.config.js';
 
 const app = express();
+const compiler = webpack(config);
+
+// Serve hot-reloading bundle to client
+app.use(
+	webpackDevMiddleware(compiler, {
+		publicPath: pathPublic,
+	}),
+);
+
+// Include hot middleware
+app.use(webpackHotMiddleware(compiler));
+
+// Serve your static files
+app.use(express.static('public'));
 
 generateBuildTime();
 
@@ -31,8 +49,8 @@ app.use(userAgentHandler);
 
 /*
 app.use((req, res, next) => {
-    logger.info(`Incoming request: ${req.method} ${req.url}`);
-    next();
+	logger.info(`Incoming request: ${req.method} ${req.url}`);
+	next();
 });
 */
 
@@ -46,7 +64,6 @@ app.get('/WebWorker.js', fetchWebWorker);
 app.get('/apiWorker.js', fetchApiWorker);
 app.get('/api/fetchWineData/*', getCSVData);
 app.get('/images/*', fetchImage);
-// app.use('/graphql/*', handleGraphql);
 app.all('/graphql', handleGraphql);
 
 app.use(

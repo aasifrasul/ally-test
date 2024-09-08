@@ -21,9 +21,9 @@ export default function UsersGraphql() {
 
 	return (
 		<ul>
-			{data?.getUsers?.map(({ id, firstName, lastName, age }) => (
+			{data?.getUsers?.map(({ id, firstName, lastName, age }, index) => (
 				<li key={id}>
-					{id}, {firstName} {lastName}, {age}
+					{index + 1}, {firstName} {lastName}, {age}
 				</li>
 			))}
 		</ul>

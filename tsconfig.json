@@ -1,10 +1,11 @@
 {
 	"compilerOptions": {
-		"target": "es5",
-		"lib": ["dom", "dom.iterable", "esnext"],
-		"allowJs": true,
+		"target": "es2020",
+		"lib": ["dom", "dom.iterable", "es2020"],
 		"skipLibCheck": true,
+		"types": ["jest", "node", "cypress"],
 		"esModuleInterop": true,
+		"allowJs": true,
 		"allowSyntheticDefaultImports": true,
 		"strict": false,
 		"forceConsistentCasingInFileNames": true,
@@ -14,8 +15,9 @@
 		"isolatedModules": true,
 		"noEmit": false,
 		"jsx": "react-jsx",
-		"rootDir": "./"
+		"rootDirs": ["src"],
+		"outDir": "public"
 	},
-	"include": ["src/**/*", "server/**/*"],
-	"exclude": ["node_modules", "dist"]
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "public"]
 }

@@ -43,6 +43,9 @@ let plugins = [
 		minimize: true,
 	}),
 
+	new webpack.HotModuleReplacementPlugin(),
+	new webpack.NoEmitOnErrorsPlugin(),
+
 	/**
 	 * Extract CSS from a bundle, or bundles, into a separate file
 	 * Source: https://github.com/webpack-contrib/mini-css-extract-plugin
