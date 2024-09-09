@@ -1,7 +1,9 @@
 const path = require('path');
 const fs = require('fs-extra');
-const { pathTemplate, pathPublic } = require('../server/src/paths');
 const { APP_NAME, DEV } = require('../webpack/constants');
+
+const pathPublic = path.join(__dirname, '..', 'public');
+const pathTemplate = path.join(pathPublic, 'ally-test');
 
 const writeFile = (name, contents) => {
 	console.log(new Date() + ' Build file : ' + name);

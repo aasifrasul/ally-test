@@ -150,39 +150,43 @@ const deleteProduct = async (parent: any, args: { id: string }): Promise<boolean
 export { getProduct, getProducts, createProduct, updateProduct, deleteProduct };
 
 /**
- * @api {post} /graphql
- create table TEST_PRODUCTS ( id number generated always as identity, "name" varchar2(4000), "category" varchar2(4000), primary key (id));
-
- {
-   "query": "mutation createProduct($name: String!, $category: String!) { createProduct(name: $name, category: $category) }",
-   "variables": {
-     "name": "ABC",
-     "category": "XYZ"
-   }
+ * create table TEST_PRODUCTS ( id number generated always as identity, "name" varchar2(4000), "category" varchar2(4000), primary key (id));
+ * 
+{
+ "query": "mutation createProduct($name: String!, $category: String!) { createProduct(name: $name, category: $category) }",
+ "variables": {
+   "name": "ABC",
+   "category": "XYZ"
  }
-
- {
-   "query": "{ getProduct(id: 1) {id, name, category} }"
+}
+ * 
+{
+  "query": "{ getProduct(id: 1) {id, name, category} }"
+}
+ * 
+ * 
+{
+  "query": "{ getProducts {id, name, category} }"
+}
+ * 
+ * 
+ * {
+ "query": "mutation updateProduct($id: ID!, $name: String!, $category: String!) { updateProduct(id: $id, name: $name, category: $category) }",
+ "variables": {
+   "id": "1",
+   "name": "John",
+   "category": "Doe"
  }
-
- {
-   "query": "{ getProducts {id, name, category} }"
+}
+ * 
+ * 
+ * 
+{
+ "query": "mutation deleteProduct($id: ID!) { deleteProduct(id: $id) }",
+ "variables": {
+   "id": "2"
  }
-
- {
-   "query": "mutation updateProduct($id: ID!, $name: String!, $category: String!) { updateProduct(id: $id, name: $name, category: $category) }",
-   "variables": {
-     "id": "1",
-     "name": "John",
-     "category": "Doe"
-   }
- }
-
- {
-   "query": "mutation deleteProduct($id: ID!) { deleteProduct(id: $id) }",
-   "variables": {
-     "id": "2"
-   }
- }
-
+}
+ * 
+ * 
 */
