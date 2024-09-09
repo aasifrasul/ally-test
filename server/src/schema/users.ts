@@ -1,6 +1,6 @@
 import { PubSub } from 'graphql-subscriptions';
-import { DBType } from '../types';
-import { User, IUser } from '../models';
+import { DBType, IUser } from '../types';
+import { User } from '../models';
 import redisClient from '../cachingClients/redis';
 import { getLimitCond, getDBInstance } from './helper';
 import { constants } from '../constants';
@@ -183,47 +183,45 @@ const getUserCreatedResolver = async (): Promise<AsyncIterator<unknown>> => {
 export { getUser, getUsers, createUser, updateUser, deleteUser, userCreated };
 
 /**
- *
- * @api {post} /graphql GraphQL
- SQL table creation:
- create table TEST_USERS ( "id" number generated always as identity, "firstName" varchar2(4000), "lastName" varchar2(4000), "age" number, primary key ("id"));
-
- GraphQL mutation examples:
-
- Create User:
- mutation createUser($firstName: String!, $lastName: String!, $age: Int!) {
-   createUser(firstName: $firstName, lastName: $lastName, age: $age)
+ * create table TEST_USERS ( "id" number generated always as identity, "firstName" varchar2(4000), "lastName" varchar2(4000), "age" number, primary key ("id"));
+ * 
+ * {
+ "query": "mutation createUser($firstName: String!, $lastName: String!, $age: Int!) { createUser(firstName: $firstName, lastName: $lastName, age: $age) }",
+ "variables": {
+   "firstName": "Aasif",
+   "lastName": "Rasul",
+   "age": 40
  }
-
- Update User:
- mutation updateUser($id: ID!, $firstName: String!, $lastName: String!, $age: Int!) {
-   updateUser(id: $id, firstName: $firstName, lastName: $lastName, age: $age)
+}
+ * 
+ * {
+  "query": "{ getUser(id: 1) {id, firstName, lastName, age} }"
+}
+ * 
+ * 
+ * {
+  "query": "{ getUsers {id, firstName, lastName, age} }"
+}
+ * 
+ * 
+ * {
+ "query": "mutation updateUser($id: ID!, $firstName: String!, $lastName: String!, $age: Int!) { updateUser(id: $id, firstName: $firstName, lastName: $lastName, age: $age) }",
+ "variables": {
+   "id": "1",
+   "firstName": "John",
+   "lastName": "Doe",
+   "age": 30
  }
-
- Delete User:
- mutation deleteUser($id: ID!) {
-   deleteUser(id: $id)
+}
+ * 
+ * 
+ * 
+ * {
+ "query": "mutation deleteUser($id: ID!) { deleteUser(id: $id) }",
+ "variables": {
+   "id": "2"
  }
-
- GraphQL query examples:
-
- Get User:
- query {
-   getUser(id: "1") {
-     id
-     firstName
-     lastName
-     age
-   }
- }
-
- Get Users:
- query {
-   getUsers {
-     id
-     firstName
-     lastName
-     age
-   }
- }
+}
+ * 
+ * 
 */

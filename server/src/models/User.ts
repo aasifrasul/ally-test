@@ -1,10 +1,6 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
-interface IUser extends Document {
-	firstName: string;
-	lastName: string;
-	age: number;
-}
+import { IUser } from '../types';
 
 const userSchema = new Schema<IUser>(
 	{
@@ -35,4 +31,4 @@ userSchema.set('toJSON', {
 
 const User = model<IUser>('User', userSchema);
 
-export { User, IUser };
+export { User };

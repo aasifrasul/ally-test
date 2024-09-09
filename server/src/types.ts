@@ -1,25 +1,39 @@
-enum DBType {
+import { Document } from 'mongoose';
+
+export interface IUser extends Document {
+	firstName: string;
+	lastName: string;
+	age: number;
+}
+
+export interface IProduct extends Document {
+	name: string;
+	category: string;
+	id: string;
+}
+
+export enum DBType {
 	ORACLE = 'oracle',
 	POSTGRES = 'postgres',
 	MYSQL = 'mysql',
 	MONGODB = 'mongodb',
 }
 
-interface RedisConfig {
+export interface RedisConfig {
 	host: string;
 	port: number;
 	MAX_RETRIES?: number;
 	RETRY_DELAY?: number;
 }
 
-interface MongoDBConfig {
+export interface MongoDBConfig {
 	uri: string;
 	maxPoolSize: number;
 	serverSelectionTimeoutMS: number;
 	socketTimeoutMS: number;
 }
 
-interface PostgresConfig {
+export interface PostgresConfig {
 	user: string;
 	host: string;
 	database: string;
@@ -27,7 +41,7 @@ interface PostgresConfig {
 	port: number;
 }
 
-interface MySQLConfig {
+export interface MySQLConfig {
 	user: string;
 	password: string;
 	host: string;
@@ -42,7 +56,7 @@ interface MySQLConfig {
 	keepAliveInitialDelay: number;
 }
 
-interface OracleConfig {
+export interface OracleConfig {
 	user: string;
 	password: string;
 	connectString: string;
@@ -51,5 +65,3 @@ interface OracleConfig {
 	poolIncrement: number;
 	poolTimeout: number;
 }
-
-export { DBType, RedisConfig, MongoDBConfig, PostgresConfig, MySQLConfig, OracleConfig };

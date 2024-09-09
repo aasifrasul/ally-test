@@ -1,10 +1,6 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
-interface IProduct extends Document {
-	name: string;
-	category: string;
-	id: string;
-}
+import { IProduct } from '../types';
 
 const productSchema = new Schema<IProduct>(
 	{
@@ -34,4 +30,4 @@ productSchema.set('toJSON', {
 
 const Product = model<IProduct>('Product', productSchema);
 
-export { Product, IProduct };
+export { Product };

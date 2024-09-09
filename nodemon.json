@@ -1,16 +1,12 @@
 {
 	"verbose": true,
-	"watch": ["src/**", "server/**", "webpack/**"],
-	"ignore": ["*.test.js", "*.bundle.js", "**/fixtures/**", "**/node_modules/**"],
-	"execMap": {
-		"rb": "ruby",
-		"pde": "processing --sketch={{pwd}} --run"
-	},
-	"events": {
-		"restart": "yarn build"
-	},
-	"delay": 1000,
-	"signal": "SIGTERM",
-	"ext": "js,json",
-	"exec": "node --unhandled-rejections=strict server/src/index.js"
+	"ignore": [
+		"*.test.ts",
+		"**/fixtures/**",
+		"**/node_modules/**",
+		"**/dist/**",
+		"**/public/**"
+	],
+	"ext": "js,ts,tsx,jsx",
+	"exec": "node customNodemonHandler.js"
 }
