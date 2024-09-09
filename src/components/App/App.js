@@ -93,6 +93,8 @@ const UsersGraphql = lazy(
 	() => import(/* webpackChunkName: "UsersGraphql" */ '../UsersGraphql'),
 );
 
+const ChatBot = lazy(() => import(/* webpackChunkName: "ChatBot" */ '../ChatBot'));
+
 import Spinner from '../Common/Spinner';
 // import ErrorBoundary from '../Common/ErrorBoundary/ErrorBoundary';
 
@@ -103,10 +105,7 @@ AutoComplete.props = {};
 AutoComplete.props.suggestions = constants?.autoComplete?.initialFeed;
 
 const landingPages = {
-	//Counter: Counter,
 	Todos: Todos,
-	//Contacts: Contacts,
-	//Profile: Profile,
 	Stopwatch: Stopwatch,
 	TicTacToe: TicTacToe,
 	ReactQuery: ReactQuery,
@@ -134,6 +133,7 @@ const landingPages = {
 	SortUsers: SortUsers,
 	GraphqlSubscription: GraphqlSubscription,
 	UsersGraphql: UsersGraphql,
+	ChatBot,
 };
 
 const App = (props) => {

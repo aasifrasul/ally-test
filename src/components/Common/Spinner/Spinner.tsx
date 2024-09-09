@@ -1,5 +1,4 @@
-/**
- * import React from 'react';
+import React from 'react';
 import classnames from 'classnames';
 import { Icon } from '../Icon';
 
@@ -17,6 +16,7 @@ interface SpinnerDefaultProps {
 interface SpinnerProps extends SpinnerDefaultProps {
 	className?: string;
 	icon?: React.ReactElement;
+	children?: React.ReactNode;
 }
 
 export class Spinner extends React.Component<SpinnerProps> {
@@ -121,5 +121,3 @@ export class Spinner extends React.Component<SpinnerProps> {
 		);
 	}
 }
-
-*/

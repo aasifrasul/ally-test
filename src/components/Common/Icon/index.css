@@ -1,0 +1,37 @@
+.rc-icon {
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	stroke-width: 0;
+	stroke: currentColor;
+	fill: currentColor;
+	vertical-align: middle;
+}
+
+/* Size variations */
+.rc-icon-small {
+	font-size: 0.75em;
+}
+
+.rc-icon-medium {
+	font-size: 1em;
+}
+
+.rc-icon-large {
+	font-size: 1.5em;
+}
+
+/* Example icon styles - you'll need to add styles for each icon you use */
+.rc-icon-user::before {
+	content: '\1F464'; /* Unicode character for user icon */
+}
+
+.rc-icon-settings::before {
+	content: '\2699'; /* Unicode character for gear icon */
+}
+
+.rc-icon-home::before {
+	content: '\1F3E0'; /* Unicode character for home icon */
+}
+
+/* Add more icon-specific styles as needed */
