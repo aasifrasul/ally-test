@@ -41,7 +41,6 @@ app.all('/graphql', handleGraphql);
 
 app.use(bodyParser.json());
 
-app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(userAgentHandler);
 

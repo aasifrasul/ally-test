@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-//import { Shape, Spinner } from './Spinner/Spinner';
-import Spinner from '../Spinner';
+import { Shape, Spinner } from '../Spinner/Spinner';
 //import { Block } from './Block';
 
 interface Props {
@@ -51,14 +50,7 @@ export function InfiniteScroll({
 		<>
 			{children}
 			<div ref={sentinelRef} />
-			{showLoader && (
-				/*
-					<Block addTopOffset className="text-center">
-						<Spinner shapeName={Shape.REGULAR_CIRCLE} size={24} />
-					</Block>
-				*/
-				<Spinner />
-			)}
+			{showLoader && <Spinner shapeName={Shape.REGULAR_CIRCLE} size={24} />}
 		</>
 	);
 }

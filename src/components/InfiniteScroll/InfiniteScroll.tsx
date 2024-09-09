@@ -5,12 +5,12 @@ import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
 
 import UserCard from './UserCard';
 
-import styles from './InfiniteScroll.css';
+import './InfiniteScroll.css';
 
 const InfiniteScroll = ({ data, isLoading, currentPage, fetchNextPage, TOTAL_PAGES }) => {
 	const [observerElement, setObserverElement] = useState(null);
 
-	const observer = useRef(false);
+	const observer = useRef<IntersectionObserver | null>(null);
 
 	useEffect(() => {
 		observer.current = new IntersectionObserver((entries) =>
@@ -25,11 +25,11 @@ const InfiniteScroll = ({ data, isLoading, currentPage, fetchNextPage, TOTAL_PAG
 	useImageLazyLoadIO('img[data-src]', data?.results?.length);
 
 	return (
-		<div className={styles.scrollParent}>
-			{/*<div className={`${styles.topElement} ${styles.uni}`}></div>*/}
+		<div className={'scrollParent'}>
+			{/*<div className={`${topElement} ${uni}`}></div>*/}
 			<h1 className="text-3xl text-center mt-4 mb-10">All users</h1>
 			<ScrollToTop />
-			<div className={styles.scrollArea}>
+			<div className={'scrollArea'}>
 				{data?.results?.map((user, i) => (
 					<>
 						{Math.floor(data?.results.length / 1.2) === i ? (
