@@ -1,38 +1,10 @@
-const workerPath = new URL('./MyWorker', import.meta.url);
+import WorkerMessageQueue from './WorkerMessageQueue';
+
+const workerPath = new URL('./MyWorker.js', import.meta.url);
 const worker = new Worker(workerPath, { type: 'module' });
+const messageQueue = new WorkerMessageQueue(worker);
 
-worker.addEventListener('error', (error) => {
-	console.error('Error in worker:', error);
-});
-
-worker.addEventListener('exit', (exitCode) => {
-	console.log('Worker exited with code:', exitCode);
-});
-
-export function fetchAPIData(endpoint, options) {
-	worker.postMessage({ type: 'fetchAPIData', data: { endpoint, options } });
-
-	return new Promise((resolve, reject) => {
-		worker.addEventListener('message', (event) => {
-			event.preventDefault();
-			const { type, data } = event.data;
-			type === 'fetchAPIDataResponse' ? resolve(data) : reject(data);
-		});
-	});
-}
-
-export function loadImages(imageUrls = []) {
-	worker.postMessage({ type: 'loadImages', data: imageUrls });
-
-	return new Promise((resolve, reject) => {
-		worker.addEventListener('message', (event) => {
-			event.preventDefault();
-			const { type, data } = event.data;
-			type === 'loadImagesResponse' ? resolve(data) : reject(data);
-		});
-	});
-}
-
-export function abortFetchRequest(endPoint) {
-	worker.postMessage({ type: 'abortFetchRequest', data: endPoint });
-}
+export const fetchAPIData = messageQueue.fetchAPIData.bind(messageQueue);
+export const loadImages = messageQueue.loadImages.bind(messageQueue);
+export const loadImage = messageQueue.loadImage.bind(messageQueue);
+export const abortFetchRequest = messageQueue.abortFetchRequest.bind(messageQueue);
