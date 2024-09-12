@@ -1,9 +1,19 @@
 import { safelyExecuteFunction, isObject } from '../utils/typeChecking';
 import { constants } from '../constants';
 
-const dataFetchReducer = (state = {}, action) => {
+interface Action {
+	schema: string;
+	type: string;
+	payload?: any;
+}
+
+interface State {
+	[key: string]: any;
+}
+
+const dataFetchReducer = (state: State = {}, action: Action): State => {
 	const { schema, type, payload } = action;
-	const newState = {
+	const newState: State = {
 		...state,
 	};
 

@@ -1,4 +1,5 @@
 import { dataSources } from './dataSources';
+import { createImmutable } from '../utils/immutable';
 
 interface AutoCompleteConfig {
 	initialFeed: string[];
@@ -10,7 +11,7 @@ const autoComplete: AutoCompleteConfig = {
 	debounceDelay: 150,
 };
 
-export const constants = Object.freeze({
+export const constants = createImmutable({
 	common: {},
 	autoComplete,
 	dataSources,

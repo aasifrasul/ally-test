@@ -1,4 +1,4 @@
-import { abortFetchRequest, fetchAPIData, loadImages } from '../workers/WorkerHelper';
+import { abortFetchRequest, fetchAPIData } from '../workers/WorkerHelper';
 
 import {
 	fetchStarted,
