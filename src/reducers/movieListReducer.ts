@@ -1,4 +1,26 @@
-const movieListReducer = (state, action) => {
+interface Data {
+	results?: any[];
+	[key: string]: any;
+}
+
+interface Action {
+	type: string;
+	payload?:
+		| (Data & {
+				filterText?: string;
+		  })
+		| undefined;
+}
+
+interface State {
+	isLoading?: boolean;
+	isError?: boolean;
+	data?: Data;
+	originalData?: Data;
+	[key: string]: any;
+}
+
+const movieListReducer = (state: State, action: Action): State => {
 	const { type, payload } = action;
 	switch (type) {
 		case 'FETCH_SUCCESS':
@@ -15,11 +37,12 @@ const movieListReducer = (state, action) => {
 
 		case 'FILTER_BY_TEXT':
 			const filterText = payload?.filterText?.trim().toLowerCase() || '';
-			let filteredData = [];
+			let filteredData: any[] = [];
 			if (filterText) {
-				filteredData = state?.data?.results.filter((item) => {
-					return item.title?.toLowerCase().includes(filterText);
-				});
+				filteredData =
+					state?.data?.results?.filter((item) => {
+						return item.title?.toLowerCase().includes(filterText);
+					}) || [];
 			}
 
 			return {

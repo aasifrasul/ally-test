@@ -1,17 +1,20 @@
 import * as os from 'os';
+import * as http from 'http';
 import { Server } from 'socket.io';
 
 import { logger } from './Logger';
 
 let io: any;
 
-const connectToIOServer = (httpServer: any): void => {
+const connectToIOServer = (httpServer: http.Server): void => {
 	io = new Server(httpServer);
+	logger.info('SocketIO connection established.');
 
 	io.on('connection', onConnection);
 };
 
 const disconnectIOServer = (): void => {
+	logger.info('SocketIO connection closed.');
 	io && io.close();
 };
 

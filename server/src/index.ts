@@ -18,7 +18,7 @@ const { NODE_PORT: port, NODE_HOST: host } = process.env;
 	await mongoDbConnection.connect();
 })();
 
-const httpServer = http.createServer(app);
+const httpServer: http.Server = http.createServer(app);
 
 connectWSServer();
 connectToIOServer(httpServer);

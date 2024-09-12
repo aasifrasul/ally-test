@@ -3,7 +3,7 @@ import { logger } from './Logger';
 
 let wsServer: Server | null = null;
 
-const connectWSServer = (): Promise<void> => {
+export const connectWSServer = (): Promise<void> => {
 	return new Promise((resolve, reject) => {
 		try {
 			wsServer = new Server({ port: 8080 });
@@ -15,12 +15,13 @@ const connectWSServer = (): Promise<void> => {
 			});
 			resolve();
 		} catch (err) {
+			logger.error(`WebSocket connection failed ${err}.`);
 			reject(err);
 		}
 	});
 };
 
-const disconnectWSServer = (): Promise<void> => {
+export const disconnectWSServer = (): Promise<void> => {
 	return new Promise((resolve, reject) => {
 		if (wsServer) {
 			wsServer.close((err) => {
@@ -35,5 +36,3 @@ const disconnectWSServer = (): Promise<void> => {
 		}
 	});
 };
-
-export { connectWSServer, disconnectWSServer };

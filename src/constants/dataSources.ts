@@ -1,9 +1,30 @@
-import nestedCategoriesReducer from '../reducers/nestedCategoriesReducer.js';
-import wineConnoisseurReducer from '../reducers/wineConnoisseurReducer.js';
-import infiniteScrollReducer from '../reducers/infiniteScrollReducer.js';
-import movieListReducer from '../reducers/movieListReducer.js';
+import nestedCategoriesReducer from '../reducers/nestedCategoriesReducer';
+import wineConnoisseurReducer from '../reducers/wineConnoisseurReducer';
+import infiniteScrollReducer from '../reducers/infiniteScrollReducer';
+import movieListReducer from '../reducers/movieListReducer';
 
-export const dataSources = {
+interface QueryParams {
+	[key: string]: any;
+}
+
+interface DataSource {
+	TOTAL_PAGES?: number;
+	BASE_URL: string;
+	schema: string;
+	queryParams?: QueryParams;
+	timeout: number;
+	reducer?: (state: any, action: any) => any;
+	headers?: { [key: string]: string };
+	PRODUCT_LIST?: string;
+	ADD_ITEM_URL?: string;
+	API_KEY?: string;
+}
+
+interface DataSources {
+	[key: string]: DataSource;
+}
+
+export const dataSources: DataSources = {
 	infiniteScroll: {
 		TOTAL_PAGES: 25,
 		BASE_URL: `https://randomuser.me/api`,
