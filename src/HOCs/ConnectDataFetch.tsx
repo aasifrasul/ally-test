@@ -1,13 +1,26 @@
-import React, { useEffect } from 'react';
-
+import React, { ComponentType } from 'react';
 import { useFetchStore } from '../Context/dataFetchContext';
-
 import { safelyExecuteFunction, isObject, isFunction } from '../utils/typeChecking';
 
+type Dispatch = (...args: any[]) => any;
+
+interface MapStateToProps {
+	[key: string]: any;
+}
+
+interface MapDispatchToProps {
+	[key: string]: any;
+}
+
+type PropsFetcher =
+	| MapStateToProps
+	| MapDispatchToProps
+	| (() => MapStateToProps | MapDispatchToProps);
+
 const connectDataFetch =
-	(mapStateToProps = {}, mapDispatchToProps = {}) =>
-	(WrappedComponent) => {
-		return function Wrapper(props) {
+	(mapStateToProps: PropsFetcher = {}, mapDispatchToProps: PropsFetcher = {}) =>
+	<P extends object>(WrappedComponent: ComponentType<P>) => {
+		return function Wrapper(props: P) {
 			const { dispatch } = useFetchStore();
 			const customDispatch = new CustomEvent('customDispatch', {
 				detail: {
@@ -27,12 +40,14 @@ const connectDataFetch =
 		};
 	};
 
-const buildProps = (propsFetcher = {}) => {
+const buildProps = (propsFetcher: PropsFetcher = {}): MapStateToProps | MapDispatchToProps => {
 	if (isFunction(propsFetcher)) {
-		return safelyExecuteFunction(propsFetcher);
+		return safelyExecuteFunction(
+			propsFetcher as () => MapStateToProps | MapDispatchToProps,
+		);
 	} else if (isObject(propsFetcher)) {
 		return {
-			...propsFetcher,
+			...(propsFetcher as MapStateToProps | MapDispatchToProps),
 		};
 	} else {
 		throw new Error('Type mismatch: Param needs to be either a Function or an object');

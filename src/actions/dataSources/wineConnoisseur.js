@@ -1,17 +1,9 @@
 import React from 'react';
 
-import { fetchData, getList, fetchNextPage } from '.';
+import * as all from '.';
 
 const schema = 'wineConnoisseur';
 
-export function fetchWineConnoisseurData() {
-	return fetchData(schema);
-}
-
-export function getWineConnoisseurList() {
-	return getList(schema);
-}
-
-export function fetchWineConnoisseurNextPage(nextPage) {
-	return fetchNextPage(schema, nextPage);
-}
+export const fetchData = all.fetchData.bind(null, schema);
+export const getList = all.getList.bind(null, schema);
+export const fetchNextPage = all.fetchNextPage.bind(null, schema);

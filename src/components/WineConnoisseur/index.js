@@ -1,10 +1,6 @@
 import React from 'react';
 
-import {
-	fetchWineConnoisseurData,
-	fetchWineConnoisseurNextPage,
-	getWineConnoisseurList,
-} from '../../actions/dataSources/wineConnoisseur';
+import { fetchData, fetchNextPage, getList } from '../../actions/dataSources/wineConnoisseur';
 
 import WineConnoisseur from './WineConnoisseur';
 
@@ -12,7 +8,7 @@ import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
 
 function WineConnoisseurContainer(props) {
 	React.useEffect(() => {
-		const cleanUp = fetchWineConnoisseurData();
+		const cleanUp = fetchData();
 		return () => cleanUp();
 	}, []);
 
@@ -20,11 +16,11 @@ function WineConnoisseurContainer(props) {
 }
 
 const mapStateToProps = () => {
-	return { ...getWineConnoisseurList() };
+	return { ...getList() };
 };
 
 const mapDispatchToProps = {
-	fetchNextPage: fetchWineConnoisseurNextPage,
+	fetchNextPage: fetchNextPage,
 };
 
 export default ConnectDataFetch(mapStateToProps, mapDispatchToProps)(WineConnoisseurContainer);

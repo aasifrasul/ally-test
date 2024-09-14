@@ -1,17 +1,9 @@
 import React from 'react';
 
-import { fetchData, getList, fetchNextPage } from '.';
+import * as all from '.';
 
 const schema = 'movieList';
 
-export function fetchMovieListData() {
-	return fetchData(schema);
-}
-
-export function getMovieListList() {
-	return getList(schema);
-}
-
-export function fetchMovieListNextPage(nextPage) {
-	return fetchNextPage(schema, nextPage);
-}
+export const fetchData = all.fetchData.bind(null, schema);
+export const getList = all.getList.bind(null, schema);
+export const fetchNextPage = all.fetchNextPage.bind(null, schema);

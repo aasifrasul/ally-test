@@ -16,7 +16,27 @@ import { buildQueryParams } from './common';
 
 const TIMEOUT = 2000;
 
-export function fetchData(schema, endPoint, queryParams = {}, options = {}, timeout) {
+interface QueryParams {
+	[key: string]: string | number;
+	page?: number;
+}
+
+interface Options {
+	method?: string;
+	cache?: RequestCache;
+	headers?: Record<string, string>;
+	[key: string]: any;
+}
+
+type Schema = string;
+
+export function fetchData(
+	schema: Schema,
+	endPoint: string,
+	queryParams: QueryParams = {},
+	options: Options = {},
+	timeout?: number,
+): () => void {
 	fetchStarted(schema);
 
 	const timeoutId = setTimeout(() => cleanUp(), timeout || TIMEOUT);
@@ -29,16 +49,10 @@ export function fetchData(schema, endPoint, queryParams = {}, options = {}, time
 		abortFetch();
 	};
 
-	const enhancedOptions = {
+	const enhancedOptions: Options = {
 		method: 'GET',
-		//mode: 'cors',
 		cache: 'no-cache',
 		'Referrer-Policy': 'no-referrer',
-		//credentials: 'same-origin',
-		/**/
-		//redirect: 'follow',
-		//referrerPolicy: 'strict-origin-when-cross-origin',
-		//body: body ? JSON.stringify(data) : {},
 		...options,
 		headers: {
 			'Content-Type': 'application/json; charset=utf-8',
@@ -67,7 +81,14 @@ export function fetchData(schema, endPoint, queryParams = {}, options = {}, time
 	return cleanUp;
 }
 
-export function updateData(schema, data, endPoint, queryParams = {}, options = {}, timeout) {
+export function updateData(
+	schema: Schema,
+	data: any,
+	endPoint: string,
+	queryParams: QueryParams = {},
+	options: Options = {},
+	timeout?: number,
+): () => void {
 	updateStarted(schema);
 
 	const timeoutId = setTimeout(() => cleanUp(), timeout || TIMEOUT);
@@ -80,15 +101,10 @@ export function updateData(schema, data, endPoint, queryParams = {}, options = {
 		abortUpdate();
 	};
 
-	const enhancedOptions = {
+	const enhancedOptions: Options = {
 		method: 'POST',
-		//mode: 'cors',
 		cache: 'no-cache',
 		'Referrer-Policy': 'no-referrer',
-		//credentials: 'same-origin',
-		/**/
-		//redirect: 'follow',
-		//body: body ? JSON.stringify(data) : {},
 		...options,
 		headers: {
 			'Content-Type': 'application/json',
@@ -99,7 +115,7 @@ export function updateData(schema, data, endPoint, queryParams = {}, options = {
 
 	const updateLazy = async () => {
 		try {
-			const data = await fetchAPIData(url, enhancedOptions);
+			await fetchAPIData(url, enhancedOptions);
 			updateSucceeded(schema);
 		} catch (err) {
 			updateFailed(schema);

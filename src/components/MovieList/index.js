@@ -1,10 +1,6 @@
 import React from 'react';
 
-import {
-	fetchMovieListData,
-	fetchMovieListNextPage,
-	getMovieListList,
-} from '../../actions/dataSources/movieList';
+import { fetchData, fetchNextPage, getList } from '../../actions/dataSources/movieList';
 
 import MovieList from './MovieList';
 
@@ -12,7 +8,7 @@ import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
 
 function MovieListContainer(props) {
 	React.useEffect(() => {
-		const cleanUp = fetchMovieListData();
+		const cleanUp = fetchData();
 		return () => cleanUp();
 	}, []);
 
@@ -20,11 +16,11 @@ function MovieListContainer(props) {
 }
 
 const mapStateToProps = () => {
-	return { ...getMovieListList() };
+	return { ...getList() };
 };
 
 const mapDispatchToProps = {
-	fetchNextPage: fetchMovieListNextPage,
+	fetchNextPage,
 };
 
 export default ConnectDataFetch(mapStateToProps, mapDispatchToProps)(MovieListContainer);

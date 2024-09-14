@@ -20,7 +20,7 @@ const { NODE_PORT: port, NODE_HOST: host } = process.env;
 
 const httpServer: http.Server = http.createServer(app);
 
-connectWSServer();
+connectWSServer(httpServer);
 connectToIOServer(httpServer);
 
 /**

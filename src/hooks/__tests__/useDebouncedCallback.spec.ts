@@ -84,4 +84,34 @@ describe('useDebouncedCallback', () => {
 		expect(mockCallback).toHaveBeenCalledWith('test');
 		expect(mockCallback.mock.instances[0]).toBe(context);
 	});
+
+	it('should respect changes to wait time for new invocations', () => {
+		const { result, rerender } = renderHook(
+			({ wait }) => useDebouncedCallback(mockCallback, wait),
+			{ initialProps: { wait: waitTime } },
+		);
+
+		// Initial call with original wait time
+		result.current('test1');
+		jest.advanceTimersByTime(waitTime - 1);
+		expect(mockCallback).not.toHaveBeenCalled();
+
+		jest.advanceTimersByTime(1);
+		expect(mockCallback).toHaveBeenCalledTimes(1);
+		expect(mockCallback).toHaveBeenCalledWith('test1');
+
+		mockCallback.mockClear();
+
+		// Change wait time
+		rerender({ wait: waitTime * 2 });
+
+		// New call with new wait time
+		result.current('test2');
+		jest.advanceTimersByTime(waitTime);
+		expect(mockCallback).not.toHaveBeenCalled();
+
+		jest.advanceTimersByTime(waitTime + 1);
+		expect(mockCallback).toHaveBeenCalledTimes(1);
+		expect(mockCallback).toHaveBeenCalledWith('test2');
+	});
 });

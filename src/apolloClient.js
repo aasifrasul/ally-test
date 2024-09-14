@@ -14,6 +14,11 @@ const wsLink = new GraphQLWsLink(
 			// Add any authentication tokens if needed
 			// authToken: user.authToken
 		},
+		on: {
+			connected: () => console.log('WebSocket connected'),
+			closed: (event) => console.log('WebSocket closed', event),
+			error: (error) => console.error('WebSocket error', error),
+		},
 	}),
 );
 

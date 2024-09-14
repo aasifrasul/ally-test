@@ -4,7 +4,7 @@ import infiniteScrollReducer from '../reducers/infiniteScrollReducer';
 import movieListReducer from '../reducers/movieListReducer';
 
 interface QueryParams {
-	[key: string]: any;
+	[key: string]: number | string;
 }
 
 interface DataSource {
@@ -15,6 +15,7 @@ interface DataSource {
 	timeout: number;
 	reducer?: (state: any, action: any) => any;
 	headers?: { [key: string]: string };
+	options?: any;
 	PRODUCT_LIST?: string;
 	ADD_ITEM_URL?: string;
 	API_KEY?: string;
@@ -35,6 +36,9 @@ export const dataSources: DataSources = {
 			seed: 'FVGW-PN4G-TA7Z-FZBW',
 		},
 		timeout: 2000,
+		options: {
+			method: 'GET',
+		},
 		reducer: infiniteScrollReducer,
 	},
 	movieList: {
@@ -46,6 +50,9 @@ export const dataSources: DataSources = {
 			sort_by: 'popularity.desc',
 			api_key: '0cdc4ae2e7e4bf7c2605a838320c2bf9',
 		},
+		options: {
+			method: 'GET',
+		},
 		timeout: 5000,
 		reducer: movieListReducer,
 	},
@@ -53,6 +60,9 @@ export const dataSources: DataSources = {
 		BASE_URL: `https://localhost:3100/proxy/okrcentral`,
 		schema: 'nestedCategories',
 		timeout: 2000,
+		options: {
+			method: 'GET',
+		},
 		reducer: nestedCategoriesReducer,
 	},
 	wineConnoisseur: {
@@ -62,6 +72,9 @@ export const dataSources: DataSources = {
 			page: 0,
 		},
 		timeout: 2000,
+		options: {
+			method: 'GET',
+		},
 		reducer: wineConnoisseurReducer,
 	},
 	searchForm: (() => {
@@ -73,6 +86,9 @@ export const dataSources: DataSources = {
 			API_KEY: 'Z9Q7WKEY7ORGBUFGN3EG1QS5Y7FG8DU29GHKKSZH',
 			schema: 'searchForm',
 			timeout: 2000,
+			options: {
+				method: 'GET',
+			},
 			headers: {
 				'Content-Type': 'application/json',
 				api_key: 'Z9Q7WKEY7ORGBUFGN3EG1QS5Y7FG8DU29GHKKSZH',
