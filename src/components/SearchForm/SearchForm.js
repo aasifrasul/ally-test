@@ -12,7 +12,7 @@ import { sortMixedArray, searchTextOnData } from '../../utils/common';
 
 import styles from './styles.css';
 
-export default function SearchForm({ data, addSearchFormItem }) {
+export default function SearchForm({ data, addItem }) {
 	const [displayData, setDisplayData] = React.useState([]);
 	const pageNum = React.useRef(1);
 
@@ -25,7 +25,7 @@ export default function SearchForm({ data, addSearchFormItem }) {
 		e.preventDefault();
 		const formData = new FormData(e.target);
 		const jsonFormData = Object.fromEntries(formData.entries());
-		addSearchFormItem(jsonFormData);
+		addItem(jsonFormData);
 		clearForm(e.target);
 	};
 

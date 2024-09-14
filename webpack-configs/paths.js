@@ -14,7 +14,7 @@ module.exports = {
 	langEn: (rootDir) => resolveApp(path.join(rootDir, 'languages', 'en.js')),
 	langHi: (rootDir) => resolveApp(path.join(rootDir, 'languages', 'hi.js')),
 	appIndexJs: (rootDir) => {
-		const indextsx = resolveApp(path.join(rootDir, '..', 'src', 'index.js'));
+		const indextsx = resolveApp(path.join(rootDir, '..', 'src', 'index.tsx'));
 		if (fs.existsSync(indextsx)) {
 			return indextsx;
 		}

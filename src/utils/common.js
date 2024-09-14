@@ -6,50 +6,6 @@ export const getRandomInt = (min = 1000 * 1000, max = 2000 * 1000) => {
 	return Math.floor(Math.random() * (max - min) + min);
 };
 
-/**
- * Creates a deep copy of a given object/array
- * Usual ways create a shallow copy
- * For truly deep copy each nested item has to be iterated over and a copy be created.
- * Special handling is needed for array/object/time as they are passed by reference
- */
-export const deepCopy = (obj) => {
-	const dataType = Object.prototype.toString.call(obj).slice(8, -1).toLowerCase();
-
-	const buildChildCopies = () => {
-		const newObj = obj.constructor();
-
-		Reflect.ownKeys(obj).forEach((key) => {
-			obj['isActiveClone'] = true;
-			newObj[key] = deepCopy(obj[key]);
-			delete obj['isActiveClone'];
-		});
-
-		return newObj;
-	};
-
-	switch (dataType) {
-		case 'undefined':
-		case 'null':
-		case 'string':
-		case 'boolean':
-		case 'number':
-		case 'function':
-		case 'regexp':
-			return obj;
-		case 'date':
-			return new obj.constructor(obj);
-		case 'object':
-			if ('isActiveClone' in obj) {
-				return obj;
-			}
-			return buildChildCopies();
-		case 'array':
-			return buildChildCopies();
-		default:
-			return obj;
-	}
-};
-
 export function compareStrings(item1, item2) {
 	const str1 = String(item1);
 	const str2 = String(item2);

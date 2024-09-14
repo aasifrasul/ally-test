@@ -1,10 +1,6 @@
 import React from 'react';
 
-import {
-	fetchInfiniteScrollData,
-	fetchInfiniteScrollNextPage,
-	getInfiniteScrollList,
-} from '../../actions/dataSources/infiniteScroll';
+import { fetchData, fetchNextPage, getList } from '../../actions/dataSources/infiniteScroll';
 
 import InfiniteScroll from './InfiniteScroll';
 
@@ -12,7 +8,7 @@ import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
 
 function InfiniteScrollContainer(props) {
 	React.useEffect(() => {
-		const cleanUp = fetchInfiniteScrollData();
+		const cleanUp = fetchData();
 		return () => cleanUp();
 	}, []);
 
@@ -20,11 +16,9 @@ function InfiniteScrollContainer(props) {
 }
 
 const mapStateToProps = () => {
-	return { ...getInfiniteScrollList() };
+	return { ...getList() };
 };
 
-const mapDispatchToProps = {
-	fetchNextPage: fetchInfiniteScrollNextPage,
-};
+const mapDispatchToProps = { fetchNextPage };
 
 export default ConnectDataFetch(mapStateToProps, mapDispatchToProps)(InfiniteScrollContainer);

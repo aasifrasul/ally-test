@@ -12,7 +12,14 @@ import App from './components/App/App';
 
 import './index.css';
 
-const root = createRoot(document.querySelector('#root'));
+const rootElement = document.querySelector('#root');
+
+if (!rootElement) {
+	throw new Error('Failed to find the root element');
+}
+
+const root = createRoot(rootElement);
+
 root.render(
 	<StrictMode>
 		<Provider store={store}>

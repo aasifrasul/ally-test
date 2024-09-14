@@ -1,9 +1,6 @@
 import React from 'react';
 
-import {
-	fetchNestedCategoriesData,
-	getNestedCategoriesList,
-} from '../../actions/dataSources/nestedCategories';
+import { fetchData, getList } from '../../actions/dataSources/nestedCategories';
 
 import NestedCategories from './NestedCategories';
 
@@ -11,7 +8,7 @@ import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
 
 function NestedCategoriesContainer(props) {
 	React.useEffect(() => {
-		const cleanUp = fetchNestedCategoriesData();
+		const cleanUp = fetchData();
 		return () => cleanUp();
 	}, []);
 
@@ -19,7 +16,7 @@ function NestedCategoriesContainer(props) {
 }
 
 const mapStateToProps = () => {
-	return { ...getNestedCategoriesList() };
+	return { ...getList() };
 };
 
 const mapDispatchToProps = {};

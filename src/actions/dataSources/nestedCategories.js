@@ -1,13 +1,9 @@
 import React from 'react';
 
-import { fetchData, getList } from '.';
+import * as all from '.';
 
 const schema = 'nestedCategories';
 
-export function fetchNestedCategoriesData() {
-	return fetchData(schema);
-}
-
-export function getNestedCategoriesList() {
-	return getList(schema);
-}
+export const fetchData = all.fetchData.bind(null, schema);
+export const getList = all.getList.bind(null, schema);
+export const fetchNextPage = all.fetchNextPage.bind(null, schema);

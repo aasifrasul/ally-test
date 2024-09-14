@@ -1,10 +1,22 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, FC } from 'react';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 
 import regeneratorRuntime from 'regenerator-runtime';
 
 import Header from '../Common/Header/Header';
+import Spinner from '../Common/Spinner';
+import { constants } from '../../constants';
+import './App.css';
 
+interface ComponentProps {
+	[key: string]: any;
+}
+
+interface LandingPages {
+	[key: string]: React.LazyExoticComponent<React.ComponentType<any>>;
+}
+
+// Lazy imports
 const Home = lazy(() => import(/* webpackChunkName: "Home" */ '../Home/Home'));
 const ReactQuery = lazy(
 	() => import(/* webpackChunkName: "ReactQuery" */ '../ReactQuery/ReactQuery'),
@@ -18,7 +30,6 @@ const KeyBoardShortcutPage = lazy(
 const WineConnoisseur = lazy(
 	() => import(/* webpackChunkName: "WineConnoisseur" */ '../WineConnoisseur'),
 );
-// const Profile = lazy(() => import(/* webpackChunkName: "Profile" */ '../Profile/Profile'));
 const Todos = lazy(() => import(/* webpackChunkName: "Todos" */ '../Todos'));
 const NestedCategories = lazy(
 	() => import(/* webpackChunkName: "NestedCategories" */ '../NestedCategories'),
@@ -36,8 +47,6 @@ const TicTacToe = lazy(
 const InfiniteScroll = lazy(
 	() => import(/* webpackChunkName: "InfiniteScroll" */ '../InfiniteScroll'),
 );
-// const Counter = lazy(() => import(/* webpackChunkName: "Counter" */ '../Counter/Counter'));
-//const Contacts = lazy(() => import(/* webpackChunkName: "Contacts" */ '../Contacts/Contacts'));
 const AutoComplete = lazy(
 	() => import(/* webpackChunkName: "AutoComplete" */ '../AutoComplete/AutoComplete'),
 );
@@ -46,41 +55,31 @@ const FlipTheCard = lazy(() => import(/* webpackChunkName: "FlipTheCard" */ '../
 const TabsComponent = lazy(
 	() => import(/* webpackChunkName: "TabsComponent" */ '../TabsComponent'),
 );
-
 const TrafficLight = lazy(
 	() => import(/* webpackChunkName: "TrafficLight" */ '../TrafficLight'),
 );
-
 const DeeplyNestedCategories = lazy(
 	() => import(/* webpackChunkName: "DeeplyNestedCategories" */ '../DeeplyNestedCategories'),
 );
-
 const AsyncArticles = lazy(
 	() => import(/* webpackChunkName: "AsyncArticles" */ '../AsyncArticles'),
 );
-
 const DigitalClock = lazy(
 	() => import(/* webpackChunkName: "DigitalClock" */ '../DigitalClock'),
 );
-
 const AccordionDemo = lazy(
 	() => import(/* webpackChunkName: "AccordionDemo" */ '../AccordionDemo'),
 );
-
 const SearchForm = lazy(() => import(/* webpackChunkName: "SearchForm" */ '../SearchForm'));
 const ListExchange = lazy(
 	() => import(/* webpackChunkName: "ListExchange" */ '../ListExchange'),
 );
 const SortUsers = lazy(() => import(/* webpackChunkName: "SortUsers" */ '../SortUsers'));
-
 const ErrorPage = lazy(
 	() => import(/* webpackChunkName: "ErrorPage" */ '../Common/ErrorPage'),
 );
-
 const ProgressBar = lazy(() => import(/* webpackChunkName: "ProgressBar" */ '../ProgressBar'));
-
 const Dashboard = lazy(() => import(/* webpackChunkName: "Dashboard" */ '../Dashboard'));
-
 const DisplayGraphql = lazy(
 	() => import(/* webpackChunkName: "DisplayGraphql" */ '../DisplayGraphql'),
 );
@@ -88,75 +87,64 @@ const Comments = lazy(() => import(/* webpackChunkName: "Comments" */ '../Commen
 const GraphqlSubscription = lazy(
 	() => import(/* webpackChunkName: "GraphqlSubscription" */ '../GraphqlSubscription'),
 );
-
 const UsersGraphql = lazy(
 	() => import(/* webpackChunkName: "UsersGraphql" */ '../UsersGraphql'),
 );
-
 const ChatBot = lazy(() => import(/* webpackChunkName: "ChatBot" */ '../ChatBot'));
 
-import Spinner from '../Common/Spinner';
-// import ErrorBoundary from '../Common/ErrorBoundary/ErrorBoundary';
-
-import { constants } from '../../constants';
-import styles from './App.css';
-
-AutoComplete.props = {};
-AutoComplete.props.suggestions = constants?.autoComplete?.initialFeed;
-
-const landingPages = {
-	Todos: Todos,
-	Stopwatch: Stopwatch,
-	TicTacToe: TicTacToe,
-	ReactQuery: ReactQuery,
-	KeyBoardShortcutPage: KeyBoardShortcutPage,
-	WineConnoisseur: WineConnoisseur,
-	NestedCategories: NestedCategories,
-	CurrencyStream: CurrencyStream,
-	MovieList: MovieList,
-	InfiniteScroll: InfiniteScroll,
-	AutoComplete: AutoComplete,
-	NewsFeed: NewsFeed,
-	FlipTheCard: FlipTheCard,
-	TabsComponent: TabsComponent,
-	TrafficLight: TrafficLight,
-	DigitalClock: DigitalClock,
-	AccordionDemo: AccordionDemo,
-	ProgressBar: ProgressBar,
-	DisplayGraphql: DisplayGraphql,
-	DeeplyNestedCategories: DeeplyNestedCategories,
-	AsyncArticles: AsyncArticles,
-	Dashboard: Dashboard,
-	Comments: Comments,
-	SearchForm: SearchForm,
-	ListExchange: ListExchange,
-	SortUsers: SortUsers,
-	GraphqlSubscription: GraphqlSubscription,
-	UsersGraphql: UsersGraphql,
+const landingPages: LandingPages = {
+	Todos,
+	Stopwatch,
+	TicTacToe,
+	ReactQuery,
+	KeyBoardShortcutPage,
+	WineConnoisseur,
+	NestedCategories,
+	CurrencyStream,
+	MovieList,
+	InfiniteScroll,
+	AutoComplete,
+	NewsFeed,
+	FlipTheCard,
+	TabsComponent,
+	TrafficLight,
+	DigitalClock,
+	AccordionDemo,
+	ProgressBar,
+	DisplayGraphql,
+	DeeplyNestedCategories,
+	AsyncArticles,
+	Dashboard,
+	Comments,
+	SearchForm,
+	ListExchange,
+	SortUsers,
+	GraphqlSubscription,
+	UsersGraphql,
 	ChatBot,
 };
 
-const App = (props) => {
+(AutoComplete as any).props = {
+	suggestions: constants?.autoComplete?.initialFeed,
+};
+
+const App: FC = () => {
 	const routesArray = [
 		{
 			path: '/',
 			element: <Home pages={landingPages} />,
 			errorElement: <ErrorPage />,
 		},
-	];
-
-	for (let name in landingPages) {
-		const Component = landingPages[name];
-		routesArray.push({
+		...Object.entries(landingPages).map(([name, Component]) => ({
 			path: `/${name}`,
 			element: (
 				<Header>
-					<Component {...Component.props} />
+					<Component {...(Component as any).props} />
 				</Header>
 			),
 			errorElement: <ErrorPage />,
-		});
-	}
+		})),
+	];
 
 	const router = createBrowserRouter(routesArray);
 

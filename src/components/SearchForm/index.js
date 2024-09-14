@@ -1,10 +1,6 @@
 import React from 'react';
 
-import {
-	fetchSearchFormData,
-	getSearchFormList,
-	addSearchFormItem,
-} from '../../actions/dataSources/searchForm';
+import { fetchData, getList, addItem } from '../../actions/dataSources/searchForm';
 
 import SearchForm from './SearchForm';
 
@@ -12,7 +8,7 @@ import ConnectDataFetch from '../../HOCs/ConnectDataFetch';
 
 function SearchFormContainer(props) {
 	React.useEffect(() => {
-		const cleanUp = fetchSearchFormData();
+		const cleanUp = fetchData();
 		return () => cleanUp();
 	}, []);
 
@@ -20,11 +16,11 @@ function SearchFormContainer(props) {
 }
 
 const mapStateToProps = () => {
-	return { ...getSearchFormList() };
+	return { ...getList() };
 };
 
 const mapDispatchToProps = {
-	addSearchFormItem,
+	addItem,
 };
 
 export default ConnectDataFetch(mapStateToProps, mapDispatchToProps)(SearchFormContainer);

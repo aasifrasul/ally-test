@@ -1,24 +1,9 @@
 import React from 'react';
 
-import { fetchData, getList, addItem } from '.';
-
-import { constants } from '../../constants';
+import * as all from '.';
 
 const schema = 'searchForm';
 
-const headers = {
-	'Content-Type': 'application/json',
-	api_key: constants.dataSources[schema].API_KEY,
-};
-
-export function fetchSearchFormData() {
-	return fetchData(schema, { headers });
-}
-
-export function getSearchFormList() {
-	return getList(schema);
-}
-
-export function addSearchFormItem(data) {
-	return addItem(schema, data, { headers });
-}
+export const fetchData = all.fetchData.bind(null, schema);
+export const getList = all.getList.bind(null, schema);
+export const addItem = all.addItem.bind(null, schema);
