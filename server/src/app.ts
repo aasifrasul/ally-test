@@ -19,6 +19,7 @@ import { constructReqDataObject, generateBuildTime } from './helper';
 import { pathPublic, pathTemplate, pathRootDir } from './paths';
 import { logger } from './Logger';
 import { processMessage } from './messageProcessing';
+import { runDialogFlow } from './utility/dialogFlow';
 
 const app = express();
 
@@ -39,7 +40,7 @@ app.use(cors());
 
 app.all('/graphql', handleGraphql);
 
-app.use(bodyParser.json());
+//app.use(bodyParser.json());
 
 app.use(cookieParser());
 app.use(userAgentHandler);
@@ -59,11 +60,18 @@ app.get('/health', (req: Request, res: Response) => {
 	return res.status(200).json({ status: 'Server Running' });
 });
 
-app.post('/api/chat', (req, res) => {
+/*
+app.post('/api/chat', async (req, res) => {
 	const userMessage = req.body.message;
-	const botResponse = processMessage(userMessage);
-	res.json({ message: botResponse });
+	try {
+		const botResponse = await runDialogFlow(userMessage);
+		res.json({ message: botResponse });
+	} catch (error) {
+		logger.error('Error:', error);
+		res.status(500).json({ message: 'An error occurred while processing your message.' });
+	}
 });
+*/
 
 // middlewares
 app.get('/WebWorker.js', fetchWebWorker);

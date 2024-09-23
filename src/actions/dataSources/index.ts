@@ -1,30 +1,20 @@
+import { StoreSchema, InitialState } from '../../Context/types';
+import { DataSource, QueryParams } from '../../constants/types';
+
 import * as helpers from '../../utils/APIHelper';
-import useSelector from '../../hooks/useSelector';
+import { useSelector } from '../../hooks/useSelector';
 import { constants } from '../../constants';
 
 interface NextPageHash {
 	[key: string]: number;
 }
 
-const nextPageHash: NextPageHash = {};
-
 interface FetchDataOptions {
 	// Define the structure of options if known
 	[key: string]: string;
 }
 
-interface QueryParams {
-	page?: number;
-	[key: string]: any;
-}
-
-interface DataSourceConfig {
-	BASE_URL: string;
-	queryParams: QueryParams;
-	timeout: number;
-	options: FetchDataOptions;
-	ADD_ITEM_URL: string;
-}
+const nextPageHash: NextPageHash = {};
 
 export function fetchData(schema: string, options?: FetchDataOptions) {
 	const {
@@ -32,7 +22,7 @@ export function fetchData(schema: string, options?: FetchDataOptions) {
 		queryParams,
 		timeout,
 		options: defaultOptions,
-	} = constants.dataSources[schema] as DataSourceConfig;
+	} = constants.dataSources[schema] as DataSource;
 
 	const updatedQueryParams: QueryParams = { ...queryParams };
 
@@ -55,19 +45,8 @@ export function fetchNextPage(schema: string, nextPage: number, options?: FetchD
 	return fetchData(schema, options);
 }
 
-interface ListData {
-	isError: boolean;
-	isLoading: boolean;
-	data: any; // Replace 'any' with a more specific type if known
-	currentPage: number;
-	TOTAL_PAGES: number;
-}
-
-export function getList(schema: string): ListData {
-	const { isError, isLoading, data, currentPage, TOTAL_PAGES } = useSelector(
-		(store: any) => store[schema], // Replace 'any' with a more specific store type if known
-	);
-	return { isError, isLoading, data, currentPage, TOTAL_PAGES };
+export function getList(schema: keyof StoreSchema): InitialState {
+	return useSelector((store: StoreSchema) => store[schema]);
 }
 
 export function addItem(schema: string, data: any, options?: FetchDataOptions) {
@@ -75,7 +54,7 @@ export function addItem(schema: string, data: any, options?: FetchDataOptions) {
 		ADD_ITEM_URL,
 		timeout,
 		options: defaultOptions,
-	} = constants.dataSources[schema] as DataSourceConfig;
+	} = constants.dataSources[schema] as DataSource;
 	return helpers.updateData(
 		schema,
 		data,

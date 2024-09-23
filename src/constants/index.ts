@@ -1,10 +1,7 @@
 import { dataSources } from './dataSources';
 import { createImmutable } from '../utils/immutable';
 
-interface AutoCompleteConfig {
-	initialFeed: string[];
-	debounceDelay: number;
-}
+import { AutoCompleteConfig } from './types';
 
 const autoComplete: AutoCompleteConfig = {
 	initialFeed: ['Oranges', 'Apples', 'Banana', 'Kiwi', 'Mango'],

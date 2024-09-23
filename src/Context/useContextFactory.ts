@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
 
-const useContextFactory = (name: string, context: React.Context<any>) => {
+const useContextFactory = <T>(name: string, context: React.Context<T>): Function => {
 	return () => {
-		const ctx = useContext(context);
+		const ctx: T = useContext(context);
 		if (ctx) {
 			return ctx;
 		}

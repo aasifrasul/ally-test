@@ -31,6 +31,7 @@ export interface MongoDBConfig {
 	maxPoolSize: number;
 	serverSelectionTimeoutMS: number;
 	socketTimeoutMS: number;
+	connectTimeoutMS: number;
 }
 
 export interface PostgresConfig {
@@ -39,6 +40,8 @@ export interface PostgresConfig {
 	database: string;
 	password: string;
 	port: number;
+	maxConnections: number;
+	connectionTimeoutMillis: number;
 }
 
 export interface MySQLConfig {

@@ -46,13 +46,16 @@ export const constants: Constants = {
 			maxPoolSize: 10,
 			serverSelectionTimeoutMS: 5000,
 			socketTimeoutMS: 45000,
+			connectTimeoutMS: 30000,
 		},
 		postgres: {
-			user: 'postgres',
+			user: 'test',
 			host: 'localhost',
-			database: 'postgres',
+			database: 'test',
 			password: 'test',
 			port: 5432,
+			maxConnections: 20,
+			connectionTimeoutMillis: 10000,
 		},
 		mysql: {
 			user: 'test',

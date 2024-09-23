@@ -1,16 +1,8 @@
-import React, { createContext, useReducer, useMemo, ReactNode, Reducer, Context } from 'react';
+import React, { createContext, useReducer, useMemo, ReactNode, Reducer } from 'react';
+
+import { AnyObject, StoreContextValue, Store } from './types';
+
 import useContextFactory from '../Context/useContextFactory';
-
-type AnyObject = Record<string, any>;
-
-interface Store<T extends AnyObject> {
-	getState: (schema?: keyof T | null) => Partial<T>;
-}
-
-interface StoreContextValue<T extends AnyObject> {
-	dispatch: React.Dispatch<any>;
-	store: Store<T>;
-}
 
 function storeFactory<T extends AnyObject>(
 	reducer: Reducer<T, any>,
@@ -23,7 +15,8 @@ function storeFactory<T extends AnyObject>(
 
 		const store: Store<T> = useMemo(
 			() => ({
-				getState: (schema = null) => (state?.[schema] || state) as Partial<T>,
+				getState: (schema: keyof T | null = null) =>
+					(schema ? state[schema] : state) as Partial<T>,
 			}),
 			[state],
 		);
@@ -31,9 +24,10 @@ function storeFactory<T extends AnyObject>(
 		const proxyStore = useMemo(
 			() =>
 				new Proxy(store, {
-					get(target, prop: string) {
-						console.log('Accessing property ' + prop);
-						return target.getState(prop as keyof T);
+					get(target: Store<T>, prop: string | number | symbol) {
+						const propString = String(prop);
+						console.log('Accessing property ' + propString);
+						return target.getState(propString as keyof T);
 					},
 				}),
 			[store],
