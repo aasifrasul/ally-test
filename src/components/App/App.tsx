@@ -91,6 +91,7 @@ const UsersGraphql = lazy(
 	() => import(/* webpackChunkName: "UsersGraphql" */ '../UsersGraphql'),
 );
 const ChatBot = lazy(() => import(/* webpackChunkName: "ChatBot" */ '../ChatBot'));
+const TodoGroups = lazy(() => import(/* webpackChunkName: "TodoGroups" */ '../TodoGroups'));
 
 const landingPages: LandingPages = {
 	Todos,
@@ -122,6 +123,7 @@ const landingPages: LandingPages = {
 	GraphqlSubscription,
 	UsersGraphql,
 	ChatBot,
+	TodoGroups,
 };
 
 (AutoComplete as any).props = {

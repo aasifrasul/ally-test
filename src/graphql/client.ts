@@ -15,17 +15,17 @@ type SubscriptionPayload<T> = {
 	query: T;
 };
 
-export const subscribe = async <TData extends object>(
+export const subscribe = async <T extends object>(
 	query: string,
-): Promise<ExecutionResult<TData> | undefined> => {
+): Promise<ExecutionResult<T> | undefined> => {
 	let cancel = () => {
 		/* abort the request if it is in-flight */
 	};
 
-	const result = await new Promise<ExecutionResult<TData> | undefined>((resolve, reject) => {
-		let result: ExecutionResult<TData> | undefined;
+	const result = await new Promise<ExecutionResult<T> | undefined>((resolve, reject) => {
+		let result: ExecutionResult<T> | undefined;
 		cancel = client.subscribe({ query } as SubscriptionPayload<typeof query>, {
-			next: (data) => {
+			next: (data: ExecutionResult<T>) => {
 				result = data;
 			},
 			error: reject,

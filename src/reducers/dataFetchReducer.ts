@@ -1,19 +1,17 @@
 import { safelyExecuteFunction, isObject } from '../utils/typeChecking';
 import { constants } from '../constants';
 
+import { StoreSchema } from '../Context/types';
+
 interface Action {
 	schema: string;
 	type: string;
 	payload?: any;
 }
 
-interface State {
-	[key: string]: any;
-}
-
-const dataFetchReducer = (state: State = {}, action: Action): State => {
+const dataFetchReducer = (state: StoreSchema, action: Action): StoreSchema => {
 	const { schema, type, payload } = action;
-	const newState: State = {
+	const newState: StoreSchema = {
 		...state,
 	};
 

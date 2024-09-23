@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - '3100:3100'
+        environment:
+            - ENV=development
+            - POSTGRES_HOST=postgres
+            - MYSQL_HOST=mysql
+            - MONGODB_HOST=mongodb
+            - REDIS_HOST=redis
+        depends_on:
+            - postgres
+            - mysql
+            - mongodb
+            - redis
+
+    postgres:
+        image: postgres:13
+        environment:
+            POSTGRES_DB: test
+            POSTGRES_USER: test
+            POSTGRES_PASSWORD: test
+        ports:
+            - '5432:5432'
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+
+    mysql:
+        image: mysql:8
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: test
+            MYSQL_USER: test
+            MYSQL_PASSWORD: test
+        ports:
+            - '3306:3306'
+        volumes:
+            - mysql_data:/var/lib/mysql
+
+    mongodb:
+        image: mongo:4.4
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: test
+            MONGO_INITDB_ROOT_PASSWORD: test
+        ports:
+            - '27017:27017'
+        volumes:
+            - mongodb_data:/data/db
+
+    redis:
+        image: redis:6
+        ports:
+            - '6379:6379'
+
+volumes:
+    postgres_data:
+    mysql_data:
+    mongodb_data:
+    oracle_data:
+        - .:/app
+# To start the services: docker-compose up --build
+# To stop the services: docker-compose down

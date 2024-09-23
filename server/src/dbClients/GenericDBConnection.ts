@@ -1,23 +1,34 @@
-import OracleDBConnection from './oracle';
-import PostgresDBConnection from './postgresql';
-import MysqlDBConnection from './mysql';
+import OracleDBConnection from './OracleDBConnection';
+import { PostgresDBConnection, QueryResultRow } from './PostgresDBConnection';
+import { MysqlDBConnection, RowDataPacket, ResultSetHeader } from './MysqlDBConnection';
 import { DBType } from '../types';
+
+export type DBInstance =
+	| OracleDBConnection
+	| PostgresDBConnection
+	| MysqlDBConnection
+	| undefined;
+
+export type ExecuteQueryType =
+	| RowDataPacket[][]
+	| RowDataPacket[]
+	| ResultSetHeader
+	| ResultSetHeader[]
+	| QueryResultRow;
+
 // import { MongoDBConnection } from './mongodb';
 
-class GenericDBConnection {
+export class GenericDBConnection {
 	private static selfInstance: GenericDBConnection;
-	private dbInstance:
-		| OracleDBConnection
-		| PostgresDBConnection
-		| MysqlDBConnection
-		| undefined;
+	private dbInstance: DBInstance;
 
-	private constructor() {}
+	private constructor(type: DBType) {
+		this.createConnection(type);
+	}
 
 	public static async getInstance(type: DBType): Promise<GenericDBConnection> {
 		if (!(GenericDBConnection.selfInstance instanceof GenericDBConnection)) {
-			GenericDBConnection.selfInstance = new GenericDBConnection();
-			await GenericDBConnection.selfInstance.createConnection(type);
+			GenericDBConnection.selfInstance = new GenericDBConnection(type);
 		}
 
 		return GenericDBConnection.selfInstance;
@@ -25,13 +36,13 @@ class GenericDBConnection {
 
 	private async createConnection(type: DBType): Promise<void> {
 		switch (type) {
-			case 'oracle':
+			case DBType.ORACLE:
 				this.dbInstance = await OracleDBConnection.getInstance();
 				break;
-			case 'postgres':
-				this.dbInstance = await PostgresDBConnection.getInstance();
+			case DBType.POSTGRES:
+				this.dbInstance = await PostgresDBConnection.getInstance({});
 				break;
-			case 'mysql':
+			case DBType.MYSQL:
 				this.dbInstance = await MysqlDBConnection.getInstance();
 				break;
 			// case 'mongodb':
@@ -42,13 +53,33 @@ class GenericDBConnection {
 		}
 	}
 
-	public getDBInstance():
-		| OracleDBConnection
-		| PostgresDBConnection
-		| MysqlDBConnection
-		| undefined {
+	public async executeQuery<T extends ExecuteQueryType>(
+		query: string,
+		params?: any[],
+	): Promise<T> {
+		let rows: any;
+		if (this.dbInstance instanceof PostgresDBConnection) {
+			rows = await this.dbInstance.executeQuery<any>(query, params);
+			// Handle PostgreSQL result
+		} else if (this.dbInstance instanceof MysqlDBConnection) {
+			rows = await this.dbInstance.executeQuery<any[]>(query, params);
+			// Handle MySQL result
+		} else if (this.dbInstance instanceof OracleDBConnection) {
+			rows = await this.dbInstance.executeQuery<any>(query);
+			// Handle Oracle result
+		} else {
+			throw new Error('Unsupported database instance');
+		}
+		return rows as T;
+	}
+
+	public getDBInstance(): DBInstance {
 		return this.dbInstance;
 	}
-}
 
-export { GenericDBConnection };
+	public async cleanup(): Promise<void> {
+		if (this.dbInstance) {
+			this.dbInstance.cleanup();
+		}
+	}
+}

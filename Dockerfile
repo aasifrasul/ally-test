@@ -20,7 +20,7 @@ RUN yarn build
 EXPOSE 3100
 
 # Start the application
-CMD [ "yarn", "start" ]
+CMD [ "yarn", "dev:server" ]
 
 # docker build -t ally-test .
 # docker run -p 3100:3100 -d ally-test

@@ -2,7 +2,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { DBType, IUser } from '../types';
 import { User } from '../models';
 import redisClient from '../cachingClients/redis';
-import { getLimitCond, getDBInstance } from './helper';
+import { GenericDBConnection, getLimitCond, getGenericDBInstance } from './helper';
 import { constants } from '../constants';
 import { logger } from '../Logger';
 
@@ -10,7 +10,7 @@ const { currentDB } = constants.dbLayer;
 
 const pubsub = new PubSub();
 
-let dBInstance: any;
+let genericDBInstance: GenericDBConnection;
 
 interface UserInput {
 	firstName: string;
@@ -43,11 +43,17 @@ const getUser = async (parent: any, args: { id: string }): Promise<IUser | null>
 			return null;
 		}
 	} else {
-		dBInstance = dBInstance || (await getDBInstance(currentDB));
-		const whereClause = id ? `WHERE id = ${id}` : getLimitCond(currentDB, 1);
-		const query = `SELECT id, "firstName", "lastName", age FROM TEST_USERS ${whereClause}`;
-		const rows = await dBInstance.executeQuery(query);
-		return rows[0] || null;
+		try {
+			genericDBInstance = await getGenericDBInstance(currentDB);
+			const whereClause = id ? `WHERE id = ${id}` : getLimitCond(currentDB, 1);
+			const query = `SELECT id, "firstName", "lastName", age FROM TEST_USERS ${whereClause}`;
+			logger.info(`genericDBInstance: ${JSON.stringify(genericDBInstance)}`);
+			const rows = await genericDBInstance?.executeQuery<any>(query);
+			return rows[0] || null;
+		} catch (err) {
+			logger.error(`Failed to fetch user: ${err}`);
+			return null;
+		}
 	}
 };
 
@@ -67,16 +73,24 @@ const getUsers = async (parent: any, args: UserArgs = {}): Promise<IUser[]> => {
 			return [];
 		}
 	} else {
-		dBInstance = dBInstance || (await getDBInstance(currentDB));
+		try {
+			genericDBInstance = await getGenericDBInstance(currentDB);
 
-		let whereClause = getLimitCond(currentDB, 10);
-		if (keys.length) {
-			whereClause =
-				'WHERE ' +
-				keys.map((key) => `"${key}" = '${args[key as keyof UserArgs]}'`).join(' AND ');
+			let whereClause = getLimitCond(currentDB, 10);
+			if (keys.length) {
+				whereClause =
+					'WHERE ' +
+					keys
+						.map((key) => `"${key}" = '${args[key as keyof UserArgs]}'`)
+						.join(' AND ');
+			}
+			const query: string = `SELECT id, "firstName", "lastName", "age" FROM TEST_USERS ${whereClause}`;
+			const result: IUser[] = await genericDBInstance?.executeQuery<any[]>(query);
+			return result;
+		} catch (error) {
+			logger.error(`Failed to fetch users: ${error}`);
+			return [];
 		}
-		const query = `SELECT id, "firstName", "lastName", "age" FROM TEST_USERS ${whereClause}`;
-		return await dBInstance.executeQuery(query);
 	}
 };
 
@@ -97,11 +111,10 @@ const createUser = async (parent: any, args: UserInput): Promise<boolean> => {
 			return false;
 		}
 	} else {
-		dBInstance = dBInstance || (await getDBInstance(currentDB));
-
 		try {
+			genericDBInstance = await getGenericDBInstance(currentDB);
 			const query = `INSERT INTO TEST_USERS ("firstName", "lastName", age) VALUES ('${firstName}', '${lastName}', ${age})`;
-			const result = await dBInstance.executeQuery(query);
+			const result = await genericDBInstance?.executeQuery<any>(query);
 
 			pubsub.publish('USER_CREATED', { userCreated: result });
 
@@ -133,10 +146,10 @@ const updateUser = async (parent: any, args: UserArgs & { id: string }): Promise
 			return false;
 		}
 	} else {
-		dBInstance = dBInstance || (await getDBInstance(currentDB));
 		try {
+			genericDBInstance = await getGenericDBInstance(currentDB);
 			const query = `UPDATE TEST_USERS SET "firstName" = '${firstName}', "lastName" = '${lastName}', age = ${age} WHERE id = ${id}`;
-			await dBInstance.executeQuery(query);
+			await genericDBInstance?.executeQuery<any>(query);
 			return true;
 		} catch (error) {
 			logger.error(`Failed to update user: ${error}`);
@@ -160,10 +173,10 @@ const deleteUser = async (parent: any, args: { id: string }): Promise<boolean> =
 			return false;
 		}
 	} else {
-		dBInstance = dBInstance || (await getDBInstance(currentDB));
 		try {
+			genericDBInstance = await getGenericDBInstance(currentDB);
 			const query = `DELETE FROM TEST_USERS WHERE id = ${id}`;
-			await dBInstance.executeQuery(query);
+			await genericDBInstance?.executeQuery<any>(query);
 			return true;
 		} catch (error) {
 			logger.error(`Failed to delete user with id ${id}: ${error}`);

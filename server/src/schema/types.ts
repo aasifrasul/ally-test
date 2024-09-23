@@ -9,51 +9,54 @@ import {
 	GraphQLFieldConfigMap,
 } from 'graphql';
 
-const BOOLEAN = new GraphQLNonNull(GraphQLBoolean);
+// Define scalar types
+const BOOLEAN = GraphQLBoolean;
+const STRING = GraphQLString;
+const INT = GraphQLInt;
+const ID = GraphQLID;
 
-const STRING = new GraphQLNonNull(GraphQLString);
-
-const ID: { id: { type: GraphQLNonNull<typeof GraphQLID> } } = {
-	id: { type: new GraphQLNonNull(GraphQLID) },
-};
-
+// Define base fields
 const UserBase: GraphQLFieldConfigMap<any, any> = {
-	firstName: { type: GraphQLString },
-	lastName: { type: GraphQLString },
-	age: { type: GraphQLInt },
+	firstName: { type: STRING },
+	lastName: { type: STRING },
+	age: { type: INT },
 };
 
 const ProductBase: GraphQLFieldConfigMap<any, any> = {
-	name: { type: GraphQLString },
-	category: { type: GraphQLString },
+	name: { type: STRING },
+	category: { type: STRING },
 };
 
+// Define record types (including ID)
 const UserRecord: GraphQLFieldConfigMap<any, any> = {
-	...ID,
+	id: { type: new GraphQLNonNull(ID) },
 	...UserBase,
 };
 
 const ProductRecord: GraphQLFieldConfigMap<any, any> = {
-	...ID,
+	id: { type: new GraphQLNonNull(ID) },
 	...ProductBase,
 };
 
+// Define GraphQL Object Types
 const UserType = new GraphQLObjectType({
-	name: 'Users',
+	name: 'User',
 	fields: () => UserRecord,
 });
 
 const ProductType = new GraphQLObjectType({
-	name: 'Products',
+	name: 'Product',
 	fields: () => ProductRecord,
 });
 
+// Define List types
 const ProductList = new GraphQLList(ProductType);
 const UserList = new GraphQLList(UserType);
 
 export {
 	BOOLEAN,
 	STRING,
+	INT,
 	ID,
 	ProductType,
 	ProductRecord,

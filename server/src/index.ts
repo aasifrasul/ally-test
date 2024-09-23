@@ -4,9 +4,11 @@ import { config } from 'dotenv';
 import http from 'http';
 
 import { pathRootDir } from './paths';
-import mongoDbConnection from './dbClients/mongodb';
+import mongoDbConnection from './dbClients/MongoDBConnection';
 import { connectToIOServer, disconnectIOServer } from './socketConnection';
 import { connectWSServer, disconnectWSServer } from './webSocketConnection';
+import { getDBInstance, type DBInstance } from './schema/helper';
+import { constants } from './constants';
 import { app } from './app';
 import { logger } from './Logger';
 
@@ -76,7 +78,13 @@ async function gracefulShutdown(signal: string): Promise<void> {
 		await disconnectWSServer();
 
 		// Close MongoDB connection
-		await mongoDbConnection.disconnect();
+		await mongoDbConnection.cleanup();
+
+		const dbInstance: DBInstance = await getDBInstance(constants.dbLayer.currentDB);
+
+		if (dbInstance) {
+			await dbInstance.cleanup();
+		}
 
 		// Close HTTP server
 		logger.info('Closing HTTP server...');

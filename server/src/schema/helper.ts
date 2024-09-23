@@ -1,5 +1,9 @@
 import { DBType } from '../types';
-import { GenericDBConnection } from '../dbClients/GenericDBConnection';
+import {
+	GenericDBConnection,
+	type DBInstance,
+	type ExecuteQueryType,
+} from '../dbClients/GenericDBConnection';
 
 const getLimitCond = (currentDB: DBType, count: number): string => {
 	switch (currentDB) {
@@ -14,9 +18,32 @@ const getLimitCond = (currentDB: DBType, count: number): string => {
 	}
 };
 
-const getDBInstance = async (currentDB: DBType) => {
+const getGenericDBInstance = async (currentDB: DBType): Promise<GenericDBConnection> => {
 	const genericInstance = await GenericDBConnection.getInstance(currentDB);
-	return genericInstance.getDBInstance();
+
+	if (!genericInstance) {
+		throw new Error(`Failed to get DB instance for ${currentDB}`);
+	}
+
+	return genericInstance;
 };
 
-export { getLimitCond, getDBInstance };
+const getDBInstance = async (currentDB: DBType): Promise<DBInstance> => {
+	const genericInstance = await getGenericDBInstance(currentDB);
+	const dBInstance: DBInstance = genericInstance.getDBInstance();
+
+	if (!dBInstance) {
+		throw new Error(`Failed to get DB instance for ${currentDB}`);
+	}
+
+	return dBInstance;
+};
+
+export {
+	GenericDBConnection,
+	getLimitCond,
+	getDBInstance,
+	getGenericDBInstance,
+	type DBInstance,
+	type ExecuteQueryType,
+};
