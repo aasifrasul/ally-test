@@ -1,14 +1,14 @@
 import { dataSources } from './dataSources';
 import { createImmutable } from '../utils/immutable';
 
-import { AutoCompleteConfig } from './types';
+import { AutoCompleteConfig, Constants } from './types';
 
 const autoComplete: AutoCompleteConfig = {
 	initialFeed: ['Oranges', 'Apples', 'Banana', 'Kiwi', 'Mango'],
 	debounceDelay: 150,
 };
 
-export const constants = createImmutable({
+export const constants = createImmutable<Constants>({
 	common: {},
 	autoComplete,
 	dataSources,

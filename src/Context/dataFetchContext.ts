@@ -10,13 +10,14 @@ const initialState: InitialState = {};
 
 // Populate initialState based on dataSources
 Object.keys(dataSources).forEach((key) => {
-	initialState[key] = {
+	const individualState: InitialState = {
 		isLoading: false,
 		isError: false,
 		data: [],
-		currentPage: (dataSources[key].queryParams?.page as number) ?? 0,
+		currentPage: dataSources[key].queryParams?.page || 0,
 		TOTAL_PAGES: 0,
 	};
+	initialState[key] = individualState;
 });
 
 // Use the storeFactory with the correct types

@@ -1,4 +1,4 @@
-import { safelyExecuteFunction, isObject } from '../utils/typeChecking';
+import { isObject } from '../utils/typeChecking';
 import { constants } from '../constants';
 
 import { StoreSchema } from '../Context/types';
@@ -15,96 +15,103 @@ const dataFetchReducer = (state: StoreSchema, action: Action): StoreSchema => {
 		...state,
 	};
 
-	const otherState = safelyExecuteFunction(
-		constants.dataSources[schema]?.reducer,
-		null,
-		newState[schema],
-		action,
-	);
+	let individualState = {
+		...newState[schema],
+	};
+
+	const reducerCB: Function = constants.dataSources[schema]?.reducer;
+	const otherState = reducerCB(individualState, action);
 
 	if (isObject(otherState)) {
-		newState[schema] = {
+		individualState = {
 			...otherState,
 		};
-	} else {
-		switch (type) {
-			case 'FETCH_INIT':
-				newState[schema] = {
-					...newState[schema],
-					isLoading: true,
-					isError: false,
-				};
-				break;
 
-			case 'FETCH_FAILURE':
-				newState[schema] = {
-					...newState[schema],
-					isLoading: false,
-					isError: true,
-				};
-				break;
-
-			case 'FETCH_SUCCESS':
-				newState[schema] = {
-					...newState[schema],
-					isLoading: false,
-				};
-				if (payload) {
-					newState[schema].data = payload;
-				}
-				break;
-
-			case 'FETCH_COMPLETE':
-				newState[schema] = {
-					...newState[schema],
-					isLoading: false,
-				};
-				break;
-
-			case 'UPDATE_INIT':
-				newState[schema] = {
-					...newState[schema],
-					isUpdating: true,
-					isError: false,
-				};
-				break;
-
-			case 'UPDATE_FAILURE':
-				newState[schema] = {
-					...newState[schema],
-					isUpdating: false,
-					isError: true,
-				};
-				break;
-
-			case 'UPDATE_SUCCESS':
-				newState[schema] = {
-					...newState[schema],
-					isUpdating: false,
-				};
-				break;
-
-			case 'UPDATE_STOP':
-				newState[schema] = {
-					...newState[schema],
-					isUpdating: false,
-				};
-				break;
-
-			case 'ADVANCE_PAGE':
-				newState[schema] = {
-					...newState[schema],
-					currentPage: payload,
-				};
-				break;
-
-			default:
-				newState[schema] = {
-					...newState[schema],
-				};
-		}
+		newState[schema] = { ...individualState };
+		return newState;
 	}
 
+	switch (type) {
+		case 'FETCH_INIT':
+			individualState = {
+				...individualState,
+				isLoading: true,
+				isError: false,
+			};
+			break;
+
+		case 'FETCH_FAILURE':
+			individualState = {
+				...individualState,
+				isLoading: false,
+				isError: true,
+			};
+			break;
+
+		case 'FETCH_SUCCESS':
+			individualState = {
+				...individualState,
+				isLoading: false,
+			};
+			if (payload) {
+				individualState.data = payload;
+			}
+			break;
+
+		case 'FETCH_COMPLETE':
+			individualState = {
+				...individualState,
+				isLoading: false,
+			};
+			break;
+
+		case 'UPDATE_INIT':
+			individualState = {
+				...individualState,
+				isUpdating: true,
+				isError: false,
+			};
+			break;
+
+		case 'UPDATE_FAILURE':
+			individualState = {
+				...individualState,
+				isUpdating: false,
+				isError: true,
+			};
+			break;
+
+		case 'UPDATE_SUCCESS':
+			individualState = {
+				...individualState,
+				isUpdating: false,
+			};
+			break;
+
+		case 'UPDATE_STOP':
+			individualState = {
+				...individualState,
+				isUpdating: false,
+			};
+			break;
+
+		case 'ADVANCE_PAGE':
+			const currentPage = Number.isInteger(payload)
+				? payload
+				: individualState.currentPage;
+			individualState = {
+				...individualState,
+				currentPage,
+			};
+			break;
+
+		default:
+			individualState = {
+				...individualState,
+			};
+	}
+
+	newState[schema] = { ...individualState };
 	return newState;
 };
 

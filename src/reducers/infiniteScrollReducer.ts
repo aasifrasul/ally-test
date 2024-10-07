@@ -44,7 +44,7 @@ const infiniteScrollReducer = (state: State, action: Action): State | null => {
 			};
 
 		default:
-			return state;
+			return null;
 	}
 };
 

@@ -33,11 +33,11 @@ const InfiniteScroll = ({ data, isLoading, currentPage, fetchNextPage, TOTAL_PAG
 				{data?.results?.map((user, i) => (
 					<>
 						{Math.floor(data?.results.length / 1.2) === i ? (
-							<div ref={setObserverElement} key={`${user.email}-obserbver`}>
+							<div ref={setObserverElement} key={`${user.id.value}-obserbver`}>
 								Loading...
 							</div>
 						) : null}
-						<UserCard data={user} key={`${user.email}-${i}`} />
+						<UserCard data={user} key={`${user.id.value}-${i}`} />
 					</>
 				))}
 			</div>

@@ -1,11 +1,18 @@
 import React, { useState, useCallback, useEffect } from 'react';
 
-import useWebWorker from '../useWebWorker';
+import { abortFetchRequest, fetchAPIData } from '../../workers/WorkerHelper';
+import { useSelector } from '../useSelector';
+import { createActionHooks } from '../createActionHooks';
 
 import { buildQueryParams } from '../../utils/common';
 import { constants } from '../../constants';
 
-const useFetch = (schema, dispatch, timeout = 2000) => {
+const useFetch = (schema, timeout = 2000) => {
+	const { useFetchActions, useUpdateActions, usePageActions } = createActionHooks(schema);
+	const { fetchStarted, fetchSucceeded, fetchFailed, fetchCompleted } = useFetchActions();
+	const { updateStarted, updateSucceeded, updateFailed, updateCompleted } =
+		useUpdateActions();
+	const { advancePage } = usePageActions();
 	const [ignore, setIgnore] = useState(false);
 
 	const { BASE_URL, queryParams } = constants?.dataSources[schema];
@@ -13,25 +20,23 @@ const useFetch = (schema, dispatch, timeout = 2000) => {
 	const timeoutId = React.useRef(false);
 	const pageRef = React.useRef(queryParams?.page);
 
-	const { fetchAPIData, abortFetchRequest } = useWebWorker();
-
 	const fetchNextPage = () => {
 		queryParams.page = ++pageRef.current;
 		fetchData();
 	};
 
 	const fetchData = useCallback((options = {}) => {
-		dispatch({ schema, type: 'FETCH_INIT' });
-
-		timeoutId.current = setTimeout(() => cleanUp(), timeout);
-		const url = `${BASE_URL}?${buildQueryParams(queryParams)}`;
-
-		const abortFetch = () => abortFetchRequest(url);
+		fetchStarted();
 
 		const cleanUp = () => {
 			clearTimeout(timeoutId.current);
 			abortFetch();
 		};
+
+		timeoutId.current = setTimeout(() => cleanUp(), timeout);
+		const url = `${BASE_URL}?${buildQueryParams(queryParams)}`;
+
+		const abortFetch = () => abortFetchRequest(url);
 
 		const enhancedOptions = {
 			method: 'GET',
@@ -50,16 +55,19 @@ const useFetch = (schema, dispatch, timeout = 2000) => {
 
 		const fetchLazy = async () => {
 			try {
-				const data = await fetchAPIData(url, enhancedOptions);
+				await fetchAPIData(url, enhancedOptions);
 				if (!ignore) {
-					dispatch({ schema, type: 'FETCH_SUCCESS', payload: data });
+					fetchSucceeded();
+				}
+				if (queryParams.page) {
+					advancePage(queryParams.page);
 				}
 			} catch (err) {
 				--pageRef.current;
-				dispatch({ schema, type: 'FETCH_FAILURE' });
+				fetchFailed();
 				console.log(err);
 			} finally {
-				dispatch({ schema, type: 'FETCH_STOP' });
+				fetchCompleted();
 				cleanUp();
 			}
 		};
@@ -75,7 +83,12 @@ const useFetch = (schema, dispatch, timeout = 2000) => {
 		};
 	});
 
+	function getList(schema) {
+		return useSelector((store) => store[schema]);
+	}
+
 	return {
+		getList,
 		fetchData,
 		fetchNextPage,
 	};

@@ -9,7 +9,7 @@ import { constants } from '../../constants';
 import { logger } from '../../Logger';
 
 jest.mock('pg');
-jest.mock('../constants', () => ({
+jest.mock('../../constants', () => ({
 	constants: {
 		dbLayer: {
 			postgres: {
@@ -22,7 +22,7 @@ jest.mock('../constants', () => ({
 		},
 	},
 }));
-jest.mock('../Logger');
+jest.mock('../../Logger');
 
 describe('PostgresDBConnection', () => {
 	let mockPool: jest.Mocked<Pool>;
@@ -39,7 +39,7 @@ describe('PostgresDBConnection', () => {
 			on: jest.fn(),
 			end: jest.fn().mockResolvedValue(undefined),
 		} as unknown as jest.Mocked<Pool>;
-		(Pool as jest.Mock).mockImplementation(() => mockPool);
+		(Pool as unknown as jest.Mock).mockImplementation(() => mockPool);
 	});
 
 	afterEach(async () => {
@@ -71,7 +71,7 @@ describe('PostgresDBConnection', () => {
 		});
 
 		it('should throw DatabaseConnectionError if connection fails', async () => {
-			mockPool.connect.mockRejectedValueOnce(new Error('Connection failed'));
+			mockPool.connect.mockRejectedValueOnce(new Error('Connection failed') as never);
 			await expect(PostgresDBConnection.getInstance({})).rejects.toThrow(
 				DatabaseConnectionError,
 			);
@@ -81,7 +81,7 @@ describe('PostgresDBConnection', () => {
 	describe('executeQuery', () => {
 		it('should execute a query and return results', async () => {
 			const mockRows = [{ id: 1, name: 'Test' }];
-			mockClient.query.mockResolvedValueOnce({ rows: mockRows, rowCount: 1 } as any);
+			mockClient.query.mockResolvedValueOnce({ rows: mockRows, rowCount: 1 } as never);
 
 			const instance = await PostgresDBConnection.getInstance({});
 			const result = await instance.executeQuery('SELECT * FROM test');
@@ -93,7 +93,7 @@ describe('PostgresDBConnection', () => {
 
 		it('should execute a query with parameters', async () => {
 			const mockRows = [{ id: 1, name: 'Test' }];
-			mockClient.query.mockResolvedValueOnce({ rows: mockRows, rowCount: 1 } as any);
+			mockClient.query.mockResolvedValueOnce({ rows: mockRows, rowCount: 1 } as never);
 
 			const instance = await PostgresDBConnection.getInstance({});
 			const result = await instance.executeQuery('SELECT * FROM test WHERE id = $1', [
@@ -107,7 +107,7 @@ describe('PostgresDBConnection', () => {
 		});
 
 		it('should throw QueryExecutionError if query fails', async () => {
-			mockClient.query.mockRejectedValueOnce(new Error('Query failed'));
+			mockClient.query.mockRejectedValueOnce(new Error('Query failed') as never);
 
 			const instance = await PostgresDBConnection.getInstance({});
 			await expect(instance.executeQuery('SELECT * FROM test')).rejects.toThrow(
@@ -134,7 +134,7 @@ describe('PostgresDBConnection', () => {
 		});
 
 		it('should log an error if pool closure fails', async () => {
-			mockPool.end.mockRejectedValueOnce(new Error('Pool closure failed'));
+			mockPool.end.mockRejectedValueOnce(new Error('Pool closure failed') as never);
 
 			const instance = await PostgresDBConnection.getInstance({});
 			await instance.cleanup();

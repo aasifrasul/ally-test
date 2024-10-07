@@ -22,8 +22,6 @@ async function handleLoadImages(id, imageUrls) {
 async function handleFetchAPIData(id, { endpoint, options = {} }) {
 	try {
 		const abortController = new AbortController();
-		const signal = abortController.signal;
-
 		const isGetRequest = options.method?.toUpperCase() === 'GET';
 
 		if (isGetRequest && hashMapData.has(endpoint)) {
@@ -35,21 +33,45 @@ async function handleFetchAPIData(id, { endpoint, options = {} }) {
 
 		const enhancedOptions = {
 			...options,
-			signal,
+			signal: abortController.signal,
 		};
 
 		const req = new Request(endpoint, enhancedOptions);
 
-		const response = await fetch(endpoint, options);
+		const response = await fetch(req);
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
 		const data = await response.json();
 		self.postMessage({ id, type: 'fetchAPIDataResponse', data });
 	} catch (error) {
-		self.postMessage({ id, type: 'fetchAPIDataError', error: error.message });
+		if (error.name === 'AbortError') {
+			self.postMessage({
+				id,
+				type: 'fetchAPIDataAborted',
+				error: 'Request was aborted',
+			});
+		} else {
+			self.postMessage({ id, type: 'fetchAPIDataError', error: error.message });
+		}
 	}
 }
 
-function handleAbortFetchRequest(id, data) {
-	self.postMessage({ id, type: 'abortFetchRequestResponse', data: 'Request aborted' });
+function handleAbortFetchRequest(id, endpoint) {
+	const abortCallback = hashMapEndPoints.get(endpoint);
+	if (typeof abortCallback === 'function') {
+		abortCallback();
+		hashMapEndPoints.delete(endpoint);
+		self.postMessage({ id, type: 'abortFetchRequestResponse', data: 'Request aborted' });
+	} else {
+		self.postMessage({
+			id,
+			type: 'abortFetchRequestError',
+			error: 'No active request found',
+		});
+	}
 }
 
 self.onmessage = async (event) => {
