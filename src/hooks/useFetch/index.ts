@@ -6,9 +6,7 @@ import { createActionHooks } from '../createActionHooks';
 
 import { buildQueryParams } from '../../utils/common';
 import { constants } from '../../constants';
-import { DataSource } from '../../constants/types';
-import { InitialState } from '../../Context/types';
-import { QueryParams } from '../../constants/types';
+import { DataSource, InitialState, QueryParams, HTTPMethod } from '../../constants/types';
 
 interface customFetchOptions extends RequestInit {
 	nextPage?: number;
@@ -25,7 +23,7 @@ export interface FetchOptions<T, U = T> {
 }
 
 export interface UpdateConfig {
-	method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+	method?: HTTPMethod;
 	headers?: Record<string, string>;
 	queryParams?: QueryParams;
 }
@@ -102,7 +100,7 @@ function useFetch<T, U = T>(
 			}, timeout);
 
 			const enhancedOptions: RequestInit = {
-				method: 'GET',
+				method: HTTPMethod.GET,
 				headers: {
 					'Content-Type': 'application/json',
 				},
@@ -140,7 +138,7 @@ function useFetch<T, U = T>(
 	const updateData = useCallback(
 		async (data: Partial<T>, config: UpdateConfig = {}): Promise<U | null> => {
 			const {
-				method = 'POST',
+				method = HTTPMethod.POST,
 				headers = {},
 				queryParams: updateQueryParams = {},
 			} = config;

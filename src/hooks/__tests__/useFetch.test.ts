@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { fetchAPIData } from '../../workers/WorkerHelper';
 import useFetch, { FetchOptions } from '../useFetch';
-import { Constants } from '../../constants/types';
+import { Constants, Schema, HTTPMethod } from '../../constants/types';
 
 interface TestData {
 	data: string;
@@ -40,7 +40,7 @@ jest.mock('../../constants', () => {
 	const constants: Constants = {
 		dataSources: {
 			testSchema: {
-				schema: 'testSchema',
+				schema: 'testSchema' as Schema,
 				BASE_URL: 'http://api.test.com',
 				queryParams: {
 					page: 1,
@@ -130,7 +130,7 @@ describe('useFetch', () => {
 		expect(fetchAPIData).toHaveBeenCalledWith(
 			expect.any(String),
 			expect.objectContaining({
-				method: 'POST',
+				method: HTTPMethod.POST,
 				body: JSON.stringify(updateData),
 			}),
 		);
@@ -268,7 +268,7 @@ describe('useFetch - Additional Test Coverage', () => {
 
 			await act(async () => {
 				await result.current.updateData(updateData, {
-					method: 'PUT',
+					method: HTTPMethod.PUT,
 					headers: {
 						'Custom-Header': 'test-value',
 					},
@@ -278,7 +278,7 @@ describe('useFetch - Additional Test Coverage', () => {
 			expect(fetchAPIData).toHaveBeenCalledWith(
 				expect.any(String),
 				expect.objectContaining({
-					method: 'PUT',
+					method: HTTPMethod.PUT,
 					headers: expect.objectContaining({
 						'Custom-Header': 'test-value',
 						'Content-Type': 'application/json',
@@ -296,13 +296,13 @@ describe('useFetch - Additional Test Coverage', () => {
 			const patchData = { data: 'partial update' };
 
 			await act(async () => {
-				await result.current.updateData(patchData, { method: 'PATCH' });
+				await result.current.updateData(patchData, { method: HTTPMethod.PATCH });
 			});
 
 			expect(fetchAPIData).toHaveBeenCalledWith(
 				expect.any(String),
 				expect.objectContaining({
-					method: 'PATCH',
+					method: HTTPMethod.PATCH,
 					body: JSON.stringify(patchData),
 				}),
 			);
@@ -312,13 +312,13 @@ describe('useFetch - Additional Test Coverage', () => {
 			const { result } = renderHook(() => useFetch<TestData>(schema));
 
 			await act(async () => {
-				await result.current.updateData({}, { method: 'DELETE' });
+				await result.current.updateData({}, { method: HTTPMethod.DELETE });
 			});
 
 			expect(fetchAPIData).toHaveBeenCalledWith(
 				expect.any(String),
 				expect.objectContaining({
-					method: 'DELETE',
+					method: HTTPMethod.DELETE,
 				}),
 			);
 		});

@@ -3,11 +3,11 @@ import handlebars from 'handlebars';
 import { createHandler } from 'graphql-http/lib/use/http';
 import { PubSub } from 'graphql-subscriptions';
 
-import { isMobileApp, nocache, getParsedUserAgentData, getFileContents } from './helper';
-import { schema } from './schema';
-import { parse } from './UaParser';
-import { fetchCSVasJSON } from './fetchCSVasJSON';
-import { pathAssets, pathTemplate } from './paths';
+import { isMobileApp, nocache, getParsedUserAgentData, getFileContents } from '../helper';
+import { schema } from '../schema';
+import { parse } from '../UaParser';
+import { fetchCSVasJSON } from '../fetchCSVasJSON';
+import { pathAssets, pathTemplate } from '../paths';
 
 const { headers, result } = fetchCSVasJSON(path.join(pathAssets, 'winemag-data-130k-v2.csv'));
 

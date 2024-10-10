@@ -1,10 +1,10 @@
-export type AnyObject = Record<string, any>;
+import { Action, GenericState } from '../constants/types';
 
-export interface Store<T extends AnyObject> {
+export interface Store<T extends GenericState> {
 	getState: (schema?: keyof T | null) => Partial<T>;
 }
 
-export interface StoreContextValue<T extends AnyObject> {
-	dispatch: React.Dispatch<any>;
+export interface StoreContextValue<T extends GenericState> {
+	dispatch: React.Dispatch<Action>;
 	store: Store<T>;
 }

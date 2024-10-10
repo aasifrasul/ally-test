@@ -1,12 +1,14 @@
+import { IS_UserData } from '../types/api';
+
 export interface InitialState {
 	isLoading?: boolean;
 	isError?: boolean;
 	isUpdating?: boolean;
-	data?: Array<unknown> | Record<string, unknown>;
+	data?: IS_UserData[] | Array<unknown> | Record<string, unknown>;
 	currentPage?: number | undefined;
 	TOTAL_PAGES?: number;
 }
 
-export interface StoreSchema {
+export interface GenericState {
 	[key: string]: InitialState;
 }

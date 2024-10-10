@@ -1,12 +1,13 @@
 import React, { createContext, useReducer, useMemo, ReactNode, Reducer } from 'react';
 
-import { AnyObject, StoreContextValue, Store } from './types';
-
 import useContextFactory from '../Context/useContextFactory';
 
-function storeFactory<T extends AnyObject>(
-	reducer: Reducer<T, any>,
-	initialState: T,
+import { StoreContextValue, Store } from './types';
+import { GenericState, GenericReducer, Schema } from '../constants/types';
+
+function storeFactory<T extends GenericState>(
+	reducer: GenericReducer,
+	initialState: GenericState,
 ): [React.FC<{ children: ReactNode }>, () => StoreContextValue<T>] {
 	const StoreContext = createContext<StoreContextValue<T> | undefined>(undefined);
 
@@ -15,8 +16,8 @@ function storeFactory<T extends AnyObject>(
 
 		const store: Store<T> = useMemo(
 			() => ({
-				getState: (schema: keyof T | null = null) =>
-					(schema ? state[schema] : state) as Partial<T>,
+				getState: (schema: Schema) =>
+					(schema ? (state as T)[schema] : state) as Partial<T>,
 			}),
 			[state],
 		);

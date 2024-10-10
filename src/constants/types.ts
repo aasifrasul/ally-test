@@ -1,15 +1,64 @@
+import { IS_UserData } from '../types/api';
+
+export interface Action {
+	type: string;
+	payload?: any;
+}
+
+export interface GenericAction extends Action {
+	schema: string;
+}
+
+export enum Schema {
+	INFINITE_SCROLL = 'infiniteScroll',
+	MOVIE_LIST = 'movieList',
+	NESTED_CATEGORIES = 'nestedCategories',
+	WINE_CONNOISSUER = 'wineConnoisseur',
+	SEARCH_FROM = 'searchForm',
+}
+
+export enum HTTPMethod {
+	GET = 'GET',
+	POST = 'POST',
+	PUT = 'PUT',
+	PATCH = 'PATCH',
+	DELETE = 'DELETE',
+}
+
+export interface InitialState {
+	isLoading?: boolean;
+	isError?: boolean;
+	isUpdating?: boolean;
+	data?: IS_UserData[] | Array<unknown> | Record<string, unknown>;
+	currentPage?: number | undefined;
+	TOTAL_PAGES?: number;
+}
+
+export interface GenericState {
+	[key: string]: InitialState;
+}
+
+export interface ChildComponentProps extends InitialState {
+	fetchNextPage: (nextPage: number) => Promise<void>;
+}
+
+export type QueryParamValue = number | string;
+
 export interface QueryParams {
 	page?: number;
-	[key: string]: number | string;
+	[key: string]: QueryParamValue | undefined;
 }
+
+export type ReducerFunction = (state: InitialState, action: Action) => InitialState;
+export type GenericReducer = (state: GenericState, action: GenericAction) => GenericState;
 
 export interface DataSource {
 	TOTAL_PAGES?: number;
 	BASE_URL: string;
-	schema: string;
+	schema: Schema;
 	queryParams?: QueryParams;
 	timeout?: number;
-	reducer?: (state: any, action: any) => any;
+	reducer?: ReducerFunction;
 	headers?: { [key: string]: string };
 	options?: any;
 	PRODUCT_LIST?: string;
