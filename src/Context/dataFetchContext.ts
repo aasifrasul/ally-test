@@ -2,11 +2,11 @@ import React from 'react';
 import storeFactory from '../store/storeFactory';
 import dataFetchReducer from '../reducers/dataFetchReducer';
 import { constants } from '../constants';
-import { InitialState } from './types';
+import { InitialState, GenericState } from '../constants/types';
 
 const { dataSources } = constants;
 
-const initialState: InitialState = {};
+const initialState: GenericState = {};
 
 // Populate initialState based on dataSources
 Object.keys(dataSources).forEach((key) => {
@@ -21,7 +21,7 @@ Object.keys(dataSources).forEach((key) => {
 });
 
 // Use the storeFactory with the correct types
-const [FetchStoreProvider, useFetchStore] = storeFactory<InitialState>(
+const [FetchStoreProvider, useFetchStore] = storeFactory<GenericState>(
 	dataFetchReducer,
 	initialState,
 );

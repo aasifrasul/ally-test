@@ -1,5 +1,4 @@
-import { StoreSchema, InitialState } from '../../Context/types';
-import { DataSource, QueryParams } from '../../constants/types';
+import { DataSource, QueryParams, GenericState, InitialState } from '../../constants/types';
 
 import * as helpers from '../../utils/APIHelper';
 import { useSelector } from '../../hooks/useSelector';
@@ -45,8 +44,8 @@ export function fetchNextPage(schema: string, nextPage: number, options?: FetchD
 	return fetchData(schema, options);
 }
 
-export function getList(schema: keyof StoreSchema): InitialState {
-	return useSelector((store: StoreSchema) => store[schema]);
+export function getList(schema: keyof GenericState): InitialState {
+	return useSelector((store: GenericState) => store[schema]);
 }
 
 export function addItem(schema: string, data: any, options?: FetchDataOptions) {

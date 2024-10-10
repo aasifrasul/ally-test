@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from '../useSelector';
 import { useFetchStore } from '../../Context/dataFetchContext';
-import { StoreSchema } from '../../Context/types';
+import { GenericState } from '../../Context/types';
 
 // Mock the useFetchStore hook
 jest.mock('../../Context/dataFetchContext', () => ({
@@ -26,8 +26,8 @@ type Settings = {
 	notifications: boolean;
 };
 
-// Define a mock StoreSchema for testing
-interface MockStoreSchema extends StoreSchema {
+// Define a mock GenericState for testing
+interface MockStoreSchema extends GenericState {
 	user: {
 		data: User[];
 	};

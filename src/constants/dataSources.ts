@@ -3,13 +3,13 @@ import wineConnoisseurReducer from '../reducers/wineConnoisseurReducer';
 import infiniteScrollReducer from '../reducers/infiniteScrollReducer';
 import movieListReducer from '../reducers/movieListReducer';
 
-import { DataSources } from './types';
+import { DataSources, Schema } from './types';
 
 export const dataSources: DataSources = {
 	infiniteScroll: {
 		TOTAL_PAGES: 25,
 		BASE_URL: `https://randomuser.me/api`,
-		schema: 'infiniteScroll',
+		schema: Schema.INFINITE_SCROLL,
 		queryParams: {
 			page: 1,
 			results: 10,
@@ -24,7 +24,7 @@ export const dataSources: DataSources = {
 	movieList: {
 		TOTAL_PAGES: 25,
 		BASE_URL: `https://api.themoviedb.org/3/discover/movie`,
-		schema: 'movieList',
+		schema: Schema.MOVIE_LIST,
 		queryParams: {
 			page: 1,
 			sort_by: 'popularity.desc',
@@ -38,7 +38,7 @@ export const dataSources: DataSources = {
 	},
 	nestedCategories: {
 		BASE_URL: `https://localhost:3100/proxy/okrcentral`,
-		schema: 'nestedCategories',
+		schema: Schema.NESTED_CATEGORIES,
 		timeout: 2000,
 		options: {
 			method: 'GET',
@@ -47,7 +47,7 @@ export const dataSources: DataSources = {
 	},
 	wineConnoisseur: {
 		BASE_URL: `http://localhost:3100/api/fetchWineData/`,
-		schema: 'wineConnoisseur',
+		schema: Schema.WINE_CONNOISSUER,
 		queryParams: {
 			page: 0,
 		},
@@ -64,7 +64,7 @@ export const dataSources: DataSources = {
 			PRODUCT_LIST: `${BASE_URL}list`,
 			ADD_ITEM_URL: `${BASE_URL}add_new`,
 			API_KEY: 'Z9Q7WKEY7ORGBUFGN3EG1QS5Y7FG8DU29GHKKSZH',
-			schema: 'searchForm',
+			schema: Schema.SEARCH_FROM,
 			timeout: 2000,
 			options: {
 				method: 'GET',

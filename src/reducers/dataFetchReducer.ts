@@ -1,17 +1,14 @@
 import { isObject } from '../utils/typeChecking';
 import { constants } from '../constants';
 
-import { StoreSchema } from '../Context/types';
+import { GenericState, GenericAction, GenericReducer } from '../constants/types';
 
-interface Action {
-	schema: string;
-	type: string;
-	payload?: any;
-}
-
-const dataFetchReducer = (state: StoreSchema, action: Action): StoreSchema => {
+const dataFetchReducer: GenericReducer = (
+	state: GenericState,
+	action: GenericAction,
+): GenericState => {
 	const { schema, type, payload } = action;
-	const newState: StoreSchema = {
+	const newState: GenericState = {
 		...state,
 	};
 
