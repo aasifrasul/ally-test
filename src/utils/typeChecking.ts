@@ -1,38 +1,37 @@
-export const typeCheck = (data, type) =>
+export const typeCheck = <T>(data: unknown, type: string): boolean =>
 	Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type;
 
-export const isArray = (data) => typeCheck(data, 'array');
-export const isObject = (data) => typeCheck(data, 'object');
-export const isNull = (data) => typeCheck(data, 'null');
-export const isUndefined = (data) => typeCheck(data, 'undefined');
-export const isNumber = (data) => typeCheck(data, 'number');
-export const isString = (data) => typeCheck(data, 'string');
-export const isBoolean = (data) => typeCheck(data, 'boolean');
-export const isMap = (data) => typeCheck(data, 'map');
-export const isSet = (data) => typeCheck(data, 'set');
-export const isPromise = (data) => typeCheck(data, 'promise');
-export const isDate = (data) => typeCheck(data, 'date');
-export const isSymbol = (data) => typeCheck(data, 'symbol');
-export const isRegExp = (data) => typeCheck(data, 'regexp');
+export const isArray = (data: unknown) => typeCheck(data, 'array');
+export const isObject = (data: unknown) => typeCheck(data, 'object');
+export const isNull = (data: unknown) => typeCheck(data, 'null');
+export const isUndefined = (data: unknown) => typeCheck(data, 'undefined');
+export const isNumber = (data: unknown) => typeCheck(data, 'number');
+export const isString = (data: unknown) => typeCheck(data, 'string');
+export const isBoolean = (data: unknown) => typeCheck(data, 'boolean');
+export const isMap = (data: unknown) => typeCheck(data, 'map');
+export const isSet = (data: unknown) => typeCheck(data, 'set');
+export const isPromise = (data: unknown) => typeCheck(data, 'promise');
+export const isDate = (data: unknown) => typeCheck(data, 'date');
+export const isSymbol = (data: unknown) => typeCheck(data, 'symbol');
+export const isRegExp = (data: unknown) => typeCheck(data, 'regexp');
 
-export const arraySize = (arr) => (isArray(arr) ? arr.length : null);
+export const arraySize = <T>(arr: T[]): number | null => (isArray(arr) ? arr.length : null);
 
-export const isEmptyString = (str) => isString(str) && str.length === 0;
-export const isEmptyArray = (arr) => arraySize(arr) === 0;
-export const isEmptyObject = (obj) => isObject(obj) && Object.keys(obj).length === 0;
+export const isEmptyString = (str: unknown) => isString(str) && (str as string).length === 0;
+export const isEmptyArray = (arr: unknown[]) => arraySize(arr) === 0;
+export const isEmptyObject = (obj: unknown) =>
+	isObject(obj) && Object.keys(obj as object).length === 0;
 
-export const isEmpty = (data) =>
+export const isEmpty = (data: unknown) =>
 	isUndefined(data) ||
 	isNull(data) ||
 	isEmptyString(data) ||
-	isEmptyArray(data) ||
+	isEmptyArray(data as unknown[]) ||
 	isEmptyObject(data);
 
-export const isFunction = (data) => typeCheck(data, 'function');
+export const isFunction = (data: unknown) => typeCheck(data, 'function');
 
 export const isAsyncfunction = (data: any): data is (...args: any[]) => Promise<any> => {
-	if (!isFunction(data)) return false;
-
 	// Check if it's an async function using constructor name
 	if (data.constructor.name === 'AsyncFunction') return true;
 
@@ -49,8 +48,6 @@ export const isAsyncfunction = (data: any): data is (...args: any[]) => Promise<
 };
 
 export const isGeneratorFunction = (data: any): data is GeneratorFunction => {
-	if (!isFunction(data)) return false;
-
 	// Check if it's a generator function using constructor name
 	if (data.constructor.name === 'GeneratorFunction') return true;
 

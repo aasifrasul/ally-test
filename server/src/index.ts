@@ -16,11 +16,19 @@ config({ path: `${pathRootDir}/.env` });
 
 const { NODE_PORT: port, NODE_HOST: host } = process.env;
 
-(async () => {
-	await mongoDbConnection.connect();
-})();
-
 const httpServer: http.Server = http.createServer(app);
+
+(async () => {
+	try {
+		await mongoDbConnection.connect();
+
+		if (!mongoDbConnection.getIsConnected()) {
+			logger.warn('Application started without MongoDB connection.');
+		}
+	} catch (error) {
+		logger.error('Failed to start application:', error);
+	}
+})();
 
 connectWSServer(httpServer);
 connectToIOServer(httpServer);

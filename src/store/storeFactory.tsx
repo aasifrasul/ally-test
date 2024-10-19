@@ -1,9 +1,21 @@
-import React, { createContext, useReducer, useMemo, ReactNode, Reducer } from 'react';
+import React, { createContext, useReducer, useMemo, ReactNode, Dispatch } from 'react';
 
 import useContextFactory from '../Context/useContextFactory';
 
-import { StoreContextValue, Store } from './types';
-import { GenericState, GenericReducer, Schema } from '../constants/types';
+import {
+	GenericState,
+	GenericReducer,
+	GenericAction,
+	Schema,
+	StoreContextValue,
+	Store,
+} from '../constants/types';
+
+import { createLogger, LogLevel, Logger } from '../utils/logger';
+
+const logger: Logger = createLogger('storeFactory', {
+	level: LogLevel.DEBUG,
+});
 
 function storeFactory<T extends GenericState>(
 	reducer: GenericReducer,
@@ -12,12 +24,13 @@ function storeFactory<T extends GenericState>(
 	const StoreContext = createContext<StoreContextValue<T> | undefined>(undefined);
 
 	const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-		const [state, dispatch] = useReducer(reducer, initialState);
+		let state: GenericState;
+		let dispatch: Dispatch<GenericAction>;
+		[state, dispatch] = useReducer(reducer, initialState);
 
-		const store: Store<T> = useMemo(
+		const store: Store<GenericState> = useMemo(
 			() => ({
-				getState: (schema: Schema) =>
-					(schema ? (state as T)[schema] : state) as Partial<T>,
+				getState: (schema: Schema) => state[schema],
 			}),
 			[state],
 		);
@@ -25,10 +38,9 @@ function storeFactory<T extends GenericState>(
 		const proxyStore = useMemo(
 			() =>
 				new Proxy(store, {
-					get(target: Store<T>, prop: string | number | symbol) {
-						const propString = String(prop);
-						console.log('Accessing property ' + propString);
-						return target.getState(propString as keyof T);
+					get(target: Store<GenericState>, prop: Schema) {
+						logger.debug('prop:', prop);
+						return target.getState(prop);
 					},
 				}),
 			[store],

@@ -4,7 +4,7 @@ import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
 import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
 
 import InputText from '../Common/InputText';
-import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
+import ScrollToTop from '../Common/ScrollToTopButton';
 
 import Movie from './Movie.js';
 

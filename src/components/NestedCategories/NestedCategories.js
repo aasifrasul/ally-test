@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import Spacer from '../Common/Spacer/Spacer1';
 import DropDown from '../Common/DropDown/DropDown';
-import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
+import ScrollToTop from '../Common/ScrollToTopButton';
 
 import { buildNestedWithParentId, alphabets } from '../../utils/ArrayUtils';
 

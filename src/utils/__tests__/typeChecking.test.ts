@@ -129,7 +129,7 @@ describe('Type checking functions', () => {
 describe('Utility functions', () => {
 	test('arraySize', () => {
 		expect(arraySize([1, 2, 3])).toBe(3);
-		expect(arraySize({})).toBe(null);
+		expect(arraySize([])).toBe(null);
 	});
 
 	test('isEmptyString', () => {
@@ -141,13 +141,13 @@ describe('Utility functions', () => {
 	test('isEmptyArray', () => {
 		expect(isEmptyArray([])).toBe(true);
 		expect(isEmptyArray([1, 2, 3])).toBe(false);
-		expect(isEmptyArray({})).toBe(false);
+		expect(isEmptyArray({} as unknown[])).toBe(false); // Fixed: Cast empty object to unknown[]
 	});
 
 	test('isEmptyObject', () => {
 		expect(isEmptyObject({})).toBe(true);
 		expect(isEmptyObject({ a: 1 })).toBe(false);
-		expect(isEmptyObject([])).toBe(false);
+		expect(isEmptyObject([] as unknown as object)).toBe(false); // Fixed: Cast empty array to object
 	});
 
 	test('isEmpty', () => {
@@ -164,13 +164,13 @@ describe('Utility functions', () => {
 
 describe('safelyExecuteFunction', () => {
 	test('executes function with no context', () => {
-		const testFunc = (a, b) => a + b;
-		expect(safelyExecuteFunction(testFunc, null, 1, 2)).toBe(3);
+		const testFunc = (a: number, b: number) => a + b;
+		expect(safelyExecuteFunction(testFunc, undefined, 1, 2)).toBe(3);
 	});
 
 	test('executes function with context', () => {
 		const context = { multiplier: 2 };
-		const testFunc = function (a, b) {
+		const testFunc = function (this: { multiplier: number }, a: number, b: number) {
 			return (a + b) * this.multiplier;
 		};
 		expect(safelyExecuteFunction(testFunc, context, 1, 2)).toBe(6);
@@ -178,25 +178,27 @@ describe('safelyExecuteFunction', () => {
 
 	test('returns undefined for non-function input', () => {
 		console.log = jest.fn();
-		expect(safelyExecuteFunction(null, null)).toBeUndefined();
+		expect(
+			safelyExecuteFunction(null as unknown as () => void, undefined),
+		).toBeUndefined();
 		expect(console.log).toHaveBeenCalledWith('Please pass a valid function!');
 	});
 
 	test('handles functions with no return value', () => {
 		const testFunc = jest.fn();
-		expect(safelyExecuteFunction(testFunc, null)).toBeUndefined();
+		expect(safelyExecuteFunction(testFunc, undefined)).toBeUndefined();
 		expect(testFunc).toHaveBeenCalled();
 	});
 });
 
 describe('safeExecute', () => {
 	test('executes synchronous function and returns promise', async () => {
-		const testFunc = (a, b) => a + b;
+		const testFunc = (a: number, b: number) => a + b;
 		await expect(safeExecute(testFunc, 1, 2)).resolves.toBe(3);
 	});
 
 	test('executes asynchronous function and returns promise', async () => {
-		const testFunc = async (a, b) => a + b;
+		const testFunc = async (a: number, b: number) => a + b;
 		await expect(safeExecute(testFunc, 1, 2)).resolves.toBe(3);
 	});
 
@@ -257,7 +259,7 @@ describe('safeExecute', () => {
 		const originalConsoleWarn = console.warn;
 		console.warn = jest.fn();
 
-		await expect(safeExecute(null)).resolves.toBeNull();
+		await expect(safeExecute(null as unknown as () => void)).resolves.toBeNull();
 		expect(console.warn).toHaveBeenCalledWith('Please pass a valid function!');
 
 		console.warn = originalConsoleWarn;

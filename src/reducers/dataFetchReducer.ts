@@ -1,7 +1,12 @@
-import { isObject } from '../utils/typeChecking';
 import { constants } from '../constants';
 
-import { GenericState, GenericAction, GenericReducer } from '../constants/types';
+import {
+	GenericState,
+	GenericAction,
+	GenericReducer,
+	DataSource,
+	ReducerFunction,
+} from '../constants/types';
 
 const dataFetchReducer: GenericReducer = (
 	state: GenericState,
@@ -15,18 +20,6 @@ const dataFetchReducer: GenericReducer = (
 	let individualState = {
 		...newState[schema],
 	};
-
-	const reducerCB: Function = constants.dataSources[schema]?.reducer;
-	const otherState = reducerCB(individualState, action);
-
-	if (isObject(otherState)) {
-		individualState = {
-			...otherState,
-		};
-
-		newState[schema] = { ...individualState };
-		return newState;
-	}
 
 	switch (type) {
 		case 'FETCH_INIT':
@@ -50,8 +43,14 @@ const dataFetchReducer: GenericReducer = (
 				...individualState,
 				isLoading: false,
 			};
-			if (payload) {
-				individualState.data = payload;
+			if (payload?.data) {
+				individualState = {
+					...individualState,
+					data: [
+						...(Array.isArray(individualState.data) ? individualState.data : []),
+						...payload.data,
+					],
+				};
 			}
 			break;
 
@@ -106,6 +105,14 @@ const dataFetchReducer: GenericReducer = (
 			individualState = {
 				...individualState,
 			};
+	}
+
+	const dataSource: DataSource = constants.dataSources![schema];
+	const reducerCB: ReducerFunction | undefined = dataSource.reducer;
+
+	if (reducerCB !== undefined) {
+		const otherState = reducerCB(individualState, action);
+		individualState = { ...individualState, ...otherState };
 	}
 
 	newState[schema] = { ...individualState };

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import DataGrid from '../Common/DataGrid/DataGrid';
-import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
+import ScrollToTop from '../Common/ScrollToTopButton';
 
 import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
 

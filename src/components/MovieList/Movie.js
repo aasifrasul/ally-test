@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import Portal from '../Common/Portal/Portal';
-import Image from '../Common/Image/Image';
+import Image from '../Common/Image';
 
 export default function Movie(props) {
 	const [isShown, setIsShown] = useState(false);

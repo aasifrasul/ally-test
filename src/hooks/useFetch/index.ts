@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import { abortFetchRequest, fetchAPIData } from '../../workers/WorkerHelper';
+import { initializeWorker, terminateWorker } from '../../workers/WorkerUtils';
 import { useSelector } from '../useSelector';
 import { createActionHooks } from '../createActionHooks';
 
 import { buildQueryParams } from '../../utils/common';
 import { constants } from '../../constants';
-import { DataSource, InitialState, QueryParams, HTTPMethod } from '../../constants/types';
+import { DataSource, InitialState, QueryParams, Schema } from '../../constants/types';
+import { HTTPMethod } from '../../types/api';
 
 interface customFetchOptions extends RequestInit {
 	nextPage?: number;
@@ -30,7 +31,7 @@ export interface UpdateConfig {
 
 export interface UseFetchResult<T, U = T> {
 	cleanUpTopLevel: () => void;
-	getList: (schema: string) => InitialState;
+	getList: (schema?: Schema) => InitialState;
 	fetchData: (options?: customFetchOptions) => Promise<void>;
 	fetchNextPage: (nextPage: number) => Promise<void>;
 	updateData: (data: Partial<T>, config?: UpdateConfig) => Promise<U | null>;
@@ -38,8 +39,10 @@ export interface UseFetchResult<T, U = T> {
 
 const DEFAULT_TIMEOUT = 2000;
 
+const messageQueue = initializeWorker();
+
 function useFetch<T, U = T>(
-	schema: string,
+	schema: Schema,
 	options: FetchOptions<T, U> = {},
 ): UseFetchResult<T, U> {
 	const { useFetchActions, useUpdateActions, usePageActions } = createActionHooks(schema);
@@ -55,7 +58,7 @@ function useFetch<T, U = T>(
 	} = options;
 
 	const timeoutId = useRef<NodeJS.Timeout | null>(null);
-	const dataSource: DataSource = constants?.dataSources[schema];
+	const dataSource: DataSource = constants.dataSources![schema];
 	const { BASE_URL, queryParams } = dataSource ?? {};
 
 	const cleanUpTopLevel = useCallback(() => {
@@ -70,7 +73,7 @@ function useFetch<T, U = T>(
 			if (!BASE_URL || !schema) {
 				const error = new Error('Missing required parameters: BASE_URL or schema');
 				onError?.(error);
-				return null;
+				return;
 			}
 
 			const { advancePage } = usePageActions();
@@ -81,7 +84,7 @@ function useFetch<T, U = T>(
 			fetchStarted();
 			const newQueryParams = {
 				...queryParams,
-				page: fetchOptions.nextPage || queryParams.page,
+				page: fetchOptions.nextPage || queryParams?.page,
 			};
 
 			delete fetchOptions.nextPage;
@@ -90,7 +93,7 @@ function useFetch<T, U = T>(
 
 			const cleanUp = () => {
 				cleanUpTopLevel();
-				abortFetchRequest(url);
+				//abortFetchRequest(url);
 			};
 
 			timeoutId.current = setTimeout(() => {
@@ -108,7 +111,7 @@ function useFetch<T, U = T>(
 			};
 
 			try {
-				const rawData = await fetchAPIData(url, enhancedOptions);
+				const rawData = await messageQueue.fetchAPIData(url, enhancedOptions);
 				const transformedData = transformResponse(rawData);
 
 				fetchSucceeded(transformedData);
@@ -117,7 +120,7 @@ function useFetch<T, U = T>(
 				if (newQueryParams.page) {
 					advancePage(newQueryParams.page);
 				}
-			} catch (error) {
+			} catch (error: any) {
 				// Only handle error if it's not an abort error
 				if (error.name !== 'AbortError') {
 					const errorObj = error instanceof Error ? error : new Error(String(error));
@@ -164,7 +167,7 @@ function useFetch<T, U = T>(
 
 			const cleanUp = () => {
 				cleanUpTopLevel();
-				abortFetchRequest(url);
+				//abortFetchRequest(url);
 			};
 
 			timeoutId.current = setTimeout(() => {
@@ -184,12 +187,12 @@ function useFetch<T, U = T>(
 			};
 
 			try {
-				const rawData = await fetchAPIData(url, enhancedOptions);
+				const rawData = await messageQueue.fetchAPIData(url, enhancedOptions);
 				const transformedData = transformUpdateResponse(rawData);
 
 				updateSucceeded();
 				onUpdateSuccess(transformedData);
-			} catch (error) {
+			} catch (error: any) {
 				if (error.name !== 'AbortError') {
 					const errorObj = error instanceof Error ? error : new Error(String(error));
 
@@ -203,6 +206,7 @@ function useFetch<T, U = T>(
 				}
 				updateCompleted();
 			}
+			return null;
 		},
 		[
 			BASE_URL,
@@ -224,8 +228,8 @@ function useFetch<T, U = T>(
 		[fetchData],
 	);
 
-	function getList(schemaOverride?: string): InitialState {
-		return useSelector((store) => store[schemaOverride || schema]);
+	function getList(schemaOverride: Schema = schema): InitialState {
+		return useSelector((store) => store[schemaOverride]);
 	}
 
 	useEffect(() => {

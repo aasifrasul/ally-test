@@ -24,6 +24,11 @@ export function useEventListener<
 	}, [callback]);
 
 	useEffect(() => {
+		// If element is explicitly null, don't set up any listener
+		if (element === null) {
+			return;
+		}
+
 		// If no element is provided and window is not available, return early
 		const targetElement: T | null =
 			element ?? (typeof window !== 'undefined' ? (window as unknown as T) : null);
@@ -33,7 +38,7 @@ export function useEventListener<
 		}
 
 		// Create event listener that calls callback function stored in ref
-		const listener: typeof callback = (event) => callbackRef.current(event);
+		const listener: EventListener = (event) => callbackRef.current(event as EventMap[K]);
 
 		targetElement.addEventListener(eventType, listener, options);
 

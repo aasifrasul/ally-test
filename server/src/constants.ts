@@ -22,6 +22,7 @@ interface Constants {
 	};
 	dbLayer: {
 		currentDB: DBType;
+		MAX_RETRIES: number;
 		mongodb: MongoDBConfig;
 		postgres: PostgresConfig;
 		mysql: MySQLConfig;
@@ -41,6 +42,7 @@ export const constants: Constants = {
 	},
 	dbLayer: {
 		currentDB: DBType.MONGODB,
+		MAX_RETRIES: 3,
 		mongodb: {
 			uri: 'mongodb://localhost:27017',
 			maxPoolSize: 10,
