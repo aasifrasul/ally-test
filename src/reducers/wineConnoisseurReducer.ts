@@ -1,38 +1,32 @@
-interface Action {
-	type: string;
-	payload?: {
-		pageData?: any[];
-		headers?: any;
-		[key: string]: any;
-	};
-}
+import { InitialState, Action, ReducerFunction } from '../constants/types';
 
-interface State {
-	isLoading?: boolean;
-	isError?: boolean;
-	data?: {
-		pageData?: any[];
-		headers?: any;
-		[key: string]: any;
-	};
+type Payload = {
+	pageData: any[];
+	headers: any;
 	[key: string]: any;
+};
+
+interface SpecificAction extends Action {
+	payload: Payload;
 }
 
-const wineConnoisseurReducer = (state: State, action: Action): State | null => {
-	const { type, payload } = action;
+const wineConnoisseurReducer: ReducerFunction = (
+	state: InitialState,
+	action: SpecificAction,
+): InitialState => {
+	const type: string = action.type;
+	const payload: Payload = action.payload;
+
 	switch (type) {
 		case 'FETCH_SUCCESS':
-			let { pageData = [], headers } = state?.data || {};
-			pageData = [...pageData, ...(payload?.pageData || [])];
-			headers = headers || payload?.headers;
+			const pageData = [...(state.pageData || []), ...(payload.pageData || [])];
+			const headers = [...(state.headers || []), ...(payload.headers || [])];
 			return {
 				...state,
 				isLoading: false,
 				isError: false,
-				data: {
-					pageData,
-					headers,
-				},
+				pageData,
+				headers,
 			};
 
 		default:

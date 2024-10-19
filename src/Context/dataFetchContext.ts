@@ -6,6 +6,10 @@ import { InitialState, GenericState } from '../constants/types';
 
 const { dataSources } = constants;
 
+if (!dataSources) {
+	throw new Error('dataSources is undefined');
+}
+
 const initialState: GenericState = {};
 
 // Populate initialState based on dataSources
@@ -14,6 +18,8 @@ Object.keys(dataSources).forEach((key) => {
 		isLoading: false,
 		isError: false,
 		data: [],
+		pageData: [],
+		headers: [],
 		currentPage: dataSources[key].queryParams?.page || 0,
 		TOTAL_PAGES: 0,
 	};

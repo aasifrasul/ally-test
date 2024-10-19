@@ -89,15 +89,16 @@ describe('useEventListener', () => {
 
 		// Start with the element
 		const { rerender } = renderHook(
-			({ el }) => useEventListener('click', mockCallback, el),
-			{ initialProps: { el: element } },
+			({ el }: { el: HTMLDivElement | null }) =>
+				useEventListener('click', mockCallback, el),
+			{ initialProps: { el: element as HTMLDivElement | null } },
 		);
 
 		// Reset the mock calls count after initial setup
 		mockCallback.mockClear();
 
 		// Now rerender with null element
-		rerender({ el: null });
+		rerender({ el: null } as { el: HTMLDivElement | null });
 
 		// Dispatch a new click event on the document
 		act(() => {

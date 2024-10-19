@@ -3,7 +3,7 @@ import wineConnoisseurReducer from '../reducers/wineConnoisseurReducer';
 import infiniteScrollReducer from '../reducers/infiniteScrollReducer';
 import movieListReducer from '../reducers/movieListReducer';
 
-import { DataSources, Schema } from './types';
+import { DataSources, Schema, InitialState, Action } from './types';
 
 export const dataSources: DataSources = {
 	infiniteScroll: {
@@ -72,6 +72,9 @@ export const dataSources: DataSources = {
 			headers: {
 				'Content-Type': 'application/json',
 				api_key: 'Z9Q7WKEY7ORGBUFGN3EG1QS5Y7FG8DU29GHKKSZH',
+			},
+			reducer: (state: InitialState, action: Action): InitialState => {
+				return state;
 			},
 		};
 	})(),

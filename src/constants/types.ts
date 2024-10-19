@@ -17,29 +17,19 @@ export enum Schema {
 	SEARCH_FROM = 'searchForm',
 }
 
-export enum HTTPMethod {
-	GET = 'GET',
-	POST = 'POST',
-	PUT = 'PUT',
-	PATCH = 'PATCH',
-	DELETE = 'DELETE',
-}
-
 export interface InitialState {
 	isLoading?: boolean;
 	isError?: boolean;
 	isUpdating?: boolean;
 	data?: IS_UserData[] | Array<unknown> | Record<string, unknown>;
+	pageData?: any[];
+	headers?: any[];
 	currentPage?: number | undefined;
 	TOTAL_PAGES?: number;
 }
 
 export interface GenericState {
 	[key: string]: InitialState;
-}
-
-export interface ChildComponentProps extends InitialState {
-	fetchNextPage: (nextPage: number) => Promise<void>;
 }
 
 export type QueryParamValue = number | string;
@@ -121,3 +111,12 @@ export type Constants = {
 	newsFeed?: NewsFeed;
 	FormMetaData?: FormMetaData;
 };
+
+export interface Store<T extends GenericState> {
+	getState: (schema: Schema) => InitialState;
+}
+
+export interface StoreContextValue<T extends GenericState> {
+	dispatch: React.Dispatch<GenericAction>;
+	store: Store<T>;
+}

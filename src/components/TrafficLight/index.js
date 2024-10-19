@@ -1,13 +1,13 @@
-import React from 'react';
-
+// components/TrafficLight/index.jsx
+import React, { useRef, useEffect } from 'react';
 import styles from './styles.css';
 
-function TrafficLight(props) {
-	const redRef = React.useRef(null);
-	const yellowRef = React.useRef(null);
-	const greenRef = React.useRef(null);
-	const timeoutRef = React.useRef(null);
-	const instance = React.useRef(-1);
+function TrafficLight() {
+	const redRef = useRef(null);
+	const yellowRef = useRef(null);
+	const greenRef = useRef(null);
+	const timeoutRef = useRef(null);
+	const instance = useRef(-1);
 
 	const durations = [
 		{ ref: redRef, time: 4000 },
@@ -15,32 +15,46 @@ function TrafficLight(props) {
 		{ ref: greenRef, time: 3000 },
 	];
 
-	const cleanUp = () => timeoutRef.current && clearTimeout(timeoutRef.current);
-	const addClass = (elemRef, className) => elemRef.current?.classList?.add(className);
-	const removeClass = (elemRef, className) => elemRef.current?.classList?.remove(className);
+	const cleanUp = () => {
+		if (timeoutRef.current) {
+			clearTimeout(timeoutRef.current);
+		}
+	};
+
+	const addClass = (elemRef, className) => {
+		elemRef.current?.classList?.add(className);
+	};
+
+	const removeClass = (elemRef, className) => {
+		elemRef.current?.classList?.remove(className);
+	};
 
 	const switchLights = () => {
 		cleanUp();
-		instance.current = ++instance.current % durations.length;
+		instance.current = (instance.current + 1) % durations.length;
 		const delay = durations[instance.current].time;
-		durations.forEach((item, index) =>
-			index === instance.current
-				? addClass(item.ref, styles.on)
-				: removeClass(item.ref, styles.on),
-		);
+
+		durations.forEach((item, index) => {
+			if (index === instance.current) {
+				addClass(item.ref, styles.on);
+			} else {
+				removeClass(item.ref, styles.on);
+			}
+		});
+
 		timeoutRef.current = setTimeout(switchLights, delay);
 	};
 
-	React.useEffect(() => {
+	useEffect(() => {
 		switchLights();
-		return () => cleanUp();
+		return cleanUp;
 	}, []);
 
 	return (
-		<div className={styles['traffic-light']}>
-			<div className={styles.red} ref={redRef}></div>
-			<div className={styles.yellow} ref={yellowRef}></div>
-			<div className={styles.green} ref={greenRef}></div>
+		<div className={styles.trafficLight}>
+			<div className={styles.red} ref={redRef} />
+			<div className={styles.yellow} ref={yellowRef} />
+			<div className={styles.green} ref={greenRef} />
 		</div>
 	);
 }

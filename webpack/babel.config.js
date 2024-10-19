@@ -9,9 +9,11 @@ const config = {
 			},
 		],
 		['@babel/preset-react', { runtime: 'automatic' }],
-		'@babel/preset-typescript',
+		['@babel/preset-typescript', { allowNamespaces: true }],
 	],
 	plugins: [
+		'@babel/plugin-transform-typescript',
+		'@babel/plugin-proposal-object-rest-spread',
 		'@babel/plugin-syntax-dynamic-import',
 		'@babel/plugin-transform-modules-commonjs',
 		'@babel/plugin-transform-runtime',

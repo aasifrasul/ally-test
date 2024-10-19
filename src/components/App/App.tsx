@@ -3,7 +3,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 
 import regeneratorRuntime from 'regenerator-runtime';
 
-import Header from '../Common/Header/Header';
+import Header from '../Common/Header';
 import Spinner from '../Common/Spinner';
 import { constants } from '../../constants';
 import './App.css';
@@ -17,7 +17,7 @@ interface LandingPages {
 }
 
 // Lazy imports
-const Home = lazy(() => import(/* webpackChunkName: "Home" */ '../Home/Home'));
+const Home = lazy(() => import(/* webpackChunkName: "Home" */ '../Home'));
 const ReactQuery = lazy(
 	() => import(/* webpackChunkName: "ReactQuery" */ '../ReactQuery/ReactQuery'),
 );

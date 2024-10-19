@@ -1,20 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
-import ScrollToTop from '../Common/ScrollToTopButton/ScrollToTop';
+import ScrollToTop from '../Common/ScrollToTopButton';
 
-import { ChildComponentProps } from '../../constants/types';
+import { InitialState } from '../../constants/types';
 import { IS_UserData } from '../../types/api';
 
 import UserCard from './UserCard';
 
 import './InfiniteScroll.css';
 
-export const InfiniteScroll = (props: ChildComponentProps) => {
-	const data: IS_UserData[] = props.data as IS_UserData[];
-	const { currentPage, isLoading, fetchNextPage, TOTAL_PAGES } = props;
+interface Props extends InitialState {
+	fetchNextPage: (nextPage: number) => Promise<void>;
+}
 
-	const [observerElement, setObserverElement] = useState(null);
+export const InfiniteScroll = (props: Props) => {
+	const data: IS_UserData[] = props.data as IS_UserData[];
+	const { currentPage = 1, isLoading, fetchNextPage, TOTAL_PAGES } = props;
+
+	const [observerElement, setObserverElement] = useState<HTMLDivElement | null>(null);
 
 	const observer = useRef<IntersectionObserver | null>(null);
 
@@ -25,7 +29,9 @@ export const InfiniteScroll = (props: ChildComponentProps) => {
 			),
 		);
 		observerElement && observer.current.observe(observerElement);
-		return () => observerElement && observer.current.unobserve(observerElement);
+		return () => {
+			observerElement && observer.current && observer.current.unobserve(observerElement);
+		};
 	}, [observerElement]);
 
 	useImageLazyLoadIO('img[data-src]', data?.length as number);
@@ -43,11 +49,14 @@ export const InfiniteScroll = (props: ChildComponentProps) => {
 								Loading...
 							</div>
 						) : null}
-						<UserCard data={user} key={`${user.id.value}-${i}`} />
+						<UserCard
+							data={user}
+							key={`${user.id.value}-${i}`}
+							data-testid="user-details"
+						/>
 					</>
 				))}
 			</div>
-			{isLoading && <p className="text-center">Loading...</p>}
 			{currentPage - 1 === TOTAL_PAGES && <p className="text-center my-10">♥</p>}
 		</div>
 	);

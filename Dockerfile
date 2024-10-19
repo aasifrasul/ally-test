@@ -1,5 +1,5 @@
 # Use an official Node.js image with yarn pre-installed
-FROM node:18-slim
+FROM node:20-slim
 
 # Set working directory
 WORKDIR /app
@@ -13,14 +13,14 @@ RUN yarn config set "strict-ssl" false -g && yarn install --frozen-lockfile
 # Copy remaining application code
 COPY . .
 
-# Build the application
-RUN yarn build
-
 # Expose port
 EXPOSE 3100
 
-# Start the application
-CMD [ "yarn", "dev:server" ]
+# We'll use a shell script as entrypoint to run multiple commands
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
 
 # docker build -t ally-test .
 # docker run -p 3100:3100 -d ally-test

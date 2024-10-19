@@ -1,7 +1,5 @@
 import mongoose from 'mongoose';
-
 import { MongoDBConfig } from '../types';
-
 import { constants } from '../constants';
 import { logger } from '../Logger';
 
@@ -10,8 +8,7 @@ class MongoDBConnection {
 	private isConnected: boolean = false;
 
 	private constructor() {
-		this.connect();
-		this.setupConnectionListeners();
+		logger.info('MongoDB connection manager initialized.');
 	}
 
 	public static getInstance(): MongoDBConnection {
@@ -32,27 +29,30 @@ class MongoDBConnection {
 
 		try {
 			this.validateConfig(mongoDBConf);
+
+			// Check if MongoDB is available before attempting to connect
+			const isAvailable = await this.checkMongoDBAvailability(uri);
+			if (!isAvailable) {
+				logger.warn('MongoDB is not available. Skipping connection attempt.');
+				return;
+			}
+
 			await mongoose.connect(uri, rest);
 			logger.info('Connected to MongoDB successfully');
 			this.isConnected = true;
 		} catch (error) {
 			logger.error('Failed to connect to MongoDB:', error);
-			throw error;
+			this.isConnected = false;
 		}
 	}
 
-	private async reconnect(maxAttempts: number = 5, delay: number = 5000): Promise<void> {
-		for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-			try {
-				await this.connect();
-				return;
-			} catch (error) {
-				logger.error(`Reconnection attempt ${attempt} failed:`, error);
-				if (attempt === maxAttempts) {
-					throw new MongoConnectionError('Max reconnection attempts reached', error);
-				}
-				await new Promise((resolve) => setTimeout(resolve, delay));
-			}
+	private async checkMongoDBAvailability(uri: string): Promise<boolean> {
+		try {
+			await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+			await mongoose.disconnect();
+			return true;
+		} catch (error) {
+			return false;
 		}
 	}
 
@@ -63,46 +63,23 @@ class MongoDBConnection {
 		// Add more validation as needed
 	}
 
-	private setupConnectionListeners(): void {
-		mongoose.connection.on('disconnected', () => {
-			logger.info('Lost MongoDB connection');
-			this.isConnected = false;
-			this.reconnect().catch(logger.error);
-		});
-
-		mongoose.connection.on('error', (error) => {
-			logger.error('MongoDB connection error:', error);
-		});
-	}
-
 	public async cleanup(): Promise<void> {
 		if (!this.isConnected) {
-			logger.info('MongoDB connection already closed');
+			logger.info('No active MongoDB connection to clean up.');
 			return;
 		}
 
 		try {
-			await mongoose.connection.close();
+			await mongoose.disconnect();
 			logger.info('Disconnected from MongoDB successfully');
 			this.isConnected = false;
 		} catch (error) {
 			logger.error('Failed to disconnect from MongoDB:', error);
-			throw error;
 		}
 	}
 
 	public getIsConnected(): boolean {
 		return this.isConnected;
-	}
-}
-
-class MongoConnectionError extends Error {
-	constructor(
-		message: string,
-		public originalError?: any,
-	) {
-		super(message);
-		this.name = 'MongoConnectionError';
 	}
 }
 

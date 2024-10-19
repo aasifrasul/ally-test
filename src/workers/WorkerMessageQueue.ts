@@ -1,50 +1,91 @@
-export default class WorkerMessageQueue {
+import type { APIOptions, WorkerMessage } from '../types/api';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('WorkerMessageQueue');
+
+export class WorkerMessageQueue {
 	private worker: Worker;
 	private queue: Map<number, { resolve: Function; reject: Function }>;
 	private currentId: number;
+	private timeouts: Map<number, NodeJS.Timeout>;
 
 	constructor(worker: Worker) {
 		this.worker = worker;
 		this.queue = new Map();
 		this.currentId = 0;
+		this.timeouts = new Map();
 
 		this.worker.addEventListener('message', this.handleMessage.bind(this));
+		this.worker.addEventListener('error', this.handleError.bind(this));
 	}
 
-	sendMessage(type: string, data): Promise<any> {
+	private handleError(error: ErrorEvent): void {
+		logger.error('Worker error:', error);
+	}
+
+	async sendMessage(type: string, data: any, timeout = 30000): Promise<any> {
+		const id = ++this.currentId;
+
 		return new Promise((resolve, reject) => {
-			const id = ++this.currentId;
+			const timeoutId = setTimeout(() => {
+				this.queue.delete(id);
+				reject(new Error(`Request timeout after ${timeout}ms`));
+			}, timeout);
+
+			this.timeouts.set(id, timeoutId);
 			this.queue.set(id, { resolve, reject });
-			this.worker.postMessage({ id, type, data });
+
+			try {
+				this.worker.postMessage({ id, type, data });
+			} catch (error) {
+				this.queue.delete(id);
+				clearTimeout(timeoutId);
+				this.timeouts.delete(id);
+				reject(error);
+			}
 		});
 	}
 
-	handleMessage(event: MessageEvent): void {
+	private handleMessage(event: MessageEvent<WorkerMessage>): void {
 		const { id, data, error } = event.data;
 		const pending = this.queue.get(id);
+
 		if (pending) {
+			const timeoutId = this.timeouts.get(id);
+			if (timeoutId) {
+				clearTimeout(timeoutId);
+				this.timeouts.delete(id);
+			}
+
 			this.queue.delete(id);
 			if (error) {
-				pending.reject(error);
+				pending.reject(new Error(error));
 			} else {
 				pending.resolve(data);
 			}
 		}
 	}
 
-	fetchAPIData(endpoint: string, options): Promise<any> {
+	async fetchAPIData<T>(endpoint: string, options?: APIOptions): Promise<T> {
 		return this.sendMessage('fetchAPIData', { endpoint, options });
 	}
 
-	loadImages(imageUrls: string[]): Promise<void> {
+	async loadImages(imageUrls: string[]): Promise<string[]> {
 		return this.sendMessage('loadImages', imageUrls);
 	}
 
-	loadImage(imageUrl: string): Promise<void> {
+	async loadImage(imageUrl: string): Promise<string> {
 		return this.sendMessage('loadImage', imageUrl);
 	}
 
-	abortFetchRequest(endpoint: string): Promise<void> {
+	async abortFetchRequest(endpoint: string): Promise<void> {
 		return this.sendMessage('abortFetchRequest', endpoint);
+	}
+
+	terminate(): void {
+		this.timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+		this.timeouts.clear();
+		this.queue.clear();
+		this.worker.terminate();
 	}
 }

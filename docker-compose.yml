@@ -18,9 +18,12 @@ services:
             - mysql
             - mongodb
             - redis
+        volumes:
+            - .:/app
+            - /app/node_modules
 
     postgres:
-        image: postgres:13
+        image: postgres:17
         environment:
             POSTGRES_DB: test
             POSTGRES_USER: test
@@ -31,7 +34,7 @@ services:
             - postgres_data:/var/lib/postgresql/data
 
     mysql:
-        image: mysql:8
+        image: mysql:9.0
         environment:
             MYSQL_ROOT_PASSWORD: root
             MYSQL_DATABASE: test
@@ -43,7 +46,7 @@ services:
             - mysql_data:/var/lib/mysql
 
     mongodb:
-        image: mongo:4.4
+        image: mongo:8.0
         environment:
             MONGO_INITDB_ROOT_USERNAME: test
             MONGO_INITDB_ROOT_PASSWORD: test
@@ -53,7 +56,7 @@ services:
             - mongodb_data:/data/db
 
     redis:
-        image: redis:6
+        image: redis:8.0
         ports:
             - '6379:6379'
 
@@ -61,7 +64,5 @@ volumes:
     postgres_data:
     mysql_data:
     mongodb_data:
-    oracle_data:
-        - .:/app
 # To start the services: docker-compose up --build
 # To stop the services: docker-compose down
