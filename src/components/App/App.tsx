@@ -1,16 +1,11 @@
 import React, { Suspense, lazy, FC } from 'react';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
-
-import regeneratorRuntime from 'regenerator-runtime';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import Header from '../Common/Header';
 import Spinner from '../Common/Spinner';
 import { constants } from '../../constants';
 import './App.css';
-
-interface ComponentProps {
-	[key: string]: any;
-}
 
 interface LandingPages {
 	[key: string]: React.LazyExoticComponent<React.ComponentType<any>>;
@@ -92,6 +87,7 @@ const UsersGraphql = lazy(
 );
 const ChatBot = lazy(() => import(/* webpackChunkName: "ChatBot" */ '../ChatBot'));
 const TodoGroups = lazy(() => import(/* webpackChunkName: "TodoGroups" */ '../TodoGroups'));
+const BookStore = lazy(() => import(/* webpackChunkName: "BookStore" */ '../BookStore'));
 
 const landingPages: LandingPages = {
 	Todos,
@@ -124,6 +120,7 @@ const landingPages: LandingPages = {
 	UsersGraphql,
 	ChatBot,
 	TodoGroups,
+	BookStore,
 };
 
 (AutoComplete as any).props = {
@@ -151,9 +148,11 @@ const App: FC = () => {
 	const router = createBrowserRouter(routesArray);
 
 	return (
-		<Suspense fallback={<Spinner />}>
-			<RouterProvider router={router} />
-		</Suspense>
+		<ErrorBoundary FallbackComponent={ErrorPage}>
+			<Suspense fallback={<Spinner />}>
+				<RouterProvider router={router} />
+			</Suspense>
+		</ErrorBoundary>
 	);
 };
 

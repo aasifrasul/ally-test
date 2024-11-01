@@ -59,7 +59,7 @@ const Todos = (props) => {
 				<InputText
 					label="Search Item:"
 					initialValue={searchRef.current}
-					inputTextRef={searchRef}
+					ref={searchRef}
 				/>
 				<CombinedRefCheckbox
 					name="Show Completed:"
@@ -67,7 +67,7 @@ const Todos = (props) => {
 					isCheckedRef={isCheckedRef}
 					callback={handleShowCompleted()}
 				/>
-				<InputText label="Add Item:" inputTextRef={inputTextRef} />
+				<InputText label="Add Item:" ref={inputTextRef} />
 				<input type="submit" value="Submit" />
 			</form>
 			<div>All the Todos</div>

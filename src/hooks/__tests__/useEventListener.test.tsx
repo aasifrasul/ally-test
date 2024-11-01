@@ -14,7 +14,7 @@ describe('useEventListener', () => {
 		const addEventListenerSpy = jest.spyOn(window, 'addEventListener');
 		const removeEventListenerSpy = jest.spyOn(window, 'removeEventListener');
 
-		const { unmount } = renderHook(() => useEventListener('click', mockCallback));
+		const { unmount } = renderHook(() => useEventListener('click', mockCallback, window));
 
 		expect(addEventListenerSpy).toHaveBeenCalledWith(
 			'click',
@@ -123,7 +123,7 @@ describe('useEventListener', () => {
 		const secondCallback = jest.fn();
 
 		const { rerender } = renderHook(
-			({ callback }) => useEventListener('click', callback),
+			({ callback }) => useEventListener('click', callback, window),
 			{ initialProps: { callback: firstCallback } },
 		);
 
@@ -151,7 +151,7 @@ describe('useEventListener', () => {
 		delete (global as any).window;
 
 		expect(() => {
-			renderHook(() => useEventListener('click', mockCallback));
+			renderHook(() => useEventListener('click', mockCallback, window));
 		}).not.toThrow();
 
 		(global as any).window = originalWindow;

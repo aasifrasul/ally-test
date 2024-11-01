@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { InfiniteScroll } from './InfiniteScroll';
-import useFetch, { UseFetchResult } from '../../hooks/useFetch';
+import useFetch, { FetchResult } from '../../hooks/useFetch';
 import { InitialState, Schema } from '../../constants/types';
 
 interface ParentProps {
@@ -9,7 +9,7 @@ interface ParentProps {
 }
 
 function InfiniteScrollContainer(props: ParentProps): JSX.Element {
-	const useFetchResult: UseFetchResult<InitialState, InitialState> = useFetch(
+	const useFetchResult: FetchResult<InitialState, InitialState> = useFetch(
 		Schema.INFINITE_SCROLL,
 	);
 

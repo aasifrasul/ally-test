@@ -29,7 +29,7 @@ export interface UpdateConfig {
 	queryParams?: QueryParams;
 }
 
-export interface UseFetchResult<T, U = T> {
+export interface FetchResult<T, U = T> {
 	cleanUpTopLevel: () => void;
 	getList: (schema?: Schema) => InitialState;
 	fetchData: (options?: customFetchOptions) => Promise<void>;
@@ -44,7 +44,7 @@ const messageQueue = initializeWorker();
 function useFetch<T, U = T>(
 	schema: Schema,
 	options: FetchOptions<T, U> = {},
-): UseFetchResult<T, U> {
+): FetchResult<T, U> {
 	const { useFetchActions, useUpdateActions, usePageActions } = createActionHooks(schema);
 
 	const {
