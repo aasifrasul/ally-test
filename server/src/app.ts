@@ -11,7 +11,6 @@ import {
 	getCSVData,
 	fetchImage,
 	fetchWebWorker,
-	fetchApiWorker,
 	compiledTemplate,
 	handleGraphql,
 } from './middlewares';
@@ -75,7 +74,6 @@ app.post('/api/chat', async (req, res) => {
 
 // middlewares
 app.get('/WebWorker.js', fetchWebWorker);
-app.get('/apiWorker.js', fetchApiWorker);
 app.get('/api/fetchWineData/*', getCSVData);
 app.get('/images/*', fetchImage);
 

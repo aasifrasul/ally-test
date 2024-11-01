@@ -14,7 +14,7 @@ jest.mock('../../../hooks/useFormField', () => {
 	return jest.fn(() => mockData);
 });
 
-const useFormField = require('../../../hooks/useFormField');
+const useFormField = require('../../../hooks/Form/useFormField');
 
 jest.mock('../../../hooks/useDebouncedCallback/useDebouncedCallback', () => ({
 	useDebouncedCallback: (callback) => callback,

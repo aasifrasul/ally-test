@@ -1,55 +1,59 @@
 import { useEffect, useRef } from 'react';
+import { createLogger, LogLevel, Logger } from '../utils/logger';
 
 type EventMap = WindowEventMap & HTMLElementEventMap & DocumentEventMap;
 
-type Target = Window | Document | HTMLElement;
+type Target = Window | Document | HTMLElement | null | undefined;
 
 type Options = boolean | AddEventListenerOptions;
 
-export function useEventListener<
-	T extends Target = Window,
-	K extends keyof EventMap = keyof EventMap,
->(
+const logger = createLogger('APIService', {
+	level: LogLevel.DEBUG,
+});
+
+export function useEventListener<K extends keyof EventMap = keyof EventMap>(
 	eventType: K,
 	callback: (event: EventMap[K]) => void,
-	element?: T | null,
+	element: Target,
 	options?: Options,
 ): void {
-	// Create a ref that stores the callback
 	const callbackRef = useRef(callback);
 
-	// Update callback ref whenever callback changes
 	useEffect(() => {
 		callbackRef.current = callback;
 	}, [callback]);
 
 	useEffect(() => {
-		// If element is explicitly null, don't set up any listener
-		if (element === null) {
+		if (!element) {
+			logger.debug('No target element provided, skipping event listener attachment');
 			return;
 		}
 
-		// If no element is provided and window is not available, return early
-		const targetElement: T | null =
-			element ?? (typeof window !== 'undefined' ? (window as unknown as T) : null);
-
-		if (!targetElement?.addEventListener) {
-			return;
-		}
-
-		// Create event listener that calls callback function stored in ref
 		const listener: EventListener = (event) => callbackRef.current(event as EventMap[K]);
 
-		targetElement.addEventListener(eventType, listener, options);
+		element.addEventListener(eventType, listener, options);
 
-		// Remove event listener on cleanup
 		return () => {
-			targetElement.removeEventListener(eventType, listener, options);
+			element.removeEventListener(eventType, listener, options);
 		};
 	}, [eventType, element, options]);
 }
 
 /*
+// Example usage for global events
+export function useWindowEventListener<K extends keyof WindowEventMap>(
+	eventType: K,
+	callback: (event: WindowEventMap[K]) => void,
+	options?: Options,
+): void {
+	useEventListener(
+		eventType,
+		callback,
+		typeof window !== 'undefined' ? window : undefined,
+		options,
+	);
+}
+
 // Example Usage with TypeScript
 import React, { useRef, useState } from 'react';
 import { useEventListener } from './useEventListener';

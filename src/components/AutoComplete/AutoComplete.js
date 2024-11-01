@@ -113,6 +113,7 @@ const AutoComplete = (props) => {
 			<div>Search Item:</div>
 			<InputText
 				id="autoCompleteInput"
+				name="autoCompleteInput"
 				initialValue={inputValue}
 				onChange={onChange}
 				onKeyDown={onKeyDown}

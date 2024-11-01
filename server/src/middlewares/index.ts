@@ -23,7 +23,6 @@ const handler = createHandler({
 });
 
 const webWorkerContent = getFileContents(`./src/utils/WebWorker.js`);
-const apiWorkerContent = getFileContents(`./src/workers/apiWorker.js`);
 
 // PreeCopile template
 const templatePath = path.join(pathTemplate, 'index.hbs');
@@ -81,7 +80,6 @@ const fetchWorker = (req: any, res: any, fileContent: string) => {
 };
 
 const fetchWebWorker = (req: any, res: any) => fetchWorker(req, res, webWorkerContent);
-const fetchApiWorker = (req: any, res: any) => fetchWorker(req, res, apiWorkerContent);
 
 const handleGraphql = (req: any, res: any) => handler(req, res);
 
@@ -90,7 +88,6 @@ export {
 	getCSVData,
 	fetchImage,
 	fetchWebWorker,
-	fetchApiWorker,
 	compiledTemplate,
 	handleGraphql,
 };
