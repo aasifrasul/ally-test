@@ -21,7 +21,7 @@ export function fetchData(schema: string, options?: FetchDataOptions) {
 		queryParams,
 		timeout,
 		options: defaultOptions,
-	} = constants.dataSources[schema] as DataSource;
+	} = constants.dataSources?.[schema] as DataSource;
 
 	const updatedQueryParams: QueryParams = { ...queryParams };
 
@@ -50,15 +50,15 @@ export function getList(schema: keyof GenericState): InitialState {
 
 export function addItem(schema: string, data: any, options?: FetchDataOptions) {
 	const {
-		ADD_ITEM_URL,
+		ADD_ITEM_URL = '',
 		timeout,
 		options: defaultOptions,
-	} = constants.dataSources[schema] as DataSource;
+	} = constants.dataSources?.[schema] as DataSource;
 	return helpers.updateData(
 		schema,
 		data,
 		ADD_ITEM_URL,
-		null,
+		undefined,
 		options || defaultOptions,
 		timeout,
 	);

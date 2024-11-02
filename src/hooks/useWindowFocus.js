@@ -6,8 +6,8 @@ export const useWindowFocus = () => {
 	const onFocus = () => setFocus(true);
 	const onBlur = () => setFocus(false);
 
-	useEventListener('focus', onFocus);
-	useEventListener('blur', onBlur);
+	useEventListener('focus', onFocus, window);
+	useEventListener('blur', onBlur, window);
 
 	return focus;
 };

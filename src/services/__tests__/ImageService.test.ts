@@ -1,8 +1,5 @@
-import axios from 'axios';
 import { ImageService } from '../ImageService';
 import { createLogger, LogLevel } from '../../utils/logger';
-
-const { Response } = axios;
 
 jest.mock('../../utils/logger');
 
@@ -37,10 +34,10 @@ describe('ImageService', () => {
 	describe('load', () => {
 		it('should load an image successfully', async () => {
 			const url = 'https://example.com/image.jpg';
-			const mockResponse = new Response('image data', {
+			const mockResponse = {
 				status: 200,
 				headers: { 'Content-Type': 'image/jpeg' },
-			});
+			};
 
 			(global.fetch as jest.Mock).mockResolvedValue(mockResponse);
 

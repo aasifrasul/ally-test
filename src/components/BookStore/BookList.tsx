@@ -1,5 +1,7 @@
 import useBookStore, { Book, BookStoreState } from '../../store/bookStore';
 
+import Separator from '../Common/Separator';
+
 function BookList() {
 	const {
 		books,
@@ -42,6 +44,7 @@ function BookList() {
 					) : (
 						<button onClick={() => returnBook(id)}>Return</button>
 					)}
+					<Separator width="10px" inline />
 					<button
 						disabled={status === 'issued'}
 						onClick={() => handleDeleteBook(id)}

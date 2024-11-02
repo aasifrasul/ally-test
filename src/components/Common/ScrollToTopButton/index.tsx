@@ -12,7 +12,7 @@ const ScrollToTop: React.FC = () => {
 		setShowTopBtn(window.scrollY > 500);
 	}, []);
 
-	useEventListener('scroll', handleScroll);
+	useEventListener('scroll', handleScroll, window);
 
 	const goToTop = () => {
 		window.scrollTo({

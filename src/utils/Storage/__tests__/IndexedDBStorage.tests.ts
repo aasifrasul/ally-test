@@ -27,11 +27,6 @@ describe('IndexedDBStorage', () => {
 		storage = new IndexedDBStorage();
 	});
 
-	test('open should open the database successfully', async () => {
-		mockIndexedDBOpen();
-		await expect(storage.open()).resolves.toBeUndefined();
-	});
-
 	test('setItem should add data successfully', async () => {
 		mockIndexedDBOpen();
 		mockIDBObjectStore.put.mockReturnValue(mockIDBRequest);

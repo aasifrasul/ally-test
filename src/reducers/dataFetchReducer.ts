@@ -6,6 +6,7 @@ import {
 	GenericReducer,
 	DataSource,
 	ReducerFunction,
+	Schema,
 } from '../constants/types';
 
 const dataFetchReducer: GenericReducer = (
@@ -107,7 +108,7 @@ const dataFetchReducer: GenericReducer = (
 			};
 	}
 
-	const dataSource: DataSource = constants.dataSources![schema];
+	const dataSource: DataSource = constants.dataSources![schema as Schema];
 	const reducerCB: ReducerFunction | undefined = dataSource.reducer;
 
 	if (reducerCB !== undefined) {

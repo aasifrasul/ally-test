@@ -20,7 +20,7 @@ interface IconProps extends HTMLAccessibilityProps {
 	onClick?: HTMLElementClickHandler;
 }
 
-export class Icon extends React.Component<IconProps> {
+export class Icon extends React.Component<IconProps & React.HTMLAttributes<HTMLElement>> {
 	static defaultProps: Partial<IconProps> = {
 		testAutomationId: 'icon',
 		ariaHidden: true,

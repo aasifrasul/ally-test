@@ -1,5 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+
+import { QueryParams } from '../constants/types';
 import { isNumber } from './typeChecking';
 
 export const getRandomInt = (min = 1000 * 1000, max = 2000 * 1000): number => {
@@ -98,9 +100,9 @@ export const searchTextOnData = (
 		: data;
 };
 
-export const buildQueryParams = (queryParams: Record<string, string>): string =>
-	Object.keys(queryParams || {}).reduce(
-		(accu, key) => `${accu}&${key}=${encodeURIComponent(queryParams[key])}`,
+export const buildQueryParams = (queryParams: QueryParams): string =>
+	Object.entries({ ...queryParams }).reduce(
+		(accu, [key, value]) => `${accu}&${key}=${encodeURIComponent(value ?? '')}`,
 		'?',
 	);
 

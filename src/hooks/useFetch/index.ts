@@ -58,7 +58,7 @@ function useFetch<T, U = T>(
 	} = options;
 
 	const timeoutId = useRef<NodeJS.Timeout | null>(null);
-	const dataSource: DataSource = constants.dataSources![schema];
+	const dataSource: DataSource | undefined = constants.dataSources?.[schema];
 	const { BASE_URL, queryParams } = dataSource ?? {};
 
 	const cleanUpTopLevel = useCallback(() => {
@@ -103,7 +103,6 @@ function useFetch<T, U = T>(
 			}, timeout);
 
 			const enhancedOptions: RequestInit = {
-				method: HTTPMethod.GET,
 				headers: {
 					'Content-Type': 'application/json',
 				},
@@ -111,7 +110,10 @@ function useFetch<T, U = T>(
 			};
 
 			try {
-				const rawData = await messageQueue.fetchAPIData(url, enhancedOptions);
+				const rawData = await messageQueue.fetchAPIData(url, {
+					...enhancedOptions,
+					method: HTTPMethod.GET,
+				});
 				const transformedData = transformResponse(rawData);
 
 				fetchSucceeded(transformedData);
@@ -178,7 +180,6 @@ function useFetch<T, U = T>(
 			}, timeout);
 
 			const enhancedOptions: RequestInit = {
-				method,
 				headers: {
 					'Content-Type': 'application/json',
 					...headers,
@@ -187,7 +188,10 @@ function useFetch<T, U = T>(
 			};
 
 			try {
-				const rawData = await messageQueue.fetchAPIData(url, enhancedOptions);
+				const rawData = await messageQueue.fetchAPIData(url, {
+					...enhancedOptions,
+					method,
+				});
 				const transformedData = transformUpdateResponse(rawData);
 
 				updateSucceeded();

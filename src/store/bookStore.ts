@@ -8,14 +8,17 @@ export interface Book {
 	status: 'available' | 'issued';
 }
 
+export type AddBookType = (book: Omit<Book, 'status'>) => void;
+export type BookFunctionType = (id: number) => void;
+
 export interface BookStoreState {
 	books: Book[];
 	noOfAvailable: number;
 	noOfIssued: number;
-	addBook: (book: Omit<Book, 'status'>) => void;
-	issueBook: (id: number) => void;
-	returnBook: (id: number) => void;
-	deleteBook: (id: number) => void;
+	addBook: AddBookType;
+	issueBook: BookFunctionType;
+	returnBook: BookFunctionType;
+	deleteBook: BookFunctionType;
 	reset: () => void;
 }
 

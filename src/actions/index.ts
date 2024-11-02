@@ -1,5 +1,3 @@
-import React from 'react';
-
 type DispatchType = (action: { schema: string; type: string; payload?: any }) => void;
 
 let dispatch: DispatchType;

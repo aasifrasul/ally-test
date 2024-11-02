@@ -7,8 +7,8 @@ export function useOffline(): boolean {
 	const onOnline = useCallback(() => setIsOffline(false), []);
 	const onOffline = useCallback(() => setIsOffline(true), []);
 
-	useEventListener('offline', onOffline);
-	useEventListener('online', onOnline);
+	useEventListener('offline', onOffline, window);
+	useEventListener('online', onOnline, window);
 
 	return isOffline;
 }

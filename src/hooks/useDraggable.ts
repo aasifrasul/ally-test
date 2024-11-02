@@ -20,8 +20,8 @@ export const useDraggable = (onMove: MoveFunction) => {
 
 	const up = useCallback(() => setOffset(null), []);
 
-	useEventListener('mousemove', move);
-	useEventListener('mouseup', up);
+	useEventListener('mousemove', move, document);
+	useEventListener('mouseup', up, document);
 
 	const onMouseDown = useCallback((e: React.MouseEvent<HTMLElement>) => {
 		const rect = ref.current?.getBoundingClientRect();

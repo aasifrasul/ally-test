@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
-import InputText from '../Common/InputText';
-import useBookStore, { Book, BookStoreState } from '../../store/bookStore';
+import { InputText } from '../Common/InputText';
+import Separator from '../Common/Separator';
+
+import useBookStore, { Book, BookStoreState, type AddBookType } from '../../store/bookStore';
 
 function BookForm() {
-	const addBook = useBookStore((state: BookStoreState) => state.addBook);
 	const [bookDetails, setBookDetails] = useState<Book>({
 		id: 0,
 		title: '',
@@ -12,21 +13,20 @@ function BookForm() {
 		status: 'available',
 	});
 
-	const handleOnChangeTitle = (value: string) => {
+	const handleOnChangeTitle = (value: string): void => {
 		setBookDetails({ ...bookDetails, title: value });
 	};
 
-	const handleOnChangeAuthor = (value: string) => {
+	const handleOnChangeAuthor = (value: string): void => {
 		setBookDetails({ ...bookDetails, author: value });
 	};
 
-	const handleAddBook = () => {
+	const handleAddBook = (): void => {
 		if (!bookDetails.title || !bookDetails.author) {
 			return alert('Please enter book details!');
 		}
-		const maxId = useBookStore
-			.getState()
-			.books.reduce((max, { id }) => Math.max(id, max), 0);
+		const { books, addBook }: BookStoreState = useBookStore.getState();
+		const maxId = books.reduce((max, { id }) => Math.max(id, max), 0);
 		addBook({ ...bookDetails, id: maxId + 1 });
 	};
 
@@ -40,6 +40,7 @@ function BookForm() {
 					hideWrapper
 					onChange={handleOnChangeTitle}
 				/>
+				<Separator width="10px" inline />
 				<InputText
 					id="author"
 					name="author"
@@ -47,6 +48,7 @@ function BookForm() {
 					hideWrapper
 					onChange={handleOnChangeAuthor}
 				/>
+				<Separator width="10px" inline />
 				<button onClick={handleAddBook}>Add Book</button>
 			</div>
 		</div>
