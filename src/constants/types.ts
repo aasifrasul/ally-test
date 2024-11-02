@@ -56,9 +56,9 @@ export interface DataSource {
 	API_KEY?: string;
 }
 
-export interface DataSources {
-	[key: string]: DataSource;
-}
+export type DataSources = {
+	[key in Schema]: DataSource;
+};
 
 export interface AutoCompleteConfig {
 	initialFeed: string[];

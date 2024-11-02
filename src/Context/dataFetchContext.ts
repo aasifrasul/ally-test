@@ -13,14 +13,14 @@ if (!dataSources) {
 const initialState: GenericState = {};
 
 // Populate initialState based on dataSources
-Object.keys(dataSources).forEach((key) => {
+Object.entries(dataSources).forEach(([key, dataSources]) => {
 	const individualState: InitialState = {
 		isLoading: false,
 		isError: false,
 		data: [],
 		pageData: [],
 		headers: [],
-		currentPage: dataSources[key].queryParams?.page || 0,
+		currentPage: dataSources.queryParams?.page || 0,
 		TOTAL_PAGES: 0,
 	};
 	initialState[key] = individualState;

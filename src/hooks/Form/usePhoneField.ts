@@ -25,11 +25,11 @@ export function usePhoneField(
 			}
 
 			// Format phone number based on country and format
-			const formatted = formatPhoneNumber(numericValue, format, country);
+			//const formatted = formatPhoneNumber(numericValue, format, country);
 
 			return {
 				isValid: true,
-				transformedValue: formatted,
+				transformedValue: numericValue,
 			};
 		},
 	});

@@ -7,7 +7,7 @@ type Payload = {
 };
 
 interface SpecificAction extends Action {
-	payload: Payload;
+	payload?: Payload;
 }
 
 const wineConnoisseurReducer: ReducerFunction = (
@@ -15,7 +15,7 @@ const wineConnoisseurReducer: ReducerFunction = (
 	action: SpecificAction,
 ): InitialState => {
 	const type: string = action.type;
-	const payload: Payload = action.payload;
+	const payload: Payload = action.payload ?? { pageData: [], headers: [] };
 
 	switch (type) {
 		case 'FETCH_SUCCESS':
