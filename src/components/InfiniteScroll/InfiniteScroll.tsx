@@ -4,7 +4,7 @@ import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
 import ScrollToTop from '../Common/ScrollToTopButton';
 
 import { InitialState } from '../../constants/types';
-import { IS_UserData } from '../../types/api';
+import { IS_Item } from '../../types/infiniteScroll';
 
 import UserCard from './UserCard';
 
@@ -15,7 +15,7 @@ interface Props extends InitialState {
 }
 
 export const InfiniteScroll = (props: Props) => {
-	const data: IS_UserData[] = props.data as IS_UserData[];
+	const data: IS_Item[] = props.data as IS_Item[];
 	const { currentPage = 1, isLoading, fetchNextPage, TOTAL_PAGES } = props;
 
 	const [observerElement, setObserverElement] = useState<HTMLDivElement | null>(null);

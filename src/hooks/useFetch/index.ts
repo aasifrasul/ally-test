@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import { initializeWorker, terminateWorker } from '../../workers/WorkerUtils';
+import { initializeMessageQueue, closeMessageQueue } from '../../workers/WorkerUtils';
 import { useSelector } from '../useSelector';
 import { createActionHooks } from '../createActionHooks';
 
@@ -39,7 +39,7 @@ export interface FetchResult<T, U = T> {
 
 const DEFAULT_TIMEOUT = 2000;
 
-const messageQueue = initializeWorker();
+const messageQueue = initializeMessageQueue();
 
 function useFetch<T, U = T>(
 	schema: Schema,

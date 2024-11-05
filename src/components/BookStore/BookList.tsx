@@ -1,16 +1,28 @@
-import useBookStore, { Book, BookStoreState } from '../../store/bookStore';
+import { Book, BookStoreState } from '../../store/bookStore';
 
 import Separator from '../Common/Separator';
 
-function BookList() {
-	const {
-		books,
-		noOfAvailable,
-		noOfIssued,
-		issueBook,
-		returnBook,
-		deleteBook,
-	}: BookStoreState = useBookStore();
+interface Props extends BookStoreState {
+	onEditBook: (book: Book) => void;
+}
+
+const BookList: React.FC<Props> = (props) => {
+	const { books, noOfAvailable, noOfIssued, issueBook, returnBook, deleteBook, onEditBook } =
+		props;
+
+	const handleEditBook = (id: number) => {
+		const book: Book | undefined = books.find((book) => book.id === id);
+
+		if (!book) {
+			return;
+		}
+
+		if (book.status === 'available') {
+			onEditBook(book);
+		} else {
+			alert('Book is issued. Cannot be Deleted.');
+		}
+	};
 
 	const handleDeleteBook = (id: number): void => {
 		const book: Book | undefined = books.find((book) => book.id === id);
@@ -45,6 +57,10 @@ function BookList() {
 						<button onClick={() => returnBook(id)}>Return</button>
 					)}
 					<Separator width="10px" inline />
+					<button disabled={status === 'issued'} onClick={() => handleEditBook(id)}>
+						Edit
+					</button>
+					<Separator width="10px" inline />
 					<button
 						disabled={status === 'issued'}
 						onClick={() => handleDeleteBook(id)}
@@ -55,6 +71,6 @@ function BookList() {
 			))}
 		</ul>
 	);
-}
+};
 
 export default BookList;

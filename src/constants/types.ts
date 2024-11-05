@@ -1,4 +1,5 @@
-import { IS_UserData } from '../types/api';
+import { IS_Item } from '../types/infiniteScroll';
+import { Movie_Item } from '../types/movieList';
 
 export interface Action {
 	type: string;
@@ -17,11 +18,14 @@ export enum Schema {
 	SEARCH_FROM = 'searchForm',
 }
 
+export type APIDataTypes = Movie_Item[] | IS_Item[] | Array<unknown> | Record<string, unknown>;
+
 export interface InitialState {
 	isLoading?: boolean;
 	isError?: boolean;
 	isUpdating?: boolean;
-	data?: IS_UserData[] | Array<unknown> | Record<string, unknown>;
+	data?: APIDataTypes;
+	originalData: APIDataTypes;
 	pageData?: any[];
 	headers?: any[];
 	currentPage?: number | undefined;

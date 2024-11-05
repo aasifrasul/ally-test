@@ -1,38 +1,31 @@
-interface Data {
-	results?: any[];
-	[key: string]: any;
+import { Movie } from '../types/movieList';
+import { InitialState, Action, ReducerFunction } from '../constants/types';
+
+type Payload = {
+	filterText?: string;
+	results: Movie[];
+};
+
+interface SpecificAction extends Action {
+	payload?: Payload;
 }
 
-interface Action {
-	type: string;
-	payload?:
-		| (Data & {
-				filterText?: string;
-		  })
-		| undefined;
-}
+const movieListReducer: ReducerFunction = (
+	state: InitialState,
+	action: SpecificAction,
+): InitialState => {
+	const type: string = action.type;
+	const payload: Payload = action.payload ?? { results: [] };
 
-interface State {
-	isLoading?: boolean;
-	isError?: boolean;
-	data?: Data;
-	originalData?: Data;
-	[key: string]: any;
-}
-
-const movieListReducer = (state: State, action: Action): State => {
-	const { type, payload } = action;
 	switch (type) {
 		case 'FETCH_SUCCESS':
-			const originalData = state?.data?.results || [];
+			const originalData: Movie[] = (state?.data as Movie[]) || [];
 			const currentData = payload?.results || [];
 			return {
 				...state,
 				isLoading: false,
 				isError: false,
-				data: {
-					results: [...originalData, ...currentData],
-				},
+				data: [...originalData, ...currentData],
 			};
 
 		case 'FILTER_BY_TEXT':
@@ -40,15 +33,15 @@ const movieListReducer = (state: State, action: Action): State => {
 			let filteredData: any[] = [];
 			if (filterText) {
 				filteredData =
-					state?.data?.results?.filter((item) => {
+					(state?.data as Movie[])?.filter((item: Movie) => {
 						return item.title?.toLowerCase().includes(filterText);
 					}) || [];
 			}
 
 			return {
 				...state,
-				originalData: filterText ? state?.data : {},
-				data: filterText ? { results: filteredData } : state?.originalData,
+				originalData: filterText ? (state?.data as Movie[]) : {},
+				data: filterText ? filteredData : state?.originalData,
 			};
 
 		default:

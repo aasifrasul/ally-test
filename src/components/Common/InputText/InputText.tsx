@@ -8,7 +8,6 @@ import { cn } from '../../../utils/common';
 
 export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
 	const {
-		id,
 		name,
 		label,
 		initialValue,
@@ -20,9 +19,11 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 		onChange,
 		className,
 		size = 'md',
-		debounceMs = 250,
+		debounceMs,
 		type = 'text',
 	} = props;
+
+	const id = props.id || `id-${name}`;
 	const { value, error, touched, dirty, isValid, handleChange } = useFormField({
 		id,
 		initialValue,

@@ -1,59 +1,67 @@
 import React from 'react';
 
-import './index.css';
-
 type IconSizes = 'small' | 'medium' | 'large';
 
 interface HTMLAccessibilityProps {
 	ariaHidden?: boolean;
 	ariaLabel?: string;
-	role?: string;
 }
 
-type HTMLElementClickHandler = (event: React.MouseEvent<HTMLElement>) => void;
+type HTMLElementClickHandler = React.MouseEventHandler<HTMLElement>;
 
-interface IconProps extends HTMLAccessibilityProps {
+interface IconProps extends HTMLAccessibilityProps, React.HTMLAttributes<HTMLElement> {
+	/** Name of the icon to display */
 	name: string;
+	/** Size variant of the icon */
 	size?: IconSizes;
+	/** Test automation ID for e2e testing */
 	testAutomationId?: string;
+	/** Additional CSS classes */
 	className?: string;
+	/** Click handler */
 	onClick?: HTMLElementClickHandler;
 }
 
-export class Icon extends React.Component<IconProps & React.HTMLAttributes<HTMLElement>> {
-	static defaultProps: Partial<IconProps> = {
-		testAutomationId: 'icon',
-		ariaHidden: true,
-	};
+const Icon = React.memo((props: IconProps): JSX.Element | null => {
+	const {
+		testAutomationId = 'icon',
+		ariaHidden = true,
+		className,
+		name,
+		ariaLabel,
+		size,
+		onClick,
+		...restProps
+	} = props;
+	if (!name) {
+		throw new Error('Icon: name prop is required');
+	}
 
-	render() {
-		const { testAutomationId, className, name, ariaHidden, ariaLabel, size, ...props } =
-			this.props;
-
-		const iconClassName = [
-			'rc-icon',
-			`rc-icon-${name}`,
-			size && `rc-icon-${size}`,
-			className,
-		]
+	const iconClassName = React.useMemo(() => {
+		return ['rc-icon', `rc-icon-${name}`, size && `rc-icon-${size}`, className]
 			.filter(Boolean)
 			.join(' ');
+	}, [name, size, className]);
 
-		if (!ariaHidden) {
-			props.role = 'img';
-			props['aria-label'] = ariaLabel || 'icon';
-		}
+	const accessibilityProps = !ariaHidden
+		? {
+				role: 'img' as const,
+				'aria-label': ariaLabel || 'icon',
+			}
+		: {};
 
-		if (name) {
-			return (
-				<span
-					data-test-automation-id={testAutomationId}
-					className={iconClassName}
-					aria-hidden={ariaHidden}
-					{...props}
-				/>
-			);
-		}
-		return null;
-	}
-}
+	return (
+		<span
+			data-test-automation-id={testAutomationId}
+			className={iconClassName}
+			aria-hidden={ariaHidden}
+			onClick={onClick}
+			{...accessibilityProps}
+			{...restProps}
+		/>
+	);
+});
+
+Icon.displayName = 'Icon';
+
+export default Icon;

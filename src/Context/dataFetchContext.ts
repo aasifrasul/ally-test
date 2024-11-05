@@ -18,6 +18,7 @@ Object.entries(dataSources).forEach(([key, dataSources]) => {
 		isLoading: false,
 		isError: false,
 		data: [],
+		originalData: [],
 		pageData: [],
 		headers: [],
 		currentPage: dataSources.queryParams?.page || 0,

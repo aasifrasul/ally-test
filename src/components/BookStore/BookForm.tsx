@@ -1,17 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { InputText } from '../Common/InputText';
 import Separator from '../Common/Separator';
 
-import useBookStore, { Book, BookStoreState, type AddBookType } from '../../store/bookStore';
+import { Book, BookStoreState } from '../../store/bookStore';
 
-function BookForm() {
+interface Props extends BookStoreState {
+	book: Book | null;
+}
+
+const BookForm: React.FC<Props> = ({ books, updateBook, addBook, book }) => {
 	const [bookDetails, setBookDetails] = useState<Book>({
 		id: 0,
 		title: '',
 		author: '',
 		status: 'available',
 	});
+
+	useEffect(() => {
+		if (book) {
+			setBookDetails({ ...book });
+		}
+	}, [book]);
 
 	const handleOnChangeTitle = (value: string): void => {
 		setBookDetails({ ...bookDetails, title: value });
@@ -25,10 +35,22 @@ function BookForm() {
 		if (!bookDetails.title || !bookDetails.author) {
 			return alert('Please enter book details!');
 		}
-		const { books, addBook }: BookStoreState = useBookStore.getState();
 		const maxId = books.reduce((max, { id }) => Math.max(id, max), 0);
 		addBook({ ...bookDetails, id: maxId + 1 });
 	};
+
+	const handleUpdateBook = () => {
+		if (!bookDetails.title || !bookDetails.author) {
+			return alert('Please enter book details!');
+		}
+		updateBook({ ...bookDetails });
+	};
+
+	const handleSubmit = () => {
+		book?.id ? handleUpdateBook() : handleAddBook();
+	};
+
+	const addEditText = book?.id ? 'Edit' : 'Add';
 
 	return (
 		<div className="input-div">
@@ -37,6 +59,7 @@ function BookForm() {
 					id="title"
 					name="title"
 					placeholder="Title"
+					initialValue={bookDetails?.title}
 					hideWrapper
 					onChange={handleOnChangeTitle}
 				/>
@@ -45,14 +68,15 @@ function BookForm() {
 					id="author"
 					name="author"
 					placeholder="Author"
+					initialValue={bookDetails?.author}
 					hideWrapper
 					onChange={handleOnChangeAuthor}
 				/>
 				<Separator width="10px" inline />
-				<button onClick={handleAddBook}>Add Book</button>
+				<button onClick={handleSubmit}>{addEditText} Book</button>
 			</div>
 		</div>
 	);
-}
+};
 
 export default BookForm;

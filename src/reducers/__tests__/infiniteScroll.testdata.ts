@@ -1,6 +1,6 @@
-import { type IS_UserData } from '../../types/api';
+import { IS_Item } from '../../types/infiniteScroll';
 
-export const mockUserData: IS_UserData[] = [
+export const mockUserData: IS_Item[] = [
 	{
 		gender: 'male',
 		name: {
