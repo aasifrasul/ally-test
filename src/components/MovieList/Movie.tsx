@@ -1,5 +1,7 @@
-// Movie.tsx
 import React, { useState, useCallback } from 'react';
+
+import { MovieProps } from '../../types/movieList';
+
 import Portal from '../Common/Portal/Portal';
 import Image from '../Common/Image';
 
