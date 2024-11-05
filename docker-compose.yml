@@ -23,7 +23,7 @@ services:
             - /app/node_modules
 
     postgres:
-        image: postgres:17
+        image: postgres:15
         environment:
             POSTGRES_DB: test
             POSTGRES_USER: test
@@ -34,7 +34,7 @@ services:
             - postgres_data:/var/lib/postgresql/data
 
     mysql:
-        image: mysql:9.0
+        image: mysql:8.0
         environment:
             MYSQL_ROOT_PASSWORD: root
             MYSQL_DATABASE: test
@@ -46,7 +46,7 @@ services:
             - mysql_data:/var/lib/mysql
 
     mongodb:
-        image: mongo:8.0
+        image: mongo:6.0
         environment:
             MONGO_INITDB_ROOT_USERNAME: test
             MONGO_INITDB_ROOT_PASSWORD: test
@@ -56,7 +56,7 @@ services:
             - mongodb_data:/data/db
 
     redis:
-        image: redis:8.0
+        image: redis:7.2
         ports:
             - '6379:6379'
 

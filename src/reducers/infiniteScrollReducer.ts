@@ -1,9 +1,9 @@
-import { type IS_UserData } from '../types/api';
+import { IS_Item } from '../types/infiniteScroll';
 import { InitialState, Action, ReducerFunction } from '../constants/types';
 
 type Payload = {
 	filterText?: string;
-	results: IS_UserData[];
+	results: IS_Item[];
 };
 
 interface SpecificAction extends Action {
@@ -19,8 +19,8 @@ const infiniteScrollReducer: ReducerFunction = (
 
 	switch (type) {
 		case 'FETCH_SUCCESS':
-			const currentData: IS_UserData[] = payload.results;
-			const originalData: IS_UserData[] = (state?.data as IS_UserData[]) || [];
+			const currentData: IS_Item[] = payload.results;
+			const originalData: IS_Item[] = (state?.data as IS_Item[]) || [];
 			return {
 				...state,
 				isLoading: false,
@@ -33,7 +33,7 @@ const infiniteScrollReducer: ReducerFunction = (
 			return {
 				...state,
 				data:
-					(state?.data as IS_UserData[]).filter(
+					(state?.data as IS_Item[]).filter(
 						({ name }) =>
 							name.first.includes(filterText) || name.last.includes(filterText),
 					) || [],

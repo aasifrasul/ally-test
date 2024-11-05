@@ -1,7 +1,7 @@
 import { type Validator } from '../../../hooks/Form/';
 
 export type BaseFieldProps = {
-	id: string;
+	id?: string;
 	name: string;
 	label?: string;
 	initialValue?: string;

@@ -10,6 +10,7 @@ enum FETCH_TYPE {
 	UPDATE_FAILURE = 'UPDATE_FAILURE',
 	UPDATE_STOP = 'UPDATE_STOP',
 	ADVANCE_PAGE = 'ADVANCE_PAGE',
+	FILTER_BY_TEXT = 'FILTER_BY_TEXT',
 }
 
 export type FetchActionType = { type: FETCH_TYPE; schema: string; payload?: any };
@@ -39,6 +40,10 @@ export const createActionHooks = (schema: string) => {
 
 		usePageActions: () => ({
 			advancePage: (payload: any) => sendDispatch(FETCH_TYPE.ADVANCE_PAGE, payload),
+		}),
+
+		searchActions: () => ({
+			filterByText: (payload: any) => sendDispatch(FETCH_TYPE.FILTER_BY_TEXT, payload),
 		}),
 	};
 };

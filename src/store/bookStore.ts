@@ -9,33 +9,81 @@ export interface Book {
 }
 
 export type AddBookType = (book: Omit<Book, 'status'>) => void;
+export type UpdateBookType = (book: Book) => void;
 export type BookFunctionType = (id: number) => void;
+export type FilterTextType = (text: string) => void;
 
 export interface BookStoreState {
 	books: Book[];
 	noOfAvailable: number;
 	noOfIssued: number;
+	filterText: string;
+	filteredBooks: Book[];
 	addBook: AddBookType;
 	issueBook: BookFunctionType;
 	returnBook: BookFunctionType;
 	deleteBook: BookFunctionType;
+	filterByText: FilterTextType;
+	updateBook: UpdateBookType;
 	reset: () => void;
 }
+
+const filterBooks = (books: Book[], text: string): Book[] => {
+	if (!text) return books;
+	const lowerText = text.toLowerCase();
+	return books.filter(
+		(book) =>
+			book.title.toLowerCase().includes(lowerText) ||
+			book.author.toLowerCase().includes(lowerText),
+	);
+};
 
 const useBookStore = create<BookStoreState>()(
 	devtools(
 		(set): BookStoreState => ({
 			books: [],
+			filteredBooks: [],
+			filterText: '',
 			noOfAvailable: 0,
 			noOfIssued: 0,
-			addBook: (book) =>
+			filterByText: (text) =>
 				set(
 					(state: BookStoreState): BookStoreState => ({
 						...state,
-						books: [...state.books, { ...book, status: 'available' } as Book],
-						noOfAvailable: state.noOfAvailable + 1,
+						filterText: text,
+						filteredBooks: filterBooks(state.books, text),
 					}),
 				),
+			addBook: (book) =>
+				set((state: BookStoreState): BookStoreState => {
+					const newBook: Book = { ...book, status: 'available' };
+					const updatedBooks: Book[] = [...state.books, newBook];
+					return {
+						...state,
+						books: updatedBooks,
+						filteredBooks: filterBooks(updatedBooks, state.filterText),
+						noOfAvailable: state.noOfAvailable + 1,
+					};
+				}),
+			updateBook: (updatedBook) =>
+				set((state: BookStoreState): BookStoreState => {
+					const oldBook = state.books.find(({ id }) => updatedBook.id === id);
+					const updatedBooks = state.books.map((book) => {
+						if (updatedBook.id === book.id) {
+							return {
+								...oldBook,
+								...updatedBook,
+							};
+						}
+						return book;
+					});
+
+					return {
+						...state,
+						books: updatedBooks,
+						filteredBooks: filterBooks(updatedBooks, state.filterText),
+					};
+				}),
 			issueBook: (id) =>
 				set((state: BookStoreState): BookStoreState => {
 					const updatedBooks = state.books.map((book) =>
@@ -44,6 +92,7 @@ const useBookStore = create<BookStoreState>()(
 					return {
 						...state,
 						books: updatedBooks,
+						filteredBooks: filterBooks(updatedBooks, state.filterText),
 						noOfAvailable: state.noOfAvailable - 1,
 						noOfIssued: state.noOfIssued + 1,
 					};
@@ -58,6 +107,7 @@ const useBookStore = create<BookStoreState>()(
 					return {
 						...state,
 						books: updatedBooks,
+						filteredBooks: filterBooks(updatedBooks, state.filterText),
 						noOfAvailable: state.noOfAvailable + 1,
 						noOfIssued: state.noOfIssued - 1,
 					};
@@ -68,6 +118,7 @@ const useBookStore = create<BookStoreState>()(
 					return {
 						...state,
 						books: updatedBooks,
+						filteredBooks: filterBooks(updatedBooks, state.filterText),
 						noOfAvailable: state.noOfAvailable - 1,
 					};
 				}),
@@ -76,6 +127,8 @@ const useBookStore = create<BookStoreState>()(
 					(state: BookStoreState): BookStoreState => ({
 						...state,
 						books: [],
+						filteredBooks: [],
+						filterText: '',
 						noOfAvailable: 0,
 						noOfIssued: 0,
 					}),

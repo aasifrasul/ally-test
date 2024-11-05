@@ -1,5 +1,5 @@
 import { useFetchStore } from '../../Context/dataFetchContext';
-import { GenericState } from '../../Context/types';
+import { GenericState } from '../../constants/types';
 
 type Selector<T extends GenericState, R> = (state: T) => R;
 
