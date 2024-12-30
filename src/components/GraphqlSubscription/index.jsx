@@ -12,7 +12,7 @@ const USER_CREATED_SUBSCRIPTION = gql`
 	}
 `;
 
-function GraphqlSubscription() {
+export default function GraphqlSubscription() {
 	const { error, data, loading } = useSubscription(USER_CREATED_SUBSCRIPTION);
 
 	if (loading) return <p>Listening for new messages...</p>;
@@ -20,5 +20,3 @@ function GraphqlSubscription() {
 
 	return <p>New message: {JSON.stringify(data.userCreated)}</p>;
 }
-
-export default GraphqlSubscription;

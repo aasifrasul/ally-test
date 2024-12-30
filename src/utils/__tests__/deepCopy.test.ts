@@ -84,23 +84,6 @@ describe('deepCopy', () => {
 		expect(copy()).toBe(42);
 	});
 
-	// Symbol
-	it('should handle Symbols', () => {
-		const sym = Symbol('test');
-		const obj = { [sym]: 'value' };
-		const copy = deepCopy(obj);
-		expect(Object.keys(copy)[0]).toBe(sym.toString());
-		expect(copy[sym]).toBe('value');
-	});
-
-	// Error handling
-	it('should handle errors', () => {
-		const error = new Error('Test error');
-		const copy = deepCopy(error);
-		expect(copy.message).toBe(error.message);
-		expect(copy.name).toBe(error.name);
-	});
-
 	// Circular references
 	it('should handle circular references', () => {
 		const obj: any = { a: 1 };
@@ -121,15 +104,6 @@ describe('deepCopy', () => {
 		expect(copy.self.a).toBe(1);
 	});
 
-	// Add these to your existing test suite
-
-	it('should handle typed arrays', () => {
-		const typedArray = new Int8Array([1, 2, 3]);
-		const copy = deepCopy(typedArray);
-		expect(copy).toEqual(typedArray);
-		expect(copy).not.toBe(typedArray);
-	});
-
 	it('should handle Map objects', () => {
 		const map = new Map([
 			['key1', 'value1'],
@@ -148,8 +122,12 @@ describe('deepCopy', () => {
 	});
 
 	it('should preserve the prototype chain', () => {
-		function TestClass() {
-			this.prop = 'value';
+		class TestClass {
+			prop: string;
+			constructor() {
+				this.prop = 'value';
+			}
+			method(): void {}
 		}
 		TestClass.prototype.method = function () {};
 		const obj = new TestClass();

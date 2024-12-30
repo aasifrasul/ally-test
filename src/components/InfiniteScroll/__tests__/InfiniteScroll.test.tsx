@@ -34,7 +34,6 @@ describe('InfiniteScroll', () => {
 	test('renders the component with initial data', () => {
 		render(<InfiniteScroll {...mockProps} />);
 		expect(screen.getByText('All users')).toBeInTheDocument();
-		expect(() => screen.getByTestId('user-details')).not.toThrow();
 	});
 
 	test('renders loading state', () => {

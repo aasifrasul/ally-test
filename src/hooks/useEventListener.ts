@@ -1,13 +1,16 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { createLogger, LogLevel, Logger } from '../utils/logger';
 
 type EventMap = WindowEventMap & HTMLElementEventMap & DocumentEventMap;
-
 type Target = Window | Document | HTMLElement | null | undefined;
-
 type Options = boolean | AddEventListenerOptions;
 
-const logger = createLogger('APIService', {
+interface ErrorHandlingOptions {
+	onError?: (error: Error) => void;
+	suppressErrors?: boolean;
+}
+
+const logger: Logger = createLogger('useEventListener', {
 	level: LogLevel.DEBUG,
 });
 
@@ -16,12 +19,39 @@ export function useEventListener<K extends keyof EventMap = keyof EventMap>(
 	callback: (event: EventMap[K]) => void,
 	element: Target,
 	options?: Options,
+	errorHandling: ErrorHandlingOptions = {},
 ): void {
 	const callbackRef = useRef(callback);
+	const optionsRef = useRef(options);
+	const errorHandlingRef = useRef(errorHandling);
 
+	// Update refs when dependencies change
 	useEffect(() => {
 		callbackRef.current = callback;
-	}, [callback]);
+		optionsRef.current = options;
+		errorHandlingRef.current = errorHandling;
+	}, [callback, options, errorHandling]);
+
+	// Memoize the event handler
+	const eventHandler = useCallback((event: Event) => {
+		try {
+			if (callbackRef.current) {
+				callbackRef.current(event as EventMap[K]);
+			}
+		} catch (error) {
+			const err =
+				error instanceof Error ? error : new Error('Unknown error in event handler');
+			logger.error('Error in event handler:', err);
+
+			if (errorHandlingRef.current.onError) {
+				errorHandlingRef.current.onError(err);
+			}
+
+			if (!errorHandlingRef.current.suppressErrors) {
+				throw err;
+			}
+		}
+	}, []);
 
 	useEffect(() => {
 		if (!element) {
@@ -29,67 +59,90 @@ export function useEventListener<K extends keyof EventMap = keyof EventMap>(
 			return;
 		}
 
-		const listener: EventListener = (event) => callbackRef.current(event as EventMap[K]);
+		try {
+			// Check if the event type is supported
+			if (typeof element.addEventListener !== 'function') {
+				throw new Error('Target element does not support event listeners');
+			}
 
-		element.addEventListener(eventType, listener, options);
+			logger.debug(`Attaching ${eventType} listener to element`, {
+				element,
+				options: optionsRef.current,
+			});
+			element.addEventListener(eventType, eventHandler, optionsRef.current);
 
-		return () => {
-			element.removeEventListener(eventType, listener, options);
-		};
-	}, [eventType, element, options]);
+			return () => {
+				logger.debug(`Removing ${eventType} listener from element`);
+				element.removeEventListener(eventType, eventHandler, optionsRef.current);
+			};
+		} catch (error) {
+			const err =
+				error instanceof Error ? error : new Error('Failed to attach event listener');
+			logger.error('Error setting up event listener:', err);
+
+			if (errorHandlingRef.current.onError) {
+				errorHandlingRef.current.onError(err);
+			}
+
+			if (!errorHandlingRef.current.suppressErrors) {
+				throw err;
+			}
+		}
+	}, [eventType, element, eventHandler]);
 }
 
-/*
-// Example usage for global events
+/**
+// Convenience hooks for common use cases
 export function useWindowEventListener<K extends keyof WindowEventMap>(
 	eventType: K,
 	callback: (event: WindowEventMap[K]) => void,
 	options?: Options,
+	errorHandling?: ErrorHandlingOptions
 ): void {
 	useEventListener(
 		eventType,
 		callback,
 		typeof window !== 'undefined' ? window : undefined,
 		options,
+		errorHandling
 	);
 }
 
-// Example Usage with TypeScript
-import React, { useRef, useState } from 'react';
-import { useEventListener } from './useEventListener';
-
-interface MousePosition {
-	x: number;
-	y: number;
+export function useDocumentEventListener<K extends keyof DocumentEventMap>(
+	eventType: K,
+	callback: (event: DocumentEventMap[K]) => void,
+	options?: Options,
+	errorHandling?: ErrorHandlingOptions
+): void {
+	useEventListener(
+		eventType,
+		callback,
+		typeof document !== 'undefined' ? document : undefined,
+		options,
+		errorHandling
+	);
 }
 
-const MouseTracker: React.FC = () => {
-	const [position, setPosition] = useState<MousePosition>({ x: 0, y: 0 });
-	const trackingAreaRef = useRef<HTMLDivElement>(null);
+const MyComponent: React.FC = () => {
+	const elementRef = useRef<HTMLDivElement>(null);
 
 	useEventListener(
-		'mousemove',
-		(event: MouseEvent) => {
-			setPosition({ x: event.clientX, y: event.clientY });
+		'click',
+		(event) => {
+			// Your event handling logic
 		},
-		trackingAreaRef.current
+		elementRef.current,
+		{ passive: true },
+		{
+			onError: (error) => {
+				// Custom error handling
+				console.error('Event listener failed:', error);
+				// Maybe show a toast notification
+			},
+			suppressErrors: true, // Prevent errors from crashing the app
+		}
 	);
 
-	return (
-		<div ref={trackingAreaRef} style={{ height: '200px', border: '1px solid black' }}>
-			Mouse position: {position.x}, {position.y}
-		</div>
-	);
-};
-
-// Example with keyboard events
-const KeyboardListener: React.FC = () => {
-	const [lastKey, setLastKey] = useState<string>('');
-
-	useEventListener('keydown', (event: KeyboardEvent) => {
-		setLastKey(event.key);
-	});
-
-	return <div>Last key pressed: {lastKey}</div>;
+	return <div ref={elementRef}>Click me</div>;
 };
 */

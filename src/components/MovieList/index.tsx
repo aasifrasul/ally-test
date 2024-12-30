@@ -36,8 +36,6 @@ function MovieListContainer(props: ParentProps): JSX.Element {
 			{...result}
 			schema={Schema.MOVIE_LIST}
 			fetchNextPage={fetchNextPage}
-			data-testid="movie-list"
-			data-hasmore={'true'}
 		/>
 	);
 }

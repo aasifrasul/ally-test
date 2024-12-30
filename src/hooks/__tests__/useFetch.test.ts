@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { initializeMessageQueue, closeMessageQueue } from '../../workers/WorkerSetup';
+import { initializeMessageQueue, closeMessageQueue } from '../../workers/WorkerUtils';
 import useFetch, { FetchOptions } from '../useFetch';
 import { Constants, Schema } from '../../constants/types';
 import { HTTPMethod } from '../../types/api';
@@ -37,9 +37,37 @@ jest.mock('../createActionHooks', () => ({
 jest.mock('../../constants', () => {
 	const constants: Constants = {
 		dataSources: {
-			testSchema: {
-				schema: 'testSchema' as Schema,
+			[Schema.INFINITE_SCROLL]: {
+				schema: Schema.INFINITE_SCROLL,
 				BASE_URL: 'http://api.test.com',
+				queryParams: {
+					page: 1,
+				},
+			},
+			movieList: {
+				schema: Schema.MOVIE_LIST,
+				BASE_URL: 'http://api.movies.com',
+				queryParams: {
+					page: 1,
+				},
+			},
+			nestedCategories: {
+				schema: Schema.NESTED_CATEGORIES,
+				BASE_URL: 'http://api.categories.com',
+				queryParams: {
+					page: 1,
+				},
+			},
+			wineConnoisseur: {
+				schema: Schema.WINE_CONNOISSUER,
+				BASE_URL: 'http://api.wine.com',
+				queryParams: {
+					page: 1,
+				},
+			},
+			searchForm: {
+				schema: Schema.SEARCH_FORM,
+				BASE_URL: 'http://api.search.com',
 				queryParams: {
 					page: 1,
 				},

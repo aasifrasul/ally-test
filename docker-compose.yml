@@ -13,6 +13,7 @@ services:
             - MYSQL_HOST=mysql
             - MONGODB_HOST=mongodb
             - REDIS_HOST=redis
+            - REDIS_URL=redis://redis:6379
         depends_on:
             - postgres
             - mysql
@@ -21,6 +22,8 @@ services:
         volumes:
             - .:/app
             - /app/node_modules
+        networks:
+            - app-network
 
     postgres:
         image: postgres:15
@@ -32,6 +35,8 @@ services:
             - '5432:5432'
         volumes:
             - postgres_data:/var/lib/postgresql/data
+        networks:
+            - app-network
 
     mysql:
         image: mysql:8.0
@@ -44,6 +49,8 @@ services:
             - '3306:3306'
         volumes:
             - mysql_data:/var/lib/mysql
+        networks:
+            - app-network
 
     mongodb:
         image: mongo:6.0
@@ -54,15 +61,29 @@ services:
             - '27017:27017'
         volumes:
             - mongodb_data:/data/db
+        networks:
+            - app-network
 
     redis:
         image: redis:7.2
         ports:
             - '6379:6379'
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        restart: always
+        networks:
+            - app-network # Make sure all services are on the same network
 
 volumes:
     postgres_data:
     mysql_data:
     mongodb_data:
+
+networks:
+    app-network:
+        driver: bridge
 # To start the services: docker-compose up --build
 # To stop the services: docker-compose down

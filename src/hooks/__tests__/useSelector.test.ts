@@ -79,9 +79,9 @@ describe('useSelector', () => {
 	});
 
 	it('should select a specific post by index', () => {
-		const firstPostSelector = (state: MockStoreSchema) => state.posts[0];
+		const firstPostSelector = (state: MockStoreSchema) => state.posts.data[0];
 		const { result } = renderHook(() => useSelector(firstPostSelector));
-		expect(result.current).toEqual(mockStore.posts[0]);
+		expect(result.current).toEqual(mockStore.posts.data[0]);
 	});
 
 	it('should handle computed values', () => {

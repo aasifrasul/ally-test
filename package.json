@@ -4,6 +4,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
+		"dev": "concurrently \"yarn build:client\" \"yarn dev:server\"",
 		"lint:css": "stylelint 'src/**/*.css'",
 		"lint:js": "eslint . --ext **/*.js,**/*.jsx,**/*.ts,**/*.tsx,**/*.hbs",
 		"prettier": "prettier --write './**/*.{js,json,jsx,ts,tsx,css}'",
@@ -158,6 +159,7 @@
 		"browserslist": "4.21.5",
 		"clean-webpack-plugin": "4.0.0",
 		"compression-webpack-plugin": "10.0.0",
+		"concurrently": "^9.1.0",
 		"css-loader": "6.7.3",
 		"enzyme": "3.11.0",
 		"eslint": "8.39.0",
