@@ -1,9 +1,9 @@
-import { Movie } from '../types/movieList';
+import { Movie_Item } from '../types/movieList';
 import { InitialState, Action, ReducerFunction } from '../constants/types';
 
 type Payload = {
 	filterText?: string;
-	results: Movie[];
+	results: Movie_Item[];
 };
 
 interface SpecificAction extends Action {
@@ -19,7 +19,7 @@ const movieListReducer: ReducerFunction = (
 
 	switch (type) {
 		case 'FETCH_SUCCESS':
-			const originalData: Movie[] = (state?.data as Movie[]) || [];
+			const originalData: Movie_Item[] = (state?.data as Movie_Item[]) || [];
 			const currentData = payload?.results || [];
 			return {
 				...state,
@@ -33,14 +33,14 @@ const movieListReducer: ReducerFunction = (
 			let filteredData: any[] = [];
 			if (filterText) {
 				filteredData =
-					(state?.data as Movie[])?.filter((item: Movie) => {
+					(state?.data as Movie_Item[])?.filter((item: Movie_Item) => {
 						return item.title?.toLowerCase().includes(filterText);
 					}) || [];
 			}
 
 			return {
 				...state,
-				originalData: filterText ? (state?.data as Movie[]) : {},
+				originalData: filterText ? (state?.data as Movie_Item[]) : {},
 				data: filterText ? filteredData : state?.originalData,
 			};
 

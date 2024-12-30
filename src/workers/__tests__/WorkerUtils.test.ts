@@ -33,7 +33,7 @@ describe('Worker Utility Functions', () => {
 	});
 
 	test('initializeMessageQueue should create a new worker and message queue', () => {
-		const messageQueue = initializeMessageQueue(workerScript);
+		const messageQueue = initializeMessageQueue();
 
 		expect(global.Worker).toHaveBeenCalledTimes(1);
 		expect(global.Worker).toHaveBeenCalledWith(workerScript);
@@ -43,8 +43,8 @@ describe('Worker Utility Functions', () => {
 	});
 
 	test('initializeMessageQueue should return the same message queue on subsequent calls', () => {
-		const messageQueue1 = initializeMessageQueue(workerScript);
-		const messageQueue2 = initializeMessageQueue(workerScript);
+		const messageQueue1 = initializeMessageQueue();
+		const messageQueue2 = initializeMessageQueue();
 
 		expect(global.Worker).toHaveBeenCalledTimes(1);
 		expect(WorkerMessageQueue).toHaveBeenCalledTimes(1);
@@ -56,18 +56,18 @@ describe('Worker Utility Functions', () => {
 		(WorkerMessageQueue as jest.Mock).mockImplementationOnce(() => null);
 
 		expect(() => {
-			initializeMessageQueue(workerScript);
+			initializeMessageQueue();
 		}).toThrow('Failed to initialize worker message queue');
 	});
 
 	test('closeMessageQueue should terminate the worker and reset variables', () => {
-		initializeMessageQueue(workerScript);
+		initializeMessageQueue();
 		closeMessageQueue();
 
 		expect(mockWorker.terminate).toHaveBeenCalledTimes(1);
 
 		// Call initializeMessageQueue again to check if a new worker is created
-		initializeMessageQueue(workerScript);
+		initializeMessageQueue();
 		expect(global.Worker).toHaveBeenCalledTimes(2);
 	});
 

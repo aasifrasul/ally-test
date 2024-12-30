@@ -1,25 +1,35 @@
-import React, { PropsWithChildren, ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
-import { configureStore, EnhancedStore, PreloadedState } from '@reduxjs/toolkit';
-import { Provider } from 'react-redux';
-import { userReducer } from './path/to/userReducer'; // Adjust the import path
+(async function () {
+	const wait = (duration: number) => {
+		return new Promise((resolve) => {
+			setTimeout(resolve, duration);
+		});
+	};
 
-interface RenderWithProvidersOptions extends Omit<RenderOptions, 'queries'> {
-	preloadedState?: PreloadedState<any>;
-	store?: EnhancedStore;
-}
+	const getUser = async (id: number) => {
+		await wait(1000);
 
-export function renderWithProviders(
-	ui: ReactElement,
-	{
-		preloadedState = {},
-		store = configureStore({ reducer: { user: userReducer }, preloadedState }),
-		...renderOptions
-	}: RenderWithProvidersOptions = {},
-) {
-	function Wrapper({ children }: PropsWithChildren<{}>): JSX.Element {
-		return <Provider store={store}>{children}</Provider>;
+		if (id === 2) {
+			throw new Error('404 - User does not exist');
+		}
+
+		return { id, name: 'Noah' };
+	};
+
+	const catchError = async <T,>(promise: Promise<T>): Promise<[undefined, T] | [Error]> => {
+		return promise
+			.then((data) => {
+				return [undefined, data] as [undefined, T];
+			})
+			.catch((error) => {
+				return [error];
+			});
+	};
+
+	const [error, user] = await catchError(getUser(1));
+
+	if (error) {
+		console.log(error);
 	}
 
-	return { store, ...render(ui, { wrapper: Wrapper, ...renderOptions }) };
-}
+	console.log(user);
+})();

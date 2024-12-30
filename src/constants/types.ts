@@ -15,7 +15,7 @@ export enum Schema {
 	MOVIE_LIST = 'movieList',
 	NESTED_CATEGORIES = 'nestedCategories',
 	WINE_CONNOISSUER = 'wineConnoisseur',
-	SEARCH_FROM = 'searchForm',
+	SEARCH_FORM = 'searchForm',
 }
 
 export type APIDataTypes = Movie_Item[] | IS_Item[] | Array<unknown> | Record<string, unknown>;
@@ -25,7 +25,7 @@ export interface InitialState {
 	isError?: boolean;
 	isUpdating?: boolean;
 	data?: APIDataTypes;
-	originalData: APIDataTypes;
+	originalData?: APIDataTypes;
 	pageData?: any[];
 	headers?: any[];
 	currentPage?: number | undefined;

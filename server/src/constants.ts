@@ -34,6 +34,7 @@ export const constants: Constants = {
 	cachingLayer: {
 		enabled: true,
 		redisConfig: {
+			url: process.env.REDIS_URL || 'redis://localhost:6379',
 			host: 'localhost',
 			port: 6379,
 			MAX_RETRIES: Number(REDIS_MAX_RETRIES),

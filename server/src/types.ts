@@ -20,6 +20,7 @@ export enum DBType {
 }
 
 export interface RedisConfig {
+	url?: string;
 	host: string;
 	port: number;
 	MAX_RETRIES?: number;

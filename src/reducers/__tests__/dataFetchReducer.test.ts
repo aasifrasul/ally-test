@@ -4,8 +4,15 @@ import { constants } from '../../constants';
 
 // Mock the entire constants module
 jest.mock('../../constants', () => ({
+	...jest.requireActual('../../constants'),
 	constants: {
-		dataSources: {},
+		dataSources: {
+			[Schema.INFINITE_SCROLL]: {
+				reducer: jest.fn(),
+				BASE_URL: 'http://example.com',
+				schema: Schema.INFINITE_SCROLL,
+			},
+		},
 	},
 }));
 
@@ -28,18 +35,6 @@ describe('dataFetchReducer', () => {
 	beforeEach(() => {
 		// Reset mocks
 		jest.resetAllMocks();
-
-		// Update the mock implementation for this test run
-		jest.mock('../../constants', () => ({
-			...jest.requireActual('../../constants'),
-			dataSources: {
-				[MOCK_SCHEMA]: {
-					reducer: mockCustomReducer,
-					BASE_URL: 'http://example.com',
-					schema: MOCK_SCHEMA,
-				},
-			},
-		}));
 	});
 
 	afterEach(() => {

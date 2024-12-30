@@ -3,7 +3,6 @@ export function deepCopy<T>(obj: T, seen = new WeakMap()): T {
 		return obj;
 	}
 
-	// Handle circular references
 	if (seen.has(obj)) {
 		return seen.get(obj);
 	}
@@ -17,27 +16,58 @@ export function deepCopy<T>(obj: T, seen = new WeakMap()): T {
 	}
 
 	if (Array.isArray(obj)) {
-		const copy = obj.map((item) => deepCopy(item, seen)) as any;
-		seen.set(obj, copy);
-		return copy;
-	}
+		const arrCopy = [] as any[];
 
-	if (obj instanceof Object) {
-		const copy = Object.create(Object.getPrototypeOf(obj));
-		seen.set(obj, copy);
+		seen.set(obj, arrCopy);
 
-		// Copy string-keyed properties
-		for (const [key, value] of Object.entries(obj)) {
-			copy[key] = deepCopy(value, seen);
+		for (const item of obj) {
+			arrCopy.push(deepCopy(item, seen));
 		}
 
-		// Copy symbol-keyed properties
-		for (const sym of Object.getOwnPropertySymbols(obj)) {
-			copy[sym] = deepCopy((obj as any)[sym], seen);
-		}
-
-		return copy as T;
+		return arrCopy as any;
 	}
 
-	return obj;
+	if (obj instanceof Map) {
+		const mapCopy = new Map();
+
+		seen.set(obj, mapCopy);
+
+		for (const [key, value] of obj) {
+			mapCopy.set(key, deepCopy(value, seen));
+		}
+
+		return mapCopy as any;
+	}
+
+	if (obj instanceof Set) {
+		const setCopy = new Set();
+
+		seen.set(obj, setCopy);
+
+		for (const value of obj) {
+			setCopy.add(deepCopy(value, seen));
+		}
+
+		return setCopy as any;
+	}
+
+	const objCopy = {} as any;
+
+	seen.set(obj, objCopy);
+
+	for (const key in obj) {
+		if (obj.hasOwnProperty(key)) {
+			objCopy[key] = deepCopy((obj as any)[key], seen);
+		}
+	}
+
+	Object.getOwnPropertyNames(obj).forEach((prop) => {
+		const descriptor = Object.getOwnPropertyDescriptor(obj, prop);
+
+		if (descriptor) {
+			Object.defineProperty(objCopy, prop, descriptor);
+		}
+	});
+
+	return objCopy;
 }

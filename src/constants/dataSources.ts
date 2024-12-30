@@ -64,7 +64,7 @@ export const dataSources: DataSources = {
 			PRODUCT_LIST: `${BASE_URL}list`,
 			ADD_ITEM_URL: `${BASE_URL}add_new`,
 			API_KEY: 'Z9Q7WKEY7ORGBUFGN3EG1QS5Y7FG8DU29GHKKSZH',
-			schema: Schema.SEARCH_FROM,
+			schema: Schema.SEARCH_FORM,
 			timeout: 2000,
 			options: {
 				method: 'GET',

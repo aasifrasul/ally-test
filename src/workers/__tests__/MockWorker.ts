@@ -9,7 +9,7 @@ export class MockWorker implements Worker {
 
 	// Worker interface properties
 	public onmessage: ((this: Worker, ev: MessageEvent) => any) | null = null;
-	public onerror: ((this: Worker, ev: ErrorEvent) => any) | null = null;
+	public onerror: ((this: AbstractWorker, ev: ErrorEvent) => any) | null = null;
 	public onmessageerror: ((this: Worker, ev: MessageEvent) => any) | null = null;
 
 	constructor(options: { processingDelay?: number } = {}) {
@@ -68,7 +68,11 @@ export class MockWorker implements Worker {
 				// Dispatch to event listeners
 				this.dispatchEvent(messageEvent);
 			} catch (error) {
-				this.dispatchError(error);
+				if (error instanceof Error) {
+					this.dispatchError(error);
+				} else {
+					this.dispatchError(new Error(String(error)));
+				}
 			}
 		}, this.processingDelay);
 	}

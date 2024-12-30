@@ -101,10 +101,16 @@ export const searchTextOnData = (
 };
 
 export const buildQueryParams = (queryParams: QueryParams): string =>
-	Object.entries({ ...queryParams }).reduce(
-		(accu, [key, value]) => `${accu}&${key}=${encodeURIComponent(value ?? '')}`,
-		'?',
-	);
+	Object.entries(queryParams)
+		.filter(([, value]) => value !== undefined && value !== null)
+		.map(([key, value]) => {
+			const encodedValue =
+				typeof value === 'object'
+					? encodeURIComponent(JSON.stringify(value))
+					: encodeURIComponent(value as string | number | boolean);
+			return `${encodeURIComponent(key)}=${encodedValue}`;
+		})
+		.join('&');
 
 export const range = (start: number, end: number): IterableIterator<number> => {
 	let n = start;
