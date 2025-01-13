@@ -1,3 +1,5 @@
+import { type FetchNextPage } from '../types';
+
 export interface Movie_Item {
 	adult: boolean;
 	backdrop_path: string | null;
@@ -23,8 +25,8 @@ export interface MovieResponseData {
 }
 
 export interface MovieListProps {
-	data: Movie_Item[];
-	fetchNextPage: (nextPage: number) => Promise<void>;
+	data?: Movie_Item[];
+	fetchNextPage: FetchNextPage;
 	schema: any;
 }
 

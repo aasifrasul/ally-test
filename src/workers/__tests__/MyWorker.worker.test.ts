@@ -28,8 +28,8 @@ describe('Worker', () => {
 			postMessage: postMessageMock,
 		};
 
-		apiServiceMock = new APIService() as jest.Mocked<APIService>;
-		imageServiceMock = new ImageService() as jest.Mocked<ImageService>;
+		apiServiceMock = APIService.getInstance() as jest.Mocked<APIService>;
+		imageServiceMock = ImageService.getInstance() as jest.Mocked<ImageService>;
 		loggerMock = { error: jest.fn() };
 
 		(createLogger as jest.Mock).mockReturnValue(loggerMock);

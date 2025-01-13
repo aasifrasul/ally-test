@@ -1,6 +1,6 @@
 import React from 'react';
 import classnames from 'classnames';
-import { Icon } from '../Icon';
+import Icon from '../Icon';
 
 export enum Shape {
 	REGULAR_CIRCLE = 'regularCircle',

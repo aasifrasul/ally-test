@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { InfiniteScroll } from './InfiniteScroll';
 import useFetch, { FetchResult } from '../../hooks/useFetch';
 import { InitialState, Schema } from '../../constants/types';
+import { handleAsyncCalls } from '../../utils/common';
 
 interface ParentProps {
 	className?: string;
@@ -18,10 +19,10 @@ function InfiniteScrollContainer(props: ParentProps): JSX.Element {
 
 	useEffect(() => {
 		const fetchInitialData = async () => {
-			try {
-				await fetchData();
-			} catch (error) {
-				console.error('Failed to fetch initial data:', error);
+			const result = await handleAsyncCalls(fetchData());
+
+			if (!result.success) {
+				console.error('Failed to fetch:', result.error);
 			}
 		};
 

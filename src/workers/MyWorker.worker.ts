@@ -2,22 +2,17 @@ import { APIService } from '../services/APIService';
 import { ImageService } from '../services/ImageService';
 import { createLogger } from '../utils/logger';
 import { WorkerMessage } from '../types/api';
+import { isObject } from '../utils/typeChecking';
 
 const ctx: Worker = self as any;
 
-const apiService = new APIService();
-const imageService = new ImageService();
+const apiService = APIService.getInstance();
+const imageService = ImageService.getInstance();
 const logger = createLogger('Worker');
+const messageKeys = ['id', 'type', 'data'];
 
-function isValidWorkerMessage(message: any): message is WorkerMessage {
-	return (
-		message &&
-		typeof message === 'object' &&
-		'id' in message &&
-		'type' in message &&
-		'data' in message
-	);
-}
+const isValidWorkerMessage = (message: any): message is WorkerMessage =>
+	isObject(message) && messageKeys.every((key) => key in message);
 
 ctx.addEventListener('message', async (event: MessageEvent) => {
 	const message = event.data;

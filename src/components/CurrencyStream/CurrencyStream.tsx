@@ -5,7 +5,7 @@ import OSStatistics from '../Common/OSStatistics/OSStatistics';
 
 import queue from '../../utils/SPQueue';
 
-function CurrencyStream(props) {
+function CurrencyStream() {
 	return (
 		<div>
 			<OSStatistics />

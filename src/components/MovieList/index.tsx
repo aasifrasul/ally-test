@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 
-import { MovieList } from './MovieList';
 import useFetch, { FetchResult } from '../../hooks/useFetch';
+import { handleAsyncCalls } from '../../utils/common';
 import { InitialState, Schema } from '../../constants/types';
+
+import { MovieList } from './MovieList';
 
 interface ParentProps {
 	className?: string;
@@ -19,16 +21,18 @@ function MovieListContainer(props: ParentProps): JSX.Element {
 
 	useEffect(() => {
 		const fetchInitialData = async () => {
-			try {
-				await fetchData();
-			} catch (error) {
-				console.error('Failed to fetch initial data:', error);
+			const result = await handleAsyncCalls(fetchData());
+
+			if (!result.success) {
+				console.error('Failed to fetch:', result.error);
 			}
 		};
 
 		fetchInitialData();
 		return () => cleanUpTopLevel();
 	}, []);
+
+	if (!result.data) return <div>Loading...</div>;
 
 	return (
 		<MovieList

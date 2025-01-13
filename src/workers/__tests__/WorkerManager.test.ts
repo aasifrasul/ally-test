@@ -1,4 +1,4 @@
-import { initializeMessageQueue, closeMessageQueue } from '../WorkerUtils';
+import { WorkerManager } from '../WorkerManager';
 import { WorkerMessageQueue } from '../WorkerMessageQueue';
 
 // Mock the WorkerMessageQueue class
@@ -15,6 +15,7 @@ describe('Worker Utility Functions', () => {
 		terminate: jest.Mock;
 	};
 	const workerScript = '../MyWorker.worker.ts';
+	let workerManager: WorkerManager;
 
 	beforeEach(() => {
 		// Clear all mocks before each test
@@ -30,10 +31,11 @@ describe('Worker Utility Functions', () => {
 
 		// Mock the global Worker constructor
 		global.Worker = jest.fn(() => mockWorker) as any;
+		workerManager = WorkerManager.getInstance();
 	});
 
 	test('initializeMessageQueue should create a new worker and message queue', () => {
-		const messageQueue = initializeMessageQueue();
+		const messageQueue = workerManager.initializeMessageQueue();
 
 		expect(global.Worker).toHaveBeenCalledTimes(1);
 		expect(global.Worker).toHaveBeenCalledWith(workerScript);
@@ -43,8 +45,8 @@ describe('Worker Utility Functions', () => {
 	});
 
 	test('initializeMessageQueue should return the same message queue on subsequent calls', () => {
-		const messageQueue1 = initializeMessageQueue();
-		const messageQueue2 = initializeMessageQueue();
+		const messageQueue1 = workerManager.initializeMessageQueue();
+		const messageQueue2 = workerManager.initializeMessageQueue();
 
 		expect(global.Worker).toHaveBeenCalledTimes(1);
 		expect(WorkerMessageQueue).toHaveBeenCalledTimes(1);
@@ -53,26 +55,26 @@ describe('Worker Utility Functions', () => {
 
 	test('initializeMessageQueue should throw an error if message queue creation fails', () => {
 		// Mock WorkerMessageQueue to return null
-		(WorkerMessageQueue as jest.Mock).mockImplementationOnce(() => null);
+		(WorkerMessageQueue as unknown as jest.Mock).mockImplementationOnce(() => null);
 
 		expect(() => {
-			initializeMessageQueue();
+			workerManager.initializeMessageQueue();
 		}).toThrow('Failed to initialize worker message queue');
 	});
 
 	test('closeMessageQueue should terminate the worker and reset variables', () => {
-		initializeMessageQueue();
-		closeMessageQueue();
+		workerManager.initializeMessageQueue();
+		workerManager.closeMessageQueue();
 
 		expect(mockWorker.terminate).toHaveBeenCalledTimes(1);
 
 		// Call initializeMessageQueue again to check if a new worker is created
-		initializeMessageQueue();
+		workerManager.initializeMessageQueue();
 		expect(global.Worker).toHaveBeenCalledTimes(2);
 	});
 
 	test('closeMessageQueue should do nothing if no worker exists', () => {
-		closeMessageQueue();
+		workerManager.closeMessageQueue();
 
 		expect(mockWorker.terminate).not.toHaveBeenCalled();
 	});

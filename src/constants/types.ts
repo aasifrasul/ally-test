@@ -18,7 +18,12 @@ export enum Schema {
 	SEARCH_FORM = 'searchForm',
 }
 
-export type APIDataTypes = Movie_Item[] | IS_Item[] | Array<unknown> | Record<string, unknown>;
+export type APIDataTypes =
+	| Movie_Item[]
+	| IS_Item[]
+	| Array<unknown>
+	| Record<string, unknown>
+	| undefined;
 
 export interface InitialState {
 	isLoading?: boolean;
@@ -123,4 +128,18 @@ export interface Store<T extends GenericState> {
 export interface StoreContextValue<T extends GenericState> {
 	dispatch: React.Dispatch<GenericAction>;
 	store: Store<T>;
+}
+
+export interface ServerToClientEvents {
+	noArg: () => void;
+	basicEmit: (a: number, b: string, c: Buffer) => void;
+	withAck: (d: string, callback: (e: number) => void) => void;
+}
+
+export interface ClientToServerEvents {
+	hello: () => void;
+}
+
+export interface InterServerEvents {
+	ping: () => void;
 }

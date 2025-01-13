@@ -11,6 +11,7 @@ const RETRY_DELAY = 1000;
 const TIMEOUT = 30000;
 
 export class ImageService {
+	private static instance: ImageService;
 	private logger: Logger;
 	private defaultOptions: ImageLoadOptions = {
 		timeout: TIMEOUT,
@@ -18,10 +19,17 @@ export class ImageService {
 		retryDelay: RETRY_DELAY,
 	};
 
-	constructor() {
+	private constructor() {
 		this.logger = createLogger('ImageService', {
 			level: LogLevel.DEBUG,
 		});
+	}
+
+	public static getInstance(): ImageService {
+		if (!ImageService.instance) {
+			ImageService.instance = new ImageService();
+		}
+		return ImageService.instance;
 	}
 
 	private async loadWithRetry(url: string, options: ImageLoadOptions = {}): Promise<string> {

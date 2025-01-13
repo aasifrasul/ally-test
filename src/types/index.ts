@@ -12,3 +12,5 @@ export interface HTMLAccessibilityProps {
 	role?: string;
 	tabIndex?: number;
 }
+
+export type FetchNextPage = (nextPage: number) => Promise<void>;

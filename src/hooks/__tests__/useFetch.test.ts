@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { initializeMessageQueue, closeMessageQueue } from '../../workers/WorkerUtils';
+import { WorkerManager } from '../../workers/WorkerManager';
 import useFetch, { FetchOptions } from '../useFetch';
 import { Constants, Schema } from '../../constants/types';
 import { HTTPMethod } from '../../types/api';
@@ -8,7 +8,8 @@ interface TestData {
 	data: string;
 }
 
-const messageQueue = initializeMessageQueue();
+const workerManager = WorkerManager.getInstance();
+const messageQueue = workerManager.initializeMessageQueue();
 
 jest.mock('../../hooks/useSelector', () => ({
 	useSelector: jest.fn(),

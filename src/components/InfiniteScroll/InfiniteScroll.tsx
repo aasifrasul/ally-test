@@ -5,13 +5,14 @@ import ScrollToTop from '../Common/ScrollToTopButton';
 
 import { InitialState } from '../../constants/types';
 import { IS_Item } from '../../types/infiniteScroll';
+import { type FetchNextPage } from '../../types';
 
 import UserCard from './UserCard';
 
 import './InfiniteScroll.css';
 
 interface Props extends InitialState {
-	fetchNextPage: (nextPage: number) => Promise<void>;
+	fetchNextPage: FetchNextPage;
 }
 
 export const InfiniteScroll = (props: Props) => {

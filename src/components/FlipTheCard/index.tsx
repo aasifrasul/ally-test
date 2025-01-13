@@ -1,23 +1,26 @@
 import React from 'react';
-
 import useTimer from '../../hooks/useTimer';
-
 import { safelyExecuteFunction } from '../../utils/typeChecking';
 import { shuffle, arrayChunks } from '../../utils/ArrayUtils';
 import { MOCK, blankCard } from './mock';
+import styles from './styles.module.css';
 
-import styles from './styles.css';
+interface Card {
+	name: string;
+	pic: string;
+	display: boolean;
+}
 
-export default function FlipTheCard() {
-	const cards = React.useRef(shuffle(MOCK));
-	const solvedCards = React.useRef(0);
+export default function FlipTheCard(): JSX.Element {
+	const cards = React.useRef<Card[]>(shuffle(MOCK));
+	const solvedCards = React.useRef<number>(0);
 
 	// To store the indexes of the opened cards
-	const [openCards, setOpenCards] = React.useState([]);
+	const [openCards, setOpenCards] = React.useState<number[]>([]);
 
 	const { seconds, fraction, handleReset, handleStop } = useTimer(1000);
 
-	const handleClick = (index) => {
+	const handleClick = (index: number): void => {
 		if (openCards.length < 2) {
 			setOpenCards((items) => [...items, index]);
 			cards.current[index].display = true;
@@ -39,7 +42,6 @@ export default function FlipTheCard() {
 						card0.display = false;
 						solvedCards.current -= 2;
 						setOpenCards(() => []);
-						//setCards((items) => [...items]);
 						clearTimeout(timerId);
 					}, 1000);
 				});
@@ -50,10 +52,9 @@ export default function FlipTheCard() {
 				setOpenCards(() => []);
 			}
 		}
-		//return () => safelyExecuteFunction(handleStop);
-	}, [openCards.length]);
+	}, [openCards.length, handleStop]);
 
-	const restart = () => {
+	const restart = (): void => {
 		cards.current = shuffle(MOCK);
 		setOpenCards(() => []);
 		safelyExecuteFunction(handleReset);
@@ -64,14 +65,14 @@ export default function FlipTheCard() {
 			<div className={styles.center}>
 				<div>Time: {seconds}</div>
 				<div>
-					<button onClick={() => restart()}>Restart</button>
+					<button onClick={restart}>Restart</button>
 				</div>
 			</div>
 			<div className={styles.parent}>
 				{cards.current.map(({ pic, display, name }, index) =>
 					display ? (
 						<div key={`${name}-${index}`} className={styles.child}>
-							<img src={pic.src} />
+							<img src={pic} />
 						</div>
 					) : (
 						<div key={`${name}-${index}`} className={styles.child}>
