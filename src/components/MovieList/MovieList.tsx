@@ -1,4 +1,6 @@
 import React, { useRef, useCallback } from 'react';
+import { InitialState } from '../../constants/types';
+import { type FetchNextPage } from '../../types';
 import { MovieListProps } from '../../types/movieList';
 
 import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
@@ -11,13 +13,16 @@ import { Movie } from './Movie';
 
 import styles from './MovieList.module.css';
 
-export const MovieList: React.FC<MovieListProps> = ({ data, fetchNextPage, schema }) => {
+type Props = Omit<InitialState, 'data'> & MovieListProps;
+
+export const MovieList = (props: Props): React.ReactNode => {
+	const { data, fetchNextPage, schema, TOTAL_PAGES, currentPage } = props;
 	const observerRef = useRef<HTMLDivElement>(null);
 	const { searchActions } = createActionHooks(schema);
 	const { filterByText } = searchActions();
 
 	useInfiniteScrollIO(observerRef.current, fetchNextPage);
-	useImageLazyLoadIO('img[data-src]', data?.length);
+	useImageLazyLoadIO('img[data-src]', data?.length as number);
 
 	const handleChange = useCallback(
 		(searchedText: string) => {
@@ -45,13 +50,11 @@ export const MovieList: React.FC<MovieListProps> = ({ data, fetchNextPage, schem
 			<ScrollToTop />
 			<div className="movies-grid">
 				<div className={styles.container} id="container">
-					{data.map((item) => (
-						<Movie key={item.id} item={item} styles={styles} />
-					))}
+					{data?.map((item) => <Movie key={item.id} item={item} styles={styles} />)}
 				</div>
 			</div>
 			<div ref={observerRef} className="loading-indicator">
-				{data.page !== data.total_pages && 'Loading...'}
+				{currentPage !== TOTAL_PAGES && 'Loading...'}
 			</div>
 		</div>
 	);

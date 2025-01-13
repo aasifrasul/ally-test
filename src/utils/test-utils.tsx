@@ -15,7 +15,9 @@
 		return { id, name: 'Noah' };
 	};
 
-	const catchError = async <T,>(promise: Promise<T>): Promise<[undefined, T] | [Error]> => {
+	const handleAsyncCalls = async <T,>(
+		promise: Promise<T>,
+	): Promise<[undefined, T] | [Error]> => {
 		return promise
 			.then((data) => {
 				return [undefined, data] as [undefined, T];
@@ -25,7 +27,7 @@
 			});
 	};
 
-	const [error, user] = await catchError(getUser(1));
+	const [error, user] = await handleAsyncCalls(getUser(1));
 
 	if (error) {
 		console.log(error);

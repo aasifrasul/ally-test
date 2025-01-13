@@ -11,19 +11,20 @@ if (!dataSources) {
 }
 
 const initialState: GenericState = {};
+const individualState: InitialState = {
+	isLoading: false,
+	isError: false,
+	data: [],
+	originalData: [],
+	pageData: [],
+	headers: [],
+	currentPage: 0,
+	TOTAL_PAGES: 0,
+};
 
 // Populate initialState based on dataSources
 Object.entries(dataSources).forEach(([key, dataSources]) => {
-	const individualState: InitialState = {
-		isLoading: false,
-		isError: false,
-		data: [],
-		originalData: [],
-		pageData: [],
-		headers: [],
-		currentPage: dataSources.queryParams?.page || 0,
-		TOTAL_PAGES: 0,
-	};
+	individualState.currentPage = dataSources.queryParams?.page || 0;
 	initialState[key] = individualState;
 });
 

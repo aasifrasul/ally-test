@@ -5,7 +5,7 @@ describe('APIService', () => {
 	let apiService: APIService;
 
 	beforeEach(() => {
-		apiService = new APIService();
+		apiService = APIService.getInstance();
 	});
 
 	afterEach(() => {

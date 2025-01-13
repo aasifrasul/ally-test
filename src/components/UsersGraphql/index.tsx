@@ -13,15 +13,25 @@ const GET_USERS = gql`
 	}
 `;
 
+interface User {
+	id: string;
+	firstName: string;
+	lastName: string;
+	age: number;
+}
+
 export default function UsersGraphql() {
 	const { loading, error, data } = useQuery(GET_USERS, { client });
 
 	if (loading) return <p>Loading...</p>;
-	if (error) return <p>Error :( {console.error(error)}</p>;
+	if (error) {
+		console.error(error);
+		return <p>Error :(</p>;
+	}
 
 	return (
 		<ul>
-			{data?.getUsers?.map(({ id, firstName, lastName, age }) => (
+			{data?.getUsers?.map(({ id, firstName, lastName, age }: User) => (
 				<li key={id}>
 					{id}, {firstName} {lastName}, {age}
 				</li>

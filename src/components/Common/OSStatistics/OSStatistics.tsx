@@ -1,12 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import socketClient from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
+import styles from './OSStatistics.module.css';
 
-import styles from './OSStatistics.css';
+interface Times {
+	user: number;
+	nice: number;
+	sys: number;
+	idle: number;
+	irq: number;
+}
 
-const socket = socketClient.connect('http://localhost:3100');
+interface OSStatsData {
+	model: string;
+	speed: number;
+	times: Times;
+}
 
-function OSStatistics() {
-	const [data, setData] = useState({
+// Create socket instance with proper type
+const socket: Socket = io('http://localhost:3100');
+
+function OSStatistics(): JSX.Element {
+	const [data, setData] = useState<OSStatsData>({
 		model: '',
 		speed: 0,
 		times: { user: 0, nice: 0, sys: 0, idle: 0, irq: 0 },
@@ -15,9 +29,9 @@ function OSStatistics() {
 	const { model, speed, times } = data;
 	const { user, nice, sys, idle, irq } = times;
 
-	const handleOSStatsData = useCallback((res) => {
-		if (res && res[0]) {
-			setData(res[0]);
+	const handleOSStatsData = useCallback((res: OSStatsData) => {
+		if (res) {
+			setData(res);
 		}
 	}, []);
 

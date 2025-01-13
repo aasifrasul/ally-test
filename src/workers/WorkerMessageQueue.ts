@@ -4,19 +4,40 @@ import { createLogger } from '../utils/logger';
 const logger = createLogger('WorkerMessageQueue');
 
 export class WorkerMessageQueue {
-	private worker: Worker;
+	private static instance: WorkerMessageQueue | null = null;
+	private static worker: Worker | null = null;
+
 	private queue: Map<number, { resolve: Function; reject: Function }>;
 	private currentId: number;
 	private timeouts: Map<number, NodeJS.Timeout>;
 
-	constructor(worker: Worker) {
-		this.worker = worker;
+	private constructor(worker: Worker) {
 		this.queue = new Map();
 		this.currentId = 0;
 		this.timeouts = new Map();
 
-		this.worker.addEventListener('message', this.handleMessage.bind(this));
-		this.worker.addEventListener('error', this.handleError.bind(this));
+		worker.addEventListener('message', this.handleMessage.bind(this));
+		worker.addEventListener('error', this.handleError.bind(this));
+	}
+
+	public static initialize(worker: Worker): void {
+		if (WorkerMessageQueue.instance) {
+			throw new Error('WorkerMessageQueue already initialized');
+		}
+		WorkerMessageQueue.worker = worker;
+		WorkerMessageQueue.instance = new WorkerMessageQueue(worker);
+	}
+
+	public static getInstance(): WorkerMessageQueue {
+		if (!WorkerMessageQueue.instance) {
+			if (!WorkerMessageQueue.worker) {
+				throw new Error(
+					'WorkerMessageQueue not initialized. Call initialize(worker) first.',
+				);
+			}
+			WorkerMessageQueue.instance = new WorkerMessageQueue(WorkerMessageQueue.worker);
+		}
+		return WorkerMessageQueue.instance;
 	}
 
 	private handleError(error: ErrorEvent): void {
@@ -24,6 +45,10 @@ export class WorkerMessageQueue {
 	}
 
 	async sendMessage(type: string, data: any, timeout = 30000): Promise<any> {
+		if (!WorkerMessageQueue.worker) {
+			throw new Error('Worker not initialized');
+		}
+
 		const id = ++this.currentId;
 
 		return new Promise((resolve, reject) => {
@@ -36,7 +61,7 @@ export class WorkerMessageQueue {
 			this.queue.set(id, { resolve, reject });
 
 			try {
-				this.worker.postMessage({ id, type, data });
+				WorkerMessageQueue.worker!.postMessage({ id, type, data });
 			} catch (error) {
 				this.queue.delete(id);
 				clearTimeout(timeoutId);
@@ -86,6 +111,10 @@ export class WorkerMessageQueue {
 		this.timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
 		this.timeouts.clear();
 		this.queue.clear();
-		this.worker.terminate();
+		if (WorkerMessageQueue.worker) {
+			WorkerMessageQueue.worker.terminate();
+			WorkerMessageQueue.worker = null;
+		}
+		WorkerMessageQueue.instance = null;
 	}
 }

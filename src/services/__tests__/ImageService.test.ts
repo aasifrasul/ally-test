@@ -12,7 +12,7 @@ describe('ImageService', () => {
 	});
 
 	beforeEach(() => {
-		imageService = new ImageService();
+		imageService = ImageService.getInstance();
 		global.fetch = jest.fn();
 		(createLogger as jest.Mock).mockReturnValue({
 			debug: jest.fn(),

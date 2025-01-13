@@ -29,9 +29,7 @@ const Todos = lazy(() => import(/* webpackChunkName: "Todos" */ '../Todos'));
 const NestedCategories = lazy(
 	() => import(/* webpackChunkName: "NestedCategories" */ '../NestedCategories'),
 );
-const Stopwatch = lazy(
-	() => import(/* webpackChunkName: "Stopwatch" */ '../stopwatch/stopwatch'),
-);
+const Stopwatch = lazy(() => import(/* webpackChunkName: "Stopwatch" */ '../stopwatch'));
 const CurrencyStream = lazy(
 	() => import(/* webpackChunkName: "CurrencyStream" */ '../CurrencyStream/CurrencyStream'),
 );

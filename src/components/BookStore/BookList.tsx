@@ -10,32 +10,38 @@ const BookList: React.FC<Props> = (props) => {
 	const { books, noOfAvailable, noOfIssued, issueBook, returnBook, deleteBook, onEditBook } =
 		props;
 
+	const getBookById = (id: number, books: Book[]): Book | undefined =>
+		books.find((book) => book.id === id);
+
 	const handleEditBook = (id: number) => {
-		const book: Book | undefined = books.find((book) => book.id === id);
+		const book = getBookById(id, books);
 
 		if (!book) {
+			alert(`Cannot find book with id:${id}.`);
 			return;
 		}
 
-		if (book.status === 'available') {
-			onEditBook(book);
-		} else {
-			alert('Book is issued. Cannot be Deleted.');
+		if (book.status === 'issued') {
+			alert('Book is issued. Cannot be Edited.');
+			return;
 		}
+
+		onEditBook(book);
 	};
 
 	const handleDeleteBook = (id: number): void => {
-		const book: Book | undefined = books.find((book) => book.id === id);
+		const book = getBookById(id, books);
 
 		if (!book) {
 			return;
 		}
 
-		if (book.status === 'available') {
-			deleteBook(id);
-		} else {
+		if (book.status === 'issued') {
 			alert('Book is issued. Cannot be Deleted.');
+			return;
 		}
+
+		deleteBook(id);
 	};
 
 	return (

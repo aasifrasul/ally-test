@@ -35,7 +35,8 @@ const BookForm: React.FC<Props> = ({ books, updateBook, addBook, book }) => {
 		if (!bookDetails.title || !bookDetails.author) {
 			return alert('Please enter book details!');
 		}
-		const maxId = books.reduce((max, { id }) => Math.max(id, max), 0);
+		const maxId = books.reduce((maxId, { id }) => (id > maxId ? id : maxId), 0);
+
 		addBook({ ...bookDetails, id: maxId + 1 });
 	};
 

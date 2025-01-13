@@ -3,18 +3,26 @@ import { HTTPMethod } from '../types/api';
 import { createLogger, LogLevel, Logger } from '../utils/logger';
 
 export class APIService {
+	private static instance: APIService;
 	private abortControllers: Map<string, AbortController>;
 	private cache: Map<string, any>;
 	private pendingRequests: Map<string, Promise<any>>;
 	private logger: Logger;
 
-	constructor() {
+	private constructor() {
 		this.abortControllers = new Map();
 		this.cache = new Map();
 		this.pendingRequests = new Map();
 		this.logger = createLogger('APIService', {
 			level: LogLevel.DEBUG,
 		});
+	}
+
+	public static getInstance(): APIService {
+		if (!APIService.instance) {
+			APIService.instance = new APIService();
+		}
+		return APIService.instance;
 	}
 
 	private createCacheKey(endpoint: string, options: APIOptions): string {
@@ -29,13 +37,11 @@ export class APIService {
 	async fetch<T>(endpoint: string, options: APIOptions = {}): Promise<T> {
 		const cacheKey = this.createCacheKey(endpoint, options);
 
-		// Return cached data for GET requests if available
 		if (this.shouldCache(options.method) && this.cache.has(cacheKey)) {
 			this.logger.debug('Returning cached data for:', endpoint);
 			return this.cache.get(cacheKey);
 		}
 
-		// If there's already a pending request for this endpoint, return its promise
 		if (this.pendingRequests.has(cacheKey)) {
 			this.logger.debug('Returning pending request for:', endpoint);
 			return this.pendingRequests.get(cacheKey);
@@ -61,7 +67,6 @@ export class APIService {
 
 				const data = await response.json();
 
-				// Cache GET requests
 				if (this.shouldCache(options.method)) {
 					this.cache.set(cacheKey, data);
 				}

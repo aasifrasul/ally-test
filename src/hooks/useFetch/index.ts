@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import { initializeMessageQueue, closeMessageQueue } from '../../workers/WorkerUtils';
+import { WorkerManager } from '../../workers/WorkerManager';
 import { useSelector } from '../useSelector';
 import { createActionHooks } from '../createActionHooks';
 
-import { buildQueryParams } from '../../utils/common';
+import { buildQueryParams, handleAsyncCalls } from '../../utils/common';
 import { constants } from '../../constants';
 import { DataSource, InitialState, QueryParams, Schema } from '../../constants/types';
 import { HTTPMethod } from '../../types/api';
+import { type FetchNextPage } from '../../types';
 
 interface customFetchOptions extends RequestInit {
 	nextPage?: number;
@@ -33,13 +34,14 @@ export interface FetchResult<T, U = T> {
 	cleanUpTopLevel: () => void;
 	getList: (schema?: Schema) => InitialState;
 	fetchData: (options?: customFetchOptions) => Promise<void>;
-	fetchNextPage: (nextPage: number) => Promise<void>;
+	fetchNextPage: FetchNextPage;
 	updateData: (data: Partial<T>, config?: UpdateConfig) => Promise<U | null>;
 }
 
 const DEFAULT_TIMEOUT = 2000;
 
-const messageQueue = initializeMessageQueue();
+const workerManager = WorkerManager.getInstance();
+const messageQueue = workerManager.initializeMessageQueue();
 
 function useFetch<T, U = T>(
 	schema: Schema,
@@ -109,12 +111,20 @@ function useFetch<T, U = T>(
 				...fetchOptions,
 			};
 
-			try {
-				const rawData = await messageQueue.fetchAPIData(url, {
+			const result = await handleAsyncCalls(
+				messageQueue.fetchAPIData(url, {
 					...enhancedOptions,
 					method: HTTPMethod.GET,
-				});
-				const transformedData = transformResponse(rawData);
+				}),
+			);
+
+			if (!result.success) {
+				if (result.error.name !== 'AbortError') {
+					fetchFailed();
+					onError(result.error);
+				}
+			} else {
+				const transformedData = transformResponse(result.data);
 
 				fetchSucceeded(transformedData);
 				onSuccess(transformedData);
@@ -122,20 +132,14 @@ function useFetch<T, U = T>(
 				if (newQueryParams.page) {
 					advancePage(newQueryParams.page);
 				}
-			} catch (error: any) {
-				// Only handle error if it's not an abort error
-				if (error.name !== 'AbortError') {
-					const errorObj = error instanceof Error ? error : new Error(String(error));
-					fetchFailed();
-					onError(errorObj);
-				}
-			} finally {
-				if (timeoutId.current) {
-					clearTimeout(timeoutId.current);
-					timeoutId.current = null;
-				}
-				fetchCompleted();
 			}
+
+			if (timeoutId.current) {
+				clearTimeout(timeoutId.current);
+				timeoutId.current = null;
+			}
+
+			fetchCompleted();
 		},
 		[BASE_URL, schema, timeout, cleanUpTopLevel, transformResponse, onSuccess, onError],
 	);
