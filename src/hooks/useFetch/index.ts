@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import { WorkerManager } from '../../workers/WorkerManager';
+import { WorkerQueue } from '../../workers/WorkerQueue';
 import { useSelector } from '../useSelector';
 import { createActionHooks } from '../createActionHooks';
 
@@ -40,8 +40,7 @@ export interface FetchResult<T, U = T> {
 
 const DEFAULT_TIMEOUT = 2000;
 
-const workerManager = WorkerManager.getInstance();
-const messageQueue = workerManager.initializeMessageQueue();
+const workerManager = WorkerQueue.getInstance();
 
 function useFetch<T, U = T>(
 	schema: Schema,
@@ -112,7 +111,7 @@ function useFetch<T, U = T>(
 			};
 
 			const result = await handleAsyncCalls(
-				messageQueue.fetchAPIData(url, {
+				workerManager.fetchAPIData(url, {
 					...enhancedOptions,
 					method: HTTPMethod.GET,
 				}),
@@ -192,7 +191,7 @@ function useFetch<T, U = T>(
 			};
 
 			try {
-				const rawData = await messageQueue.fetchAPIData(url, {
+				const rawData = await workerManager.fetchAPIData(url, {
 					...enhancedOptions,
 					method,
 				});

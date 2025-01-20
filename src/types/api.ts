@@ -6,7 +6,7 @@ export enum HTTPMethod {
 	DELETE = 'DELETE',
 }
 export interface WorkerMessage {
-	id: number;
+	id: string;
 	type: string;
 	data: any;
 	error?: string;

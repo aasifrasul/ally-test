@@ -1,6 +1,7 @@
 import type { APIOptions } from '../types/api';
 import { HTTPMethod } from '../types/api';
 import { createLogger, LogLevel, Logger } from '../utils/logger';
+import { fetch, BodyInit } from '../utils/fetch-polyfill';
 
 export class APIService {
 	private static instance: APIService;
@@ -59,6 +60,7 @@ export class APIService {
 						'Content-Type': 'application/json',
 						...options.headers,
 					},
+					body: options.body as BodyInit | undefined,
 				});
 
 				if (!response.ok) {
