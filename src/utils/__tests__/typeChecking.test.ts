@@ -4,7 +4,7 @@ import {
 	isEmptyArray,
 	isEmptyObject,
 	isArray,
-	isAsyncfunction,
+	isAsyncFunction,
 	isBoolean,
 	isEmpty,
 	isMap,
@@ -75,19 +75,19 @@ describe('Type checking functions', () => {
 		expect(isFunction({})).toBe(false);
 	});
 
-	test('isAsyncfunction', () => {
+	test('isAsyncFunction', () => {
 		const asyncArrowFunc = async () => {};
 		const asyncNamedFunc = async function namedAsync() {};
 		const regularFunc = () => {};
 		const promiseReturningFunc = () => Promise.resolve();
 
-		expect(isAsyncfunction(asyncArrowFunc)).toBe(true);
-		expect(isAsyncfunction(asyncNamedFunc)).toBe(true);
-		expect(isAsyncfunction(regularFunc)).toBe(false);
-		expect(isAsyncfunction(promiseReturningFunc)).toBe(true);
-		expect(isAsyncfunction(function () {})).toBe(false);
-		expect(isAsyncfunction({})).toBe(false);
-		expect(isAsyncfunction(null)).toBe(false);
+		expect(isAsyncFunction(asyncArrowFunc)).toBe(true);
+		expect(isAsyncFunction(asyncNamedFunc)).toBe(true);
+		expect(isAsyncFunction(regularFunc)).toBe(false);
+		expect(isAsyncFunction(promiseReturningFunc)).toBe(true);
+		expect(isAsyncFunction(function () {})).toBe(false);
+		expect(isAsyncFunction({})).toBe(false);
+		expect(isAsyncFunction(null)).toBe(false);
 	});
 
 	test('isGeneratorFunction', () => {
@@ -129,7 +129,7 @@ describe('Type checking functions', () => {
 describe('Utility functions', () => {
 	test('arraySize', () => {
 		expect(arraySize([1, 2, 3])).toBe(3);
-		expect(arraySize([])).toBe(null);
+		expect(arraySize([])).toBe(0);
 	});
 
 	test('isEmptyString', () => {
@@ -181,7 +181,7 @@ describe('safelyExecuteFunction', () => {
 		expect(
 			safelyExecuteFunction(null as unknown as () => void, undefined),
 		).toBeUndefined();
-		expect(console.log).toHaveBeenCalledWith('Please pass a valid function!');
+		expect(console.warn).toHaveBeenCalledWith('Please pass a valid function!');
 	});
 
 	test('handles functions with no return value', () => {

@@ -1,97 +1,133 @@
-export const typeCheck = <T>(data: unknown, type: string): boolean =>
+// Type definitions for better type safety
+type TypeName =
+	| 'array'
+	| 'object'
+	| 'null'
+	| 'undefined'
+	| 'number'
+	| 'string'
+	| 'boolean'
+	| 'map'
+	| 'set'
+	| 'promise'
+	| 'date'
+	| 'symbol'
+	| 'regexp'
+	| 'function';
+
+// More precise type guards
+export const typeCheck = <T>(data: unknown, type: TypeName): data is T =>
 	Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type;
 
-export const isArray = (data: unknown) => typeCheck(data, 'array');
-export const isObject = (data: unknown) => typeCheck(data, 'object');
-export const isNull = (data: unknown) => typeCheck(data, 'null');
-export const isUndefined = (data: unknown) => typeCheck(data, 'undefined');
-export const isNumber = (data: unknown) => typeCheck(data, 'number');
-export const isString = (data: unknown) => typeCheck(data, 'string');
-export const isBoolean = (data: unknown) => typeCheck(data, 'boolean');
-export const isMap = (data: unknown) => typeCheck(data, 'map');
-export const isSet = (data: unknown) => typeCheck(data, 'set');
-export const isPromise = (data: unknown) => typeCheck(data, 'promise');
-export const isDate = (data: unknown) => typeCheck(data, 'date');
-export const isSymbol = (data: unknown) => typeCheck(data, 'symbol');
-export const isRegExp = (data: unknown) => typeCheck(data, 'regexp');
+// Type guard functions with proper return types
+export const isArray = (data: unknown): data is unknown[] => Array.isArray(data);
+export const isObject = (data: unknown): data is object =>
+	data !== null && typeof data === 'object' && !Array.isArray(data);
+export const isNull = (data: unknown): data is null => data === null;
+export const isUndefined = (data: unknown): data is undefined => data === undefined;
+export const isNumber = (data: unknown): data is number =>
+	typeof data === 'number' && !isNaN(data);
+export const isString = (data: unknown): data is string => typeof data === 'string';
+export const isBoolean = (data: unknown): data is boolean => typeof data === 'boolean';
+export const isMap = (data: unknown): data is Map<unknown, unknown> => data instanceof Map;
+export const isSet = (data: unknown): data is Set<unknown> => data instanceof Set;
+export const isPromise = (data: unknown): data is Promise<unknown> => data instanceof Promise;
+export const isDate = (data: unknown): data is Date => data instanceof Date;
+export const isSymbol = (data: unknown): data is symbol => typeof data === 'symbol';
+export const isRegExp = (data: unknown): data is RegExp => data instanceof RegExp;
+export const isFunction = (data: unknown): data is Function => typeof data === 'function';
 
-export const arraySize = <T>(arr: T[]): number | null => (isArray(arr) ? arr.length : null);
+// Improved array size function with type safety
+export const arraySize = <T>(arr: T[] | unknown): number | null =>
+	isArray(arr) ? arr.length : null;
 
-export const isEmptyString = (str: unknown) => isString(str) && (str as string).length === 0;
-export const isEmptyArray = (arr: unknown[]) => arraySize(arr) === 0;
-export const isEmptyObject = (obj: unknown) =>
-	isObject(obj) && Object.keys(obj as object).length === 0;
+// Empty checks with proper type guards
+export const isEmptyString = (str: unknown): str is string =>
+	isString(str) && str.length === 0;
 
-export const isEmpty = (data: unknown) =>
+export const isEmptyArray = <T>(arr: T[] | unknown): arr is T[] => arraySize(arr) === 0;
+
+export const isEmptyObject = (obj: unknown): obj is object =>
+	isObject(obj) && Object.keys(obj).length === 0;
+
+export const isEmpty = (data: unknown): boolean =>
 	isUndefined(data) ||
 	isNull(data) ||
 	isEmptyString(data) ||
-	isEmptyArray(data as unknown[]) ||
-	isEmptyObject(data);
+	(isArray(data) && isEmptyArray(data)) ||
+	(isObject(data) && isEmptyObject(data));
 
-export const isFunction = (data: unknown) => typeCheck(data, 'function');
+// Improved async function check
+export const isAsyncFunction = (data: unknown): data is Function => {
+	if (!isFunction(data)) return false;
 
-export const isAsyncfunction = (data: any): data is (...args: any[]) => Promise<any> => {
-	// Check if it's an async function using constructor name
-	if (data.constructor.name === 'AsyncFunction') return true;
-
-	// Check if it's an async function by examining its string representation
-	if (data.toString().includes('async')) return true;
-
-	// Check if it returns a Promise
-	try {
-		const result = data();
-		return result instanceof Promise;
-	} catch {
-		return false;
-	}
+	return (
+		data.constructor.name === 'AsyncFunction' ||
+		data.toString().includes('async') ||
+		(() => {
+			try {
+				const result = data();
+				return isPromise(result);
+			} catch {
+				return false;
+			}
+		})()
+	);
 };
 
-export const isGeneratorFunction = (data: any): data is GeneratorFunction => {
-	// Check if it's a generator function using constructor name
-	if (data.constructor.name === 'GeneratorFunction') return true;
+// Improved generator function check
+export const isGeneratorFunction = (data: unknown): data is GeneratorFunction => {
+	if (!isFunction(data)) return false;
 
-	// Check if it's a generator function by examining its string representation
-	if (data.toString().includes('function*')) return true;
-
-	// Check if it has the 'next', 'throw', and 'return' methods when called
-	try {
-		const result = data();
-		return (
-			isFunction(result.next) && isFunction(result.throw) && isFunction(result.return)
-		);
-	} catch {
-		return false;
-	}
+	return (
+		data.constructor.name === 'GeneratorFunction' ||
+		data.toString().includes('function*') ||
+		(() => {
+			try {
+				const result = data();
+				return (
+					isObject(result) &&
+					result !== null &&
+					typeof result === 'object' &&
+					isFunction((result as Iterator<unknown>).next) &&
+					isFunction((result as Iterator<unknown>).throw) &&
+					isFunction((result as Iterator<unknown>).return)
+				);
+			} catch {
+				return false;
+			}
+		})()
+	);
 };
 
-export const safelyExecuteFunction = (
-	func: (...args: any[]) => any,
+// Improved function execution utilities with better type safety
+export const safelyExecuteFunction = <T>(
+	func: (...args: any[]) => T,
 	context?: object,
 	...params: any[]
-): any => {
+): T | undefined => {
 	if (!isFunction(func)) {
-		console.log('Please pass a valid function!');
-		return;
+		console.warn('Please pass a valid function!');
+		return undefined;
 	}
 
 	return isObject(context) ? func.apply(context, params) : func(...params);
 };
 
-export async function safeExecute<T>(
+export const safeExecute = async <T>(
 	fn: (...args: any[]) => T | Promise<T>,
 	...args: any[]
-): Promise<T | null> {
+): Promise<T | null> => {
 	if (!isFunction(fn)) {
 		console.warn('Please pass a valid function!');
 		return null;
 	}
 
 	try {
-		const result = fn(...args);
-		return isPromise(result) ? await result : result;
+		const result = await fn(...args);
+		return result;
 	} catch (error) {
 		console.error('An error occurred:', error);
 		throw error;
 	}
-}
+};
