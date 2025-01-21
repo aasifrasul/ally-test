@@ -1,11 +1,25 @@
 import { IndexedDBStorage } from './IndexedDBStorage';
+import { StorageType, StorageMapping, StorageCapacity } from './types';
 
-import { StorageType, StorageMapping } from './types';
+// Custom error types for better error handling
+export class StorageError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = 'StorageError';
+	}
+}
+
+export class StorageInitializationError extends StorageError {
+	constructor(message: string) {
+		super(message);
+		this.name = 'StorageInitializationError';
+	}
+}
 
 export class Storage {
 	private storageType: StorageType;
-	private hashMap: Map<string, any> | null = null;
 	private indexedDB: IndexedDBStorage | null = null;
+	private initialized: boolean = false;
 
 	constructor(
 		storageType: StorageType = StorageType.LOCAL_STORAGE,
@@ -14,53 +28,110 @@ export class Storage {
 	) {
 		this.storageType = storageType;
 
-		if (this.storageType === StorageType.MAP) {
-			this.hashMap = new Map();
-		} else if (this.storageType === StorageType.INDEXED_DB) {
-			this.indexedDB = new IndexedDBStorage(dbName, storeName);
+		if (storageType === StorageType.INDEXED_DB && (!dbName || !storeName)) {
+			throw new StorageInitializationError(
+				'dbName and storeName are required for IndexedDB storage',
+			);
+		}
+
+		if (!this.isStorageTypeSupported(storageType)) {
+			throw new StorageInitializationError(
+				`Storage type ${storageType} is not supported in this environment`,
+			);
+		}
+
+		if (this.storageType === StorageType.INDEXED_DB) {
+			this.indexedDB = new IndexedDBStorage(dbName!, storeName!);
+		}
+	}
+
+	private isStorageTypeSupported(type: StorageType): boolean {
+		switch (type) {
+			case StorageType.LOCAL_STORAGE:
+				return typeof window !== 'undefined' && !!window.localStorage;
+			case StorageType.SESSION_STORAGE:
+				return typeof window !== 'undefined' && !!window.sessionStorage;
+			case StorageType.INDEXED_DB:
+				return typeof window !== 'undefined' && !!window.indexedDB;
+			default:
+				return false;
 		}
 	}
 
 	private getStorageMapping(): StorageMapping {
+		if (!this.initialized) {
+			throw new StorageError('Storage not initialized. Call initialize() first.');
+		}
+
 		switch (this.storageType) {
 			case StorageType.LOCAL_STORAGE:
 				return {
 					stringify: true,
 					getItem: async (key) => localStorage.getItem(key),
-					setItem: async (key, value) => localStorage.setItem(key, value),
+					setItem: async (key, value) => {
+						try {
+							localStorage.setItem(key, value);
+						} catch (e) {
+							if ((e as any).name === 'QuotaExceededError') {
+								throw new StorageError('Local storage quota exceeded');
+							}
+							throw e;
+						}
+					},
 					removeItem: async (key) => localStorage.removeItem(key),
 					contains: async (key) => localStorage.getItem(key) !== null,
+					clear: async () => localStorage.clear(),
+					keys: async () => Object.keys(localStorage),
 				};
 			case StorageType.SESSION_STORAGE:
 				return {
 					stringify: true,
 					getItem: async (key) => sessionStorage.getItem(key),
-					setItem: async (key, value) => sessionStorage.setItem(key, value),
+					setItem: async (key, value) => {
+						try {
+							sessionStorage.setItem(key, value);
+						} catch (e) {
+							if ((e as any).name === 'QuotaExceededError') {
+								throw new StorageError('Session storage quota exceeded');
+							}
+							throw e;
+						}
+					},
 					removeItem: async (key) => sessionStorage.removeItem(key),
 					contains: async (key) => sessionStorage.getItem(key) !== null,
+					clear: async () => sessionStorage.clear(),
+					keys: async () => Object.keys(sessionStorage),
 				};
-			case StorageType.MAP:
-				return {
-					getItem: async (key) => this.hashMap!.get(key),
-					setItem: async (key, value) => {
-						this.hashMap!.set(key, value);
-						return Promise.resolve();
-					},
-					removeItem: async (key) => {
-						this.hashMap!.delete(key);
-						return Promise.resolve();
-					},
-					contains: async (key) => this.hashMap!.has(key),
-				};
+
 			case StorageType.INDEXED_DB:
 				return {
+					stringify: false,
 					getItem: async (key) => this.indexedDB!.getItem(key),
 					setItem: async (key, value) => this.indexedDB!.setItem(key, value),
 					removeItem: async (key) => this.indexedDB!.removeItem(key),
 					contains: async (key) => this.indexedDB!.contains(key),
+					clear: async () => this.indexedDB!.clear(),
+					keys: async () => this.indexedDB!.getAllKeys(),
 				};
 			default:
-				throw new Error('Unsupported storage type');
+				throw new StorageError('Unsupported storage type');
+		}
+	}
+
+	async initialize(): Promise<void> {
+		if (this.initialized) return;
+
+		if (this.storageType === StorageType.INDEXED_DB) {
+			try {
+				await this.indexedDB!.initialize();
+				this.initialized = true;
+			} catch (e) {
+				throw new StorageInitializationError(
+					`Failed to initialize IndexedDB: ${(e as Error).message}`,
+				);
+			}
+		} else {
+			this.initialized = true;
 		}
 	}
 
@@ -71,17 +142,17 @@ export class Storage {
 			if (data === null || data === undefined) return null;
 			return storage.stringify ? JSON.parse(data) : data;
 		} catch (e) {
-			throw new Error(`Error getting item: ${e}`);
+			throw new StorageError(`Error getting item: ${(e as Error).message}`);
 		}
 	}
 
-	async setItem(key: string, value: any): Promise<void> {
+	async setItem<T>(key: string, value: T): Promise<void> {
 		const storage = this.getStorageMapping();
 		try {
 			const dataToStore = storage.stringify ? JSON.stringify(value) : value;
 			await storage.setItem(key, dataToStore);
 		} catch (e) {
-			throw new Error(`Error setting item: ${e}`);
+			throw new StorageError(`Error setting item: ${(e as Error).message}`);
 		}
 	}
 
@@ -90,7 +161,7 @@ export class Storage {
 		try {
 			await storage.removeItem(key);
 		} catch (e) {
-			throw new Error(`Error removing item: ${e}`);
+			throw new StorageError(`Error removing item: ${(e as Error).message}`);
 		}
 	}
 
@@ -99,16 +170,49 @@ export class Storage {
 		return storage.contains(key);
 	}
 
+	async clear(): Promise<void> {
+		const storage = this.getStorageMapping();
+		try {
+			await storage.clear();
+		} catch (e) {
+			throw new StorageError(`Error clearing storage: ${(e as Error).message}`);
+		}
+	}
+
+	async getAllKeys(): Promise<string[]> {
+		const storage = this.getStorageMapping();
+		try {
+			return await storage.keys();
+		} catch (e) {
+			throw new StorageError(`Error getting keys: ${(e as Error).message}`);
+		}
+	}
+
+	async getStorageCapacity(): Promise<StorageCapacity | null> {
+		if (
+			this.storageType === StorageType.LOCAL_STORAGE ||
+			this.storageType === StorageType.SESSION_STORAGE
+		) {
+			try {
+				const quota = (await navigator?.storage?.estimate()) || null;
+				if (!quota) return null;
+
+				return {
+					used: quota.usage || 0,
+					total: quota.quota || 0,
+					available: (quota.quota || 0) - (quota.usage || 0),
+				};
+			} catch {
+				return null;
+			}
+		}
+		return null;
+	}
+
 	close(): void {
 		if (this.storageType === StorageType.INDEXED_DB && this.indexedDB) {
 			this.indexedDB.close();
 		}
+		this.initialized = false;
 	}
 }
-
-// Example usage:
-// const storage = new Storage('indexedDB', 'myCustomDB', 'myCustomStore');
-// await storage.setItem('user1', { name: 'John Doe', age: 30 });
-// const user = await storage.getItem('user1');
-// await storage.removeItem('user1');
-// storage.close();

@@ -1,8 +1,8 @@
+// Types file (types.ts)
 export enum StorageType {
 	LOCAL_STORAGE = 'localStorage',
 	SESSION_STORAGE = 'sessionStorage',
-	MAP = 'Map',
-	INDEXED_DB = 'IndexedDB',
+	INDEXED_DB = 'indexedDB',
 }
 
 export interface StorageMapping {
@@ -11,4 +11,12 @@ export interface StorageMapping {
 	setItem: (key: string, value: any) => Promise<void>;
 	removeItem: (key: string) => Promise<void>;
 	contains: (key: string) => Promise<boolean>;
+	clear: () => Promise<void>;
+	keys: () => Promise<string[]>;
+}
+
+export interface StorageCapacity {
+	used: number;
+	total: number;
+	available: number;
 }
