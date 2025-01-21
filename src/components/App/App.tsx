@@ -13,9 +13,7 @@ interface LandingPages {
 
 // Lazy imports
 const Home = lazy(() => import(/* webpackChunkName: "Home" */ '../Home'));
-const ReactQuery = lazy(
-	() => import(/* webpackChunkName: "ReactQuery" */ '../ReactQuery/ReactQuery'),
-);
+const ReactQuery = lazy(() => import(/* webpackChunkName: "ReactQuery" */ '../ReactQuery'));
 const KeyBoardShortcutPage = lazy(
 	() =>
 		import(
