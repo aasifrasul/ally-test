@@ -8,10 +8,27 @@ export class IndexedDBStorage {
 	private db: IDBDatabase | null = null;
 	private dbName: string;
 	private storeName: string;
+	private initialized: boolean = false;
 
 	constructor(dbName: string = 'myDB', storeName: string = 'myObjectStore') {
 		this.dbName = dbName;
 		this.storeName = storeName;
+	}
+
+	async initialize(): Promise<void> {
+		if (this.initialized) {
+			logger.info('Storage already initialized');
+			return;
+		}
+
+		try {
+			await this.open();
+			this.initialized = true;
+			logger.info('Storage initialized successfully');
+		} catch (error) {
+			logger.error('Failed to initialize storage:', error);
+			throw error;
+		}
 	}
 
 	private async open(): Promise<void> {
@@ -54,13 +71,40 @@ export class IndexedDBStorage {
 	private async fetchTransaction(
 		mode: IDBTransactionMode = 'readonly',
 	): Promise<IDBTransaction> {
-		await this.open();
+		if (!this.initialized) {
+			throw new Error('Storage not initialized. Call initialize() first.');
+		}
 		const transaction: IDBTransaction = this.db!.transaction([this.storeName], mode);
 		return transaction;
 	}
 
+	async getAllKeys(): Promise<string[]> {
+		if (!this.initialized) {
+			throw new Error('Storage not initialized. Call initialize() first.');
+		}
+		const transaction: IDBTransaction = await this.fetchTransaction();
+
+		return new Promise((resolve, reject) => {
+			const objectStore: IDBObjectStore = transaction.objectStore(this.storeName);
+			const request: IDBRequest<IDBValidKey[]> = objectStore.getAllKeys();
+
+			request.addEventListener('success', () => {
+				const keys = request.result.map((key) => key.toString());
+				logger.info('Retrieved all keys:', keys);
+				resolve(keys);
+			});
+
+			request.addEventListener('error', (event: Event) => {
+				logger.error('Error retrieving keys:', (event.target as IDBRequest).error);
+				reject((event.target as IDBRequest).error);
+			});
+		});
+	}
+
 	async getItem<T>(key: string): Promise<T | null> {
-		await this.open();
+		if (!this.initialized) {
+			throw new Error('Storage not initialized. Call initialize() first.');
+		}
 		const transaction: IDBTransaction = await this.fetchTransaction();
 
 		return new Promise((resolve, reject) => {
@@ -85,7 +129,9 @@ export class IndexedDBStorage {
 	}
 
 	async setItem(key: string, value: any): Promise<void> {
-		await this.open();
+		if (!this.initialized) {
+			throw new Error('Storage not initialized. Call initialize() first.');
+		}
 		const transaction: IDBTransaction = await this.fetchTransaction('readwrite');
 
 		return new Promise((resolve, reject) => {
@@ -108,7 +154,9 @@ export class IndexedDBStorage {
 	}
 
 	async removeItem(key: string): Promise<void> {
-		await this.open();
+		if (!this.initialized) {
+			throw new Error('Storage not initialized. Call initialize() first.');
+		}
 		const transaction: IDBTransaction = await this.fetchTransaction('readwrite');
 
 		return new Promise((resolve, reject) => {
@@ -132,18 +180,34 @@ export class IndexedDBStorage {
 		return value !== null;
 	}
 
+	async clear(): Promise<void> {
+		if (!this.initialized) {
+			throw new Error('Storage not initialized. Call initialize() first.');
+		}
+		const transaction: IDBTransaction = await this.fetchTransaction('readwrite');
+
+		return new Promise((resolve, reject) => {
+			const objectStore: IDBObjectStore = transaction.objectStore(this.storeName);
+			const request: IDBRequest<undefined> = objectStore.clear();
+
+			request.addEventListener('success', () => {
+				logger.info('Store cleared successfully');
+				resolve();
+			});
+
+			request.addEventListener('error', (event: Event) => {
+				logger.error('Error clearing store:', (event.target as IDBRequest).error);
+				reject((event.target as IDBRequest).error);
+			});
+		});
+	}
+
 	close(): void {
 		if (this.db) {
 			this.db.close();
 			this.db = null;
+			this.initialized = false;
 			logger.info('Database closed');
 		}
 	}
 }
-
-// const storage = new IndexedDBStorage('myCustomDB', 'myCustomStore');
-// storage.setItem('key', 'value');
-// storage.getItem('key').then((value) => console.log(value));
-// storage.removeItem('key');
-// storage.contains('key').then((value) => console.log(value));
-// storage.close();
