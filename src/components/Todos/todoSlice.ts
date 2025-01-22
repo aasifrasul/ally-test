@@ -1,8 +1,29 @@
-import { createSlice, createSelector } from '@reduxjs/toolkit';
+import { createSlice, createSelector, PayloadAction } from '@reduxjs/toolkit';
 import { client } from '../../api/client';
 import { StatusFilters } from '../filters/filtersSlice';
+import { RootState, AppDispatch } from '../store'; // You'll need to create these types
 
-const initialState = {
+// Define interfaces
+interface Todo {
+	id: string;
+	text: string;
+	completed: boolean;
+	color?: string;
+}
+
+interface TodosState {
+	status: 'idle' | 'loading';
+	entities: {
+		[key: string]: Todo;
+	};
+}
+
+interface TodoColorPayload {
+	todoId: string;
+	color: string;
+}
+
+const initialState: TodosState = {
 	status: 'idle',
 	entities: {},
 };
@@ -11,46 +32,46 @@ const todosSlice = createSlice({
 	name: 'todos',
 	initialState,
 	reducers: {
-		todoAdded(state, action) {
+		todoAdded(state, action: PayloadAction<Todo>) {
 			const todo = action.payload;
 			state.entities[todo.id] = todo;
 		},
-		todoToggled(state, action) {
+		todoToggled(state, action: PayloadAction<string>) {
 			const todoId = action.payload;
 			const todo = state.entities[todoId];
 			todo.completed = !todo.completed;
 		},
 		todoColorSelected: {
-			reducer(state, action) {
+			reducer(state, action: PayloadAction<TodoColorPayload>) {
 				const { color, todoId } = action.payload;
 				state.entities[todoId].color = color;
 			},
-			prepare(todoId, color) {
+			prepare(todoId: string, color: string) {
 				return {
 					payload: { todoId, color },
 				};
 			},
 		},
-		todoDeleted(state, action) {
+		todoDeleted(state, action: PayloadAction<string>) {
 			delete state.entities[action.payload];
 		},
-		allTodosCompleted(state, action) {
+		allTodosCompleted(state) {
 			Object.values(state.entities).forEach((todo) => {
 				todo.completed = true;
 			});
 		},
-		completedTodosCleared(state, action) {
+		completedTodosCleared(state) {
 			Object.values(state.entities).forEach((todo) => {
 				if (todo.completed) {
 					delete state.entities[todo.id];
 				}
 			});
 		},
-		todosLoading(state, action) {
+		todosLoading(state) {
 			state.status = 'loading';
 		},
-		todosLoaded(state, action) {
-			const newEntities = {};
+		todosLoaded(state, action: PayloadAction<Todo[]>) {
+			const newEntities: { [key: string]: Todo } = {};
 			action.payload.forEach((todo) => {
 				newEntities[todo.id] = todo;
 			});
@@ -73,46 +94,49 @@ export const {
 
 export default todosSlice.reducer;
 
-// Thunk function
-export const fetchTodos = () => async (dispatch) => {
+// Thunk functions
+export const fetchTodos = () => async (dispatch: AppDispatch) => {
 	dispatch(todosLoading());
 	const response = await client.get('/fakeApi/todos');
 	dispatch(todosLoaded(response.todos));
 };
 
-export function saveNewTodo(text) {
-	return async function saveNewTodoThunk(dispatch, getState) {
-		const initialTodo = { text };
+interface InitialTodo {
+	text: string;
+}
+
+export function saveNewTodo(text: string) {
+	return async function saveNewTodoThunk(dispatch: AppDispatch) {
+		const initialTodo: InitialTodo = { text };
 		const response = await client.post('/fakeApi/todos', { todo: initialTodo });
 		dispatch(todoAdded(response.todo));
 	};
 }
 
-const selectTodoEntities = (state) => state.todos.entities;
+// Selectors
+const selectTodoEntities = (state: RootState) => state.todos.entities;
 
 export const selectTodos = createSelector(selectTodoEntities, (entities) =>
 	Object.values(entities),
 );
 
-export const selectTodoById = (state, todoId) => {
+export const selectTodoById = (state: RootState, todoId: string): Todo | undefined => {
 	return selectTodoEntities(state)[todoId];
 };
 
-export const selectTodoIds = createSelector(
-	// First, pass one or more "input selector" functions:
-	selectTodos,
-	// Then, an "output selector" that receives all the input results as arguments
-	// and returns a final result value
-	(todos) => todos.map((todo) => todo.id),
+export const selectTodoIds = createSelector(selectTodos, (todos: Todo[]) =>
+	todos.map((todo) => todo.id),
 );
 
+interface Filters {
+	status: (typeof StatusFilters)[keyof typeof StatusFilters];
+	colors: string[];
+}
+
 export const selectFilteredTodos = createSelector(
-	// First input selector: all todos
 	selectTodos,
-	// Second input selector: all filter values
-	(state) => state.filters,
-	// Output selector: receives both values
-	(todos, filters) => {
+	(state: RootState) => state.filters,
+	(todos, filters: Filters) => {
 		const { status, colors } = filters;
 		const showAllCompletions = status === StatusFilters.All;
 		if (showAllCompletions && colors.length === 0) {
@@ -120,18 +144,14 @@ export const selectFilteredTodos = createSelector(
 		}
 
 		const completedStatus = status === StatusFilters.Completed;
-		// Return either active or completed todos based on filter
-		return todos.filter((todo) => {
+		return todos.filter((todo: Todo) => {
 			const statusMatches = showAllCompletions || todo.completed === completedStatus;
-			const colorMatches = colors.length === 0 || colors.includes(todo.color);
+			const colorMatches = colors.length === 0 || colors.includes(todo.color ?? '');
 			return statusMatches && colorMatches;
 		});
 	},
 );
 
-export const selectFilteredTodoIds = createSelector(
-	// Pass our other memoized selector as an input
-	selectFilteredTodos,
-	// And derive data in the output selector
-	(filteredTodos) => filteredTodos.map((todo) => todo.id),
+export const selectFilteredTodoIds = createSelector(selectFilteredTodos, (filteredTodos) =>
+	filteredTodos.map((todo: Todo) => todo.id),
 );
