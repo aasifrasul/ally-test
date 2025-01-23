@@ -1,7 +1,7 @@
 import { createSlice, createSelector, PayloadAction } from '@reduxjs/toolkit';
 import { client } from '../../api/client';
 import { StatusFilters } from '../filters/filtersSlice';
-import { RootState, AppDispatch } from '../store'; // You'll need to create these types
+import { RootState, AppDispatch } from '../../store'; // You'll need to create these types
 
 // Define interfaces
 interface Todo {
