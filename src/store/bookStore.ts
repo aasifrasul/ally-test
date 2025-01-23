@@ -30,12 +30,12 @@ export interface BookStoreState {
 }
 
 const filterBooks = (books: Book[], text: string): Book[] => {
-	if (!text) return books;
-	const lowerText = text.toLowerCase();
+	if (text.length <= 0) return books;
+	const textLowercased = text.toLowerCase();
 	return books.filter(
-		(book) =>
-			book.title.toLowerCase().includes(lowerText) ||
-			book.author.toLowerCase().includes(lowerText),
+		({ title, author }) =>
+			title.toLowerCase().includes(textLowercased) ||
+			author.toLowerCase().includes(textLowercased),
 	);
 };
 

@@ -6,16 +6,39 @@ import ScrollToTop from '../Common/ScrollToTopButton';
 
 import { buildNestedWithParentId, alphabets } from '../../utils/ArrayUtils';
 
-import styles from './NestedCategories.css';
+import styles from './NestedCategories.module.css';
 
-function NestedCategories({ isLoading, data, isError }) {
-	const [categories, setCategories] = useState([]);
-	const [categoriesChecked, setCategoresChecked] = useState(new Map());
-	const [filteredData, setFilteredData] = useState({});
-	const [allData, setAllData] = useState({});
+interface Category {
+	id: string;
+	title: string;
+	children?: Category[];
+	hideChildren?: boolean;
+	category?: string;
+}
 
-	const parent = [];
-	let childHtml = [];
+interface NestedCategoriesProps {
+	isLoading: boolean;
+	data: any; // Type this based on your actual data structure
+	isError: boolean;
+}
+
+interface BuildNestedResult {
+	nestedStructure: Record<string, Category>;
+	categories: Category[];
+}
+
+export const NestedCategories = ({
+	isLoading,
+	data,
+	isError,
+}: NestedCategoriesProps): React.ReactElement => {
+	const [categories, setCategories] = useState<Category[]>([]);
+	const [categoriesChecked, setCategoresChecked] = useState<Map<string, boolean>>(new Map());
+	const [filteredData, setFilteredData] = useState<Record<string, Category>>({});
+	const [allData, setAllData] = useState<Record<string, Category>>({});
+
+	const parent: JSX.Element[] = [];
+	let childHtml: JSX.Element[] = [];
 	let count = 0;
 
 	useEffect(() => {
@@ -24,7 +47,7 @@ function NestedCategories({ isLoading, data, isError }) {
 
 	function successCallback() {
 		if (!isLoading && !isError && data) {
-			const { nestedStructure, categories: allCategories } =
+			const { nestedStructure, categories: allCategories }: BuildNestedResult =
 				buildNestedWithParentId(data);
 			setAllData(nestedStructure);
 			setFilteredData(nestedStructure);
@@ -32,7 +55,12 @@ function NestedCategories({ isLoading, data, isError }) {
 		}
 	}
 
-	const handleCategoriesSelection = (value) => {
+	interface Option {
+		id: string | number;
+		title: string;
+	}
+
+	const handleCategoriesSelection = (value: Option | null) => {
 		// Collecting all the checked categories
 		categoriesChecked.clear();
 		value && categoriesChecked.set(value.title, true);
@@ -40,27 +68,29 @@ function NestedCategories({ isLoading, data, isError }) {
 		handleFilteredData(categoriesChecked);
 	};
 
-	const handleFilteredData = (parentCategoresChecked) => {
-		let hash = {};
-		let item = null;
+	const handleFilteredData = (parentCategoresChecked: Map<string, boolean>) => {
+		let hash: Record<string, Category> = {};
+		let item: Category | null = null;
 
 		if (parentCategoresChecked.size) {
 			for (let key in allData) {
 				item = allData[key];
-				if (parentCategoresChecked.has(item.category)) {
+				if (item.category && parentCategoresChecked.has(item.category)) {
 					hash[key] = item;
 				}
 			}
 		} else {
-			hash = Object.assign({}, allData);
+			hash = { ...allData };
 		}
 		setFilteredData(hash);
 	};
 
-	const handleToggleChildren = (id) => {
+	const handleToggleChildren = (id: string) => {
 		setFilteredData((items) => {
 			const newItems = { ...items };
-			newItems[id].hideChildren = !newItems[id].hideChildren;
+			if (newItems[id]) {
+				newItems[id].hideChildren = !newItems[id].hideChildren;
+			}
 			return newItems;
 		});
 	};
@@ -71,7 +101,7 @@ function NestedCategories({ isLoading, data, isError }) {
 		childHtml = [];
 
 		!hideChildren &&
-			children?.forEach((item, key) => {
+			children?.forEach((item, index) => {
 				const { id, title } = item || {};
 				title &&
 					childHtml.push(
@@ -111,6 +141,4 @@ function NestedCategories({ isLoading, data, isError }) {
 			<div className={styles['home']}>{parent}</div>
 		</>
 	);
-}
-
-export default NestedCategories;
+};
