@@ -31,39 +31,6 @@ export const getArrayCount = (arr) => (Array.isArray(arr) && arr.length) || 0;
 
 export const dupeArray = (arr) => Array.isArray(arr) && Array.prototype.slice.call(arr);
 
-export const buildNestedWithParentId = (items) => {
-	const nestedStructure = Object.create(null);
-	const categories = [];
-	const uniqueCategories = {};
-	let elem;
-
-	for (const key in items) {
-		elem = items[key];
-		if (elem.parent_objective_id) {
-			const parentElem = nestedStructure[elem.parent_objective_id];
-			if (parentElem) {
-				if (!parentElem.children) {
-					parentElem.children = [];
-				}
-				parentElem.children.push(elem);
-			}
-		} else {
-			nestedStructure[elem.id] = elem;
-			if (!uniqueCategories[elem.category]) {
-				uniqueCategories[elem.category] = true;
-				const category = Object.create(null);
-				category.id = elem.id;
-				category.title = elem.category;
-				category.selected = false;
-				category.key = 'category';
-				categories.push(category);
-			}
-		}
-	}
-
-	return { nestedStructure, categories };
-};
-
 /**
  * Shuffles a given array
  * Randomize the indexes

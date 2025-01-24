@@ -4,6 +4,7 @@ import { twMerge } from 'tailwind-merge';
 import { QueryParams } from '../constants/types';
 import { isNumber } from './typeChecking';
 export { handleAsyncCalls } from './handleAsyncCalls';
+import { deepCopy } from './deepCopy';
 
 export const getRandomInt = (min = 1000 * 1000, max = 2000 * 1000): number => {
 	min = Math.ceil(min);
@@ -174,4 +175,22 @@ export function* createRangeIterator(
  */
 export function cn(...inputs: ClassValue[]): string {
 	return twMerge(clsx(inputs));
+}
+
+// Immer like produce function
+export function produce<T extends object>(fn: (state: T) => void): (state: T) => T {
+	return (state: T): T => {
+		const handler: ProxyHandler<T> = {
+			get(target, prop: string) {
+				return Reflect.isExtensible(target) ? target[prop as keyof T] : undefined;
+			},
+			set(target, prop: string, value: any) {
+				(target as Record<string, any>)[prop] = value;
+				return true;
+			},
+		};
+		const proxy = new Proxy(state, handler);
+		fn(proxy);
+		return state;
+	};
 }

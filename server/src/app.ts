@@ -83,7 +83,10 @@ app.use(
 		target: 'https://okrcentral.github.io',
 		changeOrigin: true,
 		pathRewrite: {
-			'^/proxy/okrcentral': '/sample-okrs/db.json', // rewrite path
+			'^/proxy/okrcentral': '', // remove the entire path
+		},
+		router: {
+			'/proxy/okrcentral': 'https://okrcentral.github.io/sample-okrs/db.json',
 		},
 	}),
 );
