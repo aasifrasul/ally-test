@@ -1,0 +1,150 @@
+System Design (Instagram)
+
+1. scope (2-3 minutes): "Let me first understand the key features we need to design for Instagram. Would these be our core equirements:
+    - User feed with photos/videos
+    - User profiles
+    - Photo/video uploads
+    - Like/comment functionality
+    - Follow/unfollow users
+    - Search functionality
+    - Should we include additional features like Stories, Direct Messages, or keep it focused on core features?"
+
+2. Define scale and constraints (2-3 minutes): Share rough estimates like:
+    - Daily active users: ~1 billion
+    - Average photo size: ~1MB
+    - Daily uploads: ~100 million photos
+    - Read-heavy system (more views than uploads)
+
+3. High-level system design (10-15 minutes):
+    - Client-side Architecture:
+        - Single Page Application using React/Typescript
+        - State Management (Redux/Context/zustand)
+        - Client-side caching strategy
+        - Progressive image loading
+        - Infinite scroll implementation
+        - Real-time updates handling
+
+    - API Design:
+        - GET /api/feed/{id} - Get user's feed
+        - GET /api/users/{id}/followers - Get user's followers
+        - GET /api/users/{id}/following - Get user's following
+        - GET /api/posts/{id} - Get post details
+        - GET /api/search?q={query} - Search for users/posts
+
+        - POST /api/posts - Upload new post
+            `{
+                "userId": "123",
+                "media": "image.jpg",
+                "caption": "Hello World!"
+            }`
+        - POST /api/user/profile/
+            {
+                name: '',
+                email: '',
+                mobile: '',
+
+            }
+        - POST /api/user/profile/checkusername/
+        - POST /api/posts/{id}/comment - Comment on a post
+            `{
+                userId: 123,
+                postId: 234,
+                comment: 'jfgjghjg'
+            }`
+        - POST /api/posts/{id}/like - Like a post
+            `{
+                userId: 123,
+                postId: 234
+            }`
+        - POST /api/posts/{id}/unlike - Unlike a post
+            `{
+                userId: 123,
+                postId: 234
+            }`
+        - POST /api/users/{id}/follow - Follow a user
+            `{
+                userId: 123,
+                postId: 234
+            }`
+        - POST /api/users/{id}/unfollow - Unfollow a user
+            `{
+                userId: 123,
+                postId: 234
+            }`
+
+    - Backend Components:
+        - Load Balancers
+        - Web Servers
+        - Application Servers
+        - Cache Layer (Redis)
+        - Database (PostgreSQL for users/relationships, MongoDB for posts)
+        - CDN for static content
+        - Object Storage (S3) for media
+
+4. Deep dive into frontend-specific concerns (10-15 minutes):
+    Performance Optimizations:
+        - Image lazy loading and progressive loading
+        - Virtual scrolling for feed
+        - Client-side caching strategies
+        - Service Worker for offline capabilities
+        - WebSocket connections for real-time features
+
+    Data Flow:
+        - User Action → React Component → Redux Action → API Call → Update Store → Re-render
+
+5. Identify and address potential bottlenecks (5 minutes):
+    - Image optimization and compression
+    - Cache invalidation
+    - Feed generation performance
+    - Real-time updates scaling
+    - Database sharding and indexing
+    - Rate limiting and throttling
+    - CDN cache invalidation
+    
+
+6. Maintenance: 
+    - Tests (Unit/E2E):
+        - jest/React Testing Library, cypress/selenium
+        - Component testing
+        - Custom hooks testing
+        - Redux/State management tests
+        - API client tests
+    - Logging:
+        - Client-side error tracking (Sentry)
+        - Server-side error logging (ELK stack)
+        - Performance monitoring (New Relic)
+    - Error handling:
+        - Retry mechanisms for failed API calls
+        - Offline mode support
+        - Graceful degradation
+        - User feedback mechanisms
+    - Security:
+        - CSRF protection
+        - Rate limiting
+        - Content Security Policy
+        - XSS prevention
+        - Data encryption
+        - Input validation
+        - HTTPS?
+    - Analytics:
+        - User behavior tracking:
+            - Page views
+            - Time spent on feed
+            - Scroll depth
+            - Feature usage
+            - Drop-off points
+
+        // Performance Monitoring
+        - Core Web Vitals:
+            - LCP (Largest Contentful Paint)
+            - FID (First Input Delay)
+            - CLS (Cumulative Layout Shift)
+        - Custom metrics:
+            - Image load times
+            - Feed rendering performance
+            - Time to interactive
+    Feature Flagging & A/B Testing:
+        - Gradual feature rollouts
+        - Experimentation framework
+        - User segmentation
+        - Metrics tracking
