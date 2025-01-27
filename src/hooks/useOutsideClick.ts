@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, RefObject, useEffect } from 'react';
+import { useCallback, useRef, RefObject } from 'react';
 import { useEventListener } from './useEventListener';
 import useToggle from './useToggle';
 
@@ -8,27 +8,23 @@ const useOutsideClick = <T extends HTMLElement = HTMLElement>(
 	initialState: boolean = false,
 	eventType: EventType = 'mousedown',
 ): [boolean, RefObject<T>] => {
-	const [state, toggle] = useToggle(initialState);
+	const [isOutside, toggleOutside] = useToggle(initialState);
 	const ref = useRef<T>(null);
 
-	const handleClickOutside = useCallback((event: Event) => {
-		const currentValue: boolean =
-			ref.current && !ref.current.contains(event.target as Node) ? true : false;
-		toggle(currentValue);
-	}, []);
+	const handleClickOutside = useCallback(
+		(event: Event) => {
+			if (ref.current && !ref.current.contains(event.target as Node)) {
+				toggleOutside(true);
+			} else {
+				toggleOutside(false);
+			}
+		},
+		[toggleOutside],
+	);
 
 	useEventListener(eventType, handleClickOutside, document);
-	/*
-	useEffect(() => {
-		document.addEventListener(eventType, handleClickOutside);
 
-		return () => {
-			document.removeEventListener(eventType, handleClickOutside);
-		};
-	}, [eventType, handleClickOutside]);
-	*/
-
-	return [state, ref];
+	return [isOutside, ref];
 };
 
 export default useOutsideClick;

@@ -83,6 +83,4 @@ class MongoDBConnection {
 	}
 }
 
-const mongoDbConnection = MongoDBConnection.getInstance();
-
-export default mongoDbConnection;
+export default MongoDBConnection;

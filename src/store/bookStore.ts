@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 //import { produce } from 'immer';
-import { produce } from '../utils/common';
+import { produce } from '../utils/immutable';
 
 export interface Book {
 	id: number;
