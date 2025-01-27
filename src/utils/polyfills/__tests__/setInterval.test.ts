@@ -1,8 +1,8 @@
 import { setInterval } from '../setInterval';
 
 describe('Enhanced setInterval', () => {
-	let originalSetTimeout;
-	let originalClearTimeout;
+	let originalSetTimeout: typeof setTimeout;
+	let originalClearTimeout: typeof clearTimeout;
 
 	beforeEach(() => {
 		jest.useFakeTimers();
@@ -16,14 +16,14 @@ describe('Enhanced setInterval', () => {
 	});
 
 	test('should throw TypeError for non-function callback', () => {
-		expect(() => setInterval('not a function', 1000)).toThrow(TypeError);
-		expect(() => setInterval(null, 1000)).toThrow(TypeError);
-		expect(() => setInterval(undefined, 1000)).toThrow(TypeError);
+		expect(() => setInterval('not a function' as any, 1000)).toThrow(TypeError);
+		expect(() => setInterval(null as any, 1000)).toThrow(TypeError);
+		expect(() => setInterval(undefined as any, 1000)).toThrow(TypeError);
 	});
 
 	test('should throw TypeError for invalid interval', () => {
 		expect(() => setInterval(() => {}, -1000)).toThrow(TypeError);
-		expect(() => setInterval(() => {}, 'not a number')).toThrow(TypeError);
+		expect(() => setInterval(() => {}, 'not a number' as any)).toThrow(TypeError);
 	});
 
 	test('should execute callback with provided parameters', () => {
@@ -124,6 +124,8 @@ describe('Enhanced setInterval', () => {
 		interval.stop();
 	});
 
+	// This test is more conceptual and might not be possible to implement
+	// depending on the internal structure of the setInterval function
 	test('stop should clean up all internal references', () => {
 		const mockCallback = jest.fn();
 		const interval = setInterval(mockCallback, 1000);

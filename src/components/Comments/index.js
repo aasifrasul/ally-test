@@ -2,7 +2,7 @@ import React from 'react';
 
 const Modal = React.lazy(() => import(/* webpackChunkName: "Modal" */ '../Common/Modal'));
 
-import useOutsideClick from '../../hooks/useOutsideClick';
+import useClickOutside from '../../hooks/useClickOutside';
 
 import { formatTimeStamp, initialUsers, endpoint } from './helper';
 
@@ -10,7 +10,7 @@ import styles from './styles.css';
 
 function DropDown({ users }) {
 	const displayRef = React.useRef(null);
-	const clickedOutside = useOutsideClick(displayRef);
+	const clickedOutside = useClickOutside(displayRef);
 
 	React.useEffect(() => {
 		document.querySelector('.dropdown-item input[type="checkbox"]')?.click(function (e) {

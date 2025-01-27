@@ -16,23 +16,23 @@ describe('useHover', () => {
 		jest.useRealTimers();
 	});
 
-	it('should return a ref and a boolean', () => {
+	it('should return a hoverRef and a boolean', () => {
 		const { result } = renderHook(() => useHover());
-		const [ref, isHovered] = result.current;
+		const { hoverRef, isHovered } = result.current;
 
-		expect(ref).toBeDefined();
+		expect(hoverRef).toBeDefined();
 		expect(typeof isHovered).toBe('boolean');
 		expect(isHovered).toBe(false);
 	});
 
 	it('should set isHovered to true on mouseenter after enterDelay', () => {
 		const { result } = renderHook(() => useHover({ enterDelay: 100 }));
-		const [ref, isHovered] = result.current;
+		const { hoverRef, isHovered } = result.current;
 
 		expect(isHovered).toBe(false);
 
 		act(() => {
-			Object.defineProperty(ref, 'current', {
+			Object.defineProperty(hoverRef, 'current', {
 				value: container,
 				writable: true,
 			});
@@ -40,21 +40,21 @@ describe('useHover', () => {
 
 		fireEvent.mouseEnter(container);
 
-		expect(result.current[1]).toBe(false);
+		expect(isHovered).toBe(false);
 
 		act(() => {
 			jest.advanceTimersByTime(100);
 		});
 
-		expect(result.current[1]).toBe(true);
+		expect(isHovered).toBe(true);
 	});
 
 	it('should set isHovered to false on mouseleave after leaveDelay', () => {
 		const { result } = renderHook(() => useHover({ leaveDelay: 100 }));
-		const [ref, isHovered] = result.current;
+		const { hoverRef, isHovered } = result.current;
 
 		act(() => {
-			Object.defineProperty(ref, 'current', {
+			Object.defineProperty(hoverRef, 'current', {
 				value: container,
 				writable: true,
 			});
@@ -62,27 +62,27 @@ describe('useHover', () => {
 
 		fireEvent.mouseEnter(container);
 
-		expect(result.current[1]).toBe(true);
+		expect(isHovered).toBe(true);
 
 		act(() => {
 			fireEvent.mouseLeave(container);
 		});
 
-		expect(result.current[1]).toBe(true);
+		expect(isHovered).toBe(true);
 
 		act(() => {
 			jest.advanceTimersByTime(100);
 		});
 
-		expect(result.current[1]).toBe(false);
+		expect(isHovered).toBe(false);
 	});
 
 	it('should work without delays', () => {
 		const { result } = renderHook(() => useHover());
-		const [ref, isHovered] = result.current;
+		const { hoverRef, isHovered } = result.current;
 
 		act(() => {
-			Object.defineProperty(ref, 'current', {
+			Object.defineProperty(hoverRef, 'current', {
 				value: container,
 				writable: true,
 			});
@@ -90,12 +90,12 @@ describe('useHover', () => {
 
 		fireEvent.mouseEnter(container);
 
-		expect(result.current[1]).toBe(true);
+		expect(isHovered).toBe(true);
 
 		act(() => {
 			fireEvent.mouseLeave(container);
 		});
 
-		expect(result.current[1]).toBe(false);
+		expect(isHovered).toBe(false);
 	});
 });
