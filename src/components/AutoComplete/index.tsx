@@ -8,7 +8,7 @@ import React, {
 	KeyboardEvent,
 } from 'react';
 
-import useOutsideClick from '../../hooks/useOutsideClick';
+import useClickOutside from '../../hooks/useClickOutside';
 import { constants } from '../../constants';
 import styles from './styles.module.css';
 
@@ -30,9 +30,11 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
 	const [activeSuggestion, setActiveSuggestion] = useState(0);
 	const [inputValue, setInputValue] = useState('');
 
-	const displayRef = useRef<HTMLUListElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
-	const clickedOutside = useOutsideClick(false, 'mousedown');
+	const { isOutsideClick, outsideRef } = useClickOutside<HTMLUListElement>(
+		false,
+		'mousedown',
+	);
 
 	const suggestionListId = useId();
 	const inputId = useId();
@@ -98,11 +100,10 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
 
 	// Reset if clicked outside
 	useEffect(() => {
-		const [isOutside] = clickedOutside;
-		if (isOutside) {
+		if (isOutsideClick) {
 			reset();
 		}
-	}, [clickedOutside, reset]);
+	}, [isOutsideClick, reset]);
 
 	// Render suggestions
 	const renderSuggestions = () => {
@@ -111,7 +112,7 @@ const AutoComplete: React.FC<AutoCompleteProps> = ({
 		return (
 			<ul
 				id={suggestionListId}
-				ref={displayRef}
+				ref={outsideRef}
 				className={styles.suggestions}
 				role="listbox"
 			>

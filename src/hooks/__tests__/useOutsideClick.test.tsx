@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { renderHook } from '@testing-library/react-hooks';
-import useOutsideClick from '../useOutsideClick';
+import useClickOutside from '../useClickOutside';
 import { useEventListener } from '../useEventListener';
 
 // Mock useEventListener
@@ -9,21 +9,21 @@ jest.mock('../useEventListener');
 
 // Mock component using the hook
 const TestComponent: React.FC = () => {
-	const [clickedOutside, ref] = useOutsideClick<HTMLDivElement>();
+	const { isOutsideClick, outsideRef } = useClickOutside<HTMLDivElement>();
 	return (
 		<div>
-			<div ref={ref} data-testid="inside">
+			<div ref={outsideRef} data-testid="inside">
 				Inside
 			</div>
 			<div data-testid="outside">Outside</div>
 			<div data-testid="status">
-				{clickedOutside ? 'Clicked Outside' : 'Not Clicked Outside'}
+				{isOutsideClick ? 'Clicked Outside' : 'Not Clicked Outside'}
 			</div>
 		</div>
 	);
 };
 
-describe('useOutsideClick', () => {
+describe('useClickOutside', () => {
 	beforeEach(() => {
 		(useEventListener as jest.Mock).mockImplementation((eventType, handler) => {
 			document.addEventListener(eventType, handler);
@@ -38,8 +38,8 @@ describe('useOutsideClick', () => {
 	});
 
 	it('should initialize with false', () => {
-		const { result } = renderHook(() => useOutsideClick());
-		expect(result.current[0]).toBe(false);
+		const { result } = renderHook(() => useClickOutside());
+		expect(result.current.isOutsideClick).toBe(false);
 	});
 
 	it('should detect click outside', () => {
@@ -71,25 +71,25 @@ describe('useOutsideClick', () => {
 	});
 
 	it('should work with custom event type', () => {
-		const { result } = renderHook(() => useOutsideClick(false, 'click'));
-		const [clickedOutside, ref] = result.current;
+		const { result } = renderHook(() => useClickOutside(false, 'click'));
+		const { isOutsideClick, outsideRef } = result.current;
 
 		const div = document.createElement('div');
-		// @ts-ignore - we know ref.current will be null initially
-		ref.current = div;
+		// @ts-ignore - we know outsideRef.current will be null initially
+		outsideRef.current = div;
 		document.body.appendChild(div);
 
 		act(() => {
 			fireEvent.click(document.body);
 		});
 
-		expect(result.current[0]).toBe(true);
+		expect(isOutsideClick).toBe(true);
 
 		act(() => {
 			fireEvent.click(div);
 		});
 
-		expect(result.current[0]).toBe(false);
+		expect(isOutsideClick).toBe(false);
 
 		document.body.removeChild(div);
 	});
@@ -98,7 +98,7 @@ describe('useOutsideClick', () => {
 		const cleanupMock = jest.fn();
 		(useEventListener as jest.Mock).mockReturnValue(cleanupMock);
 
-		const { unmount } = renderHook(() => useOutsideClick());
+		const { unmount } = renderHook(() => useClickOutside());
 
 		unmount();
 

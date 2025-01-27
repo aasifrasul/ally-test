@@ -6,12 +6,17 @@ interface UseHoverOptions {
 	leaveDelay?: number;
 }
 
+interface UseHoverReturn {
+	hoverRef: RefObject<HTMLElement>;
+	isHovered: boolean;
+}
+
 export function useHover<T extends HTMLElement = HTMLElement>({
 	enterDelay = 0,
 	leaveDelay = 0,
-}: UseHoverOptions = {}): [RefObject<HTMLDivElement>, boolean] {
+}: UseHoverOptions = {}): UseHoverReturn {
 	const [isHovered, setIsHovered] = useState(false);
-	const ref = useRef<HTMLDivElement>(null);
+	const hoverRef = useRef<T>(null);
 
 	const handleMouseEnter = useCallback(() => {
 		const timer = setTimeout(() => setIsHovered(true), enterDelay);
@@ -23,8 +28,8 @@ export function useHover<T extends HTMLElement = HTMLElement>({
 		return () => clearTimeout(timer);
 	}, [leaveDelay]);
 
-	useEventListener('mouseenter', handleMouseEnter, ref.current);
-	useEventListener('mouseleave', handleMouseLeave, ref.current);
+	useEventListener('mouseover', handleMouseEnter, hoverRef.current);
+	useEventListener('mouseout', handleMouseLeave, hoverRef.current);
 
-	return [ref, isHovered];
+	return { hoverRef, isHovered };
 }
