@@ -4,12 +4,26 @@ import ScrollToTop from '../Common/ScrollToTopButton';
 
 import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
 
-import styles from './WineConnoisseur.css';
+import styles from './WineConnoisseur.module.css';
 
-function WineConnoisseur({ data, fetchNextPage, currentPage }) {
-	const ioObserverRef = useRef(null);
+interface WineConnoisseurProps {
+	headers: any[];
+	pageData: any[];
+	fetchNextPage: (page: number) => void;
+	isLoading: boolean;
+	isError: boolean;
+	currentPage: number;
+}
 
-	const { headers = [], pageData = [] } = data;
+const WineConnoisseur: React.FC<WineConnoisseurProps> = ({
+	headers,
+	pageData,
+	fetchNextPage,
+	isLoading,
+	isError,
+	currentPage,
+}) => {
+	const ioObserverRef = useRef<HTMLDivElement>(null);
 
 	useInfiniteScrollIO(ioObserverRef.current, () => fetchNextPage(currentPage + 1));
 
@@ -17,10 +31,10 @@ function WineConnoisseur({ data, fetchNextPage, currentPage }) {
 		<div className={styles.alignCenter}>
 			<span>Wine Connoisseur</span>
 			<ScrollToTop />
-			<DataGrid headings={headers} rows={pageData} rowsCount={40} minHeight={1000} />
+			<DataGrid headings={headers} rows={pageData} />
 			<div ref={ioObserverRef}>Loading...</div>
 		</div>
 	);
-}
+};
 
 export default WineConnoisseur;

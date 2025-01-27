@@ -28,7 +28,21 @@ interface Constants {
 		mysql: MySQLConfig;
 		oracle: OracleConfig;
 	};
+	currencyPairs: Array<{ key: string; value: number }>;
 }
+
+const currencyPairs: Array<{ key: string; value: number }> = [
+	{ key: 'EURUSD', value: 1.1857 },
+	{ key: 'USDEUR', value: 0.8965 },
+	{ key: 'INRUSD', value: 75.876 },
+	{ key: 'USDINR', value: 0.0567 },
+	{ key: 'YENUSD', value: 118.9857 },
+	{ key: 'USDYEN', value: 0.0567 },
+	{ key: 'EURINR', value: 3.567 },
+	{ key: 'INREUR', value: 78.987 },
+	{ key: 'EURYEN', value: 3.567 },
+	{ key: 'YENEUR', value: 0.00987 },
+];
 
 export const constants: Constants = {
 	cachingLayer: {
@@ -84,4 +98,5 @@ export const constants: Constants = {
 			poolTimeout: 60,
 		},
 	},
+	currencyPairs,
 };

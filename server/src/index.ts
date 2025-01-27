@@ -4,7 +4,7 @@ import { config } from 'dotenv';
 import http from 'http';
 
 import { pathRootDir } from './paths';
-import mongoDbConnection from './dbClients/MongoDBConnection';
+import MongoDBConnection from './dbClients/MongoDBConnection';
 import { connectToIOServer, disconnectIOServer } from './socketConnection';
 import { connectWSServer, disconnectWSServer } from './webSocketConnection';
 import { getDBInstance, type DBInstance } from './schema/helper';
@@ -18,20 +18,7 @@ const { NODE_PORT: port, NODE_HOST: host } = process.env;
 
 const httpServer: http.Server = http.createServer(app);
 
-(async () => {
-	try {
-		await mongoDbConnection.connect();
-
-		if (!mongoDbConnection.getIsConnected()) {
-			logger.warn('Application started without MongoDB connection.');
-		}
-	} catch (error) {
-		logger.error('Failed to start application:', error);
-	}
-})();
-
-connectWSServer(httpServer);
-connectToIOServer(httpServer);
+MongoDBConnection.getInstance().connect();
 
 /**
  *
@@ -45,6 +32,9 @@ httpServer.on('request', () => logger.info('httpServer.request'));
 httpServer.listen(Number(port), Number(host), () =>
 	logger.info(`node httpServer listening on port ${Number(port)}`),
 );
+
+connectWSServer(httpServer);
+connectToIOServer(httpServer);
 
 let isExitCalled = false;
 
@@ -86,7 +76,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
 		await disconnectWSServer();
 
 		// Close MongoDB connection
-		await mongoDbConnection.cleanup();
+		await MongoDBConnection.getInstance().cleanup();
 
 		const dbInstance: DBInstance = await getDBInstance(constants.dbLayer.currentDB);
 

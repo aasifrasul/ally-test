@@ -176,21 +176,3 @@ export function* createRangeIterator(
 export function cn(...inputs: ClassValue[]): string {
 	return twMerge(clsx(inputs));
 }
-
-// Immer like produce function
-export function produce<T extends object>(fn: (state: T) => void): (state: T) => T {
-	return (state: T): T => {
-		const handler: ProxyHandler<T> = {
-			get(target, prop: string) {
-				return Reflect.isExtensible(target) ? target[prop as keyof T] : undefined;
-			},
-			set(target, prop: string, value: any) {
-				(target as Record<string, any>)[prop] = value;
-				return true;
-			},
-		};
-		const proxy = new Proxy(state, handler);
-		fn(proxy);
-		return state;
-	};
-}

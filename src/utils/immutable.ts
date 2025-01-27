@@ -1,3 +1,5 @@
+import { isArray, isObject } from './typeChecking';
+
 export function createImmutable<T extends object>(obj: T): T {
 	return new Proxy(obj, {
 		set: (target: T, prop: PropertyKey, value: any) => {
@@ -26,7 +28,7 @@ export function createImmutable<T extends object>(obj: T): T {
 		get(target: T, prop: PropertyKey, receiver: any) {
 			const value = Reflect.get(target, prop, receiver);
 
-			if (Array.isArray(target)) {
+			if (isArray(target)) {
 				// Handle array methods
 				if (['push', 'pop', 'shift', 'unshift'].includes(String(prop))) {
 					throw new Error(
@@ -38,10 +40,38 @@ export function createImmutable<T extends object>(obj: T): T {
 				}
 			}
 
-			if (typeof value === 'object' && value !== null) {
+			if (isObject(value)) {
 				return createImmutable(value);
 			}
 			return value;
 		},
 	});
+}
+
+// Immer like produce function
+export function produce<T extends object>(fn: (draft: T) => void): (state: T) => T {
+	return (state: T): T => {
+		const handler: ProxyHandler<T> = {
+			get(target: T, prop: PropertyKey) {
+				const value = target[prop as keyof T];
+				if (isObject(value)) {
+					return new Proxy(value, handler as ProxyHandler<T[keyof T] & object>);
+				}
+				return value;
+			},
+			set(target, prop: string, value: any) {
+				(target as Record<string, any>)[prop] = value;
+				return true;
+			},
+			defineProperty(target, prop, descriptor) {
+				return Reflect.defineProperty(target, prop, descriptor);
+			},
+			getOwnPropertyDescriptor(target, prop) {
+				return Reflect.getOwnPropertyDescriptor(target, prop);
+			},
+		};
+		const proxy = new Proxy(state, handler);
+		fn(proxy);
+		return state;
+	};
 }

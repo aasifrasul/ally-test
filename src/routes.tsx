@@ -60,10 +60,7 @@ const InfiniteScroll = lazy(
 	() => import(/* webpackChunkName: "InfiniteScroll" */ './components/InfiniteScroll'),
 );
 const AutoComplete = lazy(
-	() =>
-		import(
-			/* webpackChunkName: "AutoComplete" */ './components/AutoComplete/AutoComplete'
-		),
+	() => import(/* webpackChunkName: "AutoComplete" */ './components/AutoComplete'),
 );
 const NewsFeed = lazy(
 	() => import(/* webpackChunkName: "NewsFeed" */ './components/NewsFeed'),
