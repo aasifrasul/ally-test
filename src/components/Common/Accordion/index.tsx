@@ -2,8 +2,19 @@ import React from 'react';
 
 import AccordionSection from './AccordionSection';
 
-function Accordion(props) {
-	const [openSections, setOpenSections] = React.useState({});
+interface AccordionProps {
+	allowMultipleOpen?: boolean;
+	children?: Array<{
+		props: {
+			children: React.ReactNode;
+			isOpen?: boolean;
+			label: string;
+		};
+	}>;
+}
+
+function Accordion(props: AccordionProps) {
+	const [openSections, setOpenSections] = React.useState<{ [key: string]: boolean }>({});
 
 	React.useEffect(() => {
 		props.children?.forEach(
@@ -18,7 +29,7 @@ function Accordion(props) {
 		);
 	}, []);
 
-	const onClick = (label) => {
+	const onClick = (label: string) => {
 		const section = {
 			[label]: !openSections[label],
 		};

@@ -1,13 +1,14 @@
 import React from 'react';
 
 import Accordion from '../Common/Accordion';
+import AccordionSection from '../Common/Accordion/AccordionSection';
 
 function AccordionDemo() {
 	return (
 		<div>
 			<h1>Accordion Demo</h1>
 			<Accordion allowMultipleOpen>
-				<div label="Alligator Mississippiensis" isOpen>
+				<AccordionSection label="Alligator Mississippiensis" isOpen>
 					<p>
 						<strong>Common Name:</strong> American Alligator
 					</p>
@@ -17,8 +18,8 @@ function AccordionDemo() {
 					<p>
 						<strong>Endangered Status:</strong> Currently Not Endangered
 					</p>
-				</div>
-				<div label="Alligator Sinensis">
+				</AccordionSection>
+				<AccordionSection label="Alligator Sinensis">
 					<p>
 						<strong>Common Name:</strong> Chinese Alligator
 					</p>
@@ -28,7 +29,7 @@ function AccordionDemo() {
 					<p>
 						<strong>Endangered Status:</strong> Critically Endangered
 					</p>
-				</div>
+				</AccordionSection>
 			</Accordion>
 		</div>
 	);

@@ -54,7 +54,7 @@ const MovieList = lazy(
 	() => import(/* webpackChunkName: "MovieList" */ './components/MovieList'),
 );
 const TicTacToe = lazy(
-	() => import(/* webpackChunkName: "TicTacToe" */ './components/TicTacToe/TicTacToe'),
+	() => import(/* webpackChunkName: "TicTacToe" */ './components/TicTacToe'),
 );
 const InfiniteScroll = lazy(
 	() => import(/* webpackChunkName: "InfiniteScroll" */ './components/InfiniteScroll'),

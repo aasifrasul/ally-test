@@ -1,6 +1,13 @@
 import React from 'react';
 
-function AccordionSection({ onClick, isOpen, children, label }) {
+interface AccordionSectionProps {
+	onClick?: (label: string) => void;
+	isOpen?: boolean;
+	children: React.ReactNode;
+	label: string;
+}
+
+function AccordionSection({ onClick, isOpen, children, label }: AccordionSectionProps) {
 	return (
 		<div
 			style={{
@@ -9,7 +16,7 @@ function AccordionSection({ onClick, isOpen, children, label }) {
 				padding: '5px 10px',
 			}}
 		>
-			<div onClick={() => onClick(label)} style={{ cursor: 'pointer' }}>
+			<div onClick={() => onClick!(label)} style={{ cursor: 'pointer' }}>
 				{label}
 				<div style={{ float: 'right' }}>
 					{!isOpen && <span>&#9650;</span>}

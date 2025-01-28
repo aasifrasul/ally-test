@@ -4,7 +4,16 @@ const initialState = {
 	newsFeed: [],
 };
 
-const feedReducer = (state = initialState, action) => {
+interface FeedState {
+	newsFeed: any[];
+}
+
+interface Action {
+	type: string;
+	payload?: any;
+}
+
+const feedReducer = (state: FeedState = initialState, action: Action): FeedState => {
 	switch (action.type) {
 		case GET_NEWS_FEED:
 			return { ...state, newsFeed: action.payload };
