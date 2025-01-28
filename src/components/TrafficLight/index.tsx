@@ -1,12 +1,12 @@
 // components/TrafficLight/index.jsx
 import React, { useRef, useEffect } from 'react';
-import styles from './styles.css';
+import styles from './styles.module.css';
 
 function TrafficLight() {
 	const redRef = useRef(null);
 	const yellowRef = useRef(null);
 	const greenRef = useRef(null);
-	const timeoutRef = useRef(null);
+	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 	const instance = useRef(-1);
 
 	const durations = [
@@ -21,11 +21,11 @@ function TrafficLight() {
 		}
 	};
 
-	const addClass = (elemRef, className) => {
+	const addClass = (elemRef: React.RefObject<HTMLDivElement>, className: string) => {
 		elemRef.current?.classList?.add(className);
 	};
 
-	const removeClass = (elemRef, className) => {
+	const removeClass = (elemRef: React.RefObject<HTMLDivElement>, className: string) => {
 		elemRef.current?.classList?.remove(className);
 	};
 
