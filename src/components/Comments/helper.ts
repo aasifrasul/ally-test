@@ -11,7 +11,11 @@ const initialUsers = [
 	'Patrick, Neal',
 ];
 
-function formatTimeStamp(timestamp) {
+interface TimestampFormatter {
+	(timestamp: number): string;
+}
+
+const formatTimeStamp: TimestampFormatter = (timestamp) => {
 	const date = new Date(timestamp);
 
 	const day = date.getDate();
@@ -25,7 +29,7 @@ function formatTimeStamp(timestamp) {
 	// console.log(formattedDate); // Output: 4 Dec 2020 19:34
 
 	return formattedDate;
-}
+};
 
 const endpoint = 'https://mocki.io/v1/b0c7d7ea-5d09-4b9c-8d4b-c1b40cc39bc9';
 

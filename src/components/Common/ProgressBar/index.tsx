@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 
-const ProgressBar = (props) => {
+interface ProgressBarProps {
+	bgcolor: string;
+	completed: number;
+}
+
+const ProgressBar = (props: ProgressBarProps) => {
 	const { bgcolor, completed } = props;
 
-	const containerStyles = {
+	const containerStyles: CSSProperties = {
 		height: 20,
 		width: '100%',
 		backgroundColor: '#e0e0de',
@@ -11,7 +16,7 @@ const ProgressBar = (props) => {
 		margin: 50,
 	};
 
-	const fillerStyles = {
+	const fillerStyles: CSSProperties = {
 		height: '100%',
 		width: `${completed}%`,
 		backgroundColor: bgcolor,
@@ -20,7 +25,7 @@ const ProgressBar = (props) => {
 		transition: 'width 1s ease-in-out',
 	};
 
-	const labelStyles = {
+	const labelStyles: CSSProperties = {
 		padding: 5,
 		color: 'white',
 		fontWeight: 'bold',
@@ -32,8 +37,8 @@ const ProgressBar = (props) => {
 				<span
 					role="progressbar"
 					aria-valuenow={completed}
-					aria-valuemin="0"
-					aria-valuemax="100"
+					aria-valuemin={0}
+					aria-valuemax={100}
 				>{`${completed}%`}</span>
 			</div>
 		</div>

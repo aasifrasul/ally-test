@@ -5,7 +5,7 @@ import styles from './Modal.module.css';
 
 interface ModalProps {
 	children: React.ReactNode;
-	isOpen: boolean;
+	isOpen?: boolean;
 }
 
 const Modal = React.memo(({ children, isOpen }: ModalProps) => {

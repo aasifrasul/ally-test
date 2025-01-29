@@ -2,7 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 
-const backendData = [
+interface Category {
+	id: string;
+	name: string;
+	children?: Category[];
+}
+
+const backendData: Category[] = [
 	{
 		id: '1',
 		name: 'Office Map',
@@ -72,16 +78,16 @@ function fetchData() {
 }
 
 function DeeplyNestedCategories() {
-	const [categories, setCategories] = useState([]);
-	const [hiddenChildren, setHiddenChildren] = useState({});
+	const [categories, setCategories] = useState<Category[]>([]);
+	const [hiddenChildren, setHiddenChildren] = useState<{ [key: string]: boolean }>({});
 
 	useEffect(() => {
 		fetchData().then((data) => {
-			setCategories(data);
+			setCategories(data as Category[]);
 		});
 	}, []);
 
-	function handleToggle(id) {
+	function handleToggle(id: string) {
 		setHiddenChildren((items) => {
 			const newItems = { ...items };
 			newItems[id] = !newItems[id];
@@ -89,7 +95,7 @@ function DeeplyNestedCategories() {
 		});
 	}
 
-	function buildHtml(items) {
+	function buildHtml(items: Category[] | undefined) {
 		return items?.map((item, index) => {
 			const childHtml =
 				item.children && !hiddenChildren[item.id] ? (
