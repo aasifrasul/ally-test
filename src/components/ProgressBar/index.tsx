@@ -10,7 +10,7 @@ const testData = [
 ];
 
 function App() {
-	const [completed, setCompleted] = useState(0);
+	const [completed, setCompleted] = useState<number>(0);
 
 	useEffect(() => {
 		setInterval(() => setCompleted(Math.floor(Math.random() * 100) + 1), 2000);

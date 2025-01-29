@@ -113,6 +113,7 @@ export type Constants = {
 	common?: Common;
 	autoComplete?: AutoCompleteConfig;
 	dataSources?: DataSources;
+	routes?: string[];
 	tictactoe?: {
 		allPossibleWinningCombo: Array<string[]>;
 		allowedOptions: string[];

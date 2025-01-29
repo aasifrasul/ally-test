@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import Login from '../Login';
 import useToken from '../../hooks/useToken';
 

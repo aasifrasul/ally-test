@@ -1,18 +1,27 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
-import useWebWorker from '../../hooks/useWebWorker';
+interface LoginProps {
+	setToken: (token: string) => void;
+}
+
+interface SubmitOptions {
+	method: string;
+	header: {
+		'Content-Type': string;
+	};
+	body: string;
+}
 
 const endpoint = 'http://localhost:3100/login';
 
-const Login = ({ setToken }) => {
-	const { fetchAPIData } = useWebWorker();
-	const [userName, setUserName] = useState();
-	const [password, setPassword] = useState();
+const Login = ({ setToken }: LoginProps) => {
+	const [userName, setUserName] = useState<string>('');
+	const [password, setPassword] = useState<string>('');
 
-	const handleSubmit = async (e) => {
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		const options = {
+		const options: SubmitOptions = {
 			method: 'POST',
 			header: {
 				'Content-Type': 'application/json',
@@ -22,7 +31,8 @@ const Login = ({ setToken }) => {
 				password,
 			}),
 		};
-		const token = await fetchAPIData(endpoint, options);
+		const response = await fetch(endpoint, options);
+		const token = await response.json();
 		setToken(token);
 	};
 	return (

@@ -8,10 +8,46 @@ const autoComplete: AutoCompleteConfig = {
 	debounceDelay: 150,
 };
 
+const routes = [
+	'AccordionDemo',
+	'AsyncArticles',
+	'AutoComplete',
+	'BookStore',
+	'ChatBot',
+	'Comments',
+	'CurrencyStream',
+	'Dashboard',
+	'DeeplyNestedCategories',
+	'DigitalClock',
+	'DisplayGraphql',
+	'FlipTheCard',
+	'GraphqlSubscription',
+	'Home',
+	'InfiniteScroll',
+	'KeyBoardShortcutPage',
+	'ListExchange',
+	'MovieList',
+	'NestedCategories',
+	'NewsFeed',
+	'ProgressBar',
+	'ReactQuery',
+	'SearchForm',
+	'SortUsers',
+	'Stopwatch',
+	'TabsComponent',
+	'TicTacToe',
+	'TodoGroups',
+	'Todos',
+	'TrafficLight',
+	'UsersGraphql',
+	'WineConnoisseur',
+];
+
 export const constants = createImmutable<Constants>({
 	common: {},
 	autoComplete,
 	dataSources,
+	routes,
 	tictactoe: {
 		allPossibleWinningCombo: [
 			[`idx-r1-c1`, `idx-r1-c2`, `idx-r1-c3`],

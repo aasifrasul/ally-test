@@ -2,21 +2,21 @@ import { IndexedDBStorage } from './IndexedDBStorage';
 import { StorageType, StorageMapping, StorageCapacity } from './types';
 
 // Custom error types for better error handling
-export class StorageError extends Error {
+class StorageError extends Error {
 	constructor(message: string) {
 		super(message);
 		this.name = 'StorageError';
 	}
 }
 
-export class StorageInitializationError extends StorageError {
+class StorageInitializationError extends StorageError {
 	constructor(message: string) {
 		super(message);
 		this.name = 'StorageInitializationError';
 	}
 }
 
-export class Storage {
+class Storage {
 	private storageType: StorageType;
 	private indexedDB: IndexedDBStorage | null = null;
 	private initialized: boolean = false;
@@ -216,3 +216,5 @@ export class Storage {
 		this.initialized = false;
 	}
 }
+
+export { Storage, StorageType, StorageError, StorageInitializationError };

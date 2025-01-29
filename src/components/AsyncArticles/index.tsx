@@ -9,11 +9,14 @@ type Article = {
 const dummyTitleStr =
 	'Lorem ipsum dolor sit amet consectetur adipisicing elit. Totam distinctio dolorum illo, impedit reprehenderit, ipsam ipsum debitis non incidunt nostrum ullam esse porro id praesentium.';
 
+const ARTICLES_PER_PAGE = 10;
+const SCROLL_THRESHOLD = 100;
+
 function getMockArticle(id: number): Promise<Article> {
 	const max = Math.floor(Math.random() * dummyTitleStr.length);
 	const min = Math.floor(Math.random() * max);
 	const title = dummyTitleStr.slice(min, max);
-	const delay = Math.floor(Math.random() * 2000); // 0-2 seconds
+	const delay = Math.floor(Math.random() * 2000);
 	return new Promise((resolve) => {
 		setTimeout(() => {
 			resolve({ id, title });
@@ -21,43 +24,56 @@ function getMockArticle(id: number): Promise<Article> {
 	});
 }
 
+// Create queue instance outside component to persist between renders
 const asyncQueue = new AsyncQueue<Article>();
 
 const ArticleList: React.FC = () => {
 	const [articles, setArticles] = useState<Article[]>([]);
 	const [loading, setLoading] = useState(false);
-	const [page, setPage] = useState(1);
+	const [hasMore, setHasMore] = useState(true);
 
-	const fetchArticles = useCallback((startId: number, count: number) => {
-		setLoading(true);
-		const promises = Array.from({ length: count }, (_, index) =>
-			asyncQueue.addToQueue(() => getMockArticle(startId + index)),
-		);
+	const fetchArticles = useCallback(
+		async (startId: number) => {
+			if (loading || !hasMore) return;
 
-		Promise.all(promises).then((newArticles) => {
-			setArticles((prevArticles) => [...prevArticles, ...newArticles]);
-			setLoading(false);
-		});
-	}, []);
+			setLoading(true);
+			try {
+				const promises = Array.from({ length: ARTICLES_PER_PAGE }, (_, index) =>
+					asyncQueue.addToQueue(() => getMockArticle(startId + index)),
+				);
 
-	useEffect(() => {
-		fetchArticles(1, 10);
-	}, [fetchArticles]);
+				const newArticles = await Promise.all(promises);
+				setArticles((prevArticles) => [...prevArticles, ...newArticles]);
 
-	const handleLoadMore = () => {
+				// Optional: Set hasMore to false if no more articles
+				// if (newArticles.length < ARTICLES_PER_PAGE) setHasMore(false);
+			} catch (error) {
+				console.error('Error fetching articles:', error);
+			} finally {
+				setLoading(false);
+			}
+		},
+		[loading, hasMore],
+	);
+
+	const handleLoadMore = useCallback(() => {
 		const nextStartId = articles.length + 1;
-		fetchArticles(nextStartId, 10);
-		setPage((prevPage) => prevPage + 1);
-	};
+		void fetchArticles(nextStartId);
+	}, [articles.length, fetchArticles]);
 
 	const handleScroll = useCallback(() => {
-		if (
+		const scrolledToBottom =
 			window.innerHeight + document.documentElement.scrollTop >=
-			document.documentElement.offsetHeight - 100
-		) {
+			document.documentElement.offsetHeight - SCROLL_THRESHOLD;
+
+		if (scrolledToBottom && !loading && hasMore) {
 			handleLoadMore();
 		}
-	}, [handleLoadMore]);
+	}, [handleLoadMore, loading, hasMore]);
+
+	useEffect(() => {
+		void fetchArticles(1);
+	}, [fetchArticles]);
 
 	useEffect(() => {
 		window.addEventListener('scroll', handleScroll);
@@ -65,16 +81,22 @@ const ArticleList: React.FC = () => {
 	}, [handleScroll]);
 
 	return (
-		<div>
-			{articles.map((article) => (
-				<div key={article.id}>
-					<b>{article.id}</b>. {article.title}
+		<div className="article-list">
+			{articles.map(({ id, title }) => (
+				<div key={id} className="article-item">
+					<b>{id}</b>. {title}
 				</div>
 			))}
-			{loading && <div>Loading...</div>}
-			<button onClick={handleLoadMore} disabled={loading}>
-				Load More
-			</button>
+			{loading && <div className="loading">Loading...</div>}
+			{hasMore && (
+				<button
+					onClick={handleLoadMore}
+					disabled={loading}
+					className="load-more-button"
+				>
+					Load More
+				</button>
+			)}
 		</div>
 	);
 };
