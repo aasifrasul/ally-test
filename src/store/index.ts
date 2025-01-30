@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { todosReducer } from '../components/Todos/reducer';
-import feedReducer from '../reducers/feedReducer';
+import { feedReducer } from '../reducers/feedReducer';
+import { contactReducer } from '../components/Contacts/contactReducer';
 
 const store = configureStore({
 	reducer: {
 		todos: todosReducer,
 		feed: feedReducer,
+		contacts: contactReducer,
 	},
 });
 

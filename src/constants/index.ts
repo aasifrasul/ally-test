@@ -15,6 +15,7 @@ const routes = [
 	'BookStore',
 	'ChatBot',
 	'Comments',
+	'Contacts',
 	'CurrencyStream',
 	'Dashboard',
 	'DeeplyNestedCategories',

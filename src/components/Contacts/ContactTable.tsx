@@ -1,23 +1,19 @@
 import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Segment, Table, Button, Icon } from 'semantic-ui-react';
-import { useContactStore, useContactDispatch } from '../../Context/ContactContext';
+import { State } from './types';
+import { deleteContact } from './ActionCreators';
 
 function ContactTable() {
 	// Subscribe to `contacts` state and access dispatch function
-	const { contacts } = useContactStore();
-	const dispatch = useContactDispatch();
+	const { contacts }: State = useSelector((state: any) => state.contacts);
+	const dispatch = useDispatch();
 
 	// Declare a local state to be used internally by this component
-	const [selectedId, setSelectedId] = useState();
-
-	const delContact = (id) =>
-		dispatch({
-			type: 'DEL_CONTACT',
-			payload: id,
-		});
+	const [selectedId, setSelectedId] = useState<number | null>(null);
 
 	const onRemoveUser = () => {
-		delContact(selectedId);
+		dispatch(deleteContact(selectedId!));
 		setSelectedId(null); // Clear selection
 	};
 
