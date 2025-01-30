@@ -13,7 +13,7 @@ interface Action {
 	payload?: any;
 }
 
-const feedReducer = (state: FeedState = initialState, action: Action): FeedState => {
+export const feedReducer = (state: FeedState = initialState, action: Action): FeedState => {
 	switch (action.type) {
 		case GET_NEWS_FEED:
 			return { ...state, newsFeed: action.payload };
@@ -21,5 +21,3 @@ const feedReducer = (state: FeedState = initialState, action: Action): FeedState
 			return state;
 	}
 };
-
-export default feedReducer;
