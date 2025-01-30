@@ -73,9 +73,7 @@ export const dataSources: DataSources = {
 				'Content-Type': 'application/json',
 				api_key: 'Z9Q7WKEY7ORGBUFGN3EG1QS5Y7FG8DU29GHKKSZH',
 			},
-			reducer: (state: InitialState, action: Action): InitialState => {
-				return state;
-			},
+			reducer: (state: InitialState, action: Action): InitialState => state,
 		};
 	})(),
 };

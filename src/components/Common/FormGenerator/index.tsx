@@ -1,10 +1,31 @@
 import React from 'react';
 
 import Form from '../Form';
-import InputText from '../InputText';
+import { InputText } from '../InputText';
 import TextArea from '../TextArea';
 
-export default function FormGenerator(props) {
+interface FormGeneratorProps {
+	id: string;
+	name: string;
+	children: {
+		id: string;
+		type: string;
+		name: string;
+		value: string;
+		initialValue: string;
+		placeholder: string;
+		label: string;
+		validate: string;
+		rows: number;
+		cols: number;
+	}[];
+	validations: {
+		[key: string]: (value: string) => any;
+	};
+	onSubmit: (e: React.FormEvent) => void;
+}
+
+export default function FormGenerator(props: FormGeneratorProps) {
 	const children = props?.children?.map(
 		({
 			id,
@@ -29,7 +50,7 @@ export default function FormGenerator(props) {
 								initialValue={initialValue}
 								placeholder={placeholder}
 								label={label}
-								validate={props.validations[validate]}
+								validate={(value) => props.validations[validate](value) || ''}
 							/>
 							<hr />
 						</>
@@ -37,13 +58,7 @@ export default function FormGenerator(props) {
 				case 'textarea':
 					return (
 						<>
-							<TextArea
-								key={id}
-								name={name}
-								initialValue={initialValue}
-								rows={rows}
-								cols={cols}
-							/>
+							<TextArea id={id} name={name} rows={rows} cols={cols} />
 							<hr />
 						</>
 					);
@@ -62,7 +77,7 @@ export default function FormGenerator(props) {
 	);
 
 	return (
-		<Form id={props.id} name={props.name} onSubmit={props.onSubmit} defaultSubmit={false}>
+		<Form name={props.name} onSubmit={props.onSubmit} defaultSubmit={false}>
 			{children}
 		</Form>
 	);
