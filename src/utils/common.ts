@@ -3,8 +3,8 @@ import { twMerge } from 'tailwind-merge';
 
 import { QueryParams } from '../constants/types';
 import { isNumber } from './typeChecking';
-export { handleAsyncCalls } from './handleAsyncCalls';
-import { deepCopy } from './deepCopy';
+export { handleAsyncCalls, fetchAPIData } from './handleAsyncCalls';
+export { deepCopy } from './deepCopy';
 
 export const getRandomInt = (min = 1000 * 1000, max = 2000 * 1000): number => {
 	min = Math.ceil(min);

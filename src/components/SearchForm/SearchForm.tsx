@@ -6,38 +6,57 @@ import Pagination from '../Common/Pagination';
 import FormGenerator from '../Common/FormGenerator';
 import { constants } from '../../constants';
 
-import { deepCopy } from '../../utils/common';
+import { deepCopy, sortMixedArray, searchTextOnData } from '../../utils/common';
 
-import { sortMixedArray, searchTextOnData } from '../../utils/common';
+import styles from './styles.module.css';
 
-import styles from './styles.css';
+interface SearchFormProps {
+	data: any;
+	addItem: (data: any) => void;
+}
 
-export default function SearchForm({ data, addItem }) {
-	const [displayData, setDisplayData] = React.useState([]);
+interface FormElements extends HTMLFormControlsCollection {
+	item: (index: number) => HTMLInputElement | null;
+	length: number;
+}
+
+interface FormWithElements extends HTMLFormElement {
+	elements: FormElements;
+}
+
+interface SortCallback {
+	(header: string, isAsc: boolean): void;
+}
+
+export default function SearchForm({ data, addItem }: SearchFormProps) {
+	const [displayData, setDisplayData] = React.useState<any[]>([]);
 	const pageNum = React.useRef(1);
 
 	React.useEffect(() => {
-		setDisplayData(data.message);
+		if (data?.message) {
+			setDisplayData(data.message);
+		}
 		return () => setDisplayData([]);
 	}, [data?.message?.length]);
 
-	const handleSubmit = async (e) => {
+	const handleSubmit = (e: React.FormEvent<FormWithElements>) => {
 		e.preventDefault();
-		const formData = new FormData(e.target);
+		const formData = new FormData(e.currentTarget);
 		const jsonFormData = Object.fromEntries(formData.entries());
 		addItem(jsonFormData);
-		clearForm(e.target);
+		clearForm(e.currentTarget);
 	};
 
-	const clearForm = (form) => {
-		Array.from(form).forEach((item) => {
-			if (item.value) {
-				item.value = '';
+	const clearForm = (form: FormWithElements) => {
+		Array.from(form.elements).forEach((item) => {
+			const inputElement = item as HTMLInputElement;
+			if (inputElement.value) {
+				inputElement.value = '';
 			}
 		});
 	};
 
-	const searchCallback = (searchText, id) => {
+	const searchCallback = (searchText: string): void => {
 		const filteredData = searchTextOnData(searchText, data?.message, [
 			'product_name',
 			'description',
@@ -46,12 +65,12 @@ export default function SearchForm({ data, addItem }) {
 		setDisplayData(filteredData);
 	};
 
-	const paginationCallback = (pageCount) => {
+	const paginationCallback = (pageCount: number) => {
 		pageNum.current = pageCount;
 		setDisplayData(() => [...displayData]);
 	};
 
-	const sortCallback = (header, isAsc) => {
+	const sortCallback: SortCallback = (header, isAsc) => {
 		const sortedData = sortMixedArray(displayData, isAsc, header);
 		setDisplayData([...sortedData]);
 	};
@@ -63,7 +82,11 @@ export default function SearchForm({ data, addItem }) {
 
 	return (
 		<div className={styles['App']}>
-			<FormGenerator {...deepCopy(constants?.FormMetaData)} onSubmit={handleSubmit} />
+			<FormGenerator
+				{...constants?.FormMetaData}
+				id="form-generator"
+				onSubmit={handleSubmit}
+			/>
 			{displayData?.length ? (
 				<>
 					<ProductList
