@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import Spacer from '../Common/Spacer/Spacer1';
+import Spacer from '../Common/Spacer';
 import ScrollToTop from '../Common/ScrollToTopButton';
 import { alphabets } from '../../utils/ArrayUtils';
 import { buildNestedStructure } from './helpers';
@@ -119,7 +119,7 @@ export const NestedCategories: React.FC<NestedCategoriesProps> = ({
 	if (isError) return <div>Error loading categories</div>;
 
 	return (
-		<>
+		<div>
 			<Spacer size={16} />
 			<ScrollToTop />
 			<select
@@ -136,7 +136,7 @@ export const NestedCategories: React.FC<NestedCategoriesProps> = ({
 				))}
 			</select>
 			<div className={styles['home']}>{filteredCategories.map(renderCategory)}</div>
-		</>
+		</div>
 	);
 };
 
