@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useEventListener } from './useEventListener';
+import { useEventListener } from './EventListeners/useEventListener';
 
 export const useWindowFocus = () => {
 	const [focus, setFocus] = useState(() => document.hasFocus());

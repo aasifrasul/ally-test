@@ -115,7 +115,7 @@
 				span.textContent = "A <span> element.";
 				document.body.appendChild(span);
 				break;
-			case "complete": 
+			case "complete":
 				/* The page is fully loaded.*/
 				console.log("The first CSS rule is: " + document.styleSheets[0].cssRules[0].cssText);
 				break;
@@ -144,7 +144,7 @@
 
 	<!-- Append the `?module` param to load the module version of `web-vitals` -->
 	<script type="module">
-		import {onCLS, onFID, onLCP} from 'https://unpkg.com/web-vitals?module';
+		import { onCLS, onFID, onLCP } from 'https://unpkg.com/web-vitals?module';
 		onCLS(console.log);
 		onFID(console.log);
 		onLCP(console.log);
@@ -191,9 +191,9 @@
 		function loadStyleSheet(src) {
 			document.createStyleSheet(src);
 		}
-		{{#each css}}
+		{ { #each css } }
 		loadStyleSheet('{{this}}');
-		{{/each}}
+		{ {/each } }
 	</script>
 
 	<!-- JS -->

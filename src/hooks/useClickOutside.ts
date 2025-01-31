@@ -1,5 +1,5 @@
 import { useCallback, useRef, RefObject } from 'react';
-import { useEventListener } from './useEventListener';
+import { useEventListener } from './EventListeners/useEventListener';
 import useToggle from './useToggle';
 
 type EventType =

@@ -1,14 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { createLogger, LogLevel, Logger } from '../utils/logger';
-
-type EventMap = WindowEventMap & HTMLElementEventMap & DocumentEventMap;
-type Target = Window | Document | HTMLElement | null | undefined;
-type Options = boolean | AddEventListenerOptions;
-
-interface ErrorHandlingOptions {
-	onError?: (error: Error) => void;
-	suppressErrors?: boolean;
-}
+import { createLogger, LogLevel, Logger } from '../../utils/logger';
+import { ErrorHandlingOptions, Options, Target, EventMap } from './types';
 
 const logger: Logger = createLogger('useEventListener', {
 	level: LogLevel.DEBUG,
@@ -93,35 +85,6 @@ export function useEventListener<K extends keyof EventMap = keyof EventMap>(
 
 /**
 // Convenience hooks for common use cases
-export function useWindowEventListener<K extends keyof WindowEventMap>(
-	eventType: K,
-	callback: (event: WindowEventMap[K]) => void,
-	options?: Options,
-	errorHandling?: ErrorHandlingOptions
-): void {
-	useEventListener(
-		eventType,
-		callback,
-		typeof window !== 'undefined' ? window : undefined,
-		options,
-		errorHandling
-	);
-}
-
-export function useDocumentEventListener<K extends keyof DocumentEventMap>(
-	eventType: K,
-	callback: (event: DocumentEventMap[K]) => void,
-	options?: Options,
-	errorHandling?: ErrorHandlingOptions
-): void {
-	useEventListener(
-		eventType,
-		callback,
-		typeof document !== 'undefined' ? document : undefined,
-		options,
-		errorHandling
-	);
-}
 
 const MyComponent: React.FC = () => {
 	const elementRef = useRef<HTMLDivElement>(null);

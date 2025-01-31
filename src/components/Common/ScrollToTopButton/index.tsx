@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { FaAngleUp } from 'react-icons/fa';
 
-import { useEventListener } from '../../../hooks/useEventListener';
+import { useEventListener } from '../../../hooks/EventListeners/useEventListener';
 
 import styles from './index.module.css';
 

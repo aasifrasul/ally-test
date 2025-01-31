@@ -1,5 +1,5 @@
 import { useState, useRef, RefObject, useCallback } from 'react';
-import { useEventListener } from './useEventListener';
+import { useEventListener } from './EventListeners/useEventListener';
 
 interface UseHoverOptions {
 	enterDelay?: number;
