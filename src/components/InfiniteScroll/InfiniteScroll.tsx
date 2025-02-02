@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
+import { useImageLazyLoad } from '../../hooks/useImageLazyLoad';
 import ScrollToTop from '../Common/ScrollToTopButton';
 
 import { InitialState } from '../../constants/types';
@@ -35,7 +35,10 @@ export const InfiniteScroll = (props: Props) => {
 		};
 	}, [observerElement]);
 
-	useImageLazyLoadIO('img[data-src]', data?.length as number);
+	useImageLazyLoad({
+		imgSelector: 'img[data-src]',
+		count: data?.length as number,
+	});
 
 	return (
 		<div className={'scrollParent'}>

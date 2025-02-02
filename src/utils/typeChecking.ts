@@ -103,7 +103,7 @@ export const isGeneratorFunction = (data: unknown): data is GeneratorFunction =>
 // Improved function execution utilities with better type safety
 export const safelyExecuteFunction = <T>(
 	func: (...args: any[]) => T,
-	context?: object,
+	context: object | null,
 	...params: any[]
 ): T | undefined => {
 	if (!isFunction(func)) {

@@ -112,6 +112,7 @@ export class MyPromise {
 		return new MyPromise((_, reject) => reject(error));
 	}
 
+	// Fulfills when all of the promises fulfill; rejects when any of the promises rejects.
 	static all(promises) {
 		return new MyPromise((resolve, reject) => {
 			const results = new Array(promises.length);
@@ -143,11 +144,77 @@ export class MyPromise {
 		});
 	}
 
+	// Fulfills when any of the promises fulfills; rejects when all of the promises reject.
 	static race(promises) {
 		return new MyPromise((resolve, reject) => {
 			promises.forEach((promise) => {
 				if (promise instanceof MyPromise) {
 					promise.then(resolve, reject);
+				} else {
+					resolve(promise);
+				}
+			});
+		});
+	}
+
+	// Fulfills when all of the promises settle (either fulfill or reject).
+	static allSettled(promises) {
+		return new MyPromise((resolve) => {
+			const results = new Array(promises.length);
+			let completed = 0;
+
+			if (promises.length === 0) {
+				resolve(results);
+				return;
+			}
+
+			const checkCompletion = () => {
+				completed++;
+				if (completed === promises.length) {
+					resolve(results);
+				}
+			};
+
+			promises.forEach((promise, index) => {
+				if (promise instanceof MyPromise) {
+					promise.then(
+						(value) => {
+							results[index] = { status: 'fulfilled', value };
+							checkCompletion();
+						},
+						(reason) => {
+							results[index] = { status: 'rejected', reason };
+							checkCompletion();
+						},
+					);
+				} else {
+					results[index] = { status: 'fulfilled', value: promise };
+					checkCompletion();
+				}
+			});
+		});
+	}
+
+	// Settles when any of the promises settles.
+	// In other words, fulfills when any of the promises fulfills;
+	// rejects when any of the promises rejects.
+	static any(promises) {
+		return new MyPromise((resolve, reject) => {
+			let rejectedCount = 0;
+
+			if (promises.length === 0) {
+				resolve();
+				return;
+			}
+
+			promises.forEach((promise) => {
+				if (promise instanceof MyPromise) {
+					promise.then(resolve, () => {
+						rejectedCount++;
+						if (rejectedCount === promises.length) {
+							reject(new AggregateError('All promises were rejected'));
+						}
+					});
 				} else {
 					resolve(promise);
 				}

@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { InfiniteScroll } from '../InfiniteScroll';
 
 // Mock the custom hooks
-jest.mock('../../../hooks/useImageLazyLoadIO', () => ({
+jest.mock('../../../hooks/useImageLazyLoad', () => ({
 	__esModule: true,
 	default: jest.fn(),
 }));

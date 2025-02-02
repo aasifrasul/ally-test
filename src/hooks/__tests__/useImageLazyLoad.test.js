@@ -1,7 +1,7 @@
-import { renderHook } from '@testing-library/react-hooks';
-import { useImageLazyLoadIO } from '../useImageLazyLoadIO';
+import { renderHook } from '@testing-library/react';
+import { useImageLazyLoad } from '../useImageLazyLoad';
 
-describe('useImageLazyLoadIO', () => {
+describe('useImageLazyLoad', () => {
 	beforeEach(() => {
 		// IntersectionObserver isn't available in test environment
 		const mockIntersectionObserver = jest.fn();
@@ -24,7 +24,12 @@ describe('useImageLazyLoadIO', () => {
 			this.disconnect = disconnectMock;
 		});
 
-		const { result } = renderHook(() => useImageLazyLoadIO('img', 10));
+		const { result } = renderHook(() =>
+			useImageLazyLoad({
+				imgSelector: 'img',
+				count: 10,
+			}),
+		);
 
 		expect(window.IntersectionObserver).toHaveBeenCalledWith(expect.any(Function), {
 			threshold: 0.5,
@@ -47,7 +52,7 @@ describe('useImageLazyLoadIO', () => {
 			callback([{ intersectionRatio: 1, target: { dataset: { src: 'image.jpg' } } }]);
 		});
 
-		const { result } = renderHook(() => useImageLazyLoadIO('img', 10));
+		const { result } = renderHook(() => useImageLazyLoad('img', 10));
 
 		expect(observeMock).toHaveBeenCalled();
 		expect(unobserveMock).toHaveBeenCalled();

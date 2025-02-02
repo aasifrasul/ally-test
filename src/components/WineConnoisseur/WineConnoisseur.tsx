@@ -1,8 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import DataGrid from '../Common/DataGrid/DataGrid';
 import ScrollToTop from '../Common/ScrollToTopButton';
 
-import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 
 import styles from './WineConnoisseur.module.css';
 
@@ -25,7 +25,10 @@ const WineConnoisseur: React.FC<WineConnoisseurProps> = ({
 }) => {
 	const ioObserverRef = useRef<HTMLDivElement>(null);
 
-	useInfiniteScrollIO(ioObserverRef.current, () => fetchNextPage(currentPage + 1));
+	useInfiniteScroll({
+		scrollRef: ioObserverRef.current,
+		callback: () => fetchNextPage(currentPage + 1),
+	});
 
 	return (
 		<div className={styles.alignCenter}>

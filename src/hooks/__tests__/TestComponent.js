@@ -1,9 +1,8 @@
 import React from 'react';
-import { render } from '@testing-library/react';
-import useInfiniteScrollIO from '../useInfiniteScrollIO';
+import { useInfiniteScroll } from '../useInfiniteScroll';
 
 const TestComponent = ({ scrollRef, callback }) => {
-	useInfiniteScrollIO(scrollRef, callback);
+	useInfiniteScroll({ scrollRef, callback });
 
 	return <div>Test Component</div>;
 };

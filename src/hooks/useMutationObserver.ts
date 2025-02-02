@@ -1,9 +1,24 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import { safelyExecuteFunction, isUndefined } from '../utils/typeChecking';
 
-function useMutationObserver(targetNode, config, callback) {
-	const [value, setValue] = useState(undefined);
+interface MutationObserverConfig {
+	attributes?: boolean;
+	childList?: boolean;
+	subtree?: boolean;
+	attributeOldValue?: boolean;
+	characterData?: boolean;
+	characterDataOldValue?: boolean;
+}
+
+type MutationCallback = (mutationList: MutationRecord[], observer: MutationObserver) => void;
+
+function useMutationObserver(
+	targetNode: Node | null,
+	config: MutationObserverConfig,
+	callback: MutationCallback,
+): any {
+	const [value, setValue] = useState<any>(undefined);
 
 	const moCallback = () =>
 		new MutationObserver((mutationList, observer) => {
@@ -14,14 +29,20 @@ function useMutationObserver(targetNode, config, callback) {
 	const memoizedMOCallback = useMemo(moCallback, [callback]);
 
 	useEffect(() => {
-		targetNode && memoizedMOCallback.observe(targetNode, config);
+		if (targetNode) {
+			memoizedMOCallback.observe(targetNode, config);
+		}
 		return () => memoizedMOCallback.disconnect();
 	}, [targetNode, config]);
 
 	return value;
 }
 
-function useMutationObserverOnce(targetNode, config, callback) {
+function useMutationObserverOnce(
+	targetNode: Node | null,
+	config: MutationObserverConfig,
+	callback: MutationCallback,
+): any {
 	const [isObserving, setObserving] = useState(true);
 	const node = isObserving ? targetNode : null;
 	const value = useMutationObserver(node, config, callback);

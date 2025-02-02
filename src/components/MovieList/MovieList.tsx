@@ -1,10 +1,9 @@
 import React, { useRef, useCallback } from 'react';
 import { InitialState } from '../../constants/types';
-import { type FetchNextPage } from '../../types';
 import { MovieListProps } from '../../types/movieList';
 
-import useImageLazyLoadIO from '../../hooks/useImageLazyLoadIO';
-import useInfiniteScrollIO from '../../hooks/useInfiniteScrollIO';
+import { useImageLazyLoad } from '../../hooks/useImageLazyLoad';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { createActionHooks } from '../../hooks/createActionHooks';
 
 import { InputText } from '../Common/InputText';
@@ -21,8 +20,15 @@ export const MovieList = (props: Props): React.ReactNode => {
 	const { searchActions } = createActionHooks(schema);
 	const { filterByText } = searchActions();
 
-	useInfiniteScrollIO(observerRef.current, fetchNextPage);
-	useImageLazyLoadIO('img[data-src]', data?.length as number);
+	useInfiniteScroll({
+		scrollRef: observerRef.current,
+		callback: () => fetchNextPage(currentPage! + 1),
+	});
+
+	useImageLazyLoad({
+		imgSelector: 'img[data-src]',
+		count: data?.length as number,
+	});
 
 	const handleChange = useCallback(
 		(searchedText: string) => {

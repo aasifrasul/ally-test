@@ -1,41 +1,61 @@
+// Best Implementation (Modified version of first example)
 import { useEffect, useRef } from 'react';
 
 export function useDebouncedCallback<A extends any[]>(
 	callback: (...args: A) => void,
 	wait: number,
 ) {
-	// track args & timeout handle between calls
+	// Store latest callback and args
+	const callbackRef = useRef(callback);
 	const argsRef = useRef<A>();
 	const timeout = useRef<ReturnType<typeof setTimeout>>();
 
-	const cleanup = () => timeout.current && clearTimeout(timeout.current);
+	// Keep callback ref updated
+	useEffect(() => {
+		callbackRef.current = callback;
+	}, [callback]);
 
-	// make sure our timeout gets cleared if
-	// our consuming component gets unmounted
-	useEffect(() => cleanup, []);
+	// Cleanup on unmount
+	useEffect(() => {
+		return () => timeout.current && clearTimeout(timeout.current);
+	}, []);
 
 	return function debouncedCallback(...args: A) {
-		// capture latest args
 		argsRef.current = args;
 
-		// clear debounce timer
-		cleanup();
+		// Clear existing timeout
+		if (timeout.current) {
+			clearTimeout(timeout.current);
+		}
 
-		// start waiting again
-		timeout.current = setTimeout(
-			() => argsRef.current && callback(...argsRef.current),
-			wait,
-		);
+		// Set new timeout
+		timeout.current = setTimeout(() => {
+			if (argsRef.current) {
+				callbackRef.current(...argsRef.current);
+			}
+		}, wait);
 	};
 }
 
-/**
- * 
- * Implementation
- * 
- * const handleClick = useDebouncedCallback(() => {
-  onClick();
-  console.log(count);
-}, 500);
+/*
+// Usage Example:
+function MyComponent() {
+	const [value, setValue] = useState('');
 
+	const handleChange = useDebouncedCallback((newValue: string) => {
+		// This will only run after 500ms of no changes
+		console.log('Debounced value:', newValue);
+		makeAPICall(newValue);
+	}, 500);
+
+	return (
+		<input
+			value={value}
+			onChange={(e) => {
+				setValue(e.target.value);
+				handleChange(e.target.value);
+			}}
+		/>
+	);
+}
 */
