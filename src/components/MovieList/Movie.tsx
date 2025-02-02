@@ -24,7 +24,7 @@ export const Movie: React.FC<MovieProps> = ({ styles, item }) => {
 				onMouseLeave={handleMouseOut}
 			>
 				<div className={styles.image}>
-					<Image src={imagePath} width={150} height={200} alt={title} />
+					<Image src={imagePath} width={150} height={200} alt={title} lazy />
 				</div>
 				<div className={styles.movieInfo}>
 					<h3 className={styles.title}>{title}</h3>

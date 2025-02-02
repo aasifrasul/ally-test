@@ -1,4 +1,4 @@
-import { request, gql } from 'graphql-request';
+import { gql } from 'graphql-request';
 import { useState, useEffect } from 'react';
 
 // Assuming your GraphQL server supports subscriptions over WebSocket
@@ -14,9 +14,9 @@ const USER_CREATED_SUBSCRIPTION = gql`
 	}
 `;
 
-export default function useSubscription() {
+export function useSubscription() {
 	const [data, setData] = useState(null);
-	const [error, setError] = useState(null);
+	const [error, setError] = useState<Event | null>(null);
 
 	useEffect(() => {
 		const ws = new WebSocket(SUBSCRIPTION_URI);
