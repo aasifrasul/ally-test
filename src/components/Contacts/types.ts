@@ -17,25 +17,10 @@ export interface State {
 	error: null | string;
 }
 
-interface AddContactAction {
-	type: ActionType.ADD_CONTACT;
-	payload: Contact;
+export interface Action {
+	type: string;
+	payload?: any;
 }
-
-interface DeleteContactAction {
-	type: ActionType.DEL_CONTACT;
-	payload: string;
-}
-
-interface StartAction {
-	type: ActionType.START;
-}
-
-interface CompleteAction {
-	type: ActionType.COMPLETE;
-}
-
-export type Action = AddContactAction | DeleteContactAction | StartAction | CompleteAction;
 
 export interface FormData {
 	name: string;

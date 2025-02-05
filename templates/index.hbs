@@ -191,9 +191,9 @@
 		function loadStyleSheet(src) {
 			document.createStyleSheet(src);
 		}
-		{ { #each css } }
+		{{#each css}}
 		loadStyleSheet('{{this}}');
-		{ {/each } }
+		{{/each}}
 	</script>
 
 	<!-- JS -->

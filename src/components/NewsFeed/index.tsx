@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ThunkDispatch } from 'redux-thunk';
 import { UnknownAction } from 'redux';
 import { getNewsFeed } from './actions';
 import Item from './Item';
 import { NewsItem } from './types';
+import { api } from './apiClient';
 
 const NewsFeed: React.FC = () => {
-	const { newsFeed }: { newsFeed: NewsItem[] } = useSelector((state: any) => state.feed);
-	const dispatch: ThunkDispatch<any, any, UnknownAction> = useDispatch();
+	const { data, error, isLoading } = api.useGetNewsFeedQuery({
+		language: 'en',
+		category: 'business',
+	});
 
-	useEffect(() => {
-		dispatch(getNewsFeed());
-	}, [dispatch]);
+	if (isLoading) return <div>Loading...</div>;
+	if (error) return <div>Error occurred</div>;
 
 	return (
 		<div>
-			{newsFeed.map((newsItem, index) => (
+			{data.articles!.map((newsItem: NewsItem, index: number) => (
 				<Item key={index} {...newsItem} />
 			))}
 		</div>

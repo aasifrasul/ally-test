@@ -1,4 +1,4 @@
-import React, { Suspense, FC } from 'react';
+import { Suspense, FC } from 'react';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import { routes, ErrorPage } from '../../routes';
