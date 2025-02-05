@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { ApolloProvider } from '@apollo/client';
 
 import { FetchStoreProvider } from './Context/dataFetchContext';
+import { ThemeProvider } from './Context/ThemeProvider';
 
 import store from './store';
 import { client } from './apolloClient';
@@ -22,12 +23,14 @@ const root = createRoot(rootElement);
 
 root.render(
 	<StrictMode>
-		<Provider store={store}>
-			<ApolloProvider client={client}>
-				<FetchStoreProvider>
-					<App />
-				</FetchStoreProvider>
-			</ApolloProvider>
-		</Provider>
+		<ThemeProvider>
+			<Provider store={store}>
+				<ApolloProvider client={client}>
+					<FetchStoreProvider>
+						<App />
+					</FetchStoreProvider>
+				</ApolloProvider>
+			</Provider>
+		</ThemeProvider>
 	</StrictMode>,
 );

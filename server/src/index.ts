@@ -20,13 +20,6 @@ const httpServer: http.Server = http.createServer(app);
 
 MongoDBConnection.getInstance().connect();
 
-/**
- *
- * httpServer.on('connection', (socket) =>
- *     socket.on('close', () => logger.info('httpServer.connection'))
- * );
- */
-
 httpServer.on('request', () => logger.info('httpServer.request'));
 
 httpServer.listen(Number(port), Number(host), () =>
@@ -36,7 +29,7 @@ httpServer.listen(Number(port), Number(host), () =>
 connectWSServer(httpServer);
 connectToIOServer(httpServer);
 
-let isExitCalled = false;
+let isShuttingDown = false;
 
 process.on('unhandledRejection', (error: unknown) => {
 	if (error instanceof Error) {
@@ -44,55 +37,89 @@ process.on('unhandledRejection', (error: unknown) => {
 	} else {
 		logger.error('Unhandled Rejection: Unknown error occurred');
 	}
-});
 
-process.on('uncaughtException', (e) => logger.error(`unhandledRejection: ${e.stack}`));
-
-// Handle SIGINT (Ctrl+C)
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-// Handle SIGTERM (kill command)
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-
-process.once('exit', () => {
-	if (!isExitCalled) {
-		isExitCalled = true;
-		logger.info('Performing final synchronous cleanup');
-		// Note: You can't use async operations here
+	if (process.env.NODE_ENV === 'production') {
+		void gracefulShutdown('unhandledRejection');
 	}
 });
 
+process.on('uncaughtException', (e) => {
+	logger.error(`uncaughtException: ${e.stack}`);
+	// Force exit on uncaught exceptions after logging
+	process.exit(1);
+});
+
+// Handle SIGINT (Ctrl+C)
+process.on('SIGINT', () => {
+	logger.info('Received SIGINT (Ctrl+C)');
+	void gracefulShutdown('SIGINT');
+});
+
+// Handle SIGTERM (kill command)
+process.on('SIGTERM', () => {
+	logger.info('Received SIGTERM');
+	void gracefulShutdown('SIGTERM');
+});
+
+// Cleanup handler - only for synchronous operations
+process.on('exit', (code) => {
+	logger.info(`Process exiting with code: ${code}`);
+	// Perform any final synchronous cleanup here
+	// Note: Async operations won't work in 'exit' handler
+});
+
 async function gracefulShutdown(signal: string): Promise<void> {
+	if (isShuttingDown) {
+		logger.info('Shutdown already in progress...');
+		return;
+	}
+
+	isShuttingDown = true;
 	logger.info(`Received ${signal}. Starting graceful shutdown...`);
 
 	const shutdownTimeout = setTimeout(() => {
-		logger.error('Could not close connections in time, forcefully shutting down');
+		logger.error('Forced shutdown due to timeout');
 		process.exit(1);
-	}, 15000); // Force shutdown after 15 seconds
+	}, 15000);
 
 	try {
-		await disconnectIOServer();
+		logger.info('Closing HTTP server...');
+		await new Promise<void>((resolve, reject) => {
+			httpServer.close((err) => {
+				if (err) {
+					logger.error('Error closing HTTP server:', err);
+					reject(err);
+				} else {
+					logger.info('HTTP server closed successfully');
+					resolve();
+				}
+			});
+		});
 
-		await disconnectWSServer();
+		logger.info('Cleaning up active connections...');
+		await Promise.all([
+			disconnectIOServer().catch((err) =>
+				logger.error('Error disconnecting IO server:', err),
+			),
+			disconnectWSServer().catch((err) =>
+				logger.error('Error disconnecting WS server:', err),
+			),
+			MongoDBConnection.getInstance()
+				.cleanup()
+				.catch((err) => logger.error('Error cleaning up MongoDB:', err)),
+		]);
 
-		// Close MongoDB connection
-		await MongoDBConnection.getInstance().cleanup();
-
+		// Then cleanup database instances
 		const dbInstance: DBInstance = await getDBInstance(constants.dbLayer.currentDB);
-
 		if (dbInstance) {
-			await dbInstance.cleanup();
+			logger.info('Cleaning up DB instance...');
+			await dbInstance
+				.cleanup()
+				.catch((err) => logger.error('Error cleaning up DB instance:', err));
 		}
 
-		// Close HTTP server
-		logger.info('Closing HTTP server...');
-		await new Promise((resolve) => {
-			httpServer.close(resolve);
-		});
-		logger.info('HTTP server closed.');
-
 		clearTimeout(shutdownTimeout);
-		logger.info('Graceful shutdown completed.');
+		logger.info('Graceful shutdown completed');
 		process.exit(0);
 	} catch (error) {
 		logger.error('Error during shutdown:', error);

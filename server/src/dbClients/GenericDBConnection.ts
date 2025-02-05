@@ -3,11 +3,7 @@ import { PostgresDBConnection, QueryResultRow } from './PostgresDBConnection';
 import { MysqlDBConnection, RowDataPacket, ResultSetHeader } from './MysqlDBConnection';
 import { DBType } from '../types';
 
-export type DBInstance =
-	| OracleDBConnection
-	| PostgresDBConnection
-	| MysqlDBConnection
-	| undefined;
+export type DBInstance = OracleDBConnection | PostgresDBConnection | MysqlDBConnection | null;
 
 export type ExecuteQueryType =
 	| RowDataPacket[][]
@@ -20,7 +16,7 @@ export type ExecuteQueryType =
 
 export class GenericDBConnection {
 	private static selfInstance: GenericDBConnection;
-	private dbInstance: DBInstance;
+	private dbInstance: DBInstance = null;
 
 	private constructor(type: DBType) {
 		this.createConnection(type);

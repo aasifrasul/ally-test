@@ -1,6 +1,8 @@
 import React, { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { MainLayout } from '../Theme/';
+
 interface HeaderProps {
 	children: ReactNode;
 }
@@ -13,7 +15,7 @@ const Header: React.FC<HeaderProps> = ({ children }) => {
 			<header>
 				<button onClick={() => navigate(-1)}>Go Back</button>
 			</header>
-			{children}
+			<MainLayout>{children}</MainLayout>
 		</>
 	);
 };

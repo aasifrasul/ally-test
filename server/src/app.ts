@@ -1,10 +1,12 @@
 import cors from 'cors';
-import bodyParser from 'body-parser';
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request as ExpressRequest, Response, NextFunction } from 'express';
+import helmet from 'helmet';
 import { engine } from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import serveStatic from 'serve-static';
 import { createProxyMiddleware } from 'http-proxy-middleware';
+import { rateLimit } from 'express-rate-limit';
+const compression = require('compression');
 
 import {
 	userAgentHandler,
@@ -14,49 +16,67 @@ import {
 	compiledTemplate,
 	handleGraphql,
 } from './middlewares';
+import { setupProxy } from './setupProxy';
 import { constructReqDataObject, generateBuildTime } from './helper';
 import { pathPublic, pathTemplate, pathRootDir } from './paths';
 import { logger } from './Logger';
+import { csp } from './middlewares/csp';
+import { constants } from '../../src/constants';
 import { processMessage } from './messageProcessing';
 import { runDialogFlow } from './utility/dialogFlow';
+
+interface CustomError extends Error {
+	status?: number;
+}
+
+interface Request extends ExpressRequest {
+	timedout?: boolean;
+	id?: string;
+}
 
 const app = express();
 
 generateBuildTime();
 
-// Conditional middleware function
-const conditionalBodyParser = (req: Request, res: Response, next: NextFunction): void => {
-	if (req.path === '/graphql') {
-		// Skip body-parser for GraphQL requests
-		next();
-		return;
-	}
-	// Apply body-parser for non-GraphQL requests
-	return bodyParser.json()(req, res, next);
-};
-
-app.use(cors());
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	max: 100, // limit each IP to 100 requests per windowMs
+});
 
 app.all('/graphql', handleGraphql);
 
-//app.use(bodyParser.json());
-
+setupProxy(app);
 app.use(cookieParser());
 app.use(userAgentHandler);
+app.use(compression());
+app.use(
+	cors({
+		origin:
+			process.env.NODE_ENV === 'development'
+				? 'http://localhost:3100'
+				: process.env.ALLOWED_ORIGINS?.split(','),
+		methods: ['GET', 'POST', 'OPTIONS'], // Added OPTIONS for preflight
+		allowedHeaders: ['Content-Type', 'Authorization'],
+		credentials: true,
+	}),
+);
+app.use(helmet(csp));
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(limiter);
 
-app.use(express.json()); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+// Timeout handling
+const timeout = require('connect-timeout');
+app.use(timeout('5s'));
+app.use(haltOnTimedout);
 
-/*
-app.use((req, res, next) => {
-	logger.info(`Incoming request: ${req.method} ${req.url}`);
-	next();
-});
-*/
+function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
+	if (!req.timedout) next();
+}
 
-app.get('/health', (req: Request, res: Response) => {
-	logger.info('Health check endpoint hit');
-	return res.status(200).json({ status: 'Server Running' });
+// Health check endpoint
+app.get('/health', (req, res) => {
+	res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 /*
@@ -110,12 +130,22 @@ app.use(
 	}),
 );
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-	logger.error(err.stack);
-	res.status(500).send('Something broke!');
+// Error handling middleware
+app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {
+	console.error(err.stack);
+	const status = err.status || 500;
+	res.status(status).json({
+		error: process.env.NODE_ENV === 'production' ? 'An error occurred' : err.message,
+		requestId: req.id,
+	});
 });
 
-app.all('*', (req: Request, res: Response) => {
+app.all('/:route', (req: Request, res: Response, next: NextFunction) => {
+	const { route } = req.params;
+	if (route && !constants.routes!.includes(route)) {
+		next();
+	}
+
 	const data = {
 		js: bundleConfig,
 		...constructReqDataObject(req),
@@ -123,6 +153,27 @@ app.all('*', (req: Request, res: Response) => {
 		layout: false,
 	};
 	res.send(compiledTemplate(data));
+});
+
+app.all('*', (req: Request, res: Response, next: NextFunction) => {
+	res.status(404);
+	const message = 'Oops! Page not found.';
+
+	if (req.accepts('html')) {
+		res.send(`
+			<!DOCTYPE html>
+			<html>
+			<head>
+				<title>Error</title>
+			</head>
+			<body>
+				<h1>${message}</h1>
+			</body>
+			</html>
+		`);
+	} else {
+		res.json({ message });
+	}
 });
 
 export { app };

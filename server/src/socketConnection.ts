@@ -6,16 +6,44 @@ import { logger } from './Logger';
 
 let io: Server;
 
-const connectToIOServer = (httpServer: http.Server): void => {
-	io = new Server(httpServer);
-	logger.info('SocketIO connection established.');
-	io.on('connection', onConnection);
-};
+const connectToIOServer = (httpServer: http.Server): Promise<void> =>
+	new Promise((resolve, reject) => {
+		try {
+			io = new Server(httpServer, {
+				cors: {
+					origin: 'http://localhost:3000',
+					methods: ['GET', 'POST'],
+				},
+			});
 
-const disconnectIOServer = (): void => {
-	logger.info('SocketIO connection closed.');
-	io?.close();
-};
+			io.on('connection', onConnection);
+
+			io.on('error', (err: Error): void => {
+				logger.error(`SocketIO error: ${err.message}`);
+				reject(err);
+			});
+
+			resolve();
+		} catch (err) {
+			const error = err as Error;
+			logger.error(`SocketIO connection failed: ${error.message}`);
+			reject(err);
+		}
+	});
+
+const disconnectIOServer = (): Promise<void> =>
+	new Promise((resolve, reject) => {
+		if (io) {
+			io.close((err) => {
+				if (err) {
+					logger.error(`Error closing SocketIO server: ${err}`);
+					return reject(err);
+				}
+				logger.info('SocketIO server closed.');
+				resolve();
+			});
+		}
+	});
 
 function onConnection(socket: Socket): void {
 	const getRandomInt = (max: number): number => Math.floor(Math.random() * max);

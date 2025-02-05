@@ -28,15 +28,9 @@ const getGenericDBInstance = async (currentDB: DBType): Promise<GenericDBConnect
 	return genericInstance;
 };
 
-const getDBInstance = async (currentDB: DBType): Promise<DBInstance> => {
+const getDBInstance = async (currentDB: DBType): Promise<DBInstance | null> => {
 	const genericInstance = await getGenericDBInstance(currentDB);
-	const dBInstance: DBInstance = genericInstance.getDBInstance();
-
-	if (!dBInstance) {
-		throw new Error(`Failed to get DB instance for ${currentDB}`);
-	}
-
-	return dBInstance;
+	return genericInstance.getDBInstance();
 };
 
 export {
