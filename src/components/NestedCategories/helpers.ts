@@ -5,7 +5,7 @@ export const buildNestedStructure = (items: Category[]) => {
 	const categories: Category[] = [];
 	const uniqueCategories: Record<string, boolean> = {};
 
-	items.forEach((item: Category) => {
+	items!.forEach((item: Category) => {
 		const { id, category, parent_objective_id } = item;
 		if (parent_objective_id) {
 			const parentElem = nestedStructure[parent_objective_id];

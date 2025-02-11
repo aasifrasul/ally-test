@@ -14,4 +14,17 @@ export const setupProxy = (app: Application): void => {
 	};
 
 	app.use('/api/news', createProxyMiddleware(proxyConfig));
+
+	const proxyConfig2 = {
+		target: 'https://okrcentral.github.io',
+		changeOrigin: true,
+		pathRewrite: {
+			'^/proxy/okrcentral': '',
+		},
+		router: {
+			'/proxy/okrcentral': 'https://okrcentral.github.io/sample-okrs/db.json',
+		},
+	};
+
+	app.use('/proxy/okrcentral', createProxyMiddleware(proxyConfig2));
 };

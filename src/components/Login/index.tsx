@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+
+import { useFetchData } from '../../hooks/useFetchData';
+import { useApi } from '../../utils/api-client/hooks/useApi';
 import PropTypes from 'prop-types';
 
 interface LoginProps {
@@ -13,28 +16,40 @@ interface SubmitOptions {
 	body: string;
 }
 
-const endpoint = 'http://localhost:3100/login';
+const url = 'http://localhost:3100/login';
 
 const Login = ({ setToken }: LoginProps) => {
 	const [userName, setUserName] = useState<string>('');
 	const [password, setPassword] = useState<string>('');
 
+	const { execute, isLoading, error } = useApi<{ token: string }>();
+
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+
+		handleLogin({ userName, password });
+	};
+
+	const handleLogin = async (credentials: { userName: string; password: string }) => {
 		const options: SubmitOptions = {
 			method: 'POST',
 			header: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({
-				userName,
-				password,
-			}),
+			body: JSON.stringify(credentials),
 		};
-		const response = await fetch(endpoint, options);
-		const token = await response.json();
-		setToken(token);
+
+		try {
+			const result = await execute(url, options);
+			setToken && setToken(result.token);
+		} catch (error) {
+			console.error('Login failed:', error);
+		}
 	};
+
+	if (isLoading) return null;
+	if (error) return <div>{error.toString()}</div>;
+
 	return (
 		<>
 			<div className="bg-black/50 fixed top-0 left-0 w-full h-screen"></div>

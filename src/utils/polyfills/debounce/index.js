@@ -1,22 +1,18 @@
 function debounce(fn, delay) {
-	const context = this;
-	let timeoutId;
+	let timeoutId = null;
 
-	function inner(...params) {
+	function debounced(...args) {
 		clearTimeout(timeoutId);
 		timeoutId = setTimeout(() => {
-			inner(...params);
-			fn.apply(context, params);
+			fn.apply(this, args);
+			timeoutId = null;
 		}, delay);
 	}
 
-	inner.cancel = function () {
+	debounced.cancel = function () {
 		clearTimeout(timeoutId);
 		timeoutId = null;
 	};
 
-	return inner;
+	return debounced;
 }
-
-const debouncedLog = debounce(console.log, 1000);
-debouncedLog('hi', 'There');

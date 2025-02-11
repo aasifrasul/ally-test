@@ -4,25 +4,36 @@ import Form from '../Form';
 import { InputText } from '../InputText';
 import TextArea from '../TextArea';
 
+type InputType = 'text' | 'textarea' | 'submit';
+
+export interface FormElements extends HTMLFormControlsCollection {
+	item: (index: number) => HTMLInputElement | null;
+	length: number;
+}
+
+export interface FormWithElements extends HTMLFormElement {
+	elements: FormElements;
+}
+
 interface FormGeneratorProps {
 	id: string;
 	name: string;
 	children: {
 		id: string;
-		type: string;
+		type: InputType;
 		name: string;
-		value: string;
-		initialValue: string;
-		placeholder: string;
-		label: string;
-		validate: string;
-		rows: number;
-		cols: number;
+		value?: string;
+		initialValue?: string;
+		placeholder?: string;
+		label?: string;
+		validate?: string;
+		rows?: number;
+		cols?: number;
 	}[];
 	validations: {
 		[key: string]: (value: string) => any;
 	};
-	onSubmit: (e: React.FormEvent) => void;
+	onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 
 export default function FormGenerator(props: FormGeneratorProps) {
@@ -42,18 +53,20 @@ export default function FormGenerator(props: FormGeneratorProps) {
 			switch (type) {
 				case 'text':
 					return (
-						<>
+						<React.Fragment key={id}>
+							{' '}
 							<InputText
-								key={id}
 								id={id}
 								name={name}
 								initialValue={initialValue}
 								placeholder={placeholder}
 								label={label}
-								validate={(value) => props.validations[validate](value) || ''}
+								validate={(value) =>
+									validate ? props.validations[validate](value) || '' : ''
+								}
 							/>
 							<hr />
-						</>
+						</React.Fragment>
 					);
 				case 'textarea':
 					return (
