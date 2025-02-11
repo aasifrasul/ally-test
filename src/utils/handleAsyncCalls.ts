@@ -49,12 +49,5 @@ export async function fetchAPIData<T>(promise: Promise<ResponseLike>): Promise<R
 		};
 	}
 
-	if (!response.ok) {
-		return {
-			success: false,
-			error: new Error(`HTTP error! status: ${response.status || 'unknown'}`),
-		};
-	}
-
 	return handleAsyncCalls(response.json());
 }

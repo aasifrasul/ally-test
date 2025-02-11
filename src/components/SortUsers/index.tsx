@@ -1,6 +1,7 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
-import { fetchAPIData } from '../../utils/handleAsyncCalls';
+import { useFetchData } from '../../hooks/useFetchData';
+import { useApi } from '../../utils/api-client/hooks/useApi';
 import { User } from './types';
 
 // Constants should be in SCREAMING_SNAKE_CASE and preferably in a separate config file
@@ -15,34 +16,23 @@ enum SortOrder {
 
 export default function UserList() {
 	const [users, setUsers] = useState<User[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.NONE);
 	const originalUsers = useRef<User[]>([]);
 
-	// Fetch users on component mount instead of requiring button click
+	const { execute, isLoading, error } = useApi<User[]>();
+
+	const fetchUsers = async () => {
+		try {
+			const data = await execute(API_URL);
+			setUsers(data);
+			originalUsers.current = data;
+		} catch (error) {
+			console.error('Failed:', error);
+		}
+	};
 	useEffect(() => {
 		fetchUsers();
 	}, []);
-
-	const fetchUsers = async () => {
-		setIsLoading(true);
-		setError(null);
-
-		const result = await fetchAPIData(fetch(API_URL));
-		setIsLoading(false);
-
-		if (!result.success) {
-			setError(
-				result.error instanceof Error ? result.error.message : 'Failed to fetch users',
-			);
-			return;
-		}
-
-		const data: User[] = result.data as User[];
-		originalUsers.current = data;
-		setUsers(data);
-	};
 
 	const handleSort = useCallback(() => {
 		if (!originalUsers.current.length) return;
@@ -94,7 +84,7 @@ export default function UserList() {
 				</button>
 			</div>
 
-			{error && <div className="text-red-500 mb-4">Error: {error}</div>}
+			{error && <div className="text-red-500 mb-4">Error: {error.message}</div>}
 
 			{users.length > 0 ? (
 				<ul className="space-y-2">

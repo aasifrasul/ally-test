@@ -4,7 +4,6 @@ import helmet from 'helmet';
 import { engine } from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import serveStatic from 'serve-static';
-import { createProxyMiddleware } from 'http-proxy-middleware';
 import { rateLimit } from 'express-rate-limit';
 const compression = require('compression');
 
@@ -55,7 +54,7 @@ app.use(
 			process.env.NODE_ENV === 'development'
 				? 'http://localhost:3100'
 				: process.env.ALLOWED_ORIGINS?.split(','),
-		methods: ['GET', 'POST', 'OPTIONS'], // Added OPTIONS for preflight
+		methods: ['GET', 'POST', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Authorization'],
 		credentials: true,
 	}),
@@ -97,20 +96,6 @@ app.get('/WebWorker.js', fetchWebWorker);
 app.get('/api/fetchWineData/*', getCSVData);
 app.get('/images/*', fetchImage);
 
-app.use(
-	'/proxy/okrcentral',
-	createProxyMiddleware({
-		target: 'https://okrcentral.github.io',
-		changeOrigin: true,
-		pathRewrite: {
-			'^/proxy/okrcentral': '', // remove the entire path
-		},
-		router: {
-			'/proxy/okrcentral': 'https://okrcentral.github.io/sample-okrs/db.json',
-		},
-	}),
-);
-
 app.use('/login', (_, res: Response) => {
 	res.send({
 		token: 'test123',
@@ -140,7 +125,7 @@ app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {
 	});
 });
 
-app.all('/:route', (req: Request, res: Response, next: NextFunction) => {
+app.all(['/', '/:route'], (req: Request, res: Response, next: NextFunction) => {
 	const { route } = req.params;
 	if (route && !constants.routes!.includes(route)) {
 		next();

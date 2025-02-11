@@ -2,7 +2,15 @@ export const csp = {
 	contentSecurityPolicy: {
 		directives: {
 			defaultSrc: ["'self'"],
-			scriptSrc: ["'self'", "'unsafe-eval'", "'unsafe-inline'", 'unpkg.com'],
+			scriptSrc: [
+				"'self'",
+				"'unsafe-eval'",
+				"'unsafe-inline'",
+				'*.tailwindcss.com',
+				'randomuser.me',
+				'unpkg.com',
+				'*.ondigitalocean.app',
+			],
 			styleSrc: ["'self'", "'unsafe-inline'", 'fonts.googleapis.com'],
 			fontSrc: ["'self'", 'fonts.gstatic.com'],
 			connectSrc: [
@@ -12,6 +20,9 @@ export const csp = {
 				'okrcentral.github.io',
 				'mocki.io',
 				'newsapi.org',
+				'*.tailwindcss.com',
+				'*.ondigitalocean.app',
+				'*.typicode.com',
 			],
 		},
 	},

@@ -1,43 +1,71 @@
 import React from 'react';
 
-import './styles.css';
-
 interface PaginationProps {
 	totalRowCount: number;
 	pageSize: number;
-	callback?: (pageNum: number) => void;
+	maxDisplayPageCount?: number;
+	onPageChange?: (pageNum: number) => void;
+	initialPage?: number;
 }
 
-interface HandleClickEvent extends React.MouseEvent<HTMLDivElement> {
-	target: HTMLButtonElement;
-}
-
-export default function Pagination({ totalRowCount, pageSize, callback }: PaginationProps) {
-	const [selectedPage, setSelectedPage] = React.useState(1);
+export default function Pagination({
+	totalRowCount,
+	pageSize,
+	maxDisplayPageCount,
+	onPageChange,
+	initialPage = 1,
+}: PaginationProps) {
+	const [selectedPage, setSelectedPage] = React.useState(initialPage);
 	const totalPages = Math.ceil(totalRowCount / pageSize);
 
-	const handleClick = (e: HandleClickEvent) => {
-		const pageNum = Number(e.target.innerHTML);
+	const handleClick = (pageNum: number) => {
 		setSelectedPage(pageNum);
-
-		if (typeof callback === 'function') {
-			callback(pageNum);
-		}
+		onPageChange?.(pageNum);
 	};
 
+	if (totalPages <= 1) return null;
+
 	return (
-		<div className="pagination pagination-centered" onClick={handleClick}>
-			{[...new Array(totalPages)].map((_, index) => {
-				const currentPage = index + 1;
+		<div className="flex gap-2 justify-center items-center">
+			<button
+				type="button"
+				aria-label="Previous Page"
+				onClick={() => handleClick(Math.max(1, selectedPage - 1))}
+				disabled={selectedPage === 1}
+				className="px-3 py-1 rounded disabled:opacity-50"
+			>
+				Previous
+			</button>
+
+			{[...Array(totalPages)].map((_, index) => {
+				const pageNum = index + 1;
 				return (
 					<button
-						className={selectedPage === currentPage ? 'active' : ''}
-						key={currentPage}
+						type="button"
+						key={pageNum}
+						aria-label={`Go to page ${pageNum}`}
+						aria-current={selectedPage === pageNum ? 'page' : undefined}
+						onClick={() => handleClick(pageNum)}
+						className={`px-3 py-1 rounded ${
+							selectedPage === pageNum
+								? 'bg-blue-500 text-white'
+								: 'hover:bg-gray-100'
+						}`}
 					>
-						{currentPage}
+						{pageNum}
 					</button>
 				);
 			})}
+
+			<button
+				type="button"
+				aria-label="Next Page"
+				onClick={() => handleClick(Math.min(totalPages, selectedPage + 1))}
+				disabled={selectedPage === totalPages}
+				className="px-3 py-1 rounded disabled:opacity-50"
+			>
+				Next
+			</button>
 		</div>
 	);
 }

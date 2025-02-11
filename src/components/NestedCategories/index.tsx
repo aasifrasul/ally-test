@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+
+import { useApi } from '../../utils/api-client/hooks/useApi';
 import Spacer from '../Common/Spacer';
 import ScrollToTop from '../Common/ScrollToTopButton';
 import { alphabets } from '../../utils/ArrayUtils';
@@ -10,44 +12,22 @@ export const NestedCategories: React.FC<NestedCategoriesProps> = ({
 	data: initialData,
 	fetchUrl = 'https://okrcentral.github.io/sample-okrs/db.json',
 }) => {
-	const [isLoading, setIsLoading] = useState(false);
-	const [isError, setIsError] = useState(false);
-	const [data, setData] = useState<Category[]>([]);
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 	const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
 
-	// Fetch data if not provided
+	const { execute, data, isLoading, error } = useApi();
+
 	useEffect(() => {
-		const fetchData = async () => {
-			if (initialData) {
-				setData(initialData);
-				return;
-			}
-
-			try {
-				setIsLoading(true);
-				const response = await fetch(fetchUrl);
-
-				if (!response.ok) {
-					throw new Error('Network response was not ok');
-				}
-
-				const result = await response.json();
-				setData(result.data);
-			} catch (error) {
-				setIsError(true);
-				console.error('Failed to fetch categories:', error);
-			} finally {
-				setIsLoading(false);
-			}
-		};
-
-		fetchData();
-	}, [initialData, fetchUrl]);
+		execute('/proxy/okrcentral');
+	}, []);
 
 	// Memoized nested data processing
 	const { nestedStructure, categories } = useMemo(() => {
-		return buildNestedStructure(data);
+		const items: Category[] =
+			data && typeof data === 'object' && 'data' in data
+				? (data as { data: Category[] })!.data
+				: [];
+		return buildNestedStructure(items);
 	}, [data]);
 
 	// Handle category selection
@@ -116,7 +96,7 @@ export const NestedCategories: React.FC<NestedCategoriesProps> = ({
 	);
 
 	if (isLoading) return <div>Loading...</div>;
-	if (isError) return <div>Error loading categories</div>;
+	if (error) return <div>Error loading categories</div>;
 
 	return (
 		<div>

@@ -3,25 +3,16 @@ import React from 'react';
 import ProductList from './ProudctList';
 
 import Pagination from '../Common/Pagination';
-import FormGenerator from '../Common/FormGenerator';
+import FormGenerator, { FormWithElements } from '../Common/FormGenerator';
 import { constants } from '../../constants';
 
-import { deepCopy, sortMixedArray, searchTextOnData } from '../../utils/common';
+import { sortMixedArray, searchTextOnData } from '../../utils/common';
 
 import styles from './styles.module.css';
 
 interface SearchFormProps {
 	data: any;
 	addItem: (data: any) => void;
-}
-
-interface FormElements extends HTMLFormControlsCollection {
-	item: (index: number) => HTMLInputElement | null;
-	length: number;
-}
-
-interface FormWithElements extends HTMLFormElement {
-	elements: FormElements;
 }
 
 interface SortCallback {
@@ -98,7 +89,7 @@ export default function SearchForm({ data, addItem }: SearchFormProps) {
 					<Pagination
 						totalRowCount={displayData?.length}
 						pageSize={10}
-						callback={paginationCallback}
+						onPageChange={paginationCallback}
 					/>
 				</>
 			) : null}

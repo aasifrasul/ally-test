@@ -1,26 +1,35 @@
 function throttle(fn, delay) {
-	const context = this;
-	let timeoutId;
+	let lastCall = 0;
+	let timeoutId = null;
 
-	function inner(...params) {
-		if (timeoutId) {
-			return;
-		}
+	function inner(...args) {
+		const now = Date.now();
 
-		timeoutId = setTimeout(() => {
-			fn.apply(context, params);
+		// If enough time has passed, execute immediately
+		if (now - lastCall >= delay) {
 			inner.cancel();
-			inner(...params);
-		}, delay);
+			fn.apply(this, args);
+			lastCall = now;
+		}
+		// If within delay period and no timeout set, schedule next execution
+		else if (!timeoutId) {
+			timeoutId = setTimeout(
+				() => {
+					fn.apply(this, args);
+					lastCall = Date.now();
+					timeoutId = null;
+				},
+				delay - (now - lastCall),
+			);
+		}
 	}
 
 	inner.cancel = function () {
-		clearTimeout(timeoutId);
-		timeoutId = null;
+		if (timeoutId) {
+			clearTimeout(timeoutId);
+			timeoutId = null;
+		}
 	};
 
 	return inner;
 }
-
-const throttledLog = throttle(console.log, 5000);
-throttledLog('Hi', 'There');
