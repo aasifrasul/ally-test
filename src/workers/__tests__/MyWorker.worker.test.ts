@@ -50,7 +50,7 @@ describe('Worker', () => {
 
 	it('should handle fetchAPIData message', async () => {
 		const message: WorkerMessage = {
-			id: 1,
+			id: '1',
 			type: 'fetchAPIData',
 			data: { endpoint: '/api/data', options: {} },
 		};
@@ -70,7 +70,7 @@ describe('Worker', () => {
 
 	it('should handle loadImages message', async () => {
 		const message: WorkerMessage = {
-			id: 2,
+			id: '2',
 			type: 'loadImages',
 			data: ['image1.jpg', 'image2.jpg'],
 		};
@@ -93,7 +93,7 @@ describe('Worker', () => {
 
 	it('should handle loadImage message', async () => {
 		const message: WorkerMessage = {
-			id: 3,
+			id: '3',
 			type: 'loadImage',
 			data: 'image.jpg',
 		};
@@ -113,7 +113,7 @@ describe('Worker', () => {
 
 	it('should handle abortFetchRequest message', async () => {
 		const message: WorkerMessage = {
-			id: 4,
+			id: '4',
 			type: 'abortFetchRequest',
 			data: 'requestId',
 		};
@@ -130,7 +130,7 @@ describe('Worker', () => {
 
 	it('should handle unknown message type', async () => {
 		const message: WorkerMessage = {
-			id: 5,
+			id: '5',
 			type: 'unknownType' as any,
 			data: {},
 		};

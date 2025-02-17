@@ -25,7 +25,7 @@ export class AsyncQueue<T> extends BaseQueue<QueueItem<T>> {
 	}
 
 	async processQueue(): Promise<boolean> {
-		if (this.isRunning || this.isPaused || this.isStopped) {
+		if (this.isEmpty() || this.isRunning || this.isPaused || this.isStopped) {
 			return false;
 		}
 
@@ -42,9 +42,7 @@ export class AsyncQueue<T> extends BaseQueue<QueueItem<T>> {
 			item.reject(error);
 		} finally {
 			this.isRunning = false;
-			if (!this.isEmpty() && !this.isPaused && !this.isStopped) {
-				void this.processQueue();
-			}
+			void this.processQueue();
 		}
 
 		return true;

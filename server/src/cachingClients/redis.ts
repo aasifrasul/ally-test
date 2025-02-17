@@ -16,14 +16,14 @@ class RedisClient {
 	}
 
 	public async connect(): Promise<void> {
-		if (this.initializing) {
-			logger.info('Redis client is already initializing');
-			return;
+		if (this.connected || this.initializing) {
+			return; // Already connected or initializing, nothing to do
 		}
 
-		if (!this.connected) {
-			this.initializing = true;
+		this.initializing = true;
+		try {
 			await this.connectWithRetry();
+		} finally {
 			this.initializing = false;
 		}
 	}
@@ -35,7 +35,7 @@ class RedisClient {
 				socket: { reconnectStrategy: this.reconnectStrategy },
 			});
 
-			this.client.on('error', (err) => {
+			this.client.on('error', (err: Error) => {
 				logger.error('Redis Client Error', err);
 				this.connected = false;
 			});
@@ -59,13 +59,10 @@ class RedisClient {
 			});
 
 			await this.client.connect();
-			logger.info('Redis client connected successfully');
 			this.connected = true;
 		} catch (err) {
-			logger.error(
-				'Redis connection attempt failed:',
-				err instanceof Error ? err.stack : 'Unknown error',
-			);
+			logger.error('Redis connection attempt failed:', err); // err is now the error from reconnectStrategy
+			this.connected = false; // Ensure connected is false if connection fails
 		}
 	}
 
@@ -74,7 +71,7 @@ class RedisClient {
 
 		if (retries >= maxReconnectAttempts) {
 			logger.error(`Redis connection failed after ${maxReconnectAttempts} attempts`);
-			return false;
+			return new Error('Max reconnection attempts reached'); // Return an error to stop retrying
 		}
 
 		const delay = Math.min(Math.pow(2, retries) * (RETRY_DELAY ?? 1000), 30000);
@@ -85,44 +82,6 @@ class RedisClient {
 		);
 		return delay;
 	};
-
-	private handleConnectionRefused(): void {
-		logger.error(
-			'Connection to Redis server refused. Please check if Redis is running and accessible.',
-		);
-		this.connected = false;
-		this.attemptReconnect();
-	}
-
-	private attemptReconnect(): void {
-		this.reconnectAttempts++;
-		const maxReconnectAttempts = MAX_RETRIES ?? 5;
-		const baseDelay = RETRY_DELAY ?? 1000;
-
-		if (this.reconnectAttempts < maxReconnectAttempts) {
-			const delay = Math.min(
-				Math.pow(2, this.reconnectAttempts) * baseDelay,
-				30000, // Max delay of 30 seconds
-			);
-
-			logger.info(
-				`Retrying Redis connection in ${delay / 1000} seconds... (Attempt ${
-					this.reconnectAttempts
-				} of ${maxReconnectAttempts})`,
-			);
-
-			if (this.reconnectTimeout) {
-				clearTimeout(this.reconnectTimeout);
-			}
-
-			this.reconnectTimeout = setTimeout(() => this.connectWithRetry(), delay);
-		} else {
-			logger.error(
-				`Max reconnection attempts (${maxReconnectAttempts}) reached. Stopping reconnection attempts.`,
-			);
-			this.stopReconnection();
-		}
-	}
 
 	public isReady(): boolean {
 		return this.connected && this.client !== null;

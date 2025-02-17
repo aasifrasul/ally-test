@@ -106,7 +106,7 @@ const getStartTime = (): string => {
 		return getFileContents(pathBuildTime);
 	}
 
-	const startTime = getFileContents(pathBuildTime);
+	const startTime: string = getFileContents(pathBuildTime);
 	return new Date(Date.parse(startTime) + 1000000000).toUTCString();
 };
 
@@ -121,14 +121,39 @@ const nocache = (res: any): void => {
 
 const getParsedUserAgentData = (userAgentData: string): string => xss(userAgentData);
 
-const getFileContents = (filePath: string): string => fs.readFileSync(filePath, 'utf-8');
-
-const readJson = async (filePath: string): Promise<any> => {
+const getFileContentsAsync = async <T>(filePath: string): Promise<T> => {
 	try {
 		await fs.promises.stat(filePath);
-		return JSON.parse((await fs.promises.readFile(filePath)).toString());
+		const data = await fs.promises.readFile(filePath, 'utf-8');
+		return data as unknown as T;
 	} catch (error) {
-		return null;
+		const errorType = error instanceof Error ? error.message : String(error);
+		throw new Error(`Error reading file ${filePath}: ${errorType}`);
+	}
+};
+
+const getFileContents = <T>(filePath: string): T => {
+	try {
+		fs.stat(filePath, (err, stats) => {
+			if (err) {
+				throw new Error(`Error reading file ${filePath}: ${err.message}`);
+			}
+		});
+		return fs.readFileSync(filePath, 'utf-8') as T;
+	} catch (error) {
+		const errorType = error instanceof Error ? error.message : String(error);
+		throw new Error(`Error reading file ${filePath}: ${errorType}`);
+	}
+};
+
+const readJson = async <T>(filePath: string): Promise<T> => {
+	try {
+		await fs.promises.stat(filePath);
+		const fileContents = await fs.promises.readFile(filePath, 'utf-8');
+		return JSON.parse(fileContents) as T;
+	} catch (error) {
+		const errorType = error instanceof Error ? error.message : String(error);
+		throw new Error(`Error reading or parsing JSON file ${filePath}: ${errorType}`);
 	}
 };
 

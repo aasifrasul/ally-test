@@ -39,7 +39,7 @@ export const isFunction = (data: unknown): data is Function => typeof data === '
 
 // Improved array size function with type safety
 export const arraySize = <T>(arr: T[] | unknown): number | null =>
-	isArray(arr) ? arr.length : null;
+	isArray(arr) ? arr?.length ?? null : null;
 
 // Empty checks with proper type guards
 export const isEmptyString = (str: unknown): str is string =>
@@ -51,11 +51,10 @@ export const isEmptyObject = (obj: unknown): obj is object =>
 	isObject(obj) && Object.keys(obj).length === 0;
 
 export const isEmpty = (data: unknown): boolean =>
-	isUndefined(data) ||
-	isNull(data) ||
+	data == null || // Covers both null and undefined
 	isEmptyString(data) ||
-	(isArray(data) && isEmptyArray(data)) ||
-	(isObject(data) && isEmptyObject(data));
+	isEmptyArray(data) ||
+	isEmptyObject(data);
 
 // Improved async function check
 export const isAsyncFunction = (data: unknown): data is Function => {

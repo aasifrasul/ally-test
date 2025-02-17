@@ -15,7 +15,7 @@ export function useApi<T>() {
 		try {
 			const apiClient = new ApiClient();
 			const data = await apiClient.request<T>(endpoint, options);
-			setState({ data, error: null, isLoading: false });
+			setState({ data: data ?? null, error: null, isLoading: false });
 			return data;
 		} catch (error) {
 			const apiError = error instanceof Error ? error : new Error('Unknown error');

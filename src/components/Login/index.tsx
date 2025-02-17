@@ -41,7 +41,9 @@ const Login = ({ setToken }: LoginProps) => {
 
 		try {
 			const result = await execute(url, options);
-			setToken && setToken(result.token);
+			if (result && result.token) {
+				setToken(result.token);
+			}
 		} catch (error) {
 			console.error('Login failed:', error);
 		}

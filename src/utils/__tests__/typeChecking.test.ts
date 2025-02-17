@@ -165,7 +165,7 @@ describe('Utility functions', () => {
 describe('safelyExecuteFunction', () => {
 	test('executes function with no context', () => {
 		const testFunc = (a: number, b: number) => a + b;
-		expect(safelyExecuteFunction(testFunc, undefined, 1, 2)).toBe(3);
+		expect(safelyExecuteFunction(testFunc, null, 1, 2)).toBe(3);
 	});
 
 	test('executes function with context', () => {
@@ -178,15 +178,13 @@ describe('safelyExecuteFunction', () => {
 
 	test('returns undefined for non-function input', () => {
 		console.log = jest.fn();
-		expect(
-			safelyExecuteFunction(null as unknown as () => void, undefined),
-		).toBeUndefined();
+		expect(safelyExecuteFunction(null as unknown as () => void, null)).toBeUndefined();
 		expect(console.warn).toHaveBeenCalledWith('Please pass a valid function!');
 	});
 
 	test('handles functions with no return value', () => {
 		const testFunc = jest.fn();
-		expect(safelyExecuteFunction(testFunc, undefined)).toBeUndefined();
+		expect(safelyExecuteFunction(testFunc, null)).toBeUndefined();
 		expect(testFunc).toHaveBeenCalled();
 	});
 });

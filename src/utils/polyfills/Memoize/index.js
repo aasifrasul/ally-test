@@ -1,29 +1,45 @@
 /**
  * Polyfill Memoization
  * @param {*} fn - The function to memoize
+ * @param {*} maxCacheSize - max no of Cache size
  * @returns {Function} - A memoized version of the function
  * */
 
-function memoize(fn) {
-	// This can be a map.
-	const hash = {};
+function memoize(func, maxCacheSize = 100) {
+	const cache = new Map();
 
-	if (typeof fn !== 'function') {
-		throw new TypeError('Parameter should be a function');
-	}
+	return function (...args) {
+		const key = args
+			.map((arg) => {
+				let result = `${typeof arg}:`;
+				if (typeof arg === 'object' && arg !== null) {
+					try {
+						result += JSON.stringify(arg);
+					} catch (e) {
+						result += arg.toString();
+					}
+				} else if (typeof arg === 'function') {
+					result += arg.toString();
+				} else {
+					result += arg.toString();
+				}
+				return result;
+			})
+			.join('||');
 
-	return function (...params) {
-		// At least for primitive types it will sort correctly and improve performance
-		const key = JSON.stringify(params.sort());
-
-		if (key in hash) {
-			console.log(` Found in hash, ${key}, ${JSON.stringify(hash)}, ${params}`);
-			return hash[key];
+		let result;
+		if (cache.has(key)) {
+			result = cache.get(key);
+			cache.delete(key); // Move to end of LRU order
+		} else {
+			result = func.apply(this, args);
 		}
 
-		const result = fn.apply(this, ...params);
+		cache.set(key, result);
 
-		hash[key] = result;
+		if (cache.size > maxCacheSize) {
+			cache.delete(cache.keys().next().value);
+		}
 
 		return result;
 	};

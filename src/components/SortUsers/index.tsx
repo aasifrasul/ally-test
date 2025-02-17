@@ -24,8 +24,10 @@ export default function UserList() {
 	const fetchUsers = async () => {
 		try {
 			const data = await execute(API_URL);
-			setUsers(data);
-			originalUsers.current = data;
+			if (data) {
+				setUsers(data);
+				originalUsers.current = data;
+			}
 		} catch (error) {
 			console.error('Failed:', error);
 		}

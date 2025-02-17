@@ -2,6 +2,7 @@ export const csp = {
 	contentSecurityPolicy: {
 		directives: {
 			defaultSrc: ["'self'"],
+			imgSrc: ["'self'", 'randomuser.me', 'newsapi.org', 'image.tmdb.org'],
 			scriptSrc: [
 				"'self'",
 				"'unsafe-eval'",
@@ -23,6 +24,8 @@ export const csp = {
 				'*.tailwindcss.com',
 				'*.ondigitalocean.app',
 				'*.typicode.com',
+				'randomuser.me',
+				'api.themoviedb.org',
 			],
 		},
 	},

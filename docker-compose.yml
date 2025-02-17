@@ -9,19 +9,40 @@ services:
             - '3100:3100'
         environment:
             - ENV=development
-            - POSTGRES_HOST=postgres
+            - POSTGRES_HOST=pgbouncer
+            - POSTGRES_PORT=6432
             - MYSQL_HOST=mysql
             - MONGODB_HOST=mongodb
             - REDIS_HOST=redis
             - REDIS_URL=redis://redis:6379
         depends_on:
-            - postgres
+            - pgbouncer
             - mysql
             - mongodb
             - redis
         volumes:
             - .:/app
             - /app/node_modules
+        networks:
+            - app-network
+
+    pgbouncer:
+        image: bitnami/pgbouncer:latest
+        environment:
+            - POSTGRESQL_HOST=postgres
+            - POSTGRESQL_PORT=5432
+            - POSTGRESQL_DATABASE=test
+            - POSTGRESQL_USERNAME=test
+            - POSTGRESQL_PASSWORD=test
+            - PGBOUNCER_PORT=6432
+            - PGBOUNCER_AUTH_TYPE=md5
+            - PGBOUNCER_POOL_MODE=transaction
+            - PGBOUNCER_MAX_CLIENT_CONN=1000
+            - PGBOUNCER_DEFAULT_POOL_SIZE=20
+        ports:
+            - '6432:6432'
+        depends_on:
+            - postgres
         networks:
             - app-network
 
@@ -75,7 +96,7 @@ services:
             retries: 5
         restart: always
         networks:
-            - app-network # Make sure all services are on the same network
+            - app-network
 
 volumes:
     postgres_data:

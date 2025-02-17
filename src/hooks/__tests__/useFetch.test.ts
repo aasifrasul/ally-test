@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { WorkerManager } from '../../workers/WorkerManager';
+import { WorkerQueue } from '../../workers/WorkerQueue';
 import useFetch, { FetchOptions } from '../useFetch';
 import { Constants, Schema } from '../../constants/types';
 import { HTTPMethod } from '../../types/api';
@@ -8,8 +8,7 @@ interface TestData {
 	data: string;
 }
 
-const workerManager = WorkerManager.getInstance();
-const messageQueue = workerManager.initializeMessageQueue();
+const workerManager = WorkerQueue.getInstance();
 
 jest.mock('../../hooks/useSelector', () => ({
 	useSelector: jest.fn(),
@@ -98,7 +97,7 @@ describe('useFetch', () => {
 
 	it('should fetch data successfully', async () => {
 		const mockData: TestData = { data: 'test data' };
-		jest.spyOn(messageQueue, 'fetchAPIData').mockResolvedValue(mockData);
+		jest.spyOn(workerManager, 'fetchAPIData').mockResolvedValue(mockData);
 
 		const onSuccess = jest.fn();
 		const transformResponse = jest.fn((data: TestData) => data);
@@ -120,7 +119,7 @@ describe('useFetch', () => {
 
 	it('should handle fetch errors', async () => {
 		const mockError = new Error('Fetch failed');
-		jest.spyOn(messageQueue, 'fetchAPIData').mockRejectedValue(mockError);
+		jest.spyOn(workerManager, 'fetchAPIData').mockRejectedValue(mockError);
 
 		const onError = jest.fn();
 		const { result } = renderHook(() => useFetch<TestData>(schema, { onError }));
@@ -134,7 +133,7 @@ describe('useFetch', () => {
 
 	it('should update data successfully', async () => {
 		const mockUpdateResponse: TestData = { data: 'updated data' };
-		jest.spyOn(messageQueue, 'fetchAPIData').mockResolvedValueOnce(mockUpdateResponse);
+		jest.spyOn(workerManager, 'fetchAPIData').mockResolvedValueOnce(mockUpdateResponse);
 
 		const onUpdateSuccess = jest.fn();
 		const transformUpdateResponse = jest.fn((data: TestData) => data);
@@ -154,7 +153,7 @@ describe('useFetch', () => {
 
 		expect(onUpdateSuccess).toHaveBeenCalledWith(mockUpdateResponse);
 		expect(transformUpdateResponse).toHaveBeenCalled();
-		expect(messageQueue.fetchAPIData).toHaveBeenCalledWith(
+		expect(workerManager.fetchAPIData).toHaveBeenCalledWith(
 			expect.any(String),
 			expect.objectContaining({
 				method: HTTPMethod.POST,
@@ -165,7 +164,7 @@ describe('useFetch', () => {
 
 	it('should handle update errors', async () => {
 		const mockError = new Error('Update failed');
-		jest.spyOn(messageQueue, 'fetchAPIData').mockRejectedValueOnce(mockError);
+		jest.spyOn(workerManager, 'fetchAPIData').mockRejectedValueOnce(mockError);
 
 		const onUpdateError = jest.fn();
 		const { result } = renderHook(() => useFetch<TestData>(schema, { onUpdateError }));
@@ -179,7 +178,7 @@ describe('useFetch', () => {
 
 	it('should fetch next page correctly', async () => {
 		const mockData: TestData = { data: 'next page data' };
-		jest.spyOn(messageQueue, 'fetchAPIData').mockResolvedValueOnce(mockData);
+		jest.spyOn(workerManager, 'fetchAPIData').mockResolvedValueOnce(mockData);
 
 		const { result } = renderHook(() => useFetch<TestData>(schema));
 
@@ -187,7 +186,7 @@ describe('useFetch', () => {
 			await result.current.fetchNextPage(2);
 		});
 
-		expect(messageQueue.fetchAPIData).toHaveBeenCalledWith(
+		expect(workerManager.fetchAPIData).toHaveBeenCalledWith(
 			expect.stringContaining('page=2'),
 			expect.any(Object),
 		);
@@ -203,7 +202,7 @@ describe('useFetch', () => {
 			}),
 		);
 
-		jest.spyOn(messageQueue, 'fetchAPIData').mockImplementationOnce(
+		jest.spyOn(workerManager, 'fetchAPIData').mockImplementationOnce(
 			() => new Promise((resolve) => setTimeout(resolve, 200)),
 		);
 
@@ -221,7 +220,7 @@ describe('useFetch', () => {
 		const mockResponse1 = { data: 'response 1' };
 		const mockResponse2 = { data: 'response 2' };
 
-		jest.spyOn(messageQueue, 'fetchAPIData')
+		jest.spyOn(workerManager, 'fetchAPIData')
 			.mockImplementationOnce(
 				() => new Promise((resolve) => setTimeout(() => resolve(mockResponse1), 100)),
 			)
@@ -235,14 +234,14 @@ describe('useFetch', () => {
 		await Promise.all([request1Promise, request2Promise]);
 
 		// Verify that fetchAPIData was called twice
-		expect(messageQueue.fetchAPIData).toHaveBeenCalledTimes(2);
+		expect(workerManager.fetchAPIData).toHaveBeenCalledTimes(2);
 	});
 
 	it('should handle request cancellation', async () => {
 		const { result } = renderHook(() => useFetch<TestData>(schema));
 
 		// Setup a delayed mock response
-		jest.spyOn(messageQueue, 'fetchAPIData').mockImplementation(
+		jest.spyOn(workerManager, 'fetchAPIData').mockImplementation(
 			() => new Promise((resolve) => setTimeout(() => resolve({ data: 'test' }), 1000)),
 		);
 
@@ -253,7 +252,7 @@ describe('useFetch', () => {
 		await fetchPromise;
 
 		// Verify that the request was properly handled
-		expect(messageQueue.fetchAPIData).toHaveBeenCalledTimes(1);
+		expect(workerManager.fetchAPIData).toHaveBeenCalledTimes(1);
 	});
 
 	it('should handle timeout with proper cleanup', async () => {
@@ -266,7 +265,7 @@ describe('useFetch', () => {
 		);
 
 		// Setup a delayed mock response
-		jest.spyOn(messageQueue, 'fetchAPIData').mockImplementation(
+		jest.spyOn(workerManager, 'fetchAPIData').mockImplementation(
 			() => new Promise((resolve) => setTimeout(() => resolve({ data: 'test' }), 200)),
 		);
 
@@ -288,7 +287,9 @@ describe('useFetch - Additional Test Coverage', () => {
 	describe('1. HTTP Methods Tests', () => {
 		it('should handle PUT request correctly', async () => {
 			const mockUpdateResponse = { data: 'updated data' };
-			jest.spyOn(messageQueue, 'fetchAPIData').mockResolvedValueOnce(mockUpdateResponse);
+			jest.spyOn(workerManager, 'fetchAPIData').mockResolvedValueOnce(
+				mockUpdateResponse,
+			);
 
 			const { result } = renderHook(() => useFetch<TestData>(schema));
 			const updateData = { data: 'test' };
@@ -302,7 +303,7 @@ describe('useFetch - Additional Test Coverage', () => {
 				});
 			});
 
-			expect(messageQueue.fetchAPIData).toHaveBeenCalledWith(
+			expect(workerManager.fetchAPIData).toHaveBeenCalledWith(
 				expect.any(String),
 				expect.objectContaining({
 					method: HTTPMethod.PUT,
@@ -317,7 +318,9 @@ describe('useFetch - Additional Test Coverage', () => {
 
 		it('should handle PATCH request with partial data', async () => {
 			const mockUpdateResponse = { data: 'patched data' };
-			jest.spyOn(messageQueue, 'fetchAPIData').mockResolvedValueOnce(mockUpdateResponse);
+			jest.spyOn(workerManager, 'fetchAPIData').mockResolvedValueOnce(
+				mockUpdateResponse,
+			);
 
 			const { result } = renderHook(() => useFetch<TestData>(schema));
 			const patchData = { data: 'partial update' };
@@ -326,7 +329,7 @@ describe('useFetch - Additional Test Coverage', () => {
 				await result.current.updateData(patchData, { method: HTTPMethod.PATCH });
 			});
 
-			expect(messageQueue.fetchAPIData).toHaveBeenCalledWith(
+			expect(workerManager.fetchAPIData).toHaveBeenCalledWith(
 				expect.any(String),
 				expect.objectContaining({
 					method: HTTPMethod.PATCH,
@@ -342,7 +345,7 @@ describe('useFetch - Additional Test Coverage', () => {
 				await result.current.updateData({}, { method: HTTPMethod.DELETE });
 			});
 
-			expect(messageQueue.fetchAPIData).toHaveBeenCalledWith(
+			expect(workerManager.fetchAPIData).toHaveBeenCalledWith(
 				expect.any(String),
 				expect.objectContaining({
 					method: HTTPMethod.DELETE,
@@ -367,11 +370,11 @@ describe('useFetch - Additional Test Coverage', () => {
 				);
 			});
 
-			expect(messageQueue.fetchAPIData).toHaveBeenCalledWith(
+			expect(workerManager.fetchAPIData).toHaveBeenCalledWith(
 				expect.stringContaining('filter=active'),
 				expect.any(Object),
 			);
-			expect(messageQueue.fetchAPIData).toHaveBeenCalledWith(
+			expect(workerManager.fetchAPIData).toHaveBeenCalledWith(
 				expect.stringContaining('sort=desc'),
 				expect.any(Object),
 			);
@@ -391,7 +394,7 @@ describe('useFetch - Additional Test Coverage', () => {
 				);
 			});
 
-			expect(messageQueue.fetchAPIData).toHaveBeenCalledWith(
+			expect(workerManager.fetchAPIData).toHaveBeenCalledWith(
 				expect.stringContaining('page=5'),
 				expect.any(Object),
 			);
@@ -401,7 +404,7 @@ describe('useFetch - Additional Test Coverage', () => {
 	describe('3. Error Scenarios Tests', () => {
 		it('should handle malformed API responses', async () => {
 			const malformedData = 'not a JSON response';
-			jest.spyOn(messageQueue, 'fetchAPIData').mockResolvedValueOnce(malformedData);
+			jest.spyOn(workerManager, 'fetchAPIData').mockResolvedValueOnce(malformedData);
 
 			const onError = jest.fn();
 			const transformResponse = jest.fn(() => {
@@ -423,7 +426,7 @@ describe('useFetch - Additional Test Coverage', () => {
 		it('should handle network errors', async () => {
 			const networkError = new Error('Network failure');
 			networkError.name = 'NetworkError';
-			jest.spyOn(messageQueue, 'fetchAPIData').mockRejectedValueOnce(networkError);
+			jest.spyOn(workerManager, 'fetchAPIData').mockRejectedValueOnce(networkError);
 
 			const onError = jest.fn();
 			const { result } = renderHook(() => useFetch<TestData>(schema, { onError }));
@@ -439,7 +442,7 @@ describe('useFetch - Additional Test Coverage', () => {
 
 	describe('4. Edge Cases Tests', () => {
 		it('should handle empty response data', async () => {
-			jest.spyOn(messageQueue, 'fetchAPIData').mockResolvedValueOnce(null);
+			jest.spyOn(workerManager, 'fetchAPIData').mockResolvedValueOnce(null);
 
 			const transformResponse = jest.fn((data) => data ?? { data: 'default' });
 			const { result } = renderHook(() =>
@@ -467,7 +470,7 @@ describe('useFetch - Additional Test Coverage', () => {
 			});
 
 			// Verify both cases triggered API calls with appropriate handling
-			expect(messageQueue.fetchAPIData).toHaveBeenCalledTimes(2);
+			expect(workerManager.fetchAPIData).toHaveBeenCalledTimes(2);
 		});
 	});
 
@@ -478,7 +481,7 @@ describe('useFetch - Additional Test Coverage', () => {
 			);
 			const fastResponse = Promise.resolve({ data: 'fast' });
 
-			jest.spyOn(messageQueue, 'fetchAPIData')
+			jest.spyOn(workerManager, 'fetchAPIData')
 				.mockImplementationOnce(() => slowResponse)
 				.mockImplementationOnce(() => fastResponse);
 
@@ -491,7 +494,7 @@ describe('useFetch - Additional Test Coverage', () => {
 			]);
 
 			// Verify the last successful response was processed
-			expect(messageQueue.fetchAPIData).toHaveBeenCalledTimes(2);
+			expect(workerManager.fetchAPIData).toHaveBeenCalledTimes(2);
 		});
 
 		it('should handle race conditions between fetch and update operations', async () => {
@@ -500,7 +503,7 @@ describe('useFetch - Additional Test Coverage', () => {
 			);
 			const updateResponse = Promise.resolve({ data: 'update' });
 
-			jest.spyOn(messageQueue, 'fetchAPIData')
+			jest.spyOn(workerManager, 'fetchAPIData')
 				.mockImplementationOnce(() => fetchResponse)
 				.mockImplementationOnce(() => updateResponse);
 
@@ -515,7 +518,7 @@ describe('useFetch - Additional Test Coverage', () => {
 			]);
 
 			// Verify both operations were processed
-			expect(messageQueue.fetchAPIData).toHaveBeenCalledTimes(2);
+			expect(workerManager.fetchAPIData).toHaveBeenCalledTimes(2);
 		});
 	});
 });
