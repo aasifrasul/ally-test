@@ -22,7 +22,7 @@ const handler = createHandler({
 	context: () => ({ pubsub }),
 });
 
-const webWorkerContent = getFileContents(`./src/utils/WebWorker.js`);
+const webWorkerContent: string = getFileContents(`./src/utils/WebWorker.js`);
 
 // PreeCopile template
 const templatePath = path.join(pathTemplate, 'index.hbs');

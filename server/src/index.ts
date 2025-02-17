@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
-import { config } from 'dotenv';
 import http from 'http';
 
-import { pathRootDir } from './paths';
+import { port, host } from './envConfigDetails';
 import MongoDBConnection from './dbClients/MongoDBConnection';
 import { connectToIOServer, disconnectIOServer } from './socketConnection';
 import { connectWSServer, disconnectWSServer } from './webSocketConnection';
@@ -12,13 +11,9 @@ import { constants } from './constants';
 import { app } from './app';
 import { logger } from './Logger';
 
-config({ path: `${pathRootDir}/.env` });
-
-const { NODE_PORT: port, NODE_HOST: host } = process.env;
-
 const httpServer: http.Server = http.createServer(app);
 
-MongoDBConnection.getInstance().connect();
+MongoDBConnection.getInstance()?.connect();
 
 httpServer.on('request', () => logger.info('httpServer.request'));
 
@@ -97,6 +92,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
 		});
 
 		logger.info('Cleaning up active connections...');
+		const mongoDBInstance = MongoDBConnection.getInstance();
 		await Promise.all([
 			disconnectIOServer().catch((err) =>
 				logger.error('Error disconnecting IO server:', err),
@@ -104,9 +100,10 @@ async function gracefulShutdown(signal: string): Promise<void> {
 			disconnectWSServer().catch((err) =>
 				logger.error('Error disconnecting WS server:', err),
 			),
-			MongoDBConnection.getInstance()
-				.cleanup()
-				.catch((err) => logger.error('Error cleaning up MongoDB:', err)),
+			mongoDBInstance &&
+				mongoDBInstance
+					.cleanup()
+					.catch((err) => logger.error('Error cleaning up MongoDB:', err)),
 		]);
 
 		// Then cleanup database instances

@@ -10,9 +10,9 @@ const Stopwatch: React.FC<StopwatchProps> = (props) => {
 	return (
 		<div>
 			{seconds} {fraction}
-			<button onClick={() => safelyExecuteFunction(handleStop)}>Stop</button>
-			<button onClick={() => safelyExecuteFunction(handleResume)}>Resume</button>
-			<button onClick={() => safelyExecuteFunction(handleReset)}>Reset</button>
+			<button onClick={() => safelyExecuteFunction(handleStop, null)}>Stop</button>
+			<button onClick={() => safelyExecuteFunction(handleResume, null)}>Resume</button>
+			<button onClick={() => safelyExecuteFunction(handleReset, null)}>Reset</button>
 		</div>
 	);
 };

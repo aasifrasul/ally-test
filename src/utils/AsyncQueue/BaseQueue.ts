@@ -18,8 +18,11 @@ export class BaseQueue<T> {
 			return undefined;
 		}
 
-		const result = this.map.get(++this.lowerLimit);
-		this.map.delete(this.lowerLimit);
+		const key = this.lowerLimit + 1;
+		const result = this.map.get(key);
+		this.map.delete(key);
+		this.lowerLimit = key;
+
 		return result;
 	}
 

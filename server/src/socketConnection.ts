@@ -1,6 +1,8 @@
 import * as os from 'os';
 import * as http from 'http';
 import { Server, Socket } from 'socket.io';
+
+import { host, port } from './envConfigDetails';
 import { constants } from './constants';
 import { logger } from './Logger';
 
@@ -11,7 +13,7 @@ const connectToIOServer = (httpServer: http.Server): Promise<void> =>
 		try {
 			io = new Server(httpServer, {
 				cors: {
-					origin: 'http://localhost:3000',
+					origin: `http://${host}:${port}`,
 					methods: ['GET', 'POST'],
 				},
 			});

@@ -7,6 +7,7 @@ import serveStatic from 'serve-static';
 import { rateLimit } from 'express-rate-limit';
 const compression = require('compression');
 
+import { host, port } from './envConfigDetails';
 import {
 	userAgentHandler,
 	getCSVData,
@@ -52,14 +53,14 @@ app.use(
 	cors({
 		origin:
 			process.env.NODE_ENV === 'development'
-				? 'http://localhost:3100'
+				? `http://${host}:${port}`
 				: process.env.ALLOWED_ORIGINS?.split(','),
 		methods: ['GET', 'POST', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Authorization'],
 		credentials: true,
 	}),
 );
-app.use(helmet(csp));
+// app.use(helmet(csp));
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(limiter);

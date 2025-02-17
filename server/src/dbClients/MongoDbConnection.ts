@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { MongoDBConfig } from '../types';
+import { MongoDBConfig, DBType } from '../types';
 import { constants } from '../constants';
 import { logger } from '../Logger';
 
@@ -11,7 +11,11 @@ class MongoDBConnection {
 		logger.info('MongoDB connection manager initialized.');
 	}
 
-	public static getInstance(): MongoDBConnection {
+	public static getInstance(): MongoDBConnection | null {
+		if (constants.dbLayer.currentDB !== DBType.MONGODB) {
+			return null;
+		}
+
 		if (!MongoDBConnection.instance) {
 			MongoDBConnection.instance = new MongoDBConnection();
 		}

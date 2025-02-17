@@ -196,7 +196,16 @@ const getUserCreatedResolver = async (): Promise<AsyncIterator<unknown>> => {
 export { getUser, getUsers, createUser, updateUser, deleteUser, userCreated };
 
 /**
+ * Oracle
  * create table TEST_USERS ( "id" number generated always as identity, "firstName" varchar2(4000), "lastName" varchar2(4000), "age" number, primary key ("id"));
+ * 
+ * PGSQL
+ * CREATE TABLE "TEST_USERS" (
+    id SERIAL PRIMARY KEY,  -- SERIAL is a convenient way to create an auto-incrementing integer primary key
+    firstname VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
+    lastname VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
+    age INTEGER               -- INTEGER is the correct type
+);
  * 
  * {
  "query": "mutation createUser($firstName: String!, $lastName: String!, $age: Int!) { createUser(firstName: $firstName, lastName: $lastName, age: $age) }",

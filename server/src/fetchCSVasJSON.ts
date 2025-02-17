@@ -9,7 +9,7 @@ interface CsvRow {
 let obj: CsvRow = {};
 
 export const fetchCSVasJSON = (filePath: string) => {
-	const csv = getFileContents(filePath);
+	const csv: string = getFileContents(filePath);
 
 	// Convert the data to String and
 	// split it in an array
