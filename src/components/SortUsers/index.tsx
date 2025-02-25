@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
-import { useFetchData } from '../../hooks/useFetchData';
 import { useApi } from '../../utils/api-client/hooks/useApi';
 import { User } from './types';
 

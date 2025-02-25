@@ -8,9 +8,10 @@ export class BaseQueue<T> {
 	}
 
 	enqueue(item: T): void {
-		if (item !== undefined && item !== null) {
-			this.map.set(++this.upperLimit, item);
+		if (item === undefined || item === null) {
+			throw new Error('Cannot enqueue null or undefined values.');
 		}
+		this.map.set(++this.upperLimit, item);
 	}
 
 	dequeue(): T | undefined {
@@ -24,6 +25,12 @@ export class BaseQueue<T> {
 		this.lowerLimit = key;
 
 		return result;
+	}
+
+	*[Symbol.iterator]() {
+		for (const value of this.map.values()) {
+			yield value;
+		}
 	}
 
 	peek(): T | undefined {

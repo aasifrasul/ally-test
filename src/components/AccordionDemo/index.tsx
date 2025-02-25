@@ -1,5 +1,3 @@
-import React from 'react';
-
 import Accordion from '../Common/Accordion';
 import AccordionSection from '../Common/Accordion/AccordionSection';
 
