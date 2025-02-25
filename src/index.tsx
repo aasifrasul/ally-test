@@ -9,7 +9,7 @@ import { ThemeProvider } from './Context/ThemeProvider';
 import store from './store';
 import { client } from './apolloClient';
 
-import App from './components/App/App';
+import App from './components/App';
 
 import './index.css';
 

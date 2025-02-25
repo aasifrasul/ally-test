@@ -1,15 +1,15 @@
 import { BaseQueue } from './BaseQueue';
 
-interface QueueItem<T> {
+export interface QueueItem<T> {
 	action: () => Promise<T>;
 	resolve: (value: T | PromiseLike<T>) => void;
 	reject: (reason?: any) => void;
 }
 
 export class AsyncQueue<T> extends BaseQueue<QueueItem<T>> {
-	private isRunning: boolean = false;
-	private isPaused: boolean = false;
-	private isStopped: boolean = false;
+	protected isRunning: boolean = false;
+	protected isPaused: boolean = false;
+	protected isStopped: boolean = false;
 
 	constructor() {
 		super();
@@ -18,7 +18,7 @@ export class AsyncQueue<T> extends BaseQueue<QueueItem<T>> {
 	addToQueue(action: () => Promise<T>, autoDequeue: boolean = true): Promise<T> {
 		return new Promise<T>((resolve, reject) => {
 			super.enqueue({ action, resolve, reject });
-			if (autoDequeue && !this.isRunning) {
+			if (autoDequeue) {
 				void this.processQueue();
 			}
 		});

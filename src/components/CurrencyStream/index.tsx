@@ -1,5 +1,3 @@
-import React from 'react';
-
 import GridData from '../Common/GridData/GridData';
 import OSStatistics from '../Common/OSStatistics/OSStatistics';
 

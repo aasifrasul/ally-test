@@ -29,17 +29,17 @@ type ElementRef =
 
 const useClickOutside = <T extends ElementRef = ElementRef>(
 	initialState: boolean = false,
-	eventType: EventType = 'mousedown',
+	eventType: EventType = 'mousedown', // Or 'pointerdown' for combined mouse/touch
 ): UseClickOutside<T> => {
 	const [isOutsideClick, setIsOutsideClick] = useToggle(initialState);
 	const outsideRef = useRef<T>(null);
 
 	const handleClickOutside = useCallback(
-		(event: Event) => {
-			if (outsideRef.current && !outsideRef.current.contains(event.target as Node)) {
-				setIsOutsideClick(true);
-			} else {
-				setIsOutsideClick(false);
+		(event: Event): void => {
+			if (outsideRef.current && event.target instanceof Element) {
+				setIsOutsideClick(!outsideRef.current.contains(event.target));
+			} else if (outsideRef.current) {
+				setIsOutsideClick(true); // If no target element and there is a ref, its an outside click
 			}
 		},
 		[setIsOutsideClick],

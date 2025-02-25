@@ -47,7 +47,7 @@ export default function FlipTheCard(): JSX.Element {
 				});
 			} else {
 				if (solvedCards.current === cards.current.length) {
-					safelyExecuteFunction(handleStop);
+					safelyExecuteFunction(handleStop, null);
 				}
 				setOpenCards(() => []);
 			}
@@ -57,7 +57,7 @@ export default function FlipTheCard(): JSX.Element {
 	const restart = (): void => {
 		cards.current = shuffle(MOCK);
 		setOpenCards(() => []);
-		safelyExecuteFunction(handleReset);
+		safelyExecuteFunction(handleReset, null);
 	};
 
 	return (

@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
+
+import { useEventListener } from '../../hooks/EventListeners';
 import { AsyncQueue } from '../../utils/AsyncQueue';
 
 type Article = {
@@ -30,55 +32,47 @@ const asyncQueue = new AsyncQueue<Article>();
 const ArticleList: React.FC = () => {
 	const [articles, setArticles] = useState<Article[]>([]);
 	const [loading, setLoading] = useState(false);
-	const [hasMore, setHasMore] = useState(true);
+	const [nextStartId, setNextStartId] = useState(1);
 
-	const fetchArticles = useCallback(
-		async (startId: number) => {
-			if (loading || !hasMore) return;
+	const fetchArticles = useCallback(async () => {
+		if (loading) return;
 
-			setLoading(true);
-			try {
-				const promises = Array.from({ length: ARTICLES_PER_PAGE }, (_, index) =>
-					asyncQueue.addToQueue(() => getMockArticle(startId + index)),
-				);
+		setLoading(true);
 
-				const newArticles = await Promise.all(promises);
-				setArticles((prevArticles) => [...prevArticles, ...newArticles]);
+		try {
+			const promises = Array.from({ length: ARTICLES_PER_PAGE }, (_, index) =>
+				asyncQueue.addToQueue(() => getMockArticle(nextStartId + index)),
+			);
 
-				// Optional: Set hasMore to false if no more articles
-				// if (newArticles.length < ARTICLES_PER_PAGE) setHasMore(false);
-			} catch (error) {
-				console.error('Error fetching articles:', error);
-			} finally {
-				setLoading(false);
-			}
-		},
-		[loading, hasMore],
-	);
+			const newArticles = await Promise.all(promises);
+			setArticles((prevArticles) => [...prevArticles, ...newArticles]);
 
-	const handleLoadMore = useCallback(() => {
-		const nextStartId = articles.length + 1;
-		void fetchArticles(nextStartId);
-	}, [articles.length, fetchArticles]);
+			// Optional: Set hasMore to false if no more articles
+			// if (newArticles.length < ARTICLES_PER_PAGE) setHasMore(false);
+		} catch (error) {
+			console.error('Error fetching articles:', error);
+		} finally {
+			setLoading(false);
+		}
+	}, [loading, nextStartId]);
+
+	const handleLoadMore = () => setNextStartId(articles.length + 1);
 
 	const handleScroll = useCallback(() => {
 		const scrolledToBottom =
 			window.innerHeight + document.documentElement.scrollTop >=
 			document.documentElement.offsetHeight - SCROLL_THRESHOLD;
 
-		if (scrolledToBottom && !loading && hasMore) {
+		if (scrolledToBottom && !loading) {
 			handleLoadMore();
 		}
-	}, [handleLoadMore, loading, hasMore]);
+	}, [handleLoadMore, loading]);
 
 	useEffect(() => {
-		void fetchArticles(1);
-	}, [fetchArticles]);
+		void fetchArticles();
+	}, []);
 
-	useEffect(() => {
-		window.addEventListener('scroll', handleScroll);
-		return () => window.removeEventListener('scroll', handleScroll);
-	}, [handleScroll]);
+	useEventListener('scroll', handleScroll, window);
 
 	return (
 		<div className="article-list">
@@ -88,7 +82,7 @@ const ArticleList: React.FC = () => {
 				</div>
 			))}
 			{loading && <div className="loading">Loading...</div>}
-			{hasMore && (
+			{!loading && (
 				<button
 					onClick={handleLoadMore}
 					disabled={loading}

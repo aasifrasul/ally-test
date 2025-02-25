@@ -15,12 +15,14 @@ export function useApi<T>() {
 		try {
 			const apiClient = new ApiClient();
 			const data = await apiClient.request<T>(endpoint, options);
-			setState({ data: data ?? null, error: null, isLoading: false });
+			setState({ data: data ?? null, error: null });
 			return data;
 		} catch (error) {
 			const apiError = error instanceof Error ? error : new Error('Unknown error');
-			setState({ data: null, error: apiError, isLoading: false });
+			setState({ data: null, error: apiError });
 			throw apiError;
+		} finally {
+			setState((prev) => ({ ...prev, isLoading: false }));
 		}
 	}, []);
 
