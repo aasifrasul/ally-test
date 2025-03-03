@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { ShortcutConfig } from './KeyBoardShortcutHelper';
 import { useKeyboardShortcut } from '../../../hooks/useKeyBoardShortcut';
 

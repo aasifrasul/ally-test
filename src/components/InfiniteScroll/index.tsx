@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, JSX } from 'react';
 import { InfiniteScroll } from './InfiniteScroll';
 import useFetch, { FetchResult } from '../../hooks/useFetch';
 import { InitialState, Schema } from '../../constants/types';

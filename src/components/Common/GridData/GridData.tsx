@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { JSX, useState, useEffect, useRef, useCallback } from 'react';
 import ReactDataGrid, { Column } from 'react-data-grid';
 import { io, Socket } from 'socket.io-client';
+import { constants } from '../../../constants';
 
 // Constants
-const SOCKET_URL = 'http://localhost:3100';
 const RECONNECTION_ATTEMPTS = 3;
 const RECONNECTION_DELAY = 2000;
 
@@ -57,7 +57,7 @@ function GridData({ queue }: GridDataProps): JSX.Element {
 	);
 
 	const initializeSocket = useCallback(() => {
-		socketRef.current = io(SOCKET_URL, {
+		socketRef.current = io(constants.BASE_URL, {
 			reconnectionAttempts: RECONNECTION_ATTEMPTS,
 			reconnectionDelay: RECONNECTION_DELAY,
 			transports: ['websocket', 'polling'], // Try WebSocket first, fallback to polling

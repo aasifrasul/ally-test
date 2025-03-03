@@ -56,10 +56,10 @@ export const constants: Constants = {
 		},
 	},
 	dbLayer: {
-		currentDB: DBType.POSTGRES,
+		currentDB: DBType.MONGODB,
 		MAX_RETRIES: 3,
 		mongodb: {
-			uri: 'mongodb://localhost:27017',
+			uri: 'mongodb://test:test@localhost:27017/test?authSource=admin',
 			maxPoolSize: 10,
 			serverSelectionTimeoutMS: 5000,
 			socketTimeoutMS: 45000,

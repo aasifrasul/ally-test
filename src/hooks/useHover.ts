@@ -6,15 +6,15 @@ interface UseHoverOptions {
 	leaveDelay?: number;
 }
 
-interface UseHoverReturn {
-	hoverRef: RefObject<HTMLElement>;
+interface UseHoverReturn<T extends HTMLElement = HTMLElement> {
+	hoverRef: RefObject<T | null>;
 	isHovered: boolean;
 }
 
 export function useHover<T extends HTMLElement = HTMLElement>({
 	enterDelay = 0,
 	leaveDelay = 0,
-}: UseHoverOptions = {}): UseHoverReturn {
+}: UseHoverOptions = {}): UseHoverReturn<T> {
 	const [isHovered, setIsHovered] = useState(false);
 	const hoverRef = useRef<T>(null);
 

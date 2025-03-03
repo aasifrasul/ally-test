@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 
-import { useFetchData } from '../../hooks/useFetchData';
 import { useApi } from '../../utils/api-client/hooks/useApi';
-import PropTypes from 'prop-types';
+import { constants } from '../../constants';
 
 interface LoginProps {
 	setToken: (token: string) => void;
@@ -16,7 +15,7 @@ interface SubmitOptions {
 	body: string;
 }
 
-const url = 'http://localhost:3100/login';
+const url = `${constants.BASE_URL}/login`;
 
 const Login = ({ setToken }: LoginProps) => {
 	const [userName, setUserName] = useState<string>('');
@@ -94,10 +93,6 @@ const Login = ({ setToken }: LoginProps) => {
 			</div>
 		</>
 	);
-};
-
-Login.propTypes = {
-	setToken: PropTypes.func.isRequired,
 };
 
 export default Login;

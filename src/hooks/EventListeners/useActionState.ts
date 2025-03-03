@@ -1,60 +1,64 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState, useTransition } from 'react';
 
-/**
- * A custom hook for managing asynchronous action states in React
- * @param {Function} actionFn - Async function to execute
- * @returns {Object} Action state and control functions
- */
-
-enum ActionStatus {
-	Idle = 'idle',
-	Loading = 'loading',
-	Success = 'success',
-	Error = 'error',
+enum ActionState {
+	IDLE = 'idle',
+	LOADING = 'loading',
+	SUCCESS = 'success',
+	ERROR = 'error',
 }
 
-export const useActionState = <T, Args extends any[] = []>(
-	actionFn: (...args: Args) => Promise<T>,
-) => {
-	const [status, setStatus] = useState<ActionStatus>(ActionStatus.Idle);
-	const [data, setData] = useState<T | null>(null);
-	const [error, setError] = useState<Error | null>(null);
+export function useActionState<T, FormData extends Record<string, any>>(
+	serverAction: (formData: FormData) => Promise<T>,
+	initialState?: Partial<FormData>,
+) {
+	const [isPending, startTransition] = useTransition();
+	const [state, setState] = useState<{
+		data?: T;
+		error?: Error;
+		status: ActionState;
+		formData: Partial<FormData>;
+	}>({
+		status: ActionState.IDLE,
+		formData: initialState || {},
+	});
 
-	const execute = useCallback(
-		async (...args: Args) => {
-			try {
-				setStatus(ActionStatus.Loading);
-				setError(null);
+	const formAction = useCallback(
+		async (formData: FormData) => {
+			setState((prev) => ({ ...prev, status: ActionState.LOADING }));
 
-				const result = await actionFn(...args);
-
-				setData(result);
-				setStatus(ActionStatus.Success);
-				return result;
-			} catch (err) {
-				setError(err as Error);
-				setStatus(ActionStatus.Error);
-				throw err;
-			}
+			// Fix: Separate the async logic from the transition
+			startTransition(() => {
+				// Wrap in an IIFE to handle the async work
+				(async () => {
+					try {
+						const data = await serverAction(formData);
+						setState({
+							data,
+							status: ActionState.SUCCESS,
+							formData: initialState || {},
+						});
+					} catch (error) {
+						setState((prev) => ({
+							...prev,
+							error: error as Error,
+							status: ActionState.ERROR,
+							formData,
+						}));
+					}
+				})();
+			});
 		},
-		[actionFn],
+		[serverAction, initialState, startTransition],
 	);
 
-	const reset = useCallback(() => {
-		setStatus(ActionStatus.Idle);
-		setData(null);
-		setError(null);
-	}, []);
-
-	return {
-		status,
-		data,
-		error,
-		execute,
-		reset,
-		isLoading: status === ActionStatus.Loading,
-		isSuccess: status === ActionStatus.Success,
-		isError: status === ActionStatus.Error,
-		isIdle: status === ActionStatus.Idle,
-	};
-};
+	return [
+		{
+			...state,
+			isPending,
+			isLoading: state.status === ActionState.LOADING || isPending,
+			isSuccess: state.status === ActionState.SUCCESS,
+			isError: state.status === ActionState.ERROR,
+		},
+		formAction,
+	] as const;
+}

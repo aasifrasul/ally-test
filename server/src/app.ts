@@ -1,9 +1,15 @@
 import cors from 'cors';
-import express, { Request as ExpressRequest, Response, NextFunction } from 'express';
+import express, {
+	Application,
+	Request as ExpressRequest,
+	Response,
+	NextFunction,
+} from 'express';
 import helmet from 'helmet';
 import { engine } from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import serveStatic from 'serve-static';
+import bodyParser from 'body-parser';
 import { rateLimit } from 'express-rate-limit';
 const compression = require('compression');
 
@@ -16,9 +22,11 @@ import {
 	compiledTemplate,
 	handleGraphql,
 } from './middlewares';
+import { handleFileupload } from './fileUploads';
 import { setupProxy } from './setupProxy';
 import { constructReqDataObject, generateBuildTime } from './helper';
 import { pathPublic, pathTemplate, pathRootDir } from './paths';
+import { finalHandler, setupGlobalAsyncErrorHandling } from './globalErrorHandler';
 import { logger } from './Logger';
 import { csp } from './middlewares/csp';
 import { constants } from '../../src/constants';
@@ -34,7 +42,7 @@ interface Request extends ExpressRequest {
 	id?: string;
 }
 
-const app = express();
+const app: Application = express();
 
 generateBuildTime();
 
@@ -42,6 +50,9 @@ const limiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minutes
 	max: 100, // limit each IP to 100 requests per windowMs
 });
+
+setupGlobalAsyncErrorHandling(app);
+handleFileupload(app);
 
 app.all('/graphql', handleGraphql);
 
@@ -61,8 +72,15 @@ app.use(
 	}),
 );
 // app.use(helmet(csp));
+// Middleware for JSON
 app.use(express.json({ limit: '10kb' }));
+
+// Middleware for URL-encoded form data
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+// Middleware for plain text
+app.use(bodyParser.text());
+
 app.use(limiter);
 
 // Timeout handling
@@ -116,16 +134,7 @@ app.use(
 	}),
 );
 
-// Error handling middleware
-app.use((err: CustomError, req: Request, res: Response, next: NextFunction) => {
-	console.error(err.stack);
-	const status = err.status || 500;
-	res.status(status).json({
-		error: process.env.NODE_ENV === 'production' ? 'An error occurred' : err.message,
-		requestId: req.id,
-	});
-});
-
+// handles all the valid routes
 app.all(['/', '/:route'], (req: Request, res: Response, next: NextFunction) => {
 	const { route } = req.params;
 	if (route && !constants.routes!.includes(route)) {
@@ -141,25 +150,7 @@ app.all(['/', '/:route'], (req: Request, res: Response, next: NextFunction) => {
 	res.send(compiledTemplate(data));
 });
 
-app.all('*', (req: Request, res: Response, next: NextFunction) => {
-	res.status(404);
-	const message = 'Oops! Page not found.';
-
-	if (req.accepts('html')) {
-		res.send(`
-			<!DOCTYPE html>
-			<html>
-			<head>
-				<title>Error</title>
-			</head>
-			<body>
-				<h1>${message}</h1>
-			</body>
-			</html>
-		`);
-	} else {
-		res.json({ message });
-	}
-});
+// 404 Handler
+finalHandler(app);
 
 export { app };

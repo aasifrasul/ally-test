@@ -1,18 +1,28 @@
 import { DBType } from '../types';
-import redisClient from '../cachingClients/redis';
+import { RedisClient } from '../cachingClients/redis';
 import { Product } from '../models';
-import { getLimitCond, getDBInstance } from './helper';
+import { GenericDBConnection, getLimitCond, getGenericDBInstance } from './helper';
 import { constants } from '../constants';
 import { logger } from '../Logger';
 
+interface ProductArgs {
+	id?: string;
+	name: string;
+	category: string;
+}
+
 const { currentDB } = constants.dbLayer;
 
-let dBInstance: any;
+let genericDBInstance: GenericDBConnection;
+const redisClient = RedisClient.getInstance();
+redisClient.connect();
 
-const getProduct = async (parent: any, args: { id: string }): Promise<any> => {
+const table = 'TEST_PRODUCTS';
+
+const getProduct = async (parent: any, args: { id: string }): Promise<ProductArgs | null> => {
 	const { id } = args;
 
-	let product = await redisClient.getCachedData(id);
+	let product: ProductArgs | null = await redisClient.getCachedData(id);
 
 	if (product) {
 		return product;
@@ -25,14 +35,14 @@ const getProduct = async (parent: any, args: { id: string }): Promise<any> => {
 			return product;
 		} catch (error) {
 			logger.error(`Failed to create product in MongoDB: ${error}`);
-			return false;
+			return null;
 		}
 	} else {
-		dBInstance = dBInstance || (await getDBInstance(currentDB));
+		genericDBInstance = await getGenericDBInstance(currentDB);
 		const whereClause = id ? `WHERE id = ${id}` : getLimitCond(currentDB, 1);
-		const query = `SELECT id, "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
-		const rows = await dBInstance.executeQuery(query);
-		return rows[0];
+		const query = `SELECT id, "name", "category" FROM ${table} ${whereClause}`;
+		const rows: ProductArgs[] = await genericDBInstance.executeQuery(query);
+		return rows[0] || null;
 	}
 };
 
@@ -46,22 +56,19 @@ const getProducts = async (parent: any, args?: { [key: string]: any }): Promise<
 			return [];
 		}
 	} else {
-		dBInstance = dBInstance || (await getDBInstance(currentDB));
+		genericDBInstance = await getGenericDBInstance(currentDB);
 		const keys = Object.keys(args || {});
 		let whereClause = getLimitCond(currentDB, 10);
 		if (keys.length) {
 			whereClause =
 				'WHERE ' + keys.map((key) => `"${key}" = '${args?.[key]}'`).join(' AND ');
 		}
-		const query = `SELECT id, "name", "category" FROM TEST_PRODUCTS ${whereClause}`;
-		return await dBInstance.executeQuery(query);
+		const query = `SELECT id, "name", "category" FROM ${table} ${whereClause}`;
+		return await genericDBInstance.executeQuery(query);
 	}
 };
 
-const createProduct = async (
-	parent: any,
-	args: { name: string; category: string },
-): Promise<boolean> => {
+const createProduct = async (parent: any, args: ProductArgs): Promise<boolean> => {
 	const { name, category } = args;
 
 	if (currentDB === DBType.MONGODB) {
@@ -74,11 +81,10 @@ const createProduct = async (
 			return false;
 		}
 	} else {
-		dBInstance = dBInstance || (await getDBInstance(currentDB));
-
 		try {
-			const query = `INSERT INTO TEST_PRODUCTS ("name", "category") VALUES ('${name}', '${category}')`;
-			const result = await dBInstance.executeQuery(query);
+			genericDBInstance = await getGenericDBInstance(currentDB);
+			const query = `INSERT INTO ${table} ("name", "category") VALUES ('${name}', '${category}')`;
+			const result = await genericDBInstance.executeQuery(query);
 			logger.info(result);
 			return true;
 		} catch (error) {
@@ -108,10 +114,10 @@ const updateProduct = async (
 			return false;
 		}
 	} else {
-		dBInstance = dBInstance || (await getDBInstance(currentDB));
 		try {
-			const query = `UPDATE TEST_PRODUCTS SET "name" = '${name}', "category" = '${category}' WHERE id = ${id}`;
-			const result = await dBInstance.executeQuery(query);
+			genericDBInstance = await getGenericDBInstance(currentDB);
+			const query = `UPDATE ${table} SET "name" = '${name}', "category" = '${category}' WHERE id = ${id}`;
+			const result = await genericDBInstance.executeQuery(query);
 			logger.info(result);
 			return true;
 		} catch (error) {
@@ -134,10 +140,10 @@ const deleteProduct = async (parent: any, args: { id: string }): Promise<boolean
 			return false;
 		}
 	} else {
-		dBInstance = dBInstance || (await getDBInstance(currentDB));
 		try {
-			const query = `DELETE FROM TEST_PRODUCTS WHERE id = ${id}`;
-			const result = await dBInstance.executeQuery(query);
+			genericDBInstance = await getGenericDBInstance(currentDB);
+			const query = `DELETE FROM ${table} WHERE id = ${id}`;
+			const result = await genericDBInstance.executeQuery(query);
 			logger.info(result);
 			return true;
 		} catch (error) {

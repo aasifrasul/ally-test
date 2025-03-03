@@ -1,4 +1,6 @@
-import { createContext, ReactNode, useState } from 'react';
+import { createContext, ReactNode } from 'react';
+
+import { useToggle } from '../hooks/useToggle';
 
 export interface ThemeContextType {
 	theme: string;
@@ -17,16 +19,12 @@ export const ThemeContext = createContext<ThemeContextType>({
 });
 
 export const ThemeProvider = ({ children }: ThemeProviderProps): ReactNode => {
-	const [theme, setTheme] = useState('light');
-
-	const toggleTheme = (): void => {
-		setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
-	};
+	const [state, toggleTheme] = useToggle(true);
 
 	const value = {
-		theme,
+		theme: state ? 'light' : 'dark',
 		toggleTheme,
-		isDark: theme === 'dark',
+		isDark: !state,
 	};
 
 	return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

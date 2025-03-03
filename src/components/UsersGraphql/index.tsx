@@ -1,4 +1,3 @@
-import React from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { client } from '../../apolloClient';
 
@@ -6,8 +5,8 @@ const GET_USERS = gql`
 	query users {
 		getUsers {
 			id
-			firstName
-			lastName
+			first_name
+			last_name
 			age
 		}
 	}
@@ -15,8 +14,8 @@ const GET_USERS = gql`
 
 interface User {
 	id: string;
-	firstName: string;
-	lastName: string;
+	first_name: string;
+	last_name: string;
 	age: number;
 }
 
@@ -31,9 +30,9 @@ export default function UsersGraphql() {
 
 	return (
 		<ul>
-			{data?.getUsers?.map(({ id, firstName, lastName, age }: User) => (
+			{data?.getUsers?.map(({ id, first_name, last_name, age }: User) => (
 				<li key={id}>
-					{id}, {firstName} {lastName}, {age}
+					{id}, {first_name} {last_name}, {age}
 				</li>
 			))}
 		</ul>

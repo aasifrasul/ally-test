@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { subscribe } from '../../graphql/client';
+import { BASE_URL } from '../../constants/base';
 
 interface User {
 	id: string;
-	firstName: string;
-	lastName: string;
+	first_name: string;
+	last_name: string;
 	age: number;
 }
 
@@ -16,7 +17,7 @@ export default function DisplayGraphql() {
 	const [data, setData] = useState<GraphqlData | null>(null);
 
 	useEffect(() => {
-		subscribe('{ users {id, firstName, lastName, age} }')
+		subscribe('{ users {id, first_name, last_name, age} }')
 			.then((result) => {
 				if (result?.data) {
 					setData(result.data as GraphqlData);
@@ -28,21 +29,19 @@ export default function DisplayGraphql() {
 				console.error('Subscription error:', error);
 			});
 
-		fetch('/graphql', {
+		fetch(`${BASE_URL}/graphql`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 				Accept: 'application/json',
 			},
 			body: JSON.stringify({
-				query: `
-				mutation CreateUser($firstName: String!, $lastName: String!, $age: Int!) {
-					createUser(firstName: $firstName, lastName: $lastName, age: $age)
-				}
-				`,
+				query: `mutation CreateUser($first_name: String!, $last_name: String!, $age: Int!) {
+					createUser(first_name: $first_name, last_name: $last_name, age: $age)
+				}`,
 				variables: {
-					firstName: 'John',
-					lastName: 'Doe',
+					first_name: 'John',
+					last_name: 'Doe',
 					age: 30,
 				},
 			}),

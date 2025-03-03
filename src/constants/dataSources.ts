@@ -4,6 +4,7 @@ import infiniteScrollReducer from '../reducers/infiniteScrollReducer';
 import movieListReducer from '../reducers/movieListReducer';
 
 import { DataSources, Schema, InitialState, Action } from './types';
+import { BASE_URL } from './base';
 
 export const dataSources: DataSources = {
 	infiniteScroll: {
@@ -37,7 +38,7 @@ export const dataSources: DataSources = {
 		reducer: movieListReducer,
 	},
 	nestedCategories: {
-		BASE_URL: `https://localhost:3100/proxy/okrcentral`,
+		BASE_URL: `${BASE_URL}/proxy/okrcentral`,
 		schema: Schema.NESTED_CATEGORIES,
 		timeout: 2000,
 		options: {
@@ -46,7 +47,7 @@ export const dataSources: DataSources = {
 		reducer: nestedCategoriesReducer,
 	},
 	wineConnoisseur: {
-		BASE_URL: `http://localhost:3100/api/fetchWineData/`,
+		BASE_URL: `${BASE_URL}/api/fetchWineData/`,
 		schema: Schema.WINE_CONNOISSUER,
 		queryParams: {
 			page: 0,

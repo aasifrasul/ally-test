@@ -52,10 +52,38 @@ class MongoDBConnection {
 
 	private async checkMongoDBAvailability(uri: string): Promise<boolean> {
 		try {
-			await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
-			await mongoose.disconnect();
-			return true;
+			// Parse connection string to extract server details
+			const parsedUri = new URL(uri.replace('mongodb://', 'http://'));
+			const host = parsedUri.hostname;
+			const port = parsedUri.port || '27017';
+
+			// Use TCP socket to check if MongoDB server is listening
+			const net = require('net');
+			const socket = new net.Socket();
+
+			return new Promise<boolean>((resolve) => {
+				// Set a timeout for the connection attempt
+				socket.setTimeout(3000);
+
+				socket.on('connect', () => {
+					socket.end();
+					resolve(true);
+				});
+
+				socket.on('timeout', () => {
+					socket.destroy();
+					resolve(false);
+				});
+
+				socket.on('error', () => {
+					resolve(false);
+				});
+
+				// Attempt to connect to the MongoDB port
+				socket.connect(parseInt(port), host);
+			});
 		} catch (error) {
+			logger.debug('Error checking MongoDB availability:', error);
 			return false;
 		}
 	}

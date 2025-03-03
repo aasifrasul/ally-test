@@ -6,7 +6,7 @@ export interface ErrorHandlingOptions {
 	suppressErrors?: boolean;
 }
 
-export interface EventMap {
+export interface EventMap extends WindowEventMap, DocumentEventMap, HTMLElementEventMap {
 	click: MouseEvent;
 	mousedown: MouseEvent;
 	mouseup: MouseEvent;

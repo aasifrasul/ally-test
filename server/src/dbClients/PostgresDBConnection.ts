@@ -54,6 +54,8 @@ export class PostgresDBConnection {
 		this.pool.on('remove', () => {
 			logger.info('PostgresDBConnection Pool connection removed');
 		});
+
+		// this.setupTables();
 	}
 
 	public static async getInstance(
@@ -114,6 +116,21 @@ export class PostgresDBConnection {
 		} finally {
 			if (client) client.release();
 		}
+	}
+
+	public async setupTables(): Promise<void> {
+		await this.executeQuery(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
+		await this.executeQuery(`CREATE TABLE IF NOT EXISTS TEST_USERS (
+			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+			"first_name" VARCHAR(255) NOT NULL,
+			"last_name" VARCHAR(255) NOT NULL,
+			age INTEGER
+		);`);
+		await this.executeQuery(`CREATE TABLE IF NOT EXISTS TEST_PRODUCTS (
+			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+			name VARCHAR(255) NOT NULL,
+			category VARCHAR(255) NOT NULL
+		);`);
 	}
 
 	public async cleanup(): Promise<void> {

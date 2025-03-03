@@ -3,9 +3,9 @@ import React, { useRef, useEffect } from 'react';
 import styles from './styles.module.css';
 
 function TrafficLight() {
-	const redRef = useRef(null);
-	const yellowRef = useRef(null);
-	const greenRef = useRef(null);
+	const redRef = useRef<HTMLDivElement>(null);
+	const yellowRef = useRef<HTMLDivElement>(null);
+	const greenRef = useRef<HTMLDivElement>(null);
 	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 	const instance = useRef(-1);
 
@@ -21,11 +21,14 @@ function TrafficLight() {
 		}
 	};
 
-	const addClass = (elemRef: React.RefObject<HTMLDivElement>, className: string) => {
+	const addClass = (elemRef: React.RefObject<HTMLDivElement | null>, className: string) => {
 		elemRef.current?.classList?.add(className);
 	};
 
-	const removeClass = (elemRef: React.RefObject<HTMLDivElement>, className: string) => {
+	const removeClass = (
+		elemRef: React.RefObject<HTMLDivElement | null>,
+		className: string,
+	) => {
 		elemRef.current?.classList?.remove(className);
 	};
 

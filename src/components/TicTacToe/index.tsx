@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useMemo, JSX } from 'react';
 
-interface TicTacToeProps {}
 type Player = 'X' | 'O' | '';
 type GameState = 'playing' | 'won' | 'draw';
 
@@ -41,7 +40,7 @@ const GameStatus: React.FC<{
 	return <h2 className="text-3xl font-bold text-gray-800">{message}</h2>;
 };
 
-const TicTacToe: React.FC<TicTacToeProps> = () => {
+const TicTacToe: React.FC = () => {
 	const [board, setBoard] = useState<Player[]>(initialBoard);
 	const [currentPlayer, setCurrentPlayer] = useState(0);
 	const [winner, setWinner] = useState<Player | null>(null);
