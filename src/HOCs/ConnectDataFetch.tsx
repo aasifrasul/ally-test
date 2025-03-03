@@ -1,8 +1,6 @@
-import React, { ComponentType } from 'react';
+import { ComponentType } from 'react';
 import { useFetchStore } from '../Context/dataFetchContext';
-import { safelyExecuteFunction, isObject, isFunction } from '../utils/typeChecking';
-
-type Dispatch = (...args: any[]) => any;
+import { isObject, isFunction } from '../utils/typeChecking';
 
 interface MapStateToProps {
 	[key: string]: any;
@@ -42,9 +40,7 @@ const connectDataFetch =
 
 const buildProps = (propsFetcher: PropsFetcher = {}): MapStateToProps | MapDispatchToProps => {
 	if (isFunction(propsFetcher)) {
-		return safelyExecuteFunction(
-			propsFetcher as () => MapStateToProps | MapDispatchToProps,
-		);
+		return propsFetcher();
 	} else if (isObject(propsFetcher)) {
 		return {
 			...(propsFetcher as MapStateToProps | MapDispatchToProps),

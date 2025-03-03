@@ -5,8 +5,8 @@ const USER_CREATED_SUBSCRIPTION = gql`
 	subscription {
 		userCreated {
 			id
-			firstName
-			lastName
+			first_name
+			last_name
 			age
 		}
 	}
@@ -14,8 +14,8 @@ const USER_CREATED_SUBSCRIPTION = gql`
 
 interface User {
 	id: string;
-	firstName: string;
-	lastName: string;
+	first_name: string;
+	last_name: string;
 	age: number;
 }
 

@@ -17,8 +17,8 @@ const ID = GraphQLID;
 
 // Define base fields
 const UserBase: GraphQLFieldConfigMap<any, any> = {
-	firstName: { type: STRING },
-	lastName: { type: STRING },
+	first_name: { type: STRING },
+	last_name: { type: STRING },
 	age: { type: INT },
 };
 

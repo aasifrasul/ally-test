@@ -9,7 +9,7 @@ interface UseInterval {
 }
 
 const useInterval: UseInterval = (callback, delay = 0) => {
-	const callbackRef = useRef<UseIntervalCallback>();
+	const callbackRef = useRef<UseIntervalCallback>(callback);
 
 	// Remember the latest callback.
 	useEffect(() => {

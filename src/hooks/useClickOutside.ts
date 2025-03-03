@@ -1,6 +1,6 @@
 import { useCallback, useRef, RefObject } from 'react';
 import { useEventListener } from './EventListeners/useEventListener';
-import useToggle from './useToggle';
+import { useToggle } from './useToggle';
 
 type EventType =
 	| 'mousedown'
@@ -13,9 +13,9 @@ type EventType =
 	| 'mouseenter'
 	| 'mouseleave';
 
-interface UseClickOutside<T> {
+interface UseClickOutside<T extends ElementRef> {
 	isOutsideClick: boolean;
-	outsideRef: RefObject<T>;
+	outsideRef: RefObject<T | null>;
 }
 
 type ElementRef =

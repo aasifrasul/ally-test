@@ -6,6 +6,7 @@ export const pathSource = path.join(pathRootDir, 'src');
 export const pathAssets = path.join(pathRootDir, 'assets');
 export const pathBuild = path.join(pathRootDir, 'build');
 export const pathPublic = path.join(pathRootDir, 'public');
+export const pathFileUpload = path.join(pathPublic, 'uploads');
 export const pathServer = path.join(pathPublic, 'server');
 export const pathTemplate = path.join(pathPublic, 'ally-test');
 export const pathImage = path.join(pathAssets, 'images');

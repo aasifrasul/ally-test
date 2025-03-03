@@ -76,7 +76,9 @@ const TabsComponent: React.FC<TabsProps> = ({
 				{tabs.map(({ name, disabled }, index) => (
 					<button
 						key={`tab-${index}`}
-						ref={(el) => (tabsRef.current[index] = el)}
+						ref={(el) => {
+							tabsRef.current[index] = el;
+						}}
 						role="tab"
 						aria-selected={activeTab === index}
 						aria-controls={`panel-${index}`}

@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { JSX, useState, useEffect, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import styles from './OSStatistics.module.css';
+import { constants } from '../../../constants';
 
 interface Times {
 	user: number;
@@ -17,7 +18,7 @@ interface OSStatsData {
 }
 
 // Create socket instance with proper type
-const socket: Socket = io('http://localhost:3100');
+const socket: Socket = io(constants.BASE_URL);
 
 function OSStatistics(): JSX.Element {
 	const [data, setData] = useState<OSStatsData>({

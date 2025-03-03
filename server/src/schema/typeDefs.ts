@@ -8,11 +8,11 @@ const typeDefs = `
 	}
 
 	type Mutation {
-		createUser(firstName: String!, lastName: String!, age: Int!): Boolean
-        updateUser(id: ID!, firstName: String!, lastName: String!, age: Int!): Boolean
+		createUser(first_name: String!, last_name: String!, age: Int!): Boolean
+        updateUser(id: ID!, first_name: String!, last_name: String!, age: Int!): Boolean
         deleteUser(id: ID!): Boolean
 
-        createProduct(name: String!, category: String!): Product
+        createProduct(name: String!, category: String!): Boolean
         updateProduct(id: ID!, name: String!, category: String!): Boolean
         deleteProduct(id: ID!): Boolean
 	}
@@ -23,8 +23,8 @@ const typeDefs = `
 
 	type User {
 		id: ID!
-		firstName: String!
-        lastName: String!
+		first_name: String!
+        last_name: String!
         age: Int!
 	}
 

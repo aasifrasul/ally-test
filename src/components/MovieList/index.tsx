@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { JSX, useEffect } from 'react';
 
 import useFetch, { FetchResult } from '../../hooks/useFetch';
 import { handleAsyncCalls } from '../../utils/common';

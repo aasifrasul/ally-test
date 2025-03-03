@@ -2,14 +2,15 @@ import { ApolloClient, InMemoryCache, HttpLink, split } from '@apollo/client';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
+import { constants } from './constants/';
 
 const httpLink = new HttpLink({
-	uri: 'http://localhost:3100/graphql/',
+	uri: `${constants.BASE_URL}/graphql/`,
 });
 
 const wsLink = new GraphQLWsLink(
 	createClient({
-		url: 'ws://localhost:3100/graphql',
+		url: `${constants.BASE_URL.replace('http', 'ws')}/graphql/`,
 		connectionParams: {
 			// Add any authentication tokens if needed
 			// authToken: user.authToken

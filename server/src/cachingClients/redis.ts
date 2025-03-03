@@ -4,15 +4,21 @@ import { logger } from '../Logger';
 
 const { url, MAX_RETRIES, RETRY_DELAY } = constants.cachingLayer.redisConfig;
 
-class RedisClient {
+export class RedisClient {
+	private static instance: RedisClient;
 	private client: RedisClientType | null = null;
 	private connected: boolean = false;
 	private reconnectTimeout: NodeJS.Timeout | null = null;
-	private reconnectAttempts: number = 0;
 	private initializing: boolean = false;
 
-	constructor() {
-		this.connect();
+	private constructor() {}
+
+	public static getInstance() {
+		if (RedisClient.instance) {
+			return RedisClient.instance;
+		}
+		RedisClient.instance = new RedisClient();
+		return RedisClient.instance;
 	}
 
 	public async connect(): Promise<void> {
@@ -157,5 +163,3 @@ class RedisClient {
 		logger.info('Redis reconnection attempts stopped.');
 	}
 }
-
-export default new RedisClient();

@@ -1,12 +1,13 @@
 import { createClient, Client, ClientOptions } from 'graphql-http';
 import { ExecutionResult } from 'graphql';
+import { constants } from '../constants';
 
 export interface SubscribePayload {
 	query: string;
 }
 
 export const client: Client = createClient({
-	url: 'http://localhost:3100/graphql/',
+	url: `${constants.BASE_URL}/graphql/`,
 	fetchFn: fetch,
 	abortControllerImpl: AbortController, // node < v15
 } as ClientOptions);

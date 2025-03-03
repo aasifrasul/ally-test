@@ -6,7 +6,7 @@ export const useDebouncedCallback = <A extends any[]>(
 	callback: (...args: A) => void,
 	delay: number,
 ): DebounceFunction<A> => {
-	const callbackRef = useRef<DebounceFunction<A>>();
+	const callbackRef = useRef<DebounceFunction<A>>(callback);
 	callbackRef.current = callback;
 
 	return useCallback(

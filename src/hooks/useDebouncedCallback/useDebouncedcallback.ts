@@ -7,8 +7,8 @@ export function useDebouncedCallback<A extends any[]>(
 ) {
 	// Store latest callback and args
 	const callbackRef = useRef(callback);
-	const argsRef = useRef<A>();
-	const timeout = useRef<ReturnType<typeof setTimeout>>();
+	const argsRef = useRef<A | undefined>(undefined);
+	const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	// Keep callback ref updated
 	useEffect(() => {
@@ -17,7 +17,11 @@ export function useDebouncedCallback<A extends any[]>(
 
 	// Cleanup on unmount
 	useEffect(() => {
-		return () => timeout.current && clearTimeout(timeout.current);
+		return () => {
+			if (timeout.current) {
+				clearTimeout(timeout.current);
+			}
+		};
 	}, []);
 
 	return function debouncedCallback(...args: A) {

@@ -33,7 +33,7 @@ const CombinedRefCheckbox = forwardRef<CheckboxRef, CombinedRefCheckboxProps>(
 		const handleChecked =
 			() =>
 			(e: ChangeEvent<HTMLInputElement>): void => {
-				safelyExecuteFunction(callback, undefined, !checked);
+				safelyExecuteFunction(callback, null, !checked);
 				setChecked((isChecked) => !isChecked);
 			};
 

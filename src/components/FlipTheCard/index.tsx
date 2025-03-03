@@ -11,7 +11,7 @@ interface Card {
 	display: boolean;
 }
 
-export default function FlipTheCard(): JSX.Element {
+export default function FlipTheCard(): React.JSX.Element {
 	const cards = React.useRef<Card[]>(shuffle(MOCK));
 	const solvedCards = React.useRef<number>(0);
 

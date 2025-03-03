@@ -22,7 +22,7 @@ interface IconProps extends HTMLAccessibilityProps, React.HTMLAttributes<HTMLEle
 	onClick?: HTMLElementClickHandler;
 }
 
-const Icon = React.memo((props: IconProps): JSX.Element | null => {
+const Icon = React.memo((props: IconProps): React.JSX.Element | null => {
 	const {
 		testAutomationId = 'icon',
 		ariaHidden = true,

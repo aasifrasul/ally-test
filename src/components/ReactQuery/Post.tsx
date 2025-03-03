@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { usePost } from './helpers';
 import { PostProps } from './types';
 

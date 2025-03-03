@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { useQueryClient } from 'react-query';
 import { usePosts } from './helpers';
 import { PostsProps } from './types';

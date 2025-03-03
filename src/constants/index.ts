@@ -1,5 +1,6 @@
 import { dataSources } from './dataSources';
 import { createImmutable } from '../utils/immutable';
+import { BASE_URL } from './base';
 
 import { AutoCompleteConfig, Constants } from './types';
 
@@ -49,6 +50,7 @@ export const constants = createImmutable<Constants>({
 	autoComplete,
 	dataSources,
 	routes,
+	BASE_URL,
 	tictactoe: {
 		allPossibleWinningCombo: [
 			[`idx-r1-c1`, `idx-r1-c2`, `idx-r1-c3`],

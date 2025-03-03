@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, JSX } from 'react';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from 'react-query/devtools';
 import { Post } from './Post';
@@ -7,7 +7,7 @@ import { Posts } from './Posts';
 const queryClient = new QueryClient();
 
 function ReactQuery(): JSX.Element {
-	const [postId, setPostId] = React.useState<number>(-1);
+	const [postId, setPostId] = useState<number>(-1);
 
 	return (
 		<QueryClientProvider client={queryClient}>
