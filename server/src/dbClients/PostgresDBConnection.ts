@@ -1,5 +1,6 @@
 import { Pool, PoolConfig, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { constants } from '../constants';
+import { DBType } from '../types';
 import { logger } from '../Logger';
 
 export interface PostgresDBConnectionConfig extends PoolConfig {
@@ -62,7 +63,10 @@ export class PostgresDBConnection {
 		config: PostgresDBConnectionConfig,
 	): Promise<PostgresDBConnection> {
 		if (!PostgresDBConnection.instance) {
+			PostgresDBConnection.checkForValidDBType();
+
 			PostgresDBConnection.instance = new PostgresDBConnection(config);
+
 			try {
 				await PostgresDBConnection.instance.testConnection();
 				logger.info('PostgresDBConnection instantiated');
@@ -75,6 +79,12 @@ export class PostgresDBConnection {
 		}
 
 		return PostgresDBConnection.instance;
+	}
+
+	private static checkForValidDBType(): void {
+		if (constants.dbLayer.currentDB !== DBType.POSTGRES) {
+			throw new Error('Please use correct DB Type');
+		}
 	}
 
 	private async testConnection(): Promise<void> {

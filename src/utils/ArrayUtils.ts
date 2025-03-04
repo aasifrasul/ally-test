@@ -1,3 +1,5 @@
+import { deepCopy } from './deepCopy';
+
 export const alphabets = [
 	'a',
 	'b',
@@ -27,20 +29,18 @@ export const alphabets = [
 	'z',
 ];
 
-export const getArrayCount = (arr) => (Array.isArray(arr) && arr.length) || 0;
-
-export const dupeArray = (arr) => Array.isArray(arr) && Array.prototype.slice.call(arr);
+export const getArrayCount = <T>(arr: T[]): number => (Array.isArray(arr) && arr.length) || 0;
 
 /**
  * Shuffles a given array
  * Randomize the indexes
  */
-export const shuffle = (array) => {
-	if (!Array.isArray(array)) {
+export const shuffle = <T>(arr: T[]): T[] => {
+	if (!Array.isArray(arr)) {
 		throw new Error('Please provide a valid array');
 	}
 
-	const newArray = JSON.parse(JSON.stringify(array));
+	const newArray = deepCopy(arr);
 
 	newArray.sort(function () {
 		return Math.random() - 0.5;
@@ -52,7 +52,7 @@ export const shuffle = (array) => {
 /**
  * Create equal chunks of the given array by size
  */
-export const arrayChunks = (a, size) =>
+export const arrayChunks = <T>(a: T[], size: number): T[][] =>
 	Array.from(new Array(Math.ceil(a.length / size)), (_, i) =>
 		a.slice(i * size, i * size + size),
 	);

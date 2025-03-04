@@ -32,7 +32,7 @@ function OSStatistics(): JSX.Element {
 
 	const handleOSStatsData = useCallback((res: OSStatsData) => {
 		if (res) {
-			setData(res);
+			setData((prevData) => ({ ...prevData, ...res }));
 		}
 	}, []);
 
