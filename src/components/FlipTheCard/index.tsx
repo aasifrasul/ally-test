@@ -1,7 +1,7 @@
 import React from 'react';
-import useTimer from '../../hooks/useTimer';
+import { useTimer } from '../../hooks/useTimer';
 import { safelyExecuteFunction } from '../../utils/typeChecking';
-import { shuffle, arrayChunks } from '../../utils/ArrayUtils';
+import { shuffle } from '../../utils/ArrayUtils';
 import { MOCK, blankCard } from './mock';
 import styles from './styles.module.css';
 
@@ -18,7 +18,7 @@ export default function FlipTheCard(): React.JSX.Element {
 	// To store the indexes of the opened cards
 	const [openCards, setOpenCards] = React.useState<number[]>([]);
 
-	const { seconds, fraction, handleReset, handleStop } = useTimer(1000);
+	const { seconds, handleReset, handleStop } = useTimer();
 
 	const handleClick = (index: number): void => {
 		if (openCards.length < 2) {

@@ -1,24 +1,21 @@
 import { JSX, useState, useEffect, useRef, useCallback } from 'react';
-import ReactDataGrid, { Column } from 'react-data-grid';
+import { DataGrid, Column } from 'react-data-grid';
 import { io, Socket } from 'socket.io-client';
 import { constants } from '../../../constants';
 
-// Constants
-const RECONNECTION_ATTEMPTS = 3;
-const RECONNECTION_DELAY = 2000;
+const MAX_ROWS = 1000;
+const BATCH_UPDATE_INTERVAL = 500; // Update UI every 500ms
 
 interface Row {
 	key: string;
 	value: number;
+	timestamp: number;
 }
 
-interface Queue {
-	enqueue: (data: Row) => void;
-	dequeue: () => Row | undefined;
-}
-
-interface GridDataProps {
-	queue: Queue;
+enum ConnectionStatus {
+	CONNECTED = 'connected',
+	DISCONNECTED = 'disconnected',
+	ERROR = 'error',
 }
 
 const columns: Column<Row>[] = [
@@ -26,91 +23,99 @@ const columns: Column<Row>[] = [
 	{ key: 'value', name: 'Ratio' },
 ];
 
-function GridData({ queue }: GridDataProps): JSX.Element {
+function GridData(): JSX.Element {
 	const [rows, setRows] = useState<Row[]>([]);
-	const [connectionStatus, setConnectionStatus] = useState<
-		'connected' | 'disconnected' | 'error'
-	>('disconnected');
-	const rafRef = useRef<number | null>(null);
-	const socketRef = useRef<Socket | null>(null);
-	const reconnectAttemptsRef = useRef(0);
-
-	const setRowsData = useCallback(() => {
-		const data: Row[] = [];
-		let res = queue.dequeue();
-		while (res) {
-			data.push(res);
-			res = queue.dequeue();
-		}
-		setRows((storedData) => [...data, ...storedData].slice(0, 1000)); // Prevent unlimited growth
-		rafRef.current = null;
-	}, [queue]);
-
-	const addInQueue = useCallback(
-		(data: Row) => {
-			queue.enqueue(data);
-			if (!rafRef.current) {
-				rafRef.current = window.requestAnimationFrame(setRowsData);
-			}
-		},
-		[queue, setRowsData],
+	const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
+		ConnectionStatus.DISCONNECTED,
 	);
 
-	const initializeSocket = useCallback(() => {
-		socketRef.current = io(constants.BASE_URL, {
-			reconnectionAttempts: RECONNECTION_ATTEMPTS,
-			reconnectionDelay: RECONNECTION_DELAY,
-			transports: ['websocket', 'polling'], // Try WebSocket first, fallback to polling
-		});
+	// Use a ref to store incoming data
+	const incomingDataRef = useRef<Row[]>([]);
+	const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-		socketRef.current.on('connect', () => {
-			setConnectionStatus('connected');
-			reconnectAttemptsRef.current = 0;
-			socketRef.current?.emit('fetchCurrencyPair');
-		});
+	// Efficient data update mechanism
+	const processIncomingData = useCallback(() => {
+		if (incomingDataRef.current.length > 0) {
+			setRows((prevRows) => {
+				// Combine new data with existing rows
+				const combinedRows = [...incomingDataRef.current, ...prevRows];
 
-		socketRef.current.on('disconnect', () => {
-			setConnectionStatus('disconnected');
-		});
+				// Trim to max rows
+				const trimmedRows = combinedRows.slice(0, MAX_ROWS);
 
-		socketRef.current.on('connect_error', (error) => {
-			console.error('Socket connection error:', error);
-			setConnectionStatus('error');
+				// Clear incoming data ref
+				incomingDataRef.current = [];
 
-			if (reconnectAttemptsRef.current < RECONNECTION_ATTEMPTS) {
-				reconnectAttemptsRef.current++;
-				setTimeout(() => {
-					socketRef.current?.connect();
-				}, RECONNECTION_DELAY);
-			}
-		});
+				return trimmedRows;
+			});
+		}
+	}, []);
 
-		socketRef.current.on('currencyPairData', addInQueue);
+	// Periodic batch update
+	useEffect(() => {
+		updateTimerRef.current = setInterval(processIncomingData, BATCH_UPDATE_INTERVAL);
 
 		return () => {
-			if (rafRef.current) {
-				window.cancelAnimationFrame(rafRef.current);
+			if (updateTimerRef.current) {
+				clearInterval(updateTimerRef.current);
 			}
-			socketRef.current?.off('currencyPairData', addInQueue);
-			socketRef.current?.emit('stopFetchCurrencyPair');
-			socketRef.current?.disconnect();
 		};
-	}, [addInQueue]);
+	}, [processIncomingData]);
 
+	// Socket initialization
 	useEffect(() => {
-		const cleanup = initializeSocket();
-		return cleanup;
-	}, [initializeSocket]);
+		const socket = io(constants.BASE_URL);
+
+		const handleConnect = () => {
+			setConnectionStatus(ConnectionStatus.CONNECTED);
+			socket.emit('fetchCurrencyPair');
+		};
+
+		const handleDisconnect = () => {
+			setConnectionStatus(ConnectionStatus.DISCONNECTED);
+		};
+
+		const handleConnectError = (error: Error) => {
+			console.error('Socket connection error:', error);
+			setConnectionStatus(ConnectionStatus.ERROR);
+		};
+
+		const handleCurrencyPairData = (data: Row) => {
+			// Add timestamp and store in incoming data ref
+			const rowWithTimestamp = { ...data, timestamp: Date.now() };
+			incomingDataRef.current.push(rowWithTimestamp);
+		};
+
+		// Setup socket listeners
+		socket.on('connect', handleConnect);
+		socket.on('disconnect', handleDisconnect);
+		socket.on('connect_error', handleConnectError);
+		socket.on('currencyPairData', handleCurrencyPairData);
+
+		// Connect socket if not already connected
+		if (socket.disconnected) {
+			socket.connect();
+		}
+
+		// Cleanup function
+		return () => {
+			socket.off('connect', handleConnect);
+			socket.off('disconnect', handleDisconnect);
+			socket.off('connect_error', handleConnectError);
+			socket.off('currencyPairData', handleCurrencyPairData);
+			socket.emit('stopFetchCurrencyPair');
+		};
+	}, []);
 
 	return (
-		<div className="grid-container">
+		<div>
 			{connectionStatus !== 'connected' && (
-				<div className="connection-status">
+				<div>
 					{connectionStatus === 'disconnected' && 'Connecting to server...'}
 					{connectionStatus === 'error' && 'Connection error. Retrying...'}
 				</div>
 			)}
-			<ReactDataGrid columns={columns} rows={rows} />
+			<DataGrid columns={columns} rows={rows} rowKeyGetter={(row) => row.timestamp} />
 		</div>
 	);
 }

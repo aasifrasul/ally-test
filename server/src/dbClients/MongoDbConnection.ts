@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { MongoDBConfig, DBType } from '../types';
 import { constants } from '../constants';
 import { logger } from '../Logger';
+import { error } from 'console';
 
 class MongoDBConnection {
 	private static instance: MongoDBConnection;
@@ -12,14 +13,17 @@ class MongoDBConnection {
 	}
 
 	public static getInstance(): MongoDBConnection | null {
-		if (constants.dbLayer.currentDB !== DBType.MONGODB) {
-			return null;
-		}
-
 		if (!MongoDBConnection.instance) {
+			MongoDBConnection.checkForValidDBType();
 			MongoDBConnection.instance = new MongoDBConnection();
 		}
 		return MongoDBConnection.instance;
+	}
+
+	private static checkForValidDBType(): void {
+		if (constants.dbLayer.currentDB !== DBType.MONGODB) {
+			throw new Error('Please use correct Db Type');
+		}
 	}
 
 	public async connect(): Promise<void> {

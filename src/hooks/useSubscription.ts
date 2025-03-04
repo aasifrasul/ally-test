@@ -2,7 +2,7 @@ import { gql } from 'graphql-request';
 import { useState, useEffect } from 'react';
 
 // Assuming your GraphQL server supports subscriptions over WebSocket
-const SUBSCRIPTION_URI = 'ws://your-subscriptions-endpoint.com';
+const SUBSCRIPTION_URI = 'ws://127.0.0.1:3100/graphql';
 
 const USER_CREATED_SUBSCRIPTION = gql`
 	subscription UserCreated {

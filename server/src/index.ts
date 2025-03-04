@@ -15,7 +15,7 @@ const httpServer: http.Server = http.createServer(app);
 
 MongoDBConnection.getInstance()?.connect();
 
-httpServer.on('request', () => logger.info('httpServer.request'));
+// httpServer.on('request', () => logger.info('httpServer.request'));
 
 httpServer.listen(Number(port), Number(host), () =>
 	logger.info(`node httpServer listening on port ${Number(port)}`),

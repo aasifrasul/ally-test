@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 
 interface TimeElapsed {
 	seconds: number;
-	fraction: number;
+	milliseconds: number;
 }
 
 interface TimerControls {
@@ -11,41 +11,53 @@ interface TimerControls {
 	handleReset: () => void;
 }
 
-function useTimer(timePeriod: number = 1000): TimeElapsed & TimerControls {
-	const timeElapsed = useRef<TimeElapsed>({ seconds: 0, fraction: 0 });
-	const intervalID = useRef<number | null>(null);
-	const [timer, setTimer] = useState<number>(timePeriod < 1000 ? 0 : 1);
+export function useTimer(autoStart = true): TimeElapsed & TimerControls {
+	const startTime = useRef<number | null>(null);
+	const elapsedTime = useRef<number>(0);
+	const animationFrameId = useRef<number | null>(null);
+	const [time, setTime] = useState<TimeElapsed>({ seconds: 0, milliseconds: 0 });
 
-	const stopTimer = () => {
-		if (intervalID.current !== null) {
-			clearInterval(intervalID.current);
-			intervalID.current = null;
+	const updateTime = () => {
+		if (startTime.current !== null) {
+			const now = Date.now();
+			elapsedTime.current = now - startTime.current;
+			setTime({
+				seconds: Math.floor(elapsedTime.current / 1000),
+				milliseconds: elapsedTime.current % 1000,
+			});
+			animationFrameId.current = requestAnimationFrame(updateTime);
 		}
 	};
 
-	useEffect(() => {
-		stopTimer();
-		intervalID.current = window.setInterval(
-			() => setTimer((prevTimer) => prevTimer + 1),
-			timePeriod,
-		);
-		const totalTime = timePeriod * timer;
-		timeElapsed.current = {
-			seconds: Math.floor(totalTime / 1000),
-			fraction: totalTime % 1000,
-		};
-		return stopTimer;
-	}, [timer, timePeriod]);
+	const startTimer = () => {
+		if (startTime.current === null) {
+			startTime.current = Date.now() - elapsedTime.current;
+			updateTime();
+		}
+	};
+
+	const stopTimer = () => {
+		if (animationFrameId.current !== null) {
+			cancelAnimationFrame(animationFrameId.current);
+			animationFrameId.current = null;
+		}
+	};
 
 	const handleStop = () => stopTimer();
-	const handleResume = () => setTimer((prevTimer) => prevTimer + 1);
-	const handleReset = () =>
-		setTimer(() => {
-			timeElapsed.current = { seconds: 0, fraction: 0 };
-			return timePeriod < 1000 ? 0 : 1;
-		});
+	const handleResume = () => startTimer();
+	const handleReset = () => {
+		stopTimer();
+		startTime.current = null;
+		elapsedTime.current = 0;
+		setTime({ seconds: 0, milliseconds: 0 });
+	};
 
-	return { ...timeElapsed.current, handleStop, handleResume, handleReset };
+	useEffect(() => {
+		if (autoStart) {
+			startTimer();
+		}
+		return stopTimer;
+	}, []);
+
+	return { ...time, handleStop, handleResume, handleReset };
 }
-
-export default useTimer;

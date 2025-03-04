@@ -1,15 +1,11 @@
 import GridData from '../Common/GridData/GridData';
 import OSStatistics from '../Common/OSStatistics/OSStatistics';
 
-import queue from '../../utils/SPQueue';
-
-function CurrencyStream() {
+export default function CurrencyStream() {
 	return (
-		<div>
+		<>
 			<OSStatistics />
-			<GridData queue={queue} />
-		</div>
+			<GridData />
+		</>
 	);
 }
-
-export default CurrencyStream;

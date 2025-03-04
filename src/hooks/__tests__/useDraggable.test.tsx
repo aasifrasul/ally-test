@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/dom';
 import { useDraggable } from '../useDraggable';
 import { renderHook, act } from '@testing-library/react-hooks';
 
