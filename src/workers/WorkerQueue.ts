@@ -1,5 +1,6 @@
 import type { APIOptions, WorkerMessage } from '../types/api';
 import { createLogger } from '../utils/logger';
+import { getRandomId } from '../utils/common';
 
 const logger = createLogger('WorkerQueue');
 
@@ -50,7 +51,7 @@ export class WorkerQueue {
 	}
 
 	private async sendMessage(type: string, data: any, timeout = 30000): Promise<any> {
-		const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+		const id = getRandomId();
 
 		return new Promise((resolve, reject) => {
 			const timeoutId = setTimeout(() => {
@@ -83,6 +84,10 @@ export class WorkerQueue {
 
 	async loadImage(imageUrl: string): Promise<string> {
 		return this.sendMessage('loadImage', imageUrl);
+	}
+
+	async startCurrencyStream(): Promise<void> {
+		return this.sendMessage('startCurrencyStream', null);
 	}
 
 	async abortFetchRequest(endpoint: string): Promise<void> {

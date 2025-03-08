@@ -1,7 +1,6 @@
 import { JSX, useState, useEffect, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
 import styles from './OSStatistics.module.css';
-import { constants } from '../../../constants';
+import { useSocket } from '../../../Context/SocketContextProvider';
 
 interface Times {
 	user: number;
@@ -17,17 +16,19 @@ interface OSStatsData {
 	times: Times;
 }
 
-// Create socket instance with proper type
-const socket: Socket = io(constants.BASE_URL);
-
 function OSStatistics(): JSX.Element {
-	const [data, setData] = useState<OSStatsData>({
-		model: '',
-		speed: 0,
-		times: { user: 0, nice: 0, sys: 0, idle: 0, irq: 0 },
-	});
+	// Create socket instance with proper type
+	const { socket, isConnected } = useSocket();
 
-	const { model, speed, times } = data;
+	const [data, setData] = useState<OSStatsData[]>([
+		{
+			model: '',
+			speed: 0,
+			times: { user: 0, nice: 0, sys: 0, idle: 0, irq: 0 },
+		},
+	]);
+
+	const { model, speed, times } = data[0];
 	const { user, nice, sys, idle, irq } = times;
 
 	const handleOSStatsData = useCallback((res: OSStatsData) => {
@@ -37,15 +38,15 @@ function OSStatistics(): JSX.Element {
 	}, []);
 
 	useEffect(() => {
-		socket.on('oSStatsData', handleOSStatsData);
+		socket!.on('oSStatsData', handleOSStatsData);
 
 		return () => {
-			socket.off('oSStatsData', handleOSStatsData);
+			socket!.off('oSStatsData', handleOSStatsData);
 		};
-	}, [handleOSStatsData]);
+	}, [socket, handleOSStatsData]);
 
 	const handleFetchStats = useCallback(() => {
-		socket.emit('fetchOSStats');
+		socket!.emit('fetchOSStats');
 	}, []);
 
 	return (

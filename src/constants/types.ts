@@ -111,6 +111,7 @@ export interface FormMetaData {
 
 export type Constants = {
 	BASE_URL?: string;
+	WS_URL?: string;
 	common?: Common;
 	autoComplete?: AutoCompleteConfig;
 	dataSources?: DataSources;
