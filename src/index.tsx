@@ -5,6 +5,7 @@ import { ApolloProvider } from '@apollo/client';
 
 import { FetchStoreProvider } from './Context/dataFetchContext';
 import { ThemeProvider } from './Context/ThemeProvider';
+import { SocketProvider } from './Context/SocketContextProvider';
 
 import store from './store';
 import { client } from './apolloClient';
@@ -23,14 +24,16 @@ const root = createRoot(rootElement);
 
 root.render(
 	<StrictMode>
-		<ThemeProvider>
-			<Provider store={store}>
-				<ApolloProvider client={client}>
-					<FetchStoreProvider>
-						<App />
-					</FetchStoreProvider>
-				</ApolloProvider>
-			</Provider>
-		</ThemeProvider>
+		<SocketProvider>
+			<ThemeProvider>
+				<Provider store={store}>
+					<ApolloProvider client={client}>
+						<FetchStoreProvider>
+							<App />
+						</FetchStoreProvider>
+					</ApolloProvider>
+				</Provider>
+			</ThemeProvider>
+		</SocketProvider>
 	</StrictMode>,
 );

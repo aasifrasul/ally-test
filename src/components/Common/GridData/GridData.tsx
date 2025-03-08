@@ -1,7 +1,6 @@
 import { JSX, useState, useEffect, useRef, useCallback } from 'react';
 import { DataGrid, Column } from 'react-data-grid';
-import { io, Socket } from 'socket.io-client';
-import { constants } from '../../../constants';
+import { useSocket } from '../../../Context/SocketContextProvider';
 
 const MAX_ROWS = 1000;
 const BATCH_UPDATE_INTERVAL = 500; // Update UI every 500ms
@@ -12,22 +11,14 @@ interface Row {
 	timestamp: number;
 }
 
-enum ConnectionStatus {
-	CONNECTED = 'connected',
-	DISCONNECTED = 'disconnected',
-	ERROR = 'error',
-}
-
 const columns: Column<Row>[] = [
 	{ key: 'key', name: 'Currency Pair' },
 	{ key: 'value', name: 'Ratio' },
 ];
 
 function GridData(): JSX.Element {
+	const { socket, isConnected } = useSocket();
 	const [rows, setRows] = useState<Row[]>([]);
-	const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
-		ConnectionStatus.DISCONNECTED,
-	);
 
 	// Use a ref to store incoming data
 	const incomingDataRef = useRef<Row[]>([]);
@@ -64,21 +55,9 @@ function GridData(): JSX.Element {
 
 	// Socket initialization
 	useEffect(() => {
-		const socket = io(constants.BASE_URL);
-
-		const handleConnect = () => {
-			setConnectionStatus(ConnectionStatus.CONNECTED);
-			socket.emit('fetchCurrencyPair');
-		};
-
-		const handleDisconnect = () => {
-			setConnectionStatus(ConnectionStatus.DISCONNECTED);
-		};
-
-		const handleConnectError = (error: Error) => {
-			console.error('Socket connection error:', error);
-			setConnectionStatus(ConnectionStatus.ERROR);
-		};
+		if (isConnected) {
+			socket!.emit('fetchCurrencyPair');
+		}
 
 		const handleCurrencyPairData = (data: Row) => {
 			// Add timestamp and store in incoming data ref
@@ -87,34 +66,23 @@ function GridData(): JSX.Element {
 		};
 
 		// Setup socket listeners
-		socket.on('connect', handleConnect);
-		socket.on('disconnect', handleDisconnect);
-		socket.on('connect_error', handleConnectError);
-		socket.on('currencyPairData', handleCurrencyPairData);
+		socket!.on('currencyPairData', handleCurrencyPairData);
 
 		// Connect socket if not already connected
-		if (socket.disconnected) {
-			socket.connect();
+		if (socket!.disconnected) {
+			socket!.connect();
 		}
 
 		// Cleanup function
 		return () => {
-			socket.off('connect', handleConnect);
-			socket.off('disconnect', handleDisconnect);
-			socket.off('connect_error', handleConnectError);
-			socket.off('currencyPairData', handleCurrencyPairData);
-			socket.emit('stopFetchCurrencyPair');
+			socket!.off('currencyPairData', handleCurrencyPairData);
+			socket!.emit('stopFetchCurrencyPair');
 		};
-	}, []);
+	}, [socket, isConnected]);
 
 	return (
 		<div>
-			{connectionStatus !== 'connected' && (
-				<div>
-					{connectionStatus === 'disconnected' && 'Connecting to server...'}
-					{connectionStatus === 'error' && 'Connection error. Retrying...'}
-				</div>
-			)}
+			{!isConnected && <div>{'Connecting to server...'}</div>}
 			<DataGrid columns={columns} rows={rows} rowKeyGetter={(row) => row.timestamp} />
 		</div>
 	);
