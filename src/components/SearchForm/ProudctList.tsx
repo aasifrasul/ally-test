@@ -7,6 +7,7 @@ interface ProductListProps {
 	data: any[];
 	callback?: (text: string, id: string) => void;
 	sortCallback?: (key: string, isAsc: boolean) => void;
+	searchText: string;
 }
 
 const headers = [
@@ -18,7 +19,12 @@ const headers = [
 	{ key: 'date_n_time', value: 'Date And Time' },
 ];
 
-export default function ProductList({ data, callback, sortCallback }: ProductListProps) {
+export default function ProductList({
+	data,
+	callback,
+	sortCallback,
+	searchText,
+}: ProductListProps) {
 	const handleSearch = (text: string) => {
 		if (typeof callback === 'function') {
 			callback(text, 'product_name');
@@ -36,6 +42,7 @@ export default function ProductList({ data, callback, sortCallback }: ProductLis
 						placeholder="Search Data"
 						onChange={handleSearch}
 						debounceMs={300}
+						initialValue={searchText}
 					/>
 				</span>
 			</div>

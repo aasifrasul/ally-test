@@ -1,9 +1,5 @@
 import { createContext, useState } from 'react';
 
-interface AuthProviderProps {
-	children: React.ReactNode;
-}
-
 interface AuthContextType {
 	user: any;
 	login: (credentials: any) => void;
@@ -18,7 +14,7 @@ const AuthContext = createContext<AuthContextType>({
 	isLoading: false,
 });
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [user, setUser] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 

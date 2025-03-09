@@ -20,15 +20,13 @@ function OSStatistics(): JSX.Element {
 	// Create socket instance with proper type
 	const { socket, isConnected } = useSocket();
 
-	const [data, setData] = useState<OSStatsData[]>([
-		{
-			model: '',
-			speed: 0,
-			times: { user: 0, nice: 0, sys: 0, idle: 0, irq: 0 },
-		},
-	]);
+	const [data, setData] = useState<OSStatsData>({
+		model: '',
+		speed: 0,
+		times: { user: 0, nice: 0, sys: 0, idle: 0, irq: 0 },
+	});
 
-	const { model, speed, times } = data[0];
+	const { model, speed, times } = data;
 	const { user, nice, sys, idle, irq } = times;
 
 	const handleOSStatsData = useCallback((res: OSStatsData) => {

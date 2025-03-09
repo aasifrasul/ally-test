@@ -1,10 +1,12 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import ProductList from './ProudctList';
 
 import Pagination from '../Common/Pagination';
 import FormGenerator, { FormWithElements } from '../Common/FormGenerator';
 import { constants } from '../../constants';
+import { Spinner } from '../Common/Spinner/Spinner';
 
 import { sortMixedArray, searchTextOnData } from '../../utils/common';
 
@@ -20,15 +22,43 @@ interface SortCallback {
 }
 
 export default function SearchForm({ data, addItem }: SearchFormProps) {
+	const [searchParams, setSearchParams] = useSearchParams();
 	const [displayData, setDisplayData] = React.useState<any[]>([]);
-	const pageNum = React.useRef(1);
+	const [isLoading, setIsLoading] = React.useState(true);
+
+	const searchText = searchParams.get('searchText') || '';
+
+	const processData = (newData: any[] | undefined) => {
+		let processedData = newData || [];
+
+		// Apply search filter
+		if (searchText) {
+			processedData = searchTextOnData(searchText, processedData, [
+				'product_name',
+				'description',
+			]);
+		}
+
+		// Apply sorting
+		const isAsc = searchParams.get('isAsc');
+		const sortHeader = searchParams.get('sortHeader') || 'product_name';
+		if (processedData.length > 0 && isAsc) {
+			processedData = sortMixedArray(processedData, isAsc === 'true', sortHeader);
+		}
+
+		setDisplayData(processedData);
+		setIsLoading(false);
+	};
 
 	React.useEffect(() => {
-		if (data?.message) {
-			setDisplayData(data.message);
-		}
-		return () => setDisplayData([]);
-	}, [data?.message?.length]);
+		['isAsc', 'sortHeader', 'searchText', 'page'].forEach((key) => {
+			const newSearchParams = new URLSearchParams(searchParams);
+			if (!newSearchParams.has(key)) {
+				newSearchParams.delete(key, '');
+			}
+		});
+		processData(data);
+	}, [data, searchParams]);
 
 	const handleSubmit = (e: React.FormEvent<FormWithElements>) => {
 		e.preventDefault();
@@ -48,28 +78,31 @@ export default function SearchForm({ data, addItem }: SearchFormProps) {
 	};
 
 	const searchCallback = (searchText: string): void => {
-		const filteredData = searchTextOnData(searchText, data?.message, [
-			'product_name',
-			'description',
-		]);
-		pageNum.current = 1;
-		setDisplayData(filteredData);
-	};
-
-	const paginationCallback = (pageCount: number) => {
-		pageNum.current = pageCount;
-		setDisplayData(() => [...displayData]);
+		const newSearchParams = new URLSearchParams(searchParams);
+		newSearchParams.set('page', '1');
+		if (searchText.length === 0) {
+			newSearchParams.delete('searchText');
+		} else {
+			newSearchParams.set('searchText', searchText);
+		}
+		setSearchParams(newSearchParams);
 	};
 
 	const sortCallback: SortCallback = (header, isAsc) => {
-		const sortedData = sortMixedArray(displayData, isAsc, header);
-		setDisplayData([...sortedData]);
+		const newSearchParams = new URLSearchParams(searchParams);
+		newSearchParams.set('isAsc', isAsc.toString());
+		newSearchParams.set('sortHeader', header);
+		setSearchParams(newSearchParams);
 	};
 
-	const getCurrentPageData = (items = []) => {
-		const currentData = items?.length ? items : displayData;
-		return currentData?.slice((pageNum.current - 1) * 10, pageNum.current * 10);
-	};
+	const currentPageData = React.useMemo(() => {
+		const pageNum = parseInt(searchParams.get('page') || '1');
+		return displayData?.slice((pageNum - 1) * 10, pageNum * 10) || [];
+	}, [displayData, searchParams]);
+
+	if (isLoading) {
+		return <Spinner />;
+	}
 
 	return (
 		<div className={styles['App']}>
@@ -81,16 +114,13 @@ export default function SearchForm({ data, addItem }: SearchFormProps) {
 			{displayData?.length ? (
 				<>
 					<ProductList
-						data={getCurrentPageData()}
+						data={currentPageData}
 						callback={searchCallback}
 						sortCallback={sortCallback}
+						searchText={searchText}
 					/>
 					<hr />
-					<Pagination
-						totalRowCount={displayData?.length}
-						pageSize={10}
-						onPageChange={paginationCallback}
-					/>
+					<Pagination totalRowCount={displayData?.length} pageSize={10} />
 				</>
 			) : null}
 		</div>
