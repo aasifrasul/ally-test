@@ -6,17 +6,15 @@ interface LocaleContextType {
 	changeLocale: (newLocale: string) => void;
 }
 
-interface LocaleContextProviderProps {
-	children: React.ReactNode;
-}
-
 const LocaleContext = createContext<LocaleContextType>({
 	locale: '',
 	translations: { abc: 'xyz' },
 	changeLocale: (newLocale) => {},
 });
 
-export const LocaleContextProvider = ({ children }: LocaleContextProviderProps) => {
+export const LocaleContextProvider: React.FC<{ children: React.ReactNode }> = ({
+	children,
+}) => {
 	const [locale, setLocale] = useState('en');
 	const [translations, setTranslations] = useState({});
 

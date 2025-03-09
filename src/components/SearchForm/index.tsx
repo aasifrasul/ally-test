@@ -51,5 +51,5 @@ export default function SearchFormContainer() {
 		fetchInitialData();
 	}, []);
 
-	return <SearchForm data={data} addItem={addItem} />;
+	return <SearchForm data={data?.message} addItem={addItem} />;
 }

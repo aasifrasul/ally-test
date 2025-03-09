@@ -53,7 +53,7 @@ function onConnection(socket: Socket): void {
 	let intervalId: NodeJS.Timeout | null = null;
 
 	socket.on('fetchOSStats', (): void => {
-		const data = os.cpus();
+		const data = os.cpus()[0];
 		logger.info(`OS Stats: ${JSON.stringify(data)}`);
 		socket.emit('oSStatsData', data);
 	});

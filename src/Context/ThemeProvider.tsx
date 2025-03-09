@@ -8,17 +8,13 @@ export interface ThemeContextType {
 	isDark: boolean;
 }
 
-interface ThemeProviderProps {
-	children: ReactNode;
-}
-
 export const ThemeContext = createContext<ThemeContextType>({
 	theme: 'light',
 	toggleTheme: () => {},
 	isDark: false,
 });
 
-export const ThemeProvider = ({ children }: ThemeProviderProps): ReactNode => {
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [state, toggleTheme] = useToggle(true);
 
 	const value = {
