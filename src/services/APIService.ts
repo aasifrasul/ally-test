@@ -3,6 +3,15 @@ import { HTTPMethod } from '../types/api';
 import { createLogger, LogLevel, Logger } from '../utils/logger';
 import { fetch, BodyInit } from '../utils/fetch-polyfill';
 
+export interface SaveDataOptions extends APIOptions {
+	body: BodyInit;
+	signal?: AbortSignal;
+}
+
+export interface SaveDataResponse {
+	success: boolean;
+}
+
 export class APIService {
 	private static instance: APIService;
 	private abortControllers: Map<string, AbortController>;
@@ -83,6 +92,14 @@ export class APIService {
 		this.pendingRequests.set(cacheKey, fetchPromise);
 
 		return fetchPromise;
+	}
+
+	async saveData(endpoint: string, data: Record<string, any>): Promise<SaveDataResponse> {
+		return this.fetch<SaveDataResponse>(endpoint, {
+			method: HTTPMethod.POST,
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data),
+		});
 	}
 
 	abort(endpoint: string): void {

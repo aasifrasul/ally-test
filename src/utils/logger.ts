@@ -11,6 +11,8 @@ interface LoggerOptions {
 	prefix?: string;
 }
 
+let globalLoggerOptions: LoggerOptions = {}; // Global options variable
+
 export class Logger {
 	private level: LogLevel;
 	private enabled: boolean;
@@ -60,17 +62,27 @@ export class Logger {
 			console.error(this.formatMessage(LogLevel.ERROR, message), ...args);
 		}
 	}
+
+	errorWithObject(message: string, error: Error): void {
+		if (this.shouldLog(LogLevel.ERROR)) {
+			console.error(this.formatMessage(LogLevel.ERROR, message), error);
+		}
+	}
 }
 
 export const createLogger = (name: string, options?: LoggerOptions): Logger => {
 	return new Logger(name, options);
 };
 
-/*
 // Optional: Create a global logger configuration
 export const configureGlobalLogger = (options: LoggerOptions): void => {
-	globalLoggerOptions = options;
+	globalLoggerOptions = {
+		...globalLoggerOptions,
+		...options,
+	};
 };
+
+/*
 
 // Usage example:
 const logger = createLogger('MyComponent', {

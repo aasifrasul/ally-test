@@ -1,34 +1,34 @@
-function throttle(fn, delay) {
+function throttle(fn, delay, options = { leading: true }) {
 	let lastCall = 0;
 	let timeoutId = null;
+	const { leading } = options;
 
 	function inner(...args) {
 		const now = Date.now();
+		const remaining = delay - (now - lastCall);
+		const context = this; // Capture the context
 
-		// If enough time has passed, execute immediately
-		if (now - lastCall >= delay) {
-			inner.cancel();
-			fn.apply(this, args);
+		if (leading && !lastCall) {
+			fn.apply(context, args);
 			lastCall = now;
-		}
-		// If within delay period and no timeout set, schedule next execution
-		else if (!timeoutId) {
-			timeoutId = setTimeout(
-				() => {
-					fn.apply(this, args);
-					lastCall = Date.now();
-					timeoutId = null;
-				},
-				delay - (now - lastCall),
-			);
+		} else if (remaining <= 0) {
+			clearTimeout(timeoutId);
+			timeoutId = null;
+			fn.apply(context, args);
+			lastCall = now;
+		} else if (!timeoutId) {
+			timeoutId = setTimeout(() => {
+				fn.apply(context, args);
+				lastCall = Date.now();
+				timeoutId = null;
+			}, remaining);
 		}
 	}
 
 	inner.cancel = function () {
-		if (timeoutId) {
-			clearTimeout(timeoutId);
-			timeoutId = null;
-		}
+		clearTimeout(timeoutId);
+		timeoutId = null;
+		lastCall = 0;
 	};
 
 	return inner;

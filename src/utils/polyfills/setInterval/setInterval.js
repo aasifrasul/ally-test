@@ -11,10 +11,18 @@ export function setInterval(callback, interval, ...params) {
 	let isRunning = false;
 	let isPaused = false;
 
+	function scheduleTimeout() {
+		if (timeoutId) {
+			clearTimeout(timeoutId);
+		}
+
+		timeoutId = setTimeout(internal, interval);
+	}
+
 	function internal() {
 		if (!isRunning) return;
 
-		timeoutId = setTimeout(internal, interval);
+		scheduleTimeout();
 		try {
 			callback(...params);
 		} catch (error) {
@@ -46,10 +54,10 @@ export function setInterval(callback, interval, ...params) {
 	function resume() {
 		if (!isPaused || !isRunning) return;
 		isPaused = false;
-		timeoutId = setTimeout(internal, interval);
+		scheduleTimeout();
 	}
 
 	isRunning = true;
-	timeoutId = setTimeout(internal, interval);
+	scheduleTimeout();
 	return { stop, pause, resume };
 }
