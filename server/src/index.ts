@@ -6,7 +6,7 @@ import { port, host } from './envConfigDetails';
 import MongoDBConnection from './dbClients/MongoDBConnection';
 import { connectToIOServer, disconnectIOServer } from './socketConnection';
 import { connectWSServer, disconnectWSServer } from './webSocketConnection';
-import { getDBInstance, type DBInstance } from './schema/helper';
+import { getDBInstance, type DBInstance } from './dbClients/helper';
 import { constants } from './constants';
 import { app } from './app';
 import { logger } from './Logger';

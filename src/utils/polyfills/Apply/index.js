@@ -35,6 +35,8 @@ Function.prototype.myApply = function (context, args) {
 	try {
 		// Execute with spread operator
 		return context[fnRef](...(args || []));
+	} catch (e) {
+		console.error(e);
 	} finally {
 		// Clean up
 		delete context[fnRef];

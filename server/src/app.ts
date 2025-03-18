@@ -97,6 +97,41 @@ app.get('/health', (req, res) => {
 	res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+app.get('/api/bookStore/', async (req, res) => {
+	const bookStore = await import('./store/bookStore');
+	const books = bookStore.getBooks();
+	res.json(books);
+});
+
+app.post('/api/bookStore/', async (req, res) => {
+	const bookStore = await import('./store/bookStore');
+	const book = req.body;
+	bookStore.addBook(book);
+	res.json({ message: 'Book added successfully' });
+});
+
+app.get('/api/bookStore/:id', async (req, res) => {
+	const bookStore = await import('./store/bookStore');
+	const id = req.params.id;
+	const book = bookStore.getBook(id);
+	res.json(book);
+});
+
+app.put('/api/bookStore/:id', async (req, res) => {
+	const bookStore = await import('./store/bookStore');
+	const id = req.params.id;
+	const book = req.body;
+	bookStore.updateBook(id, book);
+	res.json({ message: 'Book updated successfully' });
+});
+
+app.delete('/api/bookStore/:id', async (req, res) => {
+	const bookStore = await import('./store/bookStore');
+	const id = req.params.id;
+	bookStore.deleteBook(id);
+	res.json({ message: 'Book deleted successfully' });
+});
+
 /*
 app.post('/api/chat', async (req, res) => {
 	const userMessage = req.body.message;

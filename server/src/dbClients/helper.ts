@@ -3,7 +3,7 @@ import {
 	GenericDBConnection,
 	type DBInstance,
 	type ExecuteQueryType,
-} from '../dbClients/GenericDBConnection';
+} from './GenericDBConnection';
 
 const getLimitCond = (currentDB: DBType, count: number): string => {
 	switch (currentDB) {

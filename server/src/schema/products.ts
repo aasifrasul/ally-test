@@ -1,7 +1,7 @@
 import { DBType } from '../types';
 import { RedisClient } from '../cachingClients/redis';
 import { Product } from '../models';
-import { GenericDBConnection, getLimitCond, getGenericDBInstance } from './helper';
+import { GenericDBConnection, getLimitCond, getGenericDBInstance } from '../dbClients/helper';
 import { constants } from '../constants';
 import { logger } from '../Logger';
 

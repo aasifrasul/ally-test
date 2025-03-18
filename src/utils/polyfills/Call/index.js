@@ -6,10 +6,10 @@
  * @throws {TypeError} If called on a non-function
  */
 
-Function.prototype.fnRef = function (context, ...args) {
+Function.prototype.myCall = function (context, ...args) {
 	// Check if the function is callable
 	if (typeof this !== 'function') {
-		throw new TypeError('fnRef must be called on a function');
+		throw new TypeError('myCall must be called on a function');
 	}
 
 	// Handle null/undefined context
@@ -30,6 +30,8 @@ Function.prototype.fnRef = function (context, ...args) {
 
 	try {
 		return context[fnRef](...args);
+	} catch (e) {
+		console.error(e);
 	} finally {
 		delete context[fnRef];
 	}

@@ -2,7 +2,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { DBType, IUser } from '../types';
 import { User } from '../models';
 import { RedisClient } from '../cachingClients/redis';
-import { GenericDBConnection, getLimitCond, getGenericDBInstance } from './helper';
+import { GenericDBConnection, getLimitCond, getGenericDBInstance } from '../dbClients/helper';
 import { constants } from '../constants';
 import { logger } from '../Logger';
 

@@ -1,5 +1,5 @@
 export function deepCopy<T>(obj: T, seen = new WeakMap()): T {
-	if (obj === null || typeof obj !== 'object') {
+	if (obj === null || (typeof obj !== 'object' && typeof obj !== 'function')) {
 		return obj;
 	}
 
@@ -7,25 +7,18 @@ export function deepCopy<T>(obj: T, seen = new WeakMap()): T {
 		return seen.get(obj);
 	}
 
-	if (obj instanceof Date) {
-		return new Date(obj.getTime()) as any;
-	}
-
-	if (obj instanceof RegExp) {
-		return new RegExp(obj) as any;
+	if (typeof obj === 'function') {
+		return new Function('return ' + (obj as Function).toString())();
 	}
 
 	if (Array.isArray(obj)) {
-		const arrCopy = [] as any[];
-
+		const arrCopy = obj.map((item) => deepCopy(item, seen));
 		seen.set(obj, arrCopy);
-
-		for (const item of obj) {
-			arrCopy.push(deepCopy(item, seen));
-		}
-
 		return arrCopy as any;
 	}
+
+	if (obj instanceof Date) return new Date(obj) as unknown as T;
+	if (obj instanceof RegExp) return new RegExp(obj) as unknown as T;
 
 	if (obj instanceof Map) {
 		const mapCopy = new Map();
@@ -51,23 +44,28 @@ export function deepCopy<T>(obj: T, seen = new WeakMap()): T {
 		return setCopy as any;
 	}
 
-	const objCopy = {} as any;
-
+	const proto = Object.getPrototypeOf(obj);
+	const objCopy = Object.create(proto);
 	seen.set(obj, objCopy);
 
-	for (const key in obj) {
-		if (obj.hasOwnProperty(key)) {
-			objCopy[key] = deepCopy((obj as any)[key], seen);
+	// Get all properties, including symbols
+	const props = [...Object.getOwnPropertyNames(obj), ...Object.getOwnPropertySymbols(obj)];
+
+	for (const prop of props) {
+		const descriptor = Object.getOwnPropertyDescriptor(obj, prop);
+		if (descriptor) {
+			if (descriptor.get || descriptor.set) {
+				// Preserve getters/setters
+				Object.defineProperty(objCopy, prop, descriptor);
+			} else {
+				// Deep copy value properties
+				Object.defineProperty(objCopy, prop, {
+					...descriptor,
+					value: deepCopy(descriptor.value, seen),
+				});
+			}
 		}
 	}
-
-	Object.getOwnPropertyNames(obj).forEach((prop) => {
-		const descriptor = Object.getOwnPropertyDescriptor(obj, prop);
-
-		if (descriptor) {
-			Object.defineProperty(objCopy, prop, descriptor);
-		}
-	});
 
 	return objCopy;
 }
