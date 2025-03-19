@@ -1,4 +1,6 @@
-const useDataApi = (initialUrl, initialData) => {
+import dataFetchReducer from '../../reducers/dataFetchReducer';
+
+export const useDataApi = (initialUrl, initialData) => {
 	const [url, setUrl] = useState(initialUrl);
 
 	const [state, dispatch] = useReducer(dataFetchReducer, {

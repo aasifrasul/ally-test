@@ -1,11 +1,8 @@
-// Counter.js
-import { Provider } from 'react-redux';
+import { Provider, useSelector, useDispatch } from 'react-redux';
 import store from '../../store/CounterStore';
 
-import { useSelector, useDispatch } from 'react-redux';
-
 const Display = () => {
-	const counter = useSelector((state) => state.counter);
+	const counter = useSelector((state: { counter: number }) => state.counter);
 	const dispatch = useDispatch();
 
 	const increment = () => dispatch({ type: 'INCREMENT' });

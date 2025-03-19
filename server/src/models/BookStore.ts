@@ -29,8 +29,8 @@ const bookSchema = new Schema<IBookDocument>(
 );
 
 // Add a virtual `id` getter to expose `_id` as `id`
-bookSchema.virtual('id').get(function () {
-	return this._id.toString();
+bookSchema.virtual('id').get(function (this: { _id: { toHexString: () => string } }) {
+	return this._id.toHexString();
 });
 
 // Transform the output
