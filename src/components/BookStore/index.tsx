@@ -19,6 +19,7 @@ const App: React.FC<Props> = () => {
 	const [book, setBook] = useState<Book | null>(null);
 
 	useEffect(() => {
+		bookStoreState.fetchBooks();
 		reset();
 	}, [reset]);
 
