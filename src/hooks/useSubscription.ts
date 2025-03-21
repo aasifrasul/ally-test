@@ -8,8 +8,9 @@ const USER_CREATED_SUBSCRIPTION = gql`
 	subscription UserCreated {
 		userCreated {
 			id
-			name
-			email
+			firstName
+			lastName
+			age
 		}
 	}
 `;
