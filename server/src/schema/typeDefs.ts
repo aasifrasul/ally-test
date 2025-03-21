@@ -1,38 +1,75 @@
 const typeDefs = `
-	type Query {
-		getUser(id: ID!): User
-        getUsers: [User]
+  type Query {
+    getUser(id: ID!): User
+    getUsers: [User]
+    getProduct(id: ID!): Product
+    getProducts: [Product]
+    getBook(id: ID!): Book
+    getBooks: [Book]
+  }
 
-        getProduct(id: ID!): Product
-        getProducts: [Product]
-	}
+  type Mutation {
+    createUser(first_name: String!, last_name: String!, age: Int!): UserResult
+    updateUser(id: ID!, first_name: String!, last_name: String!, age: Int!): UserResult
+    deleteUser(id: ID!): DeleteResult
 
-	type Mutation {
-		createUser(first_name: String!, last_name: String!, age: Int!): Boolean
-        updateUser(id: ID!, first_name: String!, last_name: String!, age: Int!): Boolean
-        deleteUser(id: ID!): Boolean
+    createProduct(name: String!, category: String!): ProductResult
+    updateProduct(id: ID!, name: String!, category: String!): ProductResult
+    deleteProduct(id: ID!): DeleteResult
 
-        createProduct(name: String!, category: String!): Boolean
-        updateProduct(id: ID!, name: String!, category: String!): Boolean
-        deleteProduct(id: ID!): Boolean
-	}
+    addBook(title: String!, author: String!, status: String!): BookMutationResponse
+    updateBook(id: ID!, title: String, author: String, status: String): BookMutationResponse
+    deleteBook(id: ID!): DeleteResult
+  }
 
-	type Subscription {
-		userCreated: User
-	}
+  type Subscription {
+    userCreated: User
+    bookCreated: Book
+  }
 
-	type User {
-		id: ID!
-		first_name: String!
-        last_name: String!
-        age: Int!
-	}
+  type User {
+    id: ID!
+    first_name: String!
+    last_name: String!
+    age: Int!
+  }
 
-    type Product {
-        id: ID!
-        name: String!
-        category: String!
-    }
+  type Product {
+    id: ID!
+    name: String!
+    category: String!
+  }
+
+  type Book {
+    id: ID!
+    title: String!
+    author: String!
+    status: String!
+  }
+
+  type UserResult {
+    success: Boolean!
+    message: String
+    user: User
+  }
+
+  type ProductResult {
+    success: Boolean!
+    message: String
+    product: Product
+  }
+
+  type BookMutationResponse {
+    success: Boolean!
+    message: String
+    book: Book
+  }
+
+  type DeleteResult {
+    success: Boolean!
+    message: String
+    id: ID
+  }
 `;
 
 export { typeDefs };

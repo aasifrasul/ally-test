@@ -14,12 +14,16 @@ import {
 	deleteProduct,
 } from './products';
 
+import { getBook, getBooks, addBook, updateBook, deleteBook, bookCreated } from './bookStore';
+
 const resolvers = {
 	Query: {
 		getUser,
 		getUsers,
 		getProduct,
 		getProducts,
+		getBook,
+		getBooks,
 	},
 	Mutation: {
 		createUser,
@@ -28,9 +32,13 @@ const resolvers = {
 		createProduct,
 		updateProduct,
 		deleteProduct,
+		addBook,
+		updateBook,
+		deleteBook,
 	},
 	Subscription: {
 		userCreated,
+		bookCreated,
 	},
 };
 

@@ -3,12 +3,26 @@ import { Schema, model, Document } from 'mongoose';
 export interface IBook {
 	title: string;
 	author: string;
-	status: 'available' | 'issued';
+	status?: 'available' | 'issued';
 }
 
 // Interface for a Book document (including Document properties like _id)
 export interface IBookDocument extends IBook, Document {
 	id: string; // Virtual field
+}
+
+export interface BookMutationResponse {
+	success: Boolean;
+	book?: IBookDocument | null;
+	message?: string;
+}
+
+export interface BookArgs extends Partial<IBook> {
+	id?: string;
+}
+
+export interface UpdatebookArgs extends Partial<IBook> {
+	id: string;
 }
 
 const bookSchema = new Schema<IBookDocument>(
