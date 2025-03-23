@@ -1,11 +1,19 @@
 // CounterStore.js
 import { createStore } from 'redux';
 
-const initialState = {
+interface State {
+	counter: number;
+}
+
+interface Action {
+	type: 'INCREMENT' | 'DECREMENT';
+}
+
+const initialState: State = {
 	counter: 0,
 };
 
-const reducer = (state = initialState, action) => {
+const reducer = (state: State = initialState, action: Action) => {
 	switch (action.type) {
 		case 'INCREMENT':
 			return {

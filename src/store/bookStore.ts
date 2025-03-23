@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-//import { produce } from 'immer';
 import { produce } from '../utils/immutable';
+import { gql } from '@apollo/client';
+import { client } from '../apolloClient';
+import { stat } from 'fs';
 
 export interface Book {
 	id: number;
@@ -20,14 +22,69 @@ export interface BookStoreState {
 	noOfIssued: number;
 	filterText: string;
 	filteredBooks: Book[];
+	loading: boolean;
+	error: Error | null;
+	fetchBooks: () => Promise<void>;
 	addBook: AddBookType;
-	issueBook: (id: number) => void;
-	returnBook: (id: number) => void;
-	deleteBook: (id: number) => void;
+	issueBook: (id: number) => Promise<void>;
+	returnBook: (id: number) => Promise<void>;
+	deleteBook: (id: number) => Promise<void>;
 	filterByText: (text: string) => void;
-	updateBook: (book: UpdateBookType) => void;
+	updateBook: (book: UpdateBookType) => Promise<void>;
 	reset: () => void;
+	setStatus: () => void;
+	setError: (error: Error | string) => void;
 }
+
+// GraphQL Queries and Mutations
+const GET_BOOKS = gql`
+	query GetBooks {
+		getBooks {
+			id
+			title
+			author
+			status
+		}
+	}
+`;
+
+const ADD_BOOK = gql`
+	mutation AddBook($title: String!, $author: String!, $status: String!) {
+		addBook(title: $title, author: $author, status: $status) {
+			success
+			message
+			book {
+				id
+				title
+				author
+				status
+			}
+		}
+	}
+`;
+
+const UPDATE_BOOK = gql`
+	mutation UpdateBook($id: ID!, $title: String, $author: String, $status: String) {
+		updateBook(id: $id, title: $title, author: $author, status: $status) {
+			success
+			message
+			book {
+				id
+				title
+				author
+				status
+			}
+		}
+	}
+`;
+
+const DELETE_BOOK = gql`
+	mutation DeleteBook($id: ID!) {
+		deleteBook(id: $id) {
+			id
+		}
+	}
+`;
 
 const filterBooks = (books: Book[], text: string): Book[] => {
 	if (text.length <= 0) return books;
@@ -39,15 +96,76 @@ const filterBooks = (books: Book[], text: string): Book[] => {
 	);
 };
 
+const calculateCounts = (books: Book[]) => {
+	return books.reduce(
+		(counts, book) => {
+			if (book.status === 'available') {
+				counts.available += 1;
+			} else {
+				counts.issued += 1;
+			}
+			return counts;
+		},
+		{ available: 0, issued: 0 },
+	);
+};
+
 const useBookStore = create<BookStoreState>()(
 	devtools(
 		immer(
-			(set): BookStoreState => ({
+			(set, get): BookStoreState => ({
 				books: [],
 				filteredBooks: [],
 				filterText: '',
 				noOfAvailable: 0,
 				noOfIssued: 0,
+				loading: false,
+				error: null,
+				setStatus: () =>
+					set(
+						produce((state: BookStoreState) => {
+							state.loading = true;
+							state.error = null;
+						}),
+					),
+				setError: (error) =>
+					set(
+						produce((state: BookStoreState) => {
+							state.error =
+								error instanceof Error ? error : new Error(String(error));
+							state.loading = false;
+						}),
+					),
+				fetchBooks: async () => {
+					get().setStatus();
+
+					try {
+						const { data } = await client.query({
+							query: GET_BOOKS,
+							fetchPolicy: 'network-only',
+						});
+
+						if (data && data.getBooks) {
+							const counts = calculateCounts(data.getBooks);
+
+							set(
+								produce((state: BookStoreState) => {
+									state.books = data.getBooks;
+									state.filteredBooks = filterBooks(
+										data.getBooks,
+										state.filterText,
+									);
+									state.noOfAvailable = counts.available;
+									state.noOfIssued = counts.issued;
+									state.loading = false;
+								}),
+							);
+						}
+					} catch (error) {
+						get().setError(error as Error);
+					}
+				},
+
 				filterByText: (text) =>
 					set(
 						produce((state: BookStoreState) => {
@@ -55,90 +173,147 @@ const useBookStore = create<BookStoreState>()(
 							state.filteredBooks = filterBooks(state.books, text);
 						}),
 					),
-				addBook: (bookData) =>
-					set(
-						produce((state: BookStoreState) => {
-							const newBook: Book = {
-								...bookData,
+
+				addBook: async (bookData) => {
+					get().setStatus();
+
+					try {
+						const { data } = await client.mutate({
+							mutation: ADD_BOOK,
+							variables: {
+								title: bookData.title,
+								author: bookData.author,
 								status: 'available',
-								id:
-									state.books.length > 0
-										? Math.max(...state.books.map((b) => b.id)) + 1
-										: 1,
-							};
-							state.books.push(newBook);
-							state.filteredBooks = filterBooks(state.books, state.filterText);
-							state.noOfAvailable += 1;
-						}),
-					),
-				updateBook: (updateData) =>
-					set(
-						produce((state: BookStoreState) => {
-							const bookIndex = state.books.findIndex(
-								(b) => b.id === updateData.id,
+							},
+						});
+
+						if (data!.addBook!.success) {
+							const newBook = data.addBook.book;
+
+							set(
+								produce((state: BookStoreState) => {
+									state.books.push(newBook);
+									state.filteredBooks = filterBooks(
+										state.books,
+										state.filterText,
+									);
+									state.noOfAvailable += 1;
+									state.loading = false;
+								}),
 							);
-							if (bookIndex !== -1) {
-								state.books[bookIndex] = {
-									...state.books[bookIndex],
-									...updateData,
-								};
-								state.filteredBooks = filterBooks(
-									state.books,
-									state.filterText,
-								);
-							}
-						}),
-					),
-				issueBook: (id) =>
-					set(
-						produce((state: BookStoreState) => {
-							const book = state.books.find((b) => b.id === id);
-							if (book?.status === 'available') {
-								book.status = 'issued';
-								state.noOfAvailable -= 1;
-								state.noOfIssued += 1;
-								state.filteredBooks = filterBooks(
-									state.books,
-									state.filterText,
-								);
-							}
-						}),
-					),
-				returnBook: (id) =>
-					set(
-						produce((state: BookStoreState) => {
-							const book = state.books.find((b) => b.id === id);
-							if (book?.status === 'issued') {
-								book.status = 'available';
-								state.noOfAvailable += 1;
-								state.noOfIssued -= 1;
-								state.filteredBooks = filterBooks(
-									state.books,
-									state.filterText,
-								);
-							}
-						}),
-					),
-				deleteBook: (id) =>
-					set(
-						produce((state: BookStoreState) => {
-							const bookIndex = state.books.findIndex((b) => b.id === id);
-							if (bookIndex !== -1) {
-								const deletedBook = state.books[bookIndex];
-								state.books.splice(bookIndex, 1);
-								state.filteredBooks = filterBooks(
-									state.books,
-									state.filterText,
-								);
-								if (deletedBook.status === 'available') {
-									state.noOfAvailable -= 1;
-								} else {
-									state.noOfIssued -= 1;
-								}
-							}
-						}),
-					),
-				reset: () =>
+						}
+					} catch (error) {
+						get().setError(error as Error);
+					}
+				},
+
+				updateBook: async (updateData) => {
+					get().setStatus();
+
+					try {
+						const { data } = await client.mutate({
+							mutation: UPDATE_BOOK,
+							variables: {
+								id: updateData.id.toString(),
+								...(updateData.title && { title: updateData.title }),
+								...(updateData.author && { author: updateData.author }),
+								...(updateData.status && { status: updateData.status }),
+							},
+						});
+
+						if (data!.updateBook!.success) {
+							const updatedBook = data.updateBook.book;
+
+							set(
+								produce((state: BookStoreState) => {
+									const bookIndex = state.books.findIndex(
+										(b) => b.id === updatedBook.id,
+									);
+									if (bookIndex !== -1) {
+										// If the status is changing, update counts
+										if (
+											state.books[bookIndex].status !==
+											updatedBook.status
+										) {
+											if (updatedBook.status === 'available') {
+												state.noOfAvailable += 1;
+												state.noOfIssued -= 1;
+											} else {
+												state.noOfAvailable -= 1;
+												state.noOfIssued += 1;
+											}
+										}
+
+										state.books[bookIndex] = updatedBook;
+										state.filteredBooks = filterBooks(
+											state.books,
+											state.filterText,
+										);
+									}
+									state.loading = false;
+								}),
+							);
+						}
+					} catch (error) {
+						get().setError(error as Error);
+					}
+				},
+
+				issueBook: async (id) => {
+					const book = get().books.find((b) => b.id === id);
+					if (book?.status === 'available') {
+						await get().updateBook({ id, status: 'issued' });
+					}
+				},
+
+				returnBook: async (id) => {
+					const book = get().books.find((b) => b.id === id);
+					if (book?.status === 'issued') {
+						await get().updateBook({ id, status: 'available' });
+					}
+				},
+
+				deleteBook: async (id) => {
+					get().setStatus();
+
+					try {
+						const { data } = await client.mutate({
+							mutation: DELETE_BOOK,
+							variables: {
+								id: id.toString(),
+							},
+						});
+
+						if (data && data.deleteBook) {
+							set(
+								produce((state: BookStoreState) => {
+									const bookIndex = state.books.findIndex(
+										(b) => b.id === id,
+									);
+									if (bookIndex !== -1) {
+										const deletedBook = state.books[bookIndex];
+										state.books.splice(bookIndex, 1);
+										state.filteredBooks = filterBooks(
+											state.books,
+											state.filterText,
+										);
+
+										if (deletedBook.status === 'available') {
+											state.noOfAvailable -= 1;
+										} else {
+											state.noOfIssued -= 1;
+										}
+									}
+									state.loading = false;
+								}),
+							);
+						}
+					} catch (error) {
+						get().setError(error as Error);
+					}
+				},
+
+				reset: async () => {
 					set(
 						produce((state: BookStoreState) => {
 							state.books = [];
@@ -146,8 +321,11 @@ const useBookStore = create<BookStoreState>()(
 							state.filterText = '';
 							state.noOfAvailable = 0;
 							state.noOfIssued = 0;
+							state.loading = false;
+							state.error = null;
 						}),
-					),
+					);
+				},
 			}),
 		),
 	),

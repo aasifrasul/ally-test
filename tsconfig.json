@@ -15,7 +15,13 @@
 		"isolatedModules": true,
 		"noEmit": false,
 		"jsx": "react-jsx",
-		"rootDir": "./"
+		"rootDir": "./",
+		"plugins": [
+			{
+				"name": "@0no-co/graphqlsp",
+				"schema": "./schema.graphql"
+			}
+		]
 	},
 	"include": ["src/**/*", "server/**/*"],
 	"exclude": ["node_modules", "dist"]

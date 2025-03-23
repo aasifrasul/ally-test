@@ -49,6 +49,11 @@ const BookForm: React.FC<Props> = ({ books, updateBook, addBook, book }) => {
 
 	const handleSubmit = () => {
 		book?.id ? handleUpdateBook() : handleAddBook();
+		resetForm();
+	};
+
+	const resetForm = () => {
+		setBookDetails({ id: 0, title: '', author: '', status: 'available' });
 	};
 
 	const addEditText = book?.id ? 'Edit' : 'Add';

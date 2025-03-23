@@ -1,4 +1,3 @@
-import React from 'react';
 import { Segment } from 'semantic-ui-react';
 
 import { CounterContextProvider } from '../../Context/CounterContext';

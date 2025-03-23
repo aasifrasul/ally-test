@@ -1,4 +1,4 @@
-import { createContext, ReactNode } from 'react';
+import React from 'react';
 
 import { useToggle } from '../hooks/useToggle';
 
@@ -8,7 +8,7 @@ export interface ThemeContextType {
 	isDark: boolean;
 }
 
-export const ThemeContext = createContext<ThemeContextType>({
+export const ThemeContext = React.createContext<ThemeContextType>({
 	theme: 'light',
 	toggleTheme: () => {},
 	isDark: false,

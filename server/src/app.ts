@@ -97,6 +97,7 @@ app.get('/health', (req, res) => {
 	res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+/*
 app.get('/api/bookStore/', async (req, res) => {
 	const bookStore = await import('./store/bookStore');
 	const books = bookStore.getBooks();
@@ -131,7 +132,7 @@ app.delete('/api/bookStore/:id', async (req, res) => {
 	bookStore.deleteBook(id);
 	res.json({ message: 'Book deleted successfully' });
 });
-
+*/
 /*
 app.post('/api/chat', async (req, res) => {
 	const userMessage = req.body.message;

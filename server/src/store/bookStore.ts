@@ -34,15 +34,20 @@ export async function getBook(id: string): Promise<IBookDocument | null> {
 	return null;
 }
 
-// Add a new book
-export function addBook(book) {
-	const newBook = {
-		...book,
-		id: nextId++,
-	};
-	books.push(newBook);
-	return newBook;
-}
+export const addBook = async (parent: any, args: IBook): Promise<boolean> => {
+	const { title, author, status } = args;
+
+	if (currentDB === DBType.MONGODB) {
+		try {
+			const book = await new Book({ title, author, status }).save();
+			//redisClient.cacheData(product.id, product);
+			return true;
+		} catch (error) {
+			logger.error(`Failed to create product in MongoDB: ${error}`);
+			return false;
+		}
+	}
+};
 
 // Update an existing book
 export function updateBook(id, updatedBook) {
