@@ -1,26 +1,26 @@
-import React, { useState, createContext } from 'react';
+import { createContext, Dispatch, ReactNode, SetStateAction, useState } from 'react';
 
 import useContextFactory from './useContextFactory';
 
-// Create a provider for components to consume and subscribe to changes
-interface CounterContextProviderProps {
-	children: React.ReactNode;
-}
-
-interface CounterContextType {
+export interface CounterContextType {
 	count: number;
-	setCount: React.Dispatch<React.SetStateAction<number>>;
+	setCount: Dispatch<SetStateAction<number>>;
 }
 
 // Create Context Object
-export const CounterContext = createContext({});
+export const CounterContext = createContext<CounterContextType>({
+	count: 0,
+	setCount: () => {},
+});
 
-const { Provider } = CounterContext;
-
-const CounterContextProvider: React.FC<CounterContextProviderProps> = (props) => {
+const CounterContextProvider = (props: { children: ReactNode }) => {
 	const [count, setCount] = useState<number>(0);
 
-	return <Provider value={{ count, setCount }}>{props.children}</Provider>;
+	return (
+		<CounterContext.Provider value={{ count, setCount }}>
+			{props.children}
+		</CounterContext.Provider>
+	);
 };
 
 const useCounterContext = useContextFactory('CounterContextProvider', CounterContext);

@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import { MongoDBConfig, DBType } from '../types';
 import { constants } from '../constants';
 import { logger } from '../Logger';
-import { error } from 'console';
 
 class MongoDBConnection {
 	private static instance: MongoDBConnection;

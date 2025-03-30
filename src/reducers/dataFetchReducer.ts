@@ -1,6 +1,7 @@
 import { constants } from '../constants';
 
 import {
+	ActionType,
 	GenericState,
 	GenericAction,
 	GenericReducer,
@@ -23,7 +24,7 @@ const dataFetchReducer: GenericReducer = (
 	};
 
 	switch (type) {
-		case 'FETCH_INIT':
+		case ActionType.FETCH_INIT:
 			individualState = {
 				...individualState,
 				isLoading: true,
@@ -31,7 +32,7 @@ const dataFetchReducer: GenericReducer = (
 			};
 			break;
 
-		case 'FETCH_FAILURE':
+		case ActionType.FETCH_FAILURE:
 			individualState = {
 				...individualState,
 				isLoading: false,
@@ -39,7 +40,7 @@ const dataFetchReducer: GenericReducer = (
 			};
 			break;
 
-		case 'FETCH_SUCCESS':
+		case ActionType.FETCH_SUCCESS:
 			individualState = {
 				...individualState,
 				isLoading: false,
@@ -55,14 +56,14 @@ const dataFetchReducer: GenericReducer = (
 			}
 			break;
 
-		case 'FETCH_COMPLETE':
+		case ActionType.FETCH_STOP:
 			individualState = {
 				...individualState,
 				isLoading: false,
 			};
 			break;
 
-		case 'UPDATE_INIT':
+		case ActionType.UPDATE_INIT:
 			individualState = {
 				...individualState,
 				isUpdating: true,
@@ -70,7 +71,7 @@ const dataFetchReducer: GenericReducer = (
 			};
 			break;
 
-		case 'UPDATE_FAILURE':
+		case ActionType.UPDATE_FAILURE:
 			individualState = {
 				...individualState,
 				isUpdating: false,
@@ -78,21 +79,21 @@ const dataFetchReducer: GenericReducer = (
 			};
 			break;
 
-		case 'UPDATE_SUCCESS':
+		case ActionType.UPDATE_SUCCESS:
 			individualState = {
 				...individualState,
 				isUpdating: false,
 			};
 			break;
 
-		case 'UPDATE_STOP':
+		case ActionType.UPDATE_STOP:
 			individualState = {
 				...individualState,
 				isUpdating: false,
 			};
 			break;
 
-		case 'ADVANCE_PAGE':
+		case ActionType.ADVANCE_PAGE:
 			const currentPage = Number.isInteger(payload)
 				? payload
 				: individualState.currentPage;

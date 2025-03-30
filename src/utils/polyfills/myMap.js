@@ -7,14 +7,15 @@ function myMap(callback, thisArg) {
 		throw new TypeError(callback + ' is not a function');
 	}
 
-	const len = this.length;
+	const originalArray = Object(this);
+	const len = originalArray.length;
 	const result = new Array(len);
 
 	for (let i = 0; i < len; i++) {
 		// Only call callback for indices that exist on the array
-		if (i in this) {
+		if (i in originalArray) {
 			// Note: If callback is an arrow function, thisArg will be ignored
-			result[i] = callback.call(thisArg, this[i], i, this);
+			result[i] = callback.call(thisArg, originalArray[i], i, originalArray);
 		}
 	}
 

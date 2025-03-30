@@ -1,8 +1,21 @@
 import { IS_Item } from '../types/infiniteScroll';
 import { Movie_Item } from '../types/movieList';
 
+export enum ActionType {
+	FETCH_INIT = 'FETCH_INIT',
+	FETCH_SUCCESS = 'FETCH_SUCCESS',
+	FETCH_FAILURE = 'FETCH_FAILURE',
+	FETCH_STOP = 'FETCH_STOP',
+	UPDATE_INIT = 'UPDATE_INIT',
+	UPDATE_SUCCESS = 'UPDATE_SUCCESS',
+	UPDATE_FAILURE = 'UPDATE_FAILURE',
+	UPDATE_STOP = 'UPDATE_STOP',
+	ADVANCE_PAGE = 'ADVANCE_PAGE',
+	FILTER_BY_TEXT = 'FILTER_BY_TEXT',
+}
+
 export interface Action {
-	type: string;
+	type: ActionType;
 	payload?: any;
 }
 

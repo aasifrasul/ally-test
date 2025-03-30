@@ -1,4 +1,4 @@
-import { InitialState, Action, ReducerFunction } from '../constants/types';
+import { ActionType, InitialState, Action, ReducerFunction } from '../constants/types';
 
 type Payload = {
 	data?: any;
@@ -17,7 +17,7 @@ const nestedCategoriesReducer: ReducerFunction = (
 	const payload: Payload = action.payload ?? { data: [] };
 
 	switch (type) {
-		case 'FETCH_SUCCESS':
+		case ActionType.FETCH_SUCCESS:
 			return {
 				...state,
 				isLoading: false,

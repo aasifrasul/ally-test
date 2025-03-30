@@ -1,5 +1,5 @@
 import { IS_Item } from '../types/infiniteScroll';
-import { InitialState, Action, ReducerFunction } from '../constants/types';
+import { ActionType, InitialState, Action, ReducerFunction } from '../constants/types';
 
 type Payload = {
 	filterText?: string;
@@ -18,7 +18,7 @@ const infiniteScrollReducer: ReducerFunction = (
 	const payload: Payload = action.payload ?? { results: [] };
 
 	switch (type) {
-		case 'FETCH_SUCCESS':
+		case ActionType.FETCH_SUCCESS:
 			const currentData: IS_Item[] = payload.results;
 			const originalData: IS_Item[] = (state?.data as IS_Item[]) || [];
 			return {
@@ -28,7 +28,7 @@ const infiniteScrollReducer: ReducerFunction = (
 				data: [...originalData, ...currentData],
 			};
 
-		case 'FILTER_BY_TEXT':
+		case ActionType.FILTER_BY_TEXT:
 			const filterText = payload?.filterText || '';
 			return {
 				...state,

@@ -1,5 +1,6 @@
 const path = require('path');
-const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const paths = require('./paths');
 const webpackCommonConfig = require('../webpack/webpack.common');
 const fs = require('fs');
@@ -52,30 +53,37 @@ const makeConfig = () => {
 				'images',
 				'mocks',
 			],
-			alias: {
-				'fk-cp-utils': path.resolve(
-					__dirname,
-					'..',
-					'node_modules/@fpg-modules/fk-cp-utils',
-				),
-				'fk-ui-common': path.resolve(
-					__dirname,
-					'..',
-					'node_modules/@fpg-modules/fk-ui-common/src',
-				),
-				'fk-ui-common-components': path.resolve(
-					__dirname,
-					'..',
-					'node_modules/@fpg-modules/fk-ui-common/src/components',
-				),
-			},
 		},
 		performance: {
 			maxEntrypointSize: 100000,
 			maxAssetSize: 100000,
 		},
 		optimization: {
-			minimizer: [webpackCommonConfig.getUglifyJs(), new OptimizeCssAssetsPlugin()],
+			minimizer: [
+				new TerserPlugin({
+					terserOptions: {
+						parse: {
+							ecma: 8,
+						},
+						compress: {
+							ecma: 5,
+							warnings: false,
+							comparisons: false,
+							inline: 2,
+						},
+						mangle: {
+							safari10: true,
+						},
+						output: {
+							ecma: 5,
+							comments: false,
+							ascii_only: true,
+						},
+					},
+					parallel: true,
+				}),
+				new CssMinimizerPlugin(),
+			],
 			moduleIds: 'named',
 			splitChunks: {
 				cacheGroups: {
