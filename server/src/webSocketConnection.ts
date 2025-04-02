@@ -1,8 +1,8 @@
 import * as http from 'http';
 import { WebSocketServer } from 'ws';
-import { useServer } from 'graphql-ws/lib/use/ws';
-import { schema } from '../src/schema';
+import { useServer } from 'graphql-ws/use/ws';
 
+import { schema } from '../src/schema';
 import { logger } from './Logger';
 
 let wsServer: WebSocketServer | null = null;

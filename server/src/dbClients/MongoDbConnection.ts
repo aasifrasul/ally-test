@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
+import net from 'net';
+
 import { MongoDBConfig, DBType } from '../types';
 import { constants } from '../constants';
 import { logger } from '../Logger';
-import { error } from 'console';
 
 class MongoDBConnection {
 	private static instance: MongoDBConnection;
@@ -62,7 +63,6 @@ class MongoDBConnection {
 			const port = parsedUri.port || '27017';
 
 			// Use TCP socket to check if MongoDB server is listening
-			const net = require('net');
 			const socket = new net.Socket();
 
 			return new Promise<boolean>((resolve) => {

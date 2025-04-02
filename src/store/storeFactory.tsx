@@ -19,16 +19,16 @@ const logger: Logger = createLogger('storeFactory', {
 
 function storeFactory<T extends GenericState>(
 	reducer: GenericReducer,
-	initialState: GenericState,
+	initialState: T,
 ): [React.FC<{ children: ReactNode }>, () => StoreContextValue<T>] {
-	const StoreContext = createContext<StoreContextValue<T> | undefined>(undefined);
+	const GenericContext = createContext<StoreContextValue<T> | undefined>(undefined);
 
-	const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+	const StoreProvider = (props: { children: ReactNode }) => {
 		let state: GenericState;
 		let dispatch: Dispatch<GenericAction>;
 		[state, dispatch] = useReducer(reducer, initialState);
 
-		const store: Store<GenericState> = useMemo(
+		const store: Store<T> = useMemo(
 			() => ({
 				getState: (schema: Schema) => state[schema],
 			}),
@@ -38,7 +38,7 @@ function storeFactory<T extends GenericState>(
 		const proxyStore = useMemo(
 			() =>
 				new Proxy(store, {
-					get(target: Store<GenericState>, prop: Schema) {
+					get(target: Store<T>, prop: Schema) {
 						logger.debug('prop:', prop);
 						return target.getState(prop);
 					},
@@ -48,10 +48,14 @@ function storeFactory<T extends GenericState>(
 
 		const value = useMemo(() => ({ dispatch, store: proxyStore }), [dispatch, proxyStore]);
 
-		return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
+		return (
+			<GenericContext.Provider value={value}>{props.children}</GenericContext.Provider>
+		);
 	};
 
-	const useStore = useContextFactory('StoreContext.Provider', StoreContext);
+	StoreProvider.displayName = `${typeof initialState}_StoreProvider`;
+
+	const useStore = useContextFactory('GenericContext.Provider', GenericContext);
 
 	return [StoreProvider, useStore as () => StoreContextValue<T>];
 }

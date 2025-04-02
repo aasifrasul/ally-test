@@ -12,31 +12,35 @@ const config = {
 		['@babel/preset-typescript', { allowNamespaces: true }],
 	],
 	plugins: [
+		// Use modern transform plugin naming convention
 		'@babel/plugin-transform-typescript',
-		'@babel/plugin-proposal-object-rest-spread',
+		'@babel/plugin-transform-object-rest-spread', // Updated from proposal
 		'@babel/plugin-syntax-dynamic-import',
 		'@babel/plugin-transform-modules-commonjs',
 		'@babel/plugin-transform-runtime',
-		['@babel/plugin-proposal-class-properties', { loose: true }],
-		['@babel/plugin-proposal-private-methods', { loose: true }],
-		['@babel/plugin-proposal-private-property-in-object', { loose: true }],
-		'macros',
+		['@babel/plugin-transform-class-properties', { loose: true }], // Updated from proposal
+		['@babel/plugin-transform-private-methods', { loose: true }], // Updated from proposal
+		['@babel/plugin-transform-private-property-in-object', { loose: true }], // Updated from proposal
+		'babel-plugin-macros', // Full name for clarity
 	],
 };
 
-if ('production' === process.env.NODE_ENV) {
-	config.plugins = config.plugins.concat([
+// Production optimizations
+if (process.env.NODE_ENV === 'production') {
+	config.plugins.push(
 		'@babel/plugin-transform-react-constant-elements',
 		'@babel/plugin-transform-react-inline-elements',
 		'babel-plugin-transform-react-remove-prop-types',
-	]);
+	);
 }
 
-if ('test' === process.env.NODE_ENV) {
+// Test environment configuration
+if (process.env.NODE_ENV === 'test') {
 	config.presets = ['@babel/preset-env', '@babel/preset-react'];
 }
 
-if ('prod' === process.env.PROMOTION_ENV) {
+// Production environment-specific changes
+if (process.env.PROMOTION_ENV === 'prod') {
 	config.plugins.push([
 		'babel-plugin-react-remove-properties',
 		{ properties: ['testId', 'data-aid', 'data-test-id'] },

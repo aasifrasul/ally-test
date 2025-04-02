@@ -1,5 +1,5 @@
 import dataFetchReducer from '../dataFetchReducer';
-import { GenericState, GenericAction, Schema } from '../../constants/types';
+import { GenericState, GenericAction, Schema, ActionType } from '../../constants/types';
 import { constants } from '../../constants';
 
 // Mock the entire constants module
@@ -51,7 +51,7 @@ describe('dataFetchReducer', () => {
 			mockCustomReducer.mockReturnValue(customState);
 
 			const action: GenericAction = {
-				type: 'CUSTOM_ACTION',
+				type: ActionType.ADVANCE_PAGE,
 				schema: MOCK_SCHEMA,
 			};
 
@@ -68,7 +68,7 @@ describe('dataFetchReducer', () => {
 			mockCustomReducer.mockReturnValue(null);
 
 			const action: GenericAction = {
-				type: 'FETCH_INIT',
+				type: ActionType.FETCH_INIT,
 				schema: MOCK_SCHEMA,
 			};
 
@@ -81,7 +81,7 @@ describe('dataFetchReducer', () => {
 	describe('Fetch actions', () => {
 		it('should handle FETCH_INIT', () => {
 			const action: GenericAction = {
-				type: 'FETCH_INIT',
+				type: ActionType.FETCH_INIT,
 				schema: MOCK_SCHEMA,
 			};
 
@@ -97,7 +97,7 @@ describe('dataFetchReducer', () => {
 		it('should handle FETCH_SUCCESS with payload', () => {
 			const payload = { id: 1, name: 'Test' };
 			const action: GenericAction = {
-				type: 'FETCH_SUCCESS',
+				type: ActionType.FETCH_SUCCESS,
 				schema: MOCK_SCHEMA,
 				payload,
 			};
@@ -113,7 +113,7 @@ describe('dataFetchReducer', () => {
 
 		it('should handle FETCH_SUCCESS without payload', () => {
 			const action: GenericAction = {
-				type: 'FETCH_SUCCESS',
+				type: ActionType.FETCH_SUCCESS,
 				schema: MOCK_SCHEMA,
 			};
 
@@ -127,7 +127,7 @@ describe('dataFetchReducer', () => {
 
 		it('should handle FETCH_FAILURE', () => {
 			const action: GenericAction = {
-				type: 'FETCH_FAILURE',
+				type: ActionType.FETCH_FAILURE,
 				schema: MOCK_SCHEMA,
 			};
 
@@ -140,9 +140,9 @@ describe('dataFetchReducer', () => {
 			});
 		});
 
-		it('should handle FETCH_COMPLETE', () => {
+		it('should handle FETCH_STOP', () => {
 			const action: GenericAction = {
-				type: 'FETCH_COMPLETE',
+				type: ActionType.FETCH_STOP,
 				schema: MOCK_SCHEMA,
 			};
 
@@ -158,7 +158,7 @@ describe('dataFetchReducer', () => {
 	describe('Update actions', () => {
 		it('should handle UPDATE_INIT', () => {
 			const action: GenericAction = {
-				type: 'UPDATE_INIT',
+				type: ActionType.UPDATE_INIT,
 				schema: MOCK_SCHEMA,
 			};
 
@@ -173,7 +173,7 @@ describe('dataFetchReducer', () => {
 
 		it('should handle UPDATE_SUCCESS', () => {
 			const action: GenericAction = {
-				type: 'UPDATE_SUCCESS',
+				type: ActionType.UPDATE_SUCCESS,
 				schema: MOCK_SCHEMA,
 			};
 
@@ -187,7 +187,7 @@ describe('dataFetchReducer', () => {
 
 		it('should handle UPDATE_FAILURE', () => {
 			const action: GenericAction = {
-				type: 'UPDATE_FAILURE',
+				type: ActionType.UPDATE_FAILURE,
 				schema: MOCK_SCHEMA,
 			};
 
@@ -202,7 +202,7 @@ describe('dataFetchReducer', () => {
 
 		it('should handle UPDATE_STOP', () => {
 			const action: GenericAction = {
-				type: 'UPDATE_STOP',
+				type: ActionType.UPDATE_STOP,
 				schema: MOCK_SCHEMA,
 			};
 
@@ -218,7 +218,7 @@ describe('dataFetchReducer', () => {
 	describe('Pagination', () => {
 		it('should handle ADVANCE_PAGE with numeric payload', () => {
 			const action: GenericAction = {
-				type: 'ADVANCE_PAGE',
+				type: ActionType.ADVANCE_PAGE,
 				schema: MOCK_SCHEMA,
 				payload: 3,
 			};
@@ -238,7 +238,7 @@ describe('dataFetchReducer', () => {
 			};
 
 			const action: GenericAction = {
-				type: 'ADVANCE_PAGE',
+				type: ActionType.ADVANCE_PAGE,
 				schema: MOCK_SCHEMA,
 				payload: 'invalid',
 			};
@@ -255,7 +255,7 @@ describe('dataFetchReducer', () => {
 	describe('Edge cases', () => {
 		it('should handle unknown action type by returning current state', () => {
 			const action: GenericAction = {
-				type: 'UNKNOWN_ACTION',
+				type: ActionType.FILTER_BY_TEXT,
 				schema: MOCK_SCHEMA,
 			};
 
@@ -277,7 +277,7 @@ describe('dataFetchReducer', () => {
 			};
 
 			const action: GenericAction = {
-				type: 'FETCH_INIT',
+				type: ActionType.FETCH_INIT,
 				schema: MOCK_SCHEMA,
 			};
 

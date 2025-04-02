@@ -83,7 +83,6 @@ if (PROD) {
 				loader: 'css-loader',
 				options: {
 					modules: {
-						//localIdentName: '[path][name]__[local]--[hash:base64:5]',
 						localIdentName: '[path][name]_[local]_[hash:base64:6]',
 					},
 					importLoaders: 1,
@@ -91,7 +90,7 @@ if (PROD) {
 			},
 			{
 				loader: 'postcss-loader',
-				options: postCSSConfig,
+				options: postCSSConfig, // This now contains postcssOptions
 			},
 		],
 	});

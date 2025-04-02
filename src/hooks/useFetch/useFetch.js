@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { abortFetchRequest, fetchAPIData } from '../../workers/WorkerHelper';
 import { useSelector } from '../useSelector';
@@ -17,8 +17,8 @@ const useFetch = (schema, timeout = 2000) => {
 
 	const { BASE_URL, queryParams } = constants?.dataSources[schema];
 
-	const timeoutId = React.useRef(false);
-	const pageRef = React.useRef(queryParams?.page);
+	const timeoutId = useRef(false);
+	const pageRef = useRef(queryParams?.page);
 
 	const fetchNextPage = () => {
 		queryParams.page = ++pageRef.current;

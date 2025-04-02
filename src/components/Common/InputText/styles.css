@@ -1,0 +1,8 @@
+.form-element-seperator {
+	margin-left: 10px;
+	margin-bottom: 15px;
+}
+
+.form-element-error {
+	color: red;
+}

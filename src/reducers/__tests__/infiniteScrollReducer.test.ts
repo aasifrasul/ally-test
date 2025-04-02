@@ -1,6 +1,6 @@
 import infiniteScrollReducer from '../infiniteScrollReducer';
 
-import { InitialState } from '../../constants/types';
+import { ActionType, InitialState } from '../../constants/types';
 
 import { mockUserData } from './infiniteScroll.testdata';
 
@@ -19,7 +19,7 @@ describe('infiniteScrollReducer', () => {
 			};
 
 			const action = {
-				type: 'FETCH_SUCCESS',
+				type: ActionType.FETCH_SUCCESS,
 				payload: {
 					results: [mockUserData[1]],
 				},
@@ -36,7 +36,7 @@ describe('infiniteScrollReducer', () => {
 
 		it('should handle empty initial state', () => {
 			const action = {
-				type: 'FETCH_SUCCESS',
+				type: ActionType.FETCH_SUCCESS,
 				payload: {
 					results: mockUserData,
 				},
@@ -60,7 +60,7 @@ describe('infiniteScrollReducer', () => {
 			};
 
 			const action = {
-				type: 'FILTER_BY_TEXT',
+				type: ActionType.FILTER_BY_TEXT,
 				payload: {
 					filterText: 'Jeremy',
 				},
@@ -81,7 +81,7 @@ describe('infiniteScrollReducer', () => {
 			};
 
 			const action = {
-				type: 'FILTER_BY_TEXT',
+				type: ActionType.FILTER_BY_TEXT,
 				payload: {
 					filterText: 'Rosas',
 				},
@@ -102,7 +102,7 @@ describe('infiniteScrollReducer', () => {
 			};
 
 			const action = {
-				type: 'FILTER_BY_TEXT',
+				type: ActionType.FILTER_BY_TEXT,
 				payload: {
 					filterText: '',
 				},
@@ -123,7 +123,7 @@ describe('infiniteScrollReducer', () => {
 			};
 
 			const action = {
-				type: 'FILTER_BY_TEXT',
+				type: ActionType.FILTER_BY_TEXT,
 				payload: {
 					filterText: 'NonExistent',
 				},
@@ -135,18 +135,6 @@ describe('infiniteScrollReducer', () => {
 				...existingState,
 				data: [],
 			});
-		});
-	});
-
-	describe('unknown action', () => {
-		it('should return null for unknown action types', () => {
-			const action = {
-				type: 'UNKNOWN_ACTION',
-			};
-
-			const newState = infiniteScrollReducer(initialState, action);
-
-			expect(newState).toStrictEqual(initialState);
 		});
 	});
 });

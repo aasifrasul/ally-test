@@ -100,8 +100,8 @@ export const searchTextOnData = (
 
 	return lowerCasedSearchText
 		? data.filter((item) =>
-				searchFields.some(
-					(field) => item[field]?.toLowerCase().includes(lowerCasedSearchText),
+				searchFields.some((field) =>
+					item[field]?.toLowerCase().includes(lowerCasedSearchText),
 				),
 			)
 		: data;

@@ -14,6 +14,7 @@ It will show all the landing pages, click on any to traverse.
 
 This application is built on the lines of a framework on top of React.
 There are 4 aspects to it.
+
 1. It providea a tool similar to redux to manage the state, but without the boilerplate code.
    Just define a new entry in the src/utils/Constants.js file under dataFetchModules. e.g. infiniteScroll.
    you will also need to define your reducer (how do you want to handle the data after a successfull fetch).

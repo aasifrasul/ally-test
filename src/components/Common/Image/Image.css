@@ -17,8 +17,8 @@
 	padding: 0 5px;
 	content: attr(data-title);
 	font-size: 0.75rem;
-	font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-		monospace;
+	font-family:
+		SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 	color: white;
 	background-color: rgb(255, 25, 100);
 	border-radius: 0.25rem 0 0.25rem 0;

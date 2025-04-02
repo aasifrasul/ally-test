@@ -1,4 +1,4 @@
-import { InitialState, Action, ReducerFunction } from '../constants/types';
+import { ActionType, InitialState, Action, ReducerFunction } from '../constants/types';
 
 type Payload = {
 	pageData: any[];
@@ -18,7 +18,7 @@ const wineConnoisseurReducer: ReducerFunction = (
 	const payload: Payload = action.payload ?? { pageData: [], headers: [] };
 
 	switch (type) {
-		case 'FETCH_SUCCESS':
+		case ActionType.FETCH_SUCCESS:
 			const pageData = [...(state.pageData || []), ...(payload.pageData || [])];
 			const headers = [...(state.headers || []), ...(payload.headers || [])];
 			return {
