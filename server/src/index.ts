@@ -78,6 +78,31 @@ async function gracefulShutdown(signal: string): Promise<void> {
 	}, 15000);
 
 	try {
+		logger.info('Cleaning up active connections...');
+		const mongoDBInstance = MongoDBConnection.getInstance();
+
+		if (mongoDBInstance) {
+			mongoDBInstance
+				.cleanup()
+				.catch((err) => logger.error('Error cleaning up MongoDB:', err));
+		}
+
+		// Then cleanup database instances
+		const dbInstance: DBInstance = await getDBInstance(constants.dbLayer.currentDB);
+		if (dbInstance) {
+			logger.info('Cleaning up DB instance...');
+			await dbInstance
+				.cleanup()
+				.catch((err) => logger.error('Error cleaning up DB instance:', err));
+		}
+
+		disconnectIOServer().catch((err) =>
+			logger.error('Error disconnecting IO server:', err),
+		);
+		disconnectWSServer().catch((err) =>
+			logger.error('Error disconnecting WS server:', err),
+		);
+
 		logger.info('Closing HTTP server...');
 		await new Promise<void>((resolve, reject) => {
 			httpServer.close((err) => {
@@ -90,37 +115,13 @@ async function gracefulShutdown(signal: string): Promise<void> {
 				}
 			});
 		});
-
-		logger.info('Cleaning up active connections...');
-		const mongoDBInstance = MongoDBConnection.getInstance();
-		await Promise.all([
-			disconnectIOServer().catch((err) =>
-				logger.error('Error disconnecting IO server:', err),
-			),
-			disconnectWSServer().catch((err) =>
-				logger.error('Error disconnecting WS server:', err),
-			),
-			mongoDBInstance &&
-				mongoDBInstance
-					.cleanup()
-					.catch((err) => logger.error('Error cleaning up MongoDB:', err)),
-		]);
-
-		// Then cleanup database instances
-		const dbInstance: DBInstance = await getDBInstance(constants.dbLayer.currentDB);
-		if (dbInstance) {
-			logger.info('Cleaning up DB instance...');
-			await dbInstance
-				.cleanup()
-				.catch((err) => logger.error('Error cleaning up DB instance:', err));
-		}
-
-		clearTimeout(shutdownTimeout);
+		
 		logger.info('Graceful shutdown completed');
 		process.exit(0);
 	} catch (error) {
 		logger.error('Error during shutdown:', error);
-		clearTimeout(shutdownTimeout);
 		process.exit(1);
+	} finally {
+		clearTimeout(shutdownTimeout);
 	}
 }

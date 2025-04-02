@@ -39,7 +39,7 @@ export const isFunction = (data: unknown): data is Function => typeof data === '
 
 // Improved array size function with type safety
 export const arraySize = <T>(arr: T[] | unknown): number | null =>
-	isArray(arr) ? arr?.length ?? null : null;
+	isArray(arr) ? (arr?.length ?? null) : null;
 
 // Empty checks with proper type guards
 export const isEmptyString = (str: unknown): str is string =>

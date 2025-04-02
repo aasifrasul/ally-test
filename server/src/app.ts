@@ -11,7 +11,8 @@ import cookieParser from 'cookie-parser';
 import serveStatic from 'serve-static';
 import bodyParser from 'body-parser';
 import { rateLimit } from 'express-rate-limit';
-const compression = require('compression');
+import compression from 'compression';
+const timeout = require('connect-timeout');
 
 import { host, port } from './envConfigDetails';
 import {
@@ -84,7 +85,6 @@ app.use(bodyParser.text());
 app.use(limiter);
 
 // Timeout handling
-const timeout = require('connect-timeout');
 app.use(timeout('5s'));
 app.use(haltOnTimedout);
 

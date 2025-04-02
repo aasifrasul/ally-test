@@ -28,6 +28,20 @@ interface Constants {
 		mysql: MySQLConfig;
 		oracle: OracleConfig;
 	};
+	messagingLayer: {
+		enabled: boolean;
+		rabbitMQConfig: {
+			url: string;
+			MAX_RETRIES: number;
+			RETRY_DELAY: number;
+		};
+		kafkaConfig: {
+			clientId: string;
+			brokers: string[];
+			MAX_RETRIES: number;
+			RETRY_DELAY: number;
+		};
+	};
 	currencyPairs: Array<{ key: string; value: number }>;
 }
 
@@ -53,6 +67,20 @@ export const constants: Constants = {
 			port: 6379,
 			MAX_RETRIES: Number(REDIS_MAX_RETRIES),
 			RETRY_DELAY: Number(REDIS_RETRY_DELAY),
+		},
+	},
+	messagingLayer: {
+		enabled: false,
+		rabbitMQConfig: {
+			url: 'amqp://localhost',
+			MAX_RETRIES: 3,
+			RETRY_DELAY: 2000,
+		},
+		kafkaConfig: {
+			clientId: 'my-app',
+			brokers: ['localhost:9092'],
+			MAX_RETRIES: 3,
+			RETRY_DELAY: 2000,
 		},
 	},
 	dbLayer: {

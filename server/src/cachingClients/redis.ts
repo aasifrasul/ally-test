@@ -10,6 +10,7 @@ export class RedisClient {
 	private connected: boolean = false;
 	private reconnectTimeout: NodeJS.Timeout | null = null;
 	private initializing: boolean = false;
+	private subscriberClient: RedisClientType | null = null;
 
 	private constructor() {}
 
@@ -90,7 +91,10 @@ export class RedisClient {
 	};
 
 	public isReady(): boolean {
-		return this.connected && this.client !== null;
+		if (!this.connected || this.client == null) {
+			return false;
+		}
+		return true;
 	}
 
 	public async cacheData(
@@ -99,7 +103,6 @@ export class RedisClient {
 		expirationSeconds: number = 3600,
 	): Promise<boolean> {
 		if (!this.isReady()) {
-			logger.error('Redis client not connected. Unable to cache data.');
 			return false;
 		}
 
@@ -119,7 +122,6 @@ export class RedisClient {
 
 	public async getCachedData<T>(key: string): Promise<T | null> {
 		if (!this.isReady()) {
-			logger.error('Redis client not connected');
 			return null;
 		}
 
@@ -134,9 +136,68 @@ export class RedisClient {
 		}
 	}
 
+	async subscribeToChannel(channel: string) {
+		try {
+			if (!this.subscriberClient) {
+				this.subscriberClient = createClient({ url });
+				await this.subscriberClient.connect();
+			}
+			await this.subscriberClient.subscribe(channel, (message) => {
+				console.log(`Received: ${message} from ${channel}`);
+			});
+		} catch (err) {
+			logger.error(`Failed to subscribe to channel: ${err}`);
+		}
+	}
+
+	async publishMessage(channel: string, message: string) {
+		if (!this.isReady()) {
+			return false;
+		}
+
+		try {
+			await this.client?.publish(channel, message);
+			console.log(`Published: ${message} to ${channel}`);
+		} catch (err) {
+			logger.error(`Failed to publish message: ${err}`);
+			return false;
+		}
+	}
+
+	public stopSubscriberConnection(): void {
+		if (this.subscriberClient) {
+			this.subscriberClient.quit();
+			this.subscriberClient = null;
+		}
+		logger.info('Redis subscriber connection stopped.');
+	}
+
+	async addJob(job: string) {
+		if (!this.isReady()) {
+			return false;
+		}
+
+		await this.client!.rPush('jobs', job);
+	}
+
+	async processJobs() {
+		if (!this.isReady()) {
+			return false;
+		}
+
+		while (true) {
+			const job = await this.client!.lPop('jobs');
+			if (job) {
+				console.log('processing job: ', job);
+				// process job.
+			} else {
+				break;
+			}
+		}
+	}
+
 	public async deleteCachedData(key: string): Promise<boolean> {
 		if (!this.isReady()) {
-			logger.error('Redis client not connected');
 			return false;
 		}
 
