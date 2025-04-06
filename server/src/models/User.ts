@@ -2,16 +2,11 @@ import { Schema, model } from 'mongoose';
 
 import { IUser } from '../types';
 
-const userSchema = new Schema<IUser>(
-	{
-		first_name: { type: String, required: true },
-		last_name: { type: String, required: true },
-		age: { type: Number, required: true },
-	},
-	{
-		toJSON: { virtuals: true },
-	},
-);
+const userSchema = new Schema<IUser>({
+	first_name: { type: String, required: true },
+	last_name: { type: String, required: true },
+	age: { type: Number, required: true },
+});
 
 // Add a virtual `id` getter to expose `_id` as `id`
 userSchema.virtual('id').get(function (this: { _id: { toHexString: () => string } }) {
@@ -29,6 +24,4 @@ userSchema.set('toJSON', {
 	},
 });
 
-const User = model<IUser>('User', userSchema);
-
-export { User };
+export const User = model<IUser>('User', userSchema);

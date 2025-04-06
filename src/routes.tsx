@@ -1,4 +1,4 @@
-import React, { lazy } from 'react';
+import React, { lazy, ReactElement } from 'react';
 
 import { constants } from './constants';
 
@@ -6,13 +6,13 @@ import Header from './components/Common/Header';
 
 interface RouteConfig {
 	path: string;
-	element: React.ReactElement;
+	element: ReactElement;
 	meta?: {
 		requiresAuth?: boolean;
 		title?: string;
 		// ... other metadata
 	};
-	errorElement?: React.ReactElement;
+	errorElement?: ReactElement;
 }
 
 export const ErrorPage = lazy(

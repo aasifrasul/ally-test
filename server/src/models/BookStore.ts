@@ -38,7 +38,6 @@ const bookSchema = new Schema<IBookDocument>(
 	},
 	{
 		timestamps: true, // Adds createdAt and updatedAt fields
-		toJSON: { virtuals: true },
 	},
 );
 

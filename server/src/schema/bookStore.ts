@@ -236,10 +236,10 @@ export { getBook, getBooks, addBook, updateBook, deleteBook, bookCreated };
  * 
  * PGSQL
  * CREATE TABLE "book_store" (
-    id SERIAL PRIMARY KEY,  -- SERIAL is a convenient way to create an auto-incrementing integer primary key
-    firstname VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
-    lastname VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
-    status INTEGER               -- INTEGER is the correct type
+	id SERIAL PRIMARY KEY,  -- SERIAL is a convenient way to create an auto-incrementing integer primary key
+	firstname VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
+	lastname VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
+	status INTEGER               -- INTEGER is the correct type
 );
  * 
  * {

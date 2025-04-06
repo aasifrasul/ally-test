@@ -3,28 +3,31 @@
  * @param {*} fn - The function to memoize
  * @param {*} maxCacheSize - max no of Cache size
  * @returns {Function} - A memoized version of the function
- * */
+ */
 function memoize(func, maxCacheSize = 100) {
 	const cache = new Map();
-
 	return function (...args) {
-		let result;
 		const key = keyGenerator(func, args);
 
 		if (cache.has(key)) {
-			result = cache.get(key);
-			cache.delete(key); // Move to end of LRU order
+			// For LRU: delete and re-add to make this the most recently used
+			const result = cache.get(key);
+			cache.delete(key);
+			cache.set(key, result);
+			return result;
 		} else {
-			result = func.apply(this, args);
+			const result = func.apply(this, args);
+			cache.set(key, result);
+
+			// If cache exceeds max size, remove least recently used item
+			if (cache.size > maxCacheSize) {
+				// First key in Map is the oldest one
+				const oldestKey = cache.keys().next().value;
+				cache.delete(oldestKey);
+			}
+
+			return result;
 		}
-
-		cache.set(key, result);
-
-		if (cache.size > maxCacheSize) {
-			cache.delete(cache.keys().next().value);
-		}
-
-		return result;
 	};
 }
 
@@ -33,7 +36,6 @@ function keyGenerator(fn, args) {
 	const key = args
 		.map((arg) => {
 			const argType = `${typeof arg}:`;
-
 			// Only use JSON.stringify for pure objects (not arrays, null, etc.)
 			if (
 				typeof arg === 'object' &&
@@ -51,6 +53,5 @@ function keyGenerator(fn, args) {
 			}
 		})
 		.join('||');
-
 	return `${fnId}__${key}`;
 }

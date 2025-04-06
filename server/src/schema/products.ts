@@ -161,9 +161,9 @@ export { getProduct, getProducts, createProduct, updateProduct, deleteProduct };
  * 
  * PGSQL
  * CREATE TABLE "TEST_PRODUCTS" (
-    id SERIAL PRIMARY KEY,  -- SERIAL is a convenient way to create an auto-incrementing integer primary key
-    name VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
-    category VARCHAR(4000)  -- VARCHAR is the correct type, and length is specified in parentheses
+	id SERIAL PRIMARY KEY,  -- SERIAL is a convenient way to create an auto-incrementing integer primary key
+	name VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
+	category VARCHAR(4000)  -- VARCHAR is the correct type, and length is specified in parentheses
 );
  * 
 {
