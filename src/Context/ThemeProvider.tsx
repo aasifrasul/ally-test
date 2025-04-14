@@ -14,7 +14,7 @@ export const ThemeContext = createContext<ThemeContextType>({
 	isDark: false,
 });
 
-export const ThemeProvider = (props: { children: ReactNode }) => {
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 	const [state, toggleTheme] = useToggle(true);
 
 	const value = {
@@ -23,5 +23,5 @@ export const ThemeProvider = (props: { children: ReactNode }) => {
 		isDark: !state,
 	};
 
-	return <ThemeContext.Provider value={value}>{props.children}</ThemeContext.Provider>;
+	return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };

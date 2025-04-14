@@ -17,7 +17,7 @@ const app: Application = express();
 
 const httpServer: http.Server = http.createServer(app);
 
-httpServer.listen(port, host, () => logger.log('Server Started'));
+httpServer.listen(port, host, () => logger.log('', 'Server Started'));
 
 // Middleware for JSON
 app.use(express.json());

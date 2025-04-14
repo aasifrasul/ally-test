@@ -22,9 +22,11 @@ function myMap(callback, thisArg) {
 	return result;
 }
 
-Object.defineProperty(Array.prototype, 'myMap', {
-	value: myMap,
-	enumerable: false,
-	configurable: true,
-	writable: true,
-});
+if (!Array.prototype.myMap) {
+	Object.defineProperty(Array.prototype, 'myMap', {
+		value: myMap,
+		enumerable: false,
+		configurable: true,
+		writable: true,
+	});
+}

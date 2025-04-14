@@ -1,13 +1,10 @@
-import React, { useContext } from 'react';
 import { Button } from 'semantic-ui-react';
-
-import { useCounterContext } from '../../Context/CounterContext';
 
 import CustomButton from './CustomButton';
 
-export default function CounterButtons() {
-	const [count, setCount] = useCounterContext();
+import { CounterContextType } from '../../Context/CounterContext';
 
+export default function CounterButtons({ count, setCount }: CounterContextType) {
 	const increment = () => () => setCount(count + 1);
 	const decrement = () => () => setCount(count - 1);
 

@@ -1,17 +1,28 @@
 import { Segment } from 'semantic-ui-react';
 
-import { CounterContextProvider } from '../../Context/CounterContext';
+import { CounterContextProvider, useCounterContext } from '../../Context/CounterContext';
+
 import Display from './display';
 import Button from './button';
 
-export default function CounterView() {
+function Counter() {
+	const { count, setCount } = useCounterContext();
+
 	return (
-		<CounterContextProvider>
+		<>
 			<h3>Counter</h3>
 			<Segment textAlign="center">
-				<Display />
-				<Button />
+				<Display count={count} />
+				<Button count={count} setCount={setCount} />
 			</Segment>
+		</>
+	);
+}
+
+export default function wrapper() {
+	return (
+		<CounterContextProvider>
+			<Counter />
 		</CounterContextProvider>
 	);
 }

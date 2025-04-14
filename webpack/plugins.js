@@ -2,7 +2,7 @@ const webpack = require('webpack');
 const path = require('path');
 // const ATL = require('awesome-typescript-loader');
 const CompressionPlugin = require('compression-webpack-plugin');
-const CssExtractPlugin = require('mini-css-extract-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const EmitAssetsPlugin = require('./emit-assets-plugin');
 const Visualizer = require('webpack-visualizer-plugin');
 const StatsPlugin = require('stats-webpack-plugin');
@@ -47,7 +47,7 @@ let plugins = [
 	 * Extract CSS from a bundle, or bundles, into a separate file
 	 * Source: https://github.com/webpack-contrib/mini-css-extract-plugin
 	 */
-	new CssExtractPlugin({
+	new MiniCssExtractPlugin({
 		filename: '[name].[contenthash:20].css',
 		chunkFilename: '[name].[contenthash:20].css',
 	}),

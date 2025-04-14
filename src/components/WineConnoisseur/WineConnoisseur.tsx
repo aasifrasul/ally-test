@@ -4,7 +4,7 @@ import ScrollToTop from '../Common/ScrollToTopButton';
 
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 
-import styles from './WineConnoisseur.module.css';
+import * as styles from './WineConnoisseur.module.css';
 
 interface WineConnoisseurProps {
 	headers: any[];

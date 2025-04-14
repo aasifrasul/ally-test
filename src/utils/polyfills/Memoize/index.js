@@ -15,19 +15,19 @@ function memoize(func, maxCacheSize = 100) {
 			cache.delete(key);
 			cache.set(key, result);
 			return result;
-		} else {
-			const result = func.apply(this, args);
-			cache.set(key, result);
-
-			// If cache exceeds max size, remove least recently used item
-			if (cache.size > maxCacheSize) {
-				// First key in Map is the oldest one
-				const oldestKey = cache.keys().next().value;
-				cache.delete(oldestKey);
-			}
-
-			return result;
 		}
+
+		const result = func.apply(this, args);
+		cache.set(key, result);
+
+		// If cache exceeds max size, remove least recently used item
+		if (cache.size > maxCacheSize) {
+			// First key in Map is the oldest one
+			const oldestKey = cache.keys().next().value;
+			cache.delete(oldestKey);
+		}
+
+		return result;
 	};
 }
 

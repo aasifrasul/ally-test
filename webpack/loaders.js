@@ -51,49 +51,30 @@ var loaders = [
 	},
 ];
 
-if (PROD) {
-	loaders.push({
-		test: /.css$/,
-		use: [
-			MiniCssExtractPlugin.loader,
-			{
-				loader: 'css-loader',
-				options: {
-					modules: true,
-					importLoaders: 1,
-					localIdentName: '[sha512:hash:base64:6]',
+loaders.push({
+	test: /\.css$/,
+	use: [
+		MiniCssExtractPlugin.loader,
+		{
+			loader: 'css-loader',
+			options: {
+				modules: {
+					mode: 'local',
+					localIdentName: '[hash:base64:6]',
+					exportLocalsConvention: 'camelCase', // This is important
+				},
+				importLoaders: 1,
+			},
+		},
+		{
+			loader: 'postcss-loader',
+			options: {
+				postcssOptions: {
+					config: path.resolve(__dirname, 'postcss.config.js'),
 				},
 			},
-			{
-				loader: 'postcss-loader',
-				options: {
-					config: {
-						path: __dirname,
-					},
-				},
-			},
-		],
-	});
-} else {
-	loaders.push({
-		test: /\.css$/i,
-		use: [
-			MiniCssExtractPlugin.loader,
-			{
-				loader: 'css-loader',
-				options: {
-					modules: {
-						localIdentName: '[path][name]_[local]_[hash:base64:6]',
-					},
-					importLoaders: 1,
-				},
-			},
-			{
-				loader: 'postcss-loader',
-				options: postCSSConfig, // This now contains postcssOptions
-			},
-		],
-	});
-}
+		},
+	],
+});
 
 module.exports = loaders;

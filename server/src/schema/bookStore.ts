@@ -221,11 +221,11 @@ const deleteBook = async (parent: any, args: { id: string }): Promise<boolean> =
 };
 
 const bookCreated = {
-	subscribe: () => pubsub.asyncIterator(['BOOK_CREATED']),
+	subscribe: () => pubsub.asyncIterableIterator(['BOOK_CREATED']),
 };
 
 const getBookCreatedResolver = async (): Promise<AsyncIterator<unknown>> => {
-	return pubsub.asyncIterator('bookCreated');
+	return pubsub.asyncIterableIterator('bookCreated');
 };
 
 export { getBook, getBooks, addBook, updateBook, deleteBook, bookCreated };

@@ -29,7 +29,7 @@ interface CustomButtonProps {
 const CustomButton = (props: CustomButtonProps) => {
 	const { text, color, callback } = props;
 	return (
-		<Button color={color} onClick={callback()}>
+		<Button color={color} onClick={() => callback()}>
 			{text}
 		</Button>
 	);

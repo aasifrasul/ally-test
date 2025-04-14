@@ -188,11 +188,11 @@ const deleteUser = async (parent: any, args: { id: string }): Promise<boolean> =
 };
 
 const userCreated = {
-	subscribe: () => pubsub.asyncIterator(['USER_CREATED']),
+	subscribe: () => pubsub.asyncIterableIterator(['USER_CREATED']),
 };
 
 const getUserCreatedResolver = async (): Promise<AsyncIterator<unknown>> => {
-	return pubsub.asyncIterator('userCreated');
+	return pubsub.asyncIterableIterator('userCreated');
 };
 
 export { getUser, getUsers, createUser, updateUser, deleteUser, userCreated };

@@ -1,6 +1,6 @@
 // components/TrafficLight/index.jsx
 import React, { useRef, useEffect } from 'react';
-import styles from './styles.module.css';
+import * as styles from './styles.module.css';
 
 function TrafficLight() {
 	const redRef = useRef<HTMLDivElement>(null);

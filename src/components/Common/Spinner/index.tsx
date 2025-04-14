@@ -8,7 +8,7 @@ interface SpinnerProps {
 
 const Spinner: React.FC<SpinnerProps> = () => {
 	return (
-		<div className={styles['global-spinner-overlay']}>
+		<div className={styles['global_spinner_overlay']}>
 			<p>Loading...</p>
 		</div>
 	);

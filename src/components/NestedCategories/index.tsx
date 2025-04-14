@@ -6,7 +6,7 @@ import ScrollToTop from '../Common/ScrollToTopButton';
 import { alphabets } from '../../utils/ArrayUtils';
 import { buildNestedStructure } from './helpers';
 import { Category, NestedCategoriesProps, SelectChangeEvent } from './types';
-import styles from './NestedCategories.module.css';
+import * as styles from './NestedCategories.module.css';
 
 export const NestedCategories: React.FC<NestedCategoriesProps> = ({
 	data: initialData,
