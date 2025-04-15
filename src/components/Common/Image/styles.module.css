@@ -96,7 +96,7 @@
  * Dot Spin
  * ==============================================
  */
-.dotSpin {
+.dot-spin {
 	position: relative;
 	width: 10px;
 	height: 10px;
@@ -112,10 +112,10 @@
 		-12.72984px 12.72984px 0 0 rgba(152, 128, 255, 0),
 		-18px 0 0 0 rgba(152, 128, 255, 0),
 		-12.72984px -12.72984px 0 0 rgba(152, 128, 255, 0);
-	animation: dotSpin 1.5s infinite linear;
+	animation: dot-spin 1.5s infinite linear;
 }
 
-@keyframes dotSpin {
+@keyframes dot-spin {
 	0%,
 	100% {
 		box-shadow:
@@ -221,7 +221,7 @@
 	background-color: #9880ff;
 	color: #9880ff;
 	box-shadow: 9999px 0 0 -5px #9880ff;
-	animation: dotPulse 1.5s infinite linear;
+	animation: dot-pulse 1.5s infinite linear;
 	animation-delay: 0.25s;
 }
 
@@ -240,17 +240,17 @@
 
 .dot-pulse::before {
 	box-shadow: 9984px 0 0 -5px #9880ff;
-	animation: dotPulseBefore 1.5s infinite linear;
+	animation: dot-pulse-before 1.5s infinite linear;
 	animation-delay: 0s;
 }
 
 .dot-pulse::after {
 	box-shadow: 10014px 0 0 -5px #9880ff;
-	animation: dotPulseAfter 1.5s infinite linear;
+	animation: dot-pulse-after 1.5s infinite linear;
 	animation-delay: 0.5s;
 }
 
-@keyframes dotPulseBefore {
+@keyframes dot-pulse-before {
 	0% {
 		box-shadow: 9984px 0 0 -5px #9880ff;
 	}
@@ -263,7 +263,7 @@
 	}
 }
 
-@keyframes dotPulse {
+@keyframes dot-pulse {
 	0% {
 		box-shadow: 9999px 0 0 -5px #9880ff;
 	}
@@ -276,7 +276,7 @@
 	}
 }
 
-@keyframes dotPulseAfter {
+@keyframes dot-pulse-after {
 	0% {
 		box-shadow: 10014px 0 0 -5px #9880ff;
 	}

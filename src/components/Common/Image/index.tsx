@@ -1,5 +1,7 @@
 import React from 'react';
-import './Image.css';
+import { clsx } from 'clsx';
+
+import * as imageStyles from './styles.module.css';
 
 interface ImageProps {
 	src: string;
@@ -41,8 +43,8 @@ const Image: React.FC<ImageProps> = ({
 	return (
 		<div>
 			{img}
-			<div className="snippet">
-				<div className="stage filter-contrast">
+			<div className={imageStyles.snippet}>
+				<div className={clsx(imageStyles.stage, imageStyles.filterContrast)}>
 					<span className={'dot-pulse'}></span>
 				</div>
 			</div>

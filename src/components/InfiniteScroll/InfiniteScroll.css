@@ -33,5 +33,5 @@ img:before {
 		-12.72984px 12.72984px 0 0 rgba(152, 128, 255, 0),
 		-18px 0 0 0 rgba(152, 128, 255, 0),
 		-12.72984px -12.72984px 0 0 rgba(152, 128, 255, 0);
-	animation: dotSpin 1.5s infinite linear;
+	animation: dot-spin 1.5s infinite linear;
 }
