@@ -1,5 +1,3 @@
-'use client';
-
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
@@ -16,7 +14,7 @@ export default function Pagination({
 	const [searchParams, setSearchParams] = useSearchParams();
 	const currentPage = Number(searchParams.get('page')) || 1;
 
-	const createPageURL = (pageNumber: number | string) => {
+	const createPageURL = (pageNumber: number | string): string => {
 		const params = new URLSearchParams(searchParams);
 		params.set('page', pageNumber.toString());
 		return `${pathname}?${params.toString()}`;

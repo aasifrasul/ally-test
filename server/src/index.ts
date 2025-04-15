@@ -115,7 +115,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
 				}
 			});
 		});
-		
+
 		logger.info('Graceful shutdown completed');
 		process.exit(0);
 	} catch (error) {

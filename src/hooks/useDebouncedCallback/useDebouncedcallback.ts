@@ -1,4 +1,3 @@
-// Best Implementation (Modified version of first example)
 import { useEffect, useRef } from 'react';
 
 export function useDebouncedCallback<A extends any[]>(

@@ -1,6 +1,6 @@
-import parser from 'ua-parser-js';
+import { UAParser } from 'ua-parser-js';
 
 export const parse = (userAgent: string) => {
-	const uaParsedObj = parser(userAgent);
+	const uaParsedObj = UAParser(userAgent);
 	return uaParsedObj;
 };

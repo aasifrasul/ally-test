@@ -3,7 +3,7 @@ import { FaAngleUp } from 'react-icons/fa';
 
 import { useEventListener } from '../../../hooks/EventListeners/useEventListener';
 
-import styles from './index.module.css';
+import * as styles from './index.module.css';
 
 const ScrollToTop: React.FC = () => {
 	const [showTopBtn, setShowTopBtn] = useState<boolean>(false);

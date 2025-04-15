@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Modal from '../Common/Modal';
 import useClickOutside from '../../hooks/useClickOutside';
 import { formatTimeStamp, initialUsers, endpoint } from './helper';
-import styles from './styles.module.css';
+import * as styles from './styles.module.css';
 
 interface Comment {
 	updatedBy: string;

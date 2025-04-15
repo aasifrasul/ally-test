@@ -1,7 +1,7 @@
-import cluster from "cluster";
-import os from "os";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
+import cluster from 'cluster';
+import os from 'os';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pathRootDir = path.join(__dirname, '..');
@@ -20,8 +20,8 @@ cluster.setupPrimary({
 for (let i = 0; i < cpuCount; i++) {
 	cluster.fork();
 }
-cluster.on("exit", (worker) => {
+cluster.on('exit', (worker) => {
 	console.log(`worker ${worker.process.pid} has been killed`);
-	console.log("Starting another worker");
+	console.log('Starting another worker');
 	cluster.fork();
 });

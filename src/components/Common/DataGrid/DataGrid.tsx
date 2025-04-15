@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import Cell from './Cell';
-import styles from './DataGrid.module.css';
+import * as styles from './DataGrid.module.css';
 
 // Define types for component props
 interface DataGridProps {

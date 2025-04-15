@@ -188,11 +188,11 @@ const deleteUser = async (parent: any, args: { id: string }): Promise<boolean> =
 };
 
 const userCreated = {
-	subscribe: () => pubsub.asyncIterator(['USER_CREATED']),
+	subscribe: () => pubsub.asyncIterableIterator(['USER_CREATED']),
 };
 
 const getUserCreatedResolver = async (): Promise<AsyncIterator<unknown>> => {
-	return pubsub.asyncIterator('userCreated');
+	return pubsub.asyncIterableIterator('userCreated');
 };
 
 export { getUser, getUsers, createUser, updateUser, deleteUser, userCreated };
@@ -203,10 +203,10 @@ export { getUser, getUsers, createUser, updateUser, deleteUser, userCreated };
  * 
  * PGSQL
  * CREATE TABLE "TEST_USERS" (
-    id SERIAL PRIMARY KEY,  -- SERIAL is a convenient way to create an auto-incrementing integer primary key
-    firstname VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
-    lastname VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
-    age INTEGER               -- INTEGER is the correct type
+	id SERIAL PRIMARY KEY,  -- SERIAL is a convenient way to create an auto-incrementing integer primary key
+	firstname VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
+	lastname VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
+	age INTEGER               -- INTEGER is the correct type
 );
  * 
  * {

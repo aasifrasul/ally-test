@@ -1,10 +1,6 @@
 import { Statistic } from 'semantic-ui-react';
 
-import { useCounterContext } from '../../Context/CounterContext';
-
-export default function CounterDisplay() {
-	const [count] = useCounterContext();
-
+export default function CounterDisplay({ count }: { count: number }) {
 	return (
 		<Statistic>
 			<Statistic.Value>{count}</Statistic.Value>

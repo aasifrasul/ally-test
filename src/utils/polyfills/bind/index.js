@@ -20,7 +20,7 @@ Function.prototype.myBind = function (context, ...boundArgs) {
 	context = context === null || context === undefined ? globalThis : Object(context);
 
 	const boundFunction = function (...args) {
-		const finalArgs = boundArgs.concat(args);
+		const finalArgs = [...boundArgs, ...args];
 
 		// Handle being used as a constructor
 		if (this instanceof boundFunction) {

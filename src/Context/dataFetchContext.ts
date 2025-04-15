@@ -11,19 +11,25 @@ if (!dataSources) {
 }
 
 const initialState: GenericState = {};
-const individualState: InitialState = {
-	isLoading: false,
-	isError: false,
-	data: [],
-	originalData: [],
-	pageData: [],
-	headers: [],
-	currentPage: 0,
-	TOTAL_PAGES: 0,
-};
+
+function createSchemaState() {
+	const individualState: InitialState = {
+		isLoading: false,
+		isError: false,
+		data: [],
+		originalData: [],
+		pageData: [],
+		headers: [],
+		currentPage: 0,
+		TOTAL_PAGES: 0,
+	};
+
+	return individualState;
+}
 
 // Populate initialState based on dataSources
 Object.entries(dataSources).forEach(([key, dataSources]) => {
+	const individualState = createSchemaState();
 	individualState.currentPage = dataSources.queryParams?.page || 0;
 	initialState[key] = individualState;
 });

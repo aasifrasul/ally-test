@@ -10,7 +10,7 @@ import { Spinner } from '../Common/Spinner/Spinner';
 
 import { sortMixedArray, searchTextOnData } from '../../utils/common';
 
-import styles from './styles.module.css';
+import * as styles from './styles.module.css';
 
 interface SearchFormProps {
 	data: any;

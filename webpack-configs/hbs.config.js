@@ -22,7 +22,13 @@ module.exports = function (env) {
 			publicPath,
 		},
 		mode: webpackCommonConfig.getNodeEnv(),
-		plugins: [webpackCommonConfig.cleanWebpackPlugin()],
+		plugins: [
+			webpackCommonConfig.cleanWebpackPlugin(),
+			new MiniCssExtractPlugin({
+				filename: '[name].[contenthash:20].css',
+				chunkFilename: '[name].[contenthash:20].css',
+			}),
+		],
 		// resolve: resolve,
 		optimization: {
 			minimize: false,
@@ -58,18 +64,25 @@ module.exports = function (env) {
 							options: {
 								modules: {
 									mode: 'local',
-									//localIdentName: '[path][name]__[local]--[hash:base64:5]',
 									localIdentName: DEV
 										? '[path][name]_[local]_[hash:base64:6]'
-										: '[sha512:hash:base64:6]',
+										: '[hash:base64:6]',
+									exportLocalsConvention: 'camelCase', // Add this
 								},
 								importLoaders: 1,
 								minimize: !DEV,
 							},
 						},
-						'postcss-loader',
+						{
+							loader: 'postcss-loader',
+							options: {
+								postcssOptions: {
+									config: path.resolve(__dirname, 'postcss.config.js'),
+								},
+							},
+						},
 					],
-				},
+				}
 			),
 		},
 	};

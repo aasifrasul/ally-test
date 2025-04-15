@@ -20,7 +20,8 @@ if (cluster.isPrimary) {
 			// Receive messages from workers
 			worker.on('message', (msg: { cmd?: string }) => {
 				if (msg && msg.cmd && msg.cmd === 'incrementRequestCount') {
-					if (workers[worker.id]) { // Check if worker exists before incrementing
+					if (workers[worker.id]) {
+						// Check if worker exists before incrementing
 						workers[worker.id].requests++;
 						console.log(
 							`Worker ${worker.process.pid} has handled ${workers[worker.id].requests} requests`,

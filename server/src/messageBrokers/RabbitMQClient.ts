@@ -49,7 +49,7 @@ export class RabbitMQClient {
 				logger.info('RabbitMQ connection closed');
 				this.connected = false;
 				this.channel = null;
-				this.scheduleReconnect();
+				setTimeout(() => this.scheduleReconnect());
 			});
 
 			logger.info('RabbitMQ connection established');
@@ -67,9 +67,7 @@ export class RabbitMQClient {
 	}
 
 	private async scheduleReconnect(): Promise<void> {
-		if (this.reconnectTimeout) {
-			clearTimeout(this.reconnectTimeout);
-		}
+		this.clearTimeouts();
 
 		const maxReconnectAttempts = MAX_RETRIES ?? 5;
 
@@ -196,11 +194,15 @@ export class RabbitMQClient {
 		}
 	}
 
-	public async closeConnection(): Promise<void> {
+	public clearTimeouts(): void {
 		if (this.reconnectTimeout) {
 			clearTimeout(this.reconnectTimeout);
 			this.reconnectTimeout = null;
 		}
+	}
+
+	public async closeConnection(): Promise<void> {
+		this.clearTimeouts();
 
 		if (this.channel) {
 			try {

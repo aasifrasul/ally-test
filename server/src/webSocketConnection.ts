@@ -1,4 +1,4 @@
-import * as http from 'http';
+import { Server } from 'http';
 import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/use/ws';
 
@@ -8,7 +8,7 @@ import { logger } from './Logger';
 let wsServer: WebSocketServer | null = null;
 let serverCleanup: any;
 
-export const connectWSServer = (httpServer: http.Server): Promise<void> => {
+export const connectWSServer = (httpServer: Server): Promise<void> => {
 	return new Promise((resolve, reject) => {
 		try {
 			wsServer = new WebSocketServer({

@@ -10,6 +10,7 @@ const autoComplete: AutoCompleteConfig = {
 };
 
 const routes = [
+	'Counter',
 	'AccordionDemo',
 	'AsyncArticles',
 	'AutoComplete',
@@ -20,6 +21,7 @@ const routes = [
 	'CurrencyStream',
 	'Dashboard',
 	'DeeplyNestedCategories',
+	'DisplayNestedData',
 	'DigitalClock',
 	'DisplayGraphql',
 	'FlipTheCard',

@@ -1,4 +1,4 @@
-import React from 'react';
+import { createContext, ReactNode } from 'react';
 
 import { useToggle } from '../hooks/useToggle';
 
@@ -8,13 +8,13 @@ export interface ThemeContextType {
 	isDark: boolean;
 }
 
-export const ThemeContext = React.createContext<ThemeContextType>({
+export const ThemeContext = createContext<ThemeContextType>({
 	theme: 'light',
 	toggleTheme: () => {},
 	isDark: false,
 });
 
-export const ThemeProvider = (props: { children: React.ReactNode }) => {
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 	const [state, toggleTheme] = useToggle(true);
 
 	const value = {
@@ -23,5 +23,5 @@ export const ThemeProvider = (props: { children: React.ReactNode }) => {
 		isDark: !state,
 	};
 
-	return <ThemeContext.Provider value={value}>{props.children}</ThemeContext.Provider>;
+	return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };

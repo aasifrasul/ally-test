@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 import { constants } from '../constants';
@@ -23,7 +23,7 @@ export const useSocket = () => {
 	return context;
 };
 
-export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SocketProvider = ({ children }: { children: ReactNode }) => {
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const [isConnected, setIsConnected] = useState(false);
 

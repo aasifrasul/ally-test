@@ -1,0 +1,161 @@
+[
+	{
+		"id": 1,
+		"name": "Top-Level Module A",
+		"desc": "The primary module containing several sub-components.",
+		"children": [
+			{
+				"id": 1.1,
+				"name": "Sub-Component A.1",
+				"desc": "A component within Module A.",
+				"children": [
+					{
+						"id": 1.11,
+						"name": "Inner Element A.1.1",
+						"desc": "A foundational element of Sub-Component A.1"
+					},
+					{
+						"id": 1.12,
+						"name": "Inner Element A.1.2",
+						"desc": "Another foundational element of Sub-Component A.1"
+					}
+				]
+			},
+			{
+				"id": 1.2,
+				"name": "Sub-Component A.2",
+				"desc": "Another component within Module A."
+			}
+		]
+	},
+	{
+		"id": 2,
+		"name": "Top-Level Module B",
+		"desc": "Another primary module with its own sub-structure.",
+		"children": [
+			{
+				"id": 2.1,
+				"name": "Sub-Component B.1",
+				"desc": "A component specific to Module B."
+			},
+			{
+				"id": 2.2,
+				"name": "Sub-Component B.2",
+				"desc": "Another component within Module B.",
+				"children": [
+					{
+						"id": 2.21,
+						"name": "Inner Element B.2.1",
+						"desc": "A specific element of Sub-Component B.2"
+					}
+				]
+			}
+		]
+	},
+	{
+		"id": 3,
+		"name": "Top-Level Module C",
+		"desc": "A module focused on data processing.",
+		"children": [
+			{
+				"id": 3.1,
+				"name": "Sub-Component C.1",
+				"desc": "Data input component."
+			},
+			{
+				"id": 3.2,
+				"name": "Sub-Component C.2",
+				"desc": "Data transformation component."
+			}
+		]
+	},
+	{
+		"id": 4,
+		"name": "Top-Level Module D",
+		"desc": "A module for user interface elements.",
+		"children": [
+			{
+				"id": 4.1,
+				"name": "Sub-Component D.1",
+				"desc": "Button component."
+			}
+		]
+	},
+	{
+		"id": 5,
+		"name": "Top-Level Module E",
+		"desc": "A module for network communication.",
+		"children": [
+			{
+				"id": 5.1,
+				"name": "Sub-Component E.1",
+				"desc": "HTTP request handler."
+			},
+			{
+				"id": 5.2,
+				"name": "Sub-Component E.2",
+				"desc": "Websocket connection manager."
+			}
+		]
+	},
+	{
+		"id": 6,
+		"name": "Top-Level Module F",
+		"desc": "A module for data storage.",
+		"children": [
+			{
+				"id": 6.1,
+				"name": "Sub-Component F.1",
+				"desc": "Database connection."
+			}
+		]
+	},
+	{
+		"id": 7,
+		"name": "Top-Level Module G",
+		"desc": "A module for authentication.",
+		"children": [
+			{
+				"id": 7.1,
+				"name": "Sub-Component G.1",
+				"desc": "Login handler."
+			}
+		]
+	},
+	{
+		"id": 8,
+		"name": "Top-Level Module H",
+		"desc": "A module for authorization.",
+		"children": [
+			{
+				"id": 8.1,
+				"name": "Sub-Component H.1",
+				"desc": "Role-based access control."
+			}
+		]
+	},
+	{
+		"id": 9,
+		"name": "Top-Level Module I",
+		"desc": "A module for logging.",
+		"children": [
+			{
+				"id": 9.1,
+				"name": "Sub-Component I.1",
+				"desc": "Log formatter."
+			}
+		]
+	},
+	{
+		"id": 10,
+		"name": "Top-Level Module J",
+		"desc": "A module for testing.",
+		"children": [
+			{
+				"id": 10.1,
+				"name": "Sub-Component J.1",
+				"desc": "Unit testing framework."
+			}
+		]
+	}
+]

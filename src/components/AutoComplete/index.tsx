@@ -10,7 +10,7 @@ import React, {
 
 import useClickOutside from '../../hooks/useClickOutside';
 import { constants } from '../../constants';
-import styles from './styles.module.css';
+import * as styles from './styles.module.css';
 
 interface AutoCompleteProps {
 	suggestions: string[];
