@@ -9,6 +9,18 @@ export class ConcurrentAsyncQueue<T> extends AsyncQueue<T> {
 		this.concurrentLimit = concurrentLimit;
 	}
 
+	async addToQueue(action: () => Promise<T>, autoDequeue: boolean = true): Promise<T> {
+		return new Promise<T>((resolve, reject) => {
+			super.enqueue({ action, resolve, reject });
+			if (autoDequeue) {
+				// Start as many tasks as possible up to the concurrency limit
+				for (let i = 0; i < this.concurrentLimit; i++) {
+					void this.processQueue();
+				}
+			}
+		});
+	}
+
 	async processQueue(): Promise<boolean> {
 		if (
 			this.isEmpty() ||
@@ -19,27 +31,42 @@ export class ConcurrentAsyncQueue<T> extends AsyncQueue<T> {
 			return false;
 		}
 
-		this.runningTasks++;
+		const item = super.dequeue();
+		if (!item) return false;
 
-		let item = this.dequeue(); // Use the parent's dequeue method
-		if (!item) {
-			this.runningTasks--; // Decrement if dequeue returned nothing.
-			return false; // Queue is empty.
-		}
+		this.runningTasks++;
+		this.isRunning = true;
 
 		try {
-			this.isRunning = true; // Set isRunning before awaiting item.action
 			const payload = await item.action();
 			item.resolve(payload);
-			return true;
 		} catch (error) {
 			console.error('Error processing queue item:', error);
 			item.reject(error);
-			return false; // Return false if the task failed.
 		} finally {
 			this.runningTasks--;
 			this.isRunning = this.runningTasks > 0;
-			void this.processQueue(); // Continue processing in the background
+			
+			// Try to process another item if there are items left
+			// and we haven't reached the concurrency limit
+			void this.processQueue();
 		}
+		
+		return true;
+	}
+
+	// Override the start method to properly handle concurrency
+	async start(): Promise<boolean> {
+		this.isStopped = false;
+		this.isPaused = false;
+		
+		// Start multiple tasks up to the concurrency limit
+		let started = false;
+		for (let i = 0; i < this.concurrentLimit; i++) {
+			const result = await this.processQueue();
+			started = started || result;
+		}
+		
+		return started;
 	}
 }
