@@ -54,8 +54,8 @@ export class MyPromise {
 					typeof onRejected === 'function'
 						? onRejected
 						: (error) => {
-							throw error;
-						},
+								throw error;
+							},
 				resolve,
 				reject,
 			});

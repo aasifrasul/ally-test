@@ -8,7 +8,9 @@ const Stopwatch: React.FC<StopwatchProps> = (props) => {
 
 	return (
 		<div>
-			<div>{seconds} {milliseconds}</div>
+			<div>
+				{seconds} {milliseconds}
+			</div>
 			<div>
 				<button onClick={stop}>Stop</button>
 				<button onClick={start}>Resume</button>

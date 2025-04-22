@@ -29,9 +29,9 @@ export const InfiniteScroll = (props: Props) => {
 				(entry) => entry.intersectionRatio > 0 && fetchNextPage(currentPage + 1),
 			),
 		);
-		observerElement && observer.current.observe(observerElement);
+		observerElement && observer.current?.observe(observerElement);
 		return () => {
-			observerElement && observer.current && observer.current.unobserve(observerElement);
+			observerElement && observer.current?.unobserve(observerElement);
 		};
 	}, [observerElement]);
 

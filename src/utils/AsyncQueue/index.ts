@@ -50,6 +50,14 @@ export class AsyncQueue<T> extends BaseQueue<QueueItem<T>> {
 
 	stop(): void {
 		this.isStopped = true;
+
+		// Reject all pending items
+		while (!this.isEmpty()) {
+			const item = super.dequeue();
+			if (item) {
+				item.reject(new Error('Queue processing was stopped'));
+			}
+		}
 	}
 
 	pause(): void {

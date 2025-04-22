@@ -1,7 +1,7 @@
 export class BaseQueue<T> {
 	protected map: Map<number, T> = new Map();
-	protected upperLimit = 0;
-	protected lowerLimit = 0;
+	protected upperLimit: number = 0;
+	protected lowerLimit: number = 0;
 
 	constructor() {
 		this.reset();
@@ -20,9 +20,9 @@ export class BaseQueue<T> {
 		}
 
 		const key = this.lowerLimit + 1;
-		const result = this.map.get(key);
+		const result = this.map.get(this.lowerLimit + 1);
 		this.map.delete(key);
-		this.lowerLimit = key;
+		this.lowerLimit++;
 
 		return result;
 	}
