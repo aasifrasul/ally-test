@@ -41,13 +41,14 @@ const useOTP = ({ value = '', OTPLength }: useOTPType) => {
 		handleOtpChange(otp);
 	};
 
-	const isValidateChar = (char: string) => {
+	const isValidChar = (char: string) => {
 		return !(char.charCodeAt(0) > NINE_KEYCODE || char.charCodeAt(0) < ZERO_KEYCODE);
 	};
 
 	const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		if (isValidateChar(e.target.value)) {
-			changeActiveInputValue(e.target.value);
+		const text: string = e.target.value;
+		if (isValidChar(text)) {
+			changeActiveInputValue(text);
 			focusInputByDirection('next');
 		}
 	};

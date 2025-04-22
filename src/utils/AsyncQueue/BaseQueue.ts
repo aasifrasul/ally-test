@@ -22,7 +22,7 @@ export class BaseQueue<T> {
 		const key = this.lowerLimit + 1;
 		const result = this.map.get(this.lowerLimit + 1);
 		this.map.delete(key);
-		this.lowerLimit++; 
+		this.lowerLimit++;
 
 		return result;
 	}

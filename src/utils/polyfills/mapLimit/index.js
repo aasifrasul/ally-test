@@ -6,7 +6,7 @@ concurrencyLimit: The maximum number of operations that can run concurrently.
 iterateeCallback: An async function that processes each input. It takes input and callback as arguments, where callback is called with the processed output.
 Output:
 Once all inputs are processed, call the provided callback with an array of results  /  
-`
+`;
 
 function* range(start, stop, step) {
 	let count = start;
@@ -35,24 +35,24 @@ function mapLimit(items, concurrencyLimit, iterateeCallback, finalCallback) {
 	if (typeof finalCallback !== 'function') {
 		throw new Error('fourth param should be a function');
 	}
-  
+
 	const results = new Array(itemsCount);
-	let runningCount = 0;   // Number of tasks currently running
+	let runningCount = 0; // Number of tasks currently running
 	let completedCount = 0; // Number of tasks completed
-	let index = 0;          // Next item index to process
-	let hasError = false;   // Error flag
-  
+	let index = 0; // Next item index to process
+	let hasError = false; // Error flag
+
 	// Start as many tasks as allowed by the concurrencyLimit
 	function processNext() {
 		// While we have items to process and haven't hit the concurrency limit
 		while (runningCount < concurrencyLimit && index < itemsCount) {
-			const currentIndex = index++;  // Capture current index for closure
+			const currentIndex = index++; // Capture current index for closure
 			runningCount++;
-	  
+
 			// Execute the iteratee callback for this item
 			iterateeCallback(items[currentIndex], (error, result) => {
-				if (hasError) return;  // Skip if we already encountered an error
-		
+				if (hasError) return; // Skip if we already encountered an error
+
 				if (error) {
 					hasError = true;
 					return finalCallback(error);
@@ -62,23 +62,25 @@ function mapLimit(items, concurrencyLimit, iterateeCallback, finalCallback) {
 				results[currentIndex] = result;
 				runningCount--;
 				completedCount++;
-		
+
 				// If all items are processed, we're done
 				if (completedCount === itemsCount) {
 					return finalCallback(null, results);
 				}
-		
+
 				// Otherwise, try to process more items
 				processNext();
 			});
 		}
 	}
-  
+
 	// Kick off the process
 	processNext();
 }
 
-mapLimit([...range(1, 20, 2)], 2,
+mapLimit(
+	[...range(1, 20, 2)],
+	2,
 	// This is the iterateeCallback that processes each input
 	(input, callback) => {
 		setTimeout(() => {
@@ -89,5 +91,5 @@ mapLimit([...range(1, 20, 2)], 2,
 	(error, results) => {
 		if (error) console.error(error);
 		else console.log(results); // Should print [2, 4, 6, 8]
-	}
+	},
 );

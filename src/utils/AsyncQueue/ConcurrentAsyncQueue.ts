@@ -46,12 +46,12 @@ export class ConcurrentAsyncQueue<T> extends AsyncQueue<T> {
 		} finally {
 			this.runningTasks--;
 			this.isRunning = this.runningTasks > 0;
-			
+
 			// Try to process another item if there are items left
 			// and we haven't reached the concurrency limit
 			void this.processQueue();
 		}
-		
+
 		return true;
 	}
 
@@ -59,14 +59,14 @@ export class ConcurrentAsyncQueue<T> extends AsyncQueue<T> {
 	async start(): Promise<boolean> {
 		this.isStopped = false;
 		this.isPaused = false;
-		
+
 		// Start multiple tasks up to the concurrency limit
 		let started = false;
 		for (let i = 0; i < this.concurrentLimit; i++) {
 			const result = await this.processQueue();
 			started = started || result;
 		}
-		
+
 		return started;
 	}
 }

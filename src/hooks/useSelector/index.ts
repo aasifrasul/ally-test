@@ -1,9 +1,11 @@
 import { useFetchStore } from '../../Context/dataFetchContext';
 import { GenericState } from '../../constants/types';
 
-type Selector<T extends GenericState, R> = (state: T) => R;
+type SelectorCallback<T extends GenericState, R> = (state: T) => R;
 
-export function useSelector<T extends GenericState, R>(selector: Selector<T, R>): R {
+export function useSelector<T extends GenericState, R>(
+	selectorCallback: SelectorCallback<T, R>,
+): R {
 	const { store } = useFetchStore();
-	return selector(store as unknown as T);
+	return selectorCallback(store as unknown as T);
 }
