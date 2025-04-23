@@ -26,7 +26,7 @@ export interface BookStoreState {
 	fetchBooks: () => Promise<void>;
 	addBook: AddBookType;
 	editingBook: Book | null;
-	editBook: (id: number) => Promise<void>;
+	editBook: (id: number) => void;
 	issueBook: (id: number) => Promise<void>;
 	returnBook: (id: number) => Promise<void>;
 	deleteBook: (id: number) => Promise<void>;
@@ -97,8 +97,8 @@ const filterBooks = (books: Book[], text: string): Book[] => {
 	);
 };
 
-const calculateCounts = (books: Book[]) => {
-	return books.reduce(
+const calculateCounts = (books: Book[]) => 
+	books.reduce(
 		(counts, book) => {
 			if (book.status === 'available') {
 				counts.available += 1;
@@ -109,7 +109,6 @@ const calculateCounts = (books: Book[]) => {
 		},
 		{ available: 0, issued: 0 },
 	);
-};
 
 const useBookStore = create<BookStoreState>()(
 	devtools(
@@ -209,7 +208,7 @@ const useBookStore = create<BookStoreState>()(
 					}
 				},
 
-				editBook: async (id) => {
+				editBook: (id) => {
 					set(
 						produce((state: BookStoreState) => {
 							state.editingBook = get().books.find((b) => b.id === id) || null;

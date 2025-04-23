@@ -36,16 +36,20 @@ function OSStatistics(): JSX.Element {
 	}, []);
 
 	useEffect(() => {
-		socket!.on('oSStatsData', handleOSStatsData);
+		if (isConnected) {
+			socket?.on('oSStatsData', handleOSStatsData);
+		} else {
+			socket?.connect();
+		}
 
 		return () => {
-			socket!.off('oSStatsData', handleOSStatsData);
+			socket?.off('oSStatsData', handleOSStatsData);
 		};
-	}, [socket, handleOSStatsData]);
+	}, [socket, handleOSStatsData, isConnected]);
 
 	const handleFetchStats = useCallback(() => {
-		socket!.emit('fetchOSStats');
-	}, []);
+		isConnected && socket?.emit('fetchOSStats');
+	}, [isConnected]);
 
 	return (
 		<div className={styles.container}>

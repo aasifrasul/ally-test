@@ -32,9 +32,8 @@ const BookForm = () => {
 		if (!bookDetails.title || !bookDetails.author) {
 			return alert('Please enter book details!');
 		}
-		const maxId = books.reduce((maxId, { id }) => (id > maxId ? id : maxId), 0);
 
-		addBook({ ...bookDetails, id: maxId + 1 });
+		addBook({ ...bookDetails});
 	};
 
 	const handleUpdateBook = () => {
@@ -45,7 +44,7 @@ const BookForm = () => {
 	};
 
 	const handleSubmit = () => {
-		book?.id ? handleUpdateBook() : handleAddBook();
+		editingBook?.id ? handleUpdateBook() : handleAddBook();
 		resetForm();
 	};
 
@@ -53,7 +52,7 @@ const BookForm = () => {
 		setBookDetails({ id: 0, title: '', author: '', status: 'available' });
 	};
 
-	const addEditText = book?.id ? 'Edit' : 'Add';
+	const addEditText = editingBook?.id ? 'Edit' : 'Add';
 
 	return (
 		<div className="input-div">
