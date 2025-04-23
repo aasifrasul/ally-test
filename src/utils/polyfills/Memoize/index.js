@@ -5,19 +5,29 @@
  * @returns {Function} - A memoized version of the function
  */
 function memoize(fn) {
-	fn.__memoize_hash = fn.__memoize_hash || Object.create(null);
-	const hash = fn.__memoize_hash; // Reference to the cache
+	// Main cache that maps functions to their argument caches
+	memoize.__hash = memoize.__hash || new WeakMap();
+
+	if (!memoize.__hash.has(fn)) {
+		memoize.__hash.set(fn, new Map());
+	}
+
+	const funtionCache = memoize.__hash.get(fn);
 
 	return function inner(...args) {
-		const key = keyGenerator(args);
-		if (key in hash) return hash[key];
+		const key = JSON.stringify(args);
+
+		if (funtionCache.has(key)) {
+			return funtionCache.get(key);
+		}
+
 		const result = fn.apply(this, args);
-		hash[key] = result;
+		funtionCache.set(key, result);
 		return result;
 	};
 }
 
-function keyGenerator(fn, args) {
+function keyGenerator(args) {
 	return args
 		.map((arg) => {
 			const argType = `${typeof arg}:`;
@@ -43,10 +53,11 @@ function keyGenerator(fn, args) {
 const memoize = (function () {
 	const functionCaches = new WeakMap();
 
-	return function (fn) {
+	return function outer(fn) {
 		if (!functionCaches.has(fn)) {
 			functionCaches.set(fn, Object.create(null));
 		}
+
 		const hash = functionCaches.get(fn);
 
 		return function inner(...args) {

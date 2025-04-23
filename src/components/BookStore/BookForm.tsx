@@ -3,13 +3,10 @@ import { useState, useEffect } from 'react';
 import { InputText } from '../Common/InputText';
 import Separator from '../Common/Separator';
 
-import { Book, BookStoreState } from '../../store/bookStore';
+import useBookStore, { Book, BookStoreState } from '../../store/bookStore';
 
-interface Props extends BookStoreState {
-	book: Book | null;
-}
-
-const BookForm: React.FC<Props> = ({ books, updateBook, addBook, book }) => {
+const BookForm = () => {
+	const { books, updateBook, addBook, editingBook } = useBookStore();
 	const [bookDetails, setBookDetails] = useState<Book>({
 		id: 0,
 		title: '',
@@ -18,10 +15,10 @@ const BookForm: React.FC<Props> = ({ books, updateBook, addBook, book }) => {
 	});
 
 	useEffect(() => {
-		if (book) {
-			setBookDetails({ ...book });
+		if (editingBook) {
+			setBookDetails({ ...editingBook });
 		}
-	}, [book]);
+	}, [editingBook]);
 
 	const handleOnChangeTitle = (value: string): void => {
 		setBookDetails({ ...bookDetails, title: value });
