@@ -33,7 +33,7 @@ const BookForm = () => {
 			return alert('Please enter book details!');
 		}
 
-		addBook({ ...bookDetails});
+		addBook({ ...bookDetails });
 	};
 
 	const handleUpdateBook = () => {

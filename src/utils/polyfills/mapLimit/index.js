@@ -22,18 +22,18 @@ function mapLimit(items, concurrencyLimit, iterateeCallback, finalCallback) {
 		throw new Error('First param should be an array');
 	}
 
-	const itemsCount = items.length;
-
-	if (itemsCount === 0) {
-		return finalCallback(null, []);
-	}
-
 	if (typeof iterateeCallback !== 'function') {
 		throw new Error('third param should be a function');
 	}
 
 	if (typeof finalCallback !== 'function') {
 		throw new Error('fourth param should be a function');
+	}
+
+	const itemsCount = items.length;
+
+	if (itemsCount === 0) {
+		return finalCallback(null, []);
 	}
 
 	const results = new Array(itemsCount);

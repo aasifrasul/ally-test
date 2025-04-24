@@ -1,3 +1,5 @@
+import { createKey } from './keyGeneration';
+
 /**
  * Polyfill Memoization
  * @param {*} fn - The function to memoize
@@ -6,16 +8,18 @@
  */
 function memoize(fn) {
 	// Main cache that maps functions to their argument caches
-	memoize.__hash = memoize.__hash || new WeakMap();
+	memoize.__cache__data__ = memoize.__cache__data__ || new WeakMap();
+	const allCaches = memoize.__cache__data__;
 
-	if (!memoize.__hash.has(fn)) {
-		memoize.__hash.set(fn, new Map());
+	if (!allCaches.has(fn)) {
+		allCaches.set(fn, new Map());
 	}
 
-	const funtionCache = memoize.__hash.get(fn);
+	const funtionCache = allCaches.get(fn);
 
 	return function inner(...args) {
-		const key = JSON.stringify(args);
+		//const key = JSON.stringify(args);
+		const key = createKey(args);
 
 		if (funtionCache.has(key)) {
 			return funtionCache.get(key);
@@ -27,44 +31,23 @@ function memoize(fn) {
 	};
 }
 
-function keyGenerator(args) {
-	return args
-		.map((arg) => {
-			const argType = `${typeof arg}:`;
-			// Only use JSON.stringify for pure objects (not arrays, null, etc.)
-			if (
-				typeof arg === 'object' &&
-				arg !== null &&
-				Object.getPrototypeOf(arg) === Object.prototype
-			) {
-				try {
-					return argType + JSON.stringify(arg);
-				} catch (e) {
-					return argType + arg.toString();
-				}
-			} else {
-				// For all other types, including arrays and functions
-				return argType + arg.toString();
-			}
-		})
-		.join('||');
-}
-
 const memoize = (function () {
-	const functionCaches = new WeakMap();
+	const allCaches = new WeakMap();
 
 	return function outer(fn) {
-		if (!functionCaches.has(fn)) {
-			functionCaches.set(fn, Object.create(null));
+		if (!allCaches.has(fn)) {
+			allCaches.set(fn, Object.create(null));
 		}
 
-		const hash = functionCaches.get(fn);
+		const functionCache = allCaches.get(fn);
 
 		return function inner(...args) {
-			const key = JSON.stringify(args);
-			if (key in hash) return hash[key];
+			//const key = JSON.stringify(args);
+			const key = createKey(args);
+
+			if (key in functionCache) return functionCache[key];
 			const result = fn.apply(this, args);
-			hash[key] = result;
+			functionCache[key] = result;
 			return result;
 		};
 	};

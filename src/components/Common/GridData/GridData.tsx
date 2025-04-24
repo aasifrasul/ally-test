@@ -69,7 +69,7 @@ function GridData(): JSX.Element {
 		}
 
 		// Connect socket if not already connected
-		if (!isConnected || socket?.disconnected ) {
+		if (!isConnected || socket?.disconnected) {
 			socket?.connect();
 		}
 

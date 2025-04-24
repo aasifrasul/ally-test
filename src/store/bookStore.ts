@@ -97,7 +97,7 @@ const filterBooks = (books: Book[], text: string): Book[] => {
 	);
 };
 
-const calculateCounts = (books: Book[]) => 
+const calculateCounts = (books: Book[]) =>
 	books.reduce(
 		(counts, book) => {
 			if (book.status === 'available') {

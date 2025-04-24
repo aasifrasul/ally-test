@@ -11,14 +11,12 @@ import useBookStore, { Book, BookStoreState } from '../../store/bookStore';
 
 import './App.css';
 
-interface Props {}
-
-const App: React.FC<Props> = () => {
+const App = () => {
 	const { reset, fetchBooks } = useBookStore();
 
 	useEffect(() => {
 		fetchBooks();
-		reset();
+		return () => reset();
 	}, [reset]);
 
 	return (
