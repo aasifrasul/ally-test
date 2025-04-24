@@ -15,11 +15,9 @@ const SocketContext = createContext<SocketContextType>({
 
 export const useSocket = () => {
 	const context = useContext(SocketContext);
-
 	if (context === undefined) {
 		throw new Error('useSocket must be used within a SocketProvider');
 	}
-
 	return context;
 };
 
@@ -30,6 +28,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 	useEffect(() => {
 		// Initialize socket connection
 		const socketInstance = io(constants.BASE_URL);
+        
+		// Explicitly connect to the server
+		socketInstance.connect();
 
 		socketInstance.on('connect', () => {
 			console.log('Connected to Socket.io server');

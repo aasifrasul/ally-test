@@ -16,8 +16,10 @@ type TypeName =
 	| 'function';
 
 // More precise type guards
+export const getType = <T>(data: unknown): string =>
+	Object.prototype.toString.call(data).slice(8, -1);
 export const typeCheck = <T>(data: unknown, type: TypeName): data is T =>
-	Object.prototype.toString.call(data).slice(8, -1).toLowerCase() === type;
+	getType(data).toLowerCase() === type;
 
 // Type guard functions with proper return types
 export const isArray = (data: unknown): data is unknown[] => Array.isArray(data);

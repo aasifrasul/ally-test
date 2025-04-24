@@ -3,12 +3,12 @@ export function deepCopy<T>(obj: T, seen = new WeakMap()): T {
 		return obj;
 	}
 
-	if (seen.has(obj)) {
-		return seen.get(obj);
-	}
-
 	if (typeof obj === 'function') {
 		return new Function('return ' + (obj as Function).toString())();
+	}
+
+	if (seen.has(obj)) {
+		return seen.get(obj);
 	}
 
 	if (Array.isArray(obj)) {

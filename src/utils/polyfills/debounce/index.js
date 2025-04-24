@@ -1,10 +1,9 @@
 function debounce(fn, delay, options = { leading: false, trailing: true }) {
-	let timeoutId, result, lastArgs, lastThis;
+	let timeoutId, lastArgs, lastThis;
 
 	function core() {
-		result = fn.apply(lastThis, lastArgs);
+		fn.apply(lastThis, lastArgs);
 		lastThis = lastArgs = null;
-		return result;
 	}
 
 	function inner(...args) {
