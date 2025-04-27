@@ -1,15 +1,11 @@
 export function deepCopy<T>(obj: T, seen = new WeakMap()): T {
-	if (obj === null || (typeof obj !== 'object' && typeof obj !== 'function')) {
-		return obj;
-	}
-
 	if (typeof obj === 'function') {
 		return new Function('return ' + (obj as Function).toString())();
 	}
 
-	if (seen.has(obj)) {
-		return seen.get(obj);
-	}
+	if (obj === null || typeof obj !== 'object') return obj;
+
+	if (seen.has(obj)) return seen.get(obj);
 
 	if (Array.isArray(obj)) {
 		const arrCopy = obj.map((item) => deepCopy(item, seen));
@@ -44,8 +40,7 @@ export function deepCopy<T>(obj: T, seen = new WeakMap()): T {
 		return setCopy as any;
 	}
 
-	const proto = Object.getPrototypeOf(obj);
-	const objCopy = Object.create(proto);
+	const objCopy = Object.create(Object.getPrototypeOf(obj));
 	seen.set(obj, objCopy);
 
 	// Get all properties, including symbols

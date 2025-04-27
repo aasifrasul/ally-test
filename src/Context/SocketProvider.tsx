@@ -28,7 +28,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 	useEffect(() => {
 		// Initialize socket connection
 		const socketInstance = io(constants.BASE_URL);
-        
+
 		// Explicitly connect to the server
 		socketInstance.connect();
 

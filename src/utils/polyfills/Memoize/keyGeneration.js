@@ -37,10 +37,7 @@ export function createKey(value, seen = new Set()) {
 	const objType = Object.prototype.toString.call(value).slice(8, -1);
 
 	const properties = sortedKeys
-		.map((key) => {
-			const propValue = createKey(value[key], seen);
-			return `${key}:${propValue}`;
-		})
+		.map((key) => `${key}:${createKey(value[key], seen)}`)
 		.join(',');
 
 	return `${objType}:{${properties}}`;
