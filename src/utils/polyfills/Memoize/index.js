@@ -44,15 +44,11 @@ const memoize = (function () {
 		return function inner(...args) {
 			//const key = JSON.stringify(args);
 			const key = createKey(args);
-			console.log('allCaches', allCaches);
-			console.log('key', key);
 
 			if (!functionCache.has(key)) {
 				const result = fn.apply(this, args);
 				functionCache.set(key, result);
-				console.log('In cache');
 			}
-			console.log('result', functionCache.get(key));
 
 			return functionCache.get(key);
 		};

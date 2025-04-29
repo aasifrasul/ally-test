@@ -1,6 +1,6 @@
 import { JSX, useState, useEffect, useCallback } from 'react';
 import * as styles from './OSStatistics.module.css';
-import { useSocket } from '../../../Context/SocketContextProvider';
+import { useSocket } from '../../../Context/SocketProvider';
 
 interface Times {
 	user: number;

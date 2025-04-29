@@ -1,6 +1,6 @@
 import { JSX, useState, useEffect, useRef, useCallback } from 'react';
 import { DataGrid, Column } from 'react-data-grid';
-import { useSocket } from '../../../Context/SocketContextProvider';
+import { useSocket } from '../../../Context/SocketProvider';
 
 const MAX_ROWS = 1000;
 const BATCH_UPDATE_INTERVAL = 500; // Update UI every 500ms

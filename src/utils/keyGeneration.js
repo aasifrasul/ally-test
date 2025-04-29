@@ -8,19 +8,18 @@ export function createKey(value, seen = new Set()) {
 	// Handle primitive types
 	if (value === null) return 'null';
 	if (value === undefined) return 'undefined';
-	if (typeof value !== 'object' && typeof value !== 'function') {
-		return `${typeof value}:${value}`;
-	}
 
 	// Handle functions - use their string representation
 	if (typeof value === 'function') {
 		return `function:${value.toString()}`;
 	}
 
-	// Handle circular references
-	if (seen.has(value)) {
-		return 'circular';
+	if (typeof value !== 'object') {
+		return `${typeof value}:${value}`;
 	}
+
+	// Handle circular references
+	if (seen.has(value)) return 'circular';
 	seen.add(value);
 
 	// Handle arrays - sort them for consistency
