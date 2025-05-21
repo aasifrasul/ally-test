@@ -14,7 +14,7 @@ import { rateLimit } from 'express-rate-limit';
 import compression from 'compression';
 const timeout = require('connect-timeout');
 
-import { host, port } from './envConfigDetails';
+import { host, port, isCurrentEnvProd, ALLOWED_ORIGINS } from './envConfigDetails';
 import {
 	userAgentHandler,
 	getCSVData,
@@ -64,9 +64,7 @@ app.use(compression());
 app.use(
 	cors({
 		origin:
-			process.env.NODE_ENV === 'development'
-				? `http://${host}:${port}`
-				: process.env.ALLOWED_ORIGINS?.split(','),
+			isCurrentEnvProd ? ALLOWED_ORIGINS?.split(',') : `http://${host}:${port}`,
 		methods: ['GET', 'POST', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Authorization'],
 		credentials: true,

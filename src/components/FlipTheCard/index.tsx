@@ -18,7 +18,7 @@ export default function FlipTheCard(): React.JSX.Element {
 	// To store the indexes of the opened cards
 	const [openCards, setOpenCards] = React.useState<number[]>([]);
 
-	const { seconds, handleReset, handleStop } = useTimer();
+	const { seconds, stop, reset } = useTimer();
 
 	const handleClick = (index: number): void => {
 		if (openCards.length < 2) {
@@ -47,17 +47,17 @@ export default function FlipTheCard(): React.JSX.Element {
 				});
 			} else {
 				if (solvedCards.current === cards.current.length) {
-					safelyExecuteFunction(handleStop, null);
+					safelyExecuteFunction(stop, null);
 				}
 				setOpenCards(() => []);
 			}
 		}
-	}, [openCards.length, handleStop]);
+	}, [openCards.length, stop]);
 
 	const restart = (): void => {
 		cards.current = shuffle(MOCK);
 		setOpenCards(() => []);
-		safelyExecuteFunction(handleReset, null);
+		safelyExecuteFunction(reset, null);
 	};
 
 	return (
@@ -65,20 +65,14 @@ export default function FlipTheCard(): React.JSX.Element {
 			<div className={styles.center}>
 				<div>Time: {seconds}</div>
 				<div>
-					<button onClick={restart}>Restart</button>
+					<button onClick={restart} className={styles.restart}>Restart</button>
 				</div>
 			</div>
 			<div className={styles.parent}>
 				{cards.current.map(({ pic, display, name }, index) =>
-					display ? (
-						<div key={`${name}-${index}`} className={styles.child}>
-							<img src={pic} />
-						</div>
-					) : (
-						<div key={`${name}-${index}`} className={styles.child}>
-							<img src={blankCard} onClick={() => handleClick(index)} />
-						</div>
-					),
+					<div key={`${name}-${index}`} className={styles.child}>
+						{display ? <img src={pic} /> : <img src={blankCard} onClick={() => handleClick(index)} />}
+					</div>
 				)}
 			</div>
 		</>

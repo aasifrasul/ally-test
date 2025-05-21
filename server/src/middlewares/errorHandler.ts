@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
+import { isCurrentEnvProd } from './envConfigDetails';
+
 interface Error {
 	stack?: string;
 	message?: string;
@@ -19,7 +21,7 @@ export const errorHandler = (
 	res.status(500).json({
 		error: {
 			message:
-				process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message,
+				isCurrentEnvProd ? 'Internal Server Error' : err.message,
 			correlationId: req.correlationId,
 		},
 	});

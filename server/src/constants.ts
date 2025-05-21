@@ -1,7 +1,3 @@
-import { config } from 'dotenv';
-
-import { pathRootDir } from './paths';
-
 import {
 	DBType,
 	RedisConfig,
@@ -11,9 +7,7 @@ import {
 	OracleConfig,
 } from './types';
 
-config({ path: `${pathRootDir}/.env` });
-
-const { REDIS_MAX_RETRIES, REDIS_RETRY_DELAY } = process.env;
+import { REDIS_MAX_RETRIES, REDIS_RETRY_DELAY, REDIS_URL } from './envConfigDetails';
 
 interface Constants {
 	cachingLayer: {
@@ -62,7 +56,7 @@ export const constants: Constants = {
 	cachingLayer: {
 		enabled: true,
 		redisConfig: {
-			url: process.env.REDIS_URL || 'redis://localhost:6379',
+			url: REDIS_URL || 'redis://localhost:6379',
 			host: 'localhost',
 			port: 6379,
 			MAX_RETRIES: Number(REDIS_MAX_RETRIES),

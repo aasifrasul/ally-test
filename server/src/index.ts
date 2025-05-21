@@ -2,8 +2,8 @@
 
 import http from 'http';
 
-import { port, host } from './envConfigDetails';
-import MongoDBConnection from './dbClients/MongoDBConnection';
+import { port, host, isCurrentEnvProd } from './envConfigDetails';
+import {MongoDBConnection} from './dbClients/MongoDBConnection';
 import { connectToIOServer, disconnectIOServer } from './socketConnection';
 import { connectWSServer, disconnectWSServer } from './webSocketConnection';
 import { getDBInstance, type DBInstance } from './dbClients/helper';
@@ -33,7 +33,7 @@ process.on('unhandledRejection', (error: unknown) => {
 		logger.error('Unhandled Rejection: Unknown error occurred');
 	}
 
-	if (process.env.NODE_ENV === 'production') {
+	if (isCurrentEnvProd) {
 		void gracefulShutdown('unhandledRejection');
 	}
 });
@@ -84,7 +84,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
 		if (mongoDBInstance) {
 			mongoDBInstance
 				.cleanup()
-				.catch((err) => logger.error('Error cleaning up MongoDB:', err));
+				.catch((err: Error) => logger.error('Error cleaning up MongoDB:', err));
 		}
 
 		// Then cleanup database instances
@@ -93,19 +93,19 @@ async function gracefulShutdown(signal: string): Promise<void> {
 			logger.info('Cleaning up DB instance...');
 			await dbInstance
 				.cleanup()
-				.catch((err) => logger.error('Error cleaning up DB instance:', err));
+				.catch((err: Error) => logger.error('Error cleaning up DB instance:', err));
 		}
 
-		disconnectIOServer().catch((err) =>
+		disconnectIOServer().catch((err: Error) =>
 			logger.error('Error disconnecting IO server:', err),
 		);
-		disconnectWSServer().catch((err) =>
+		disconnectWSServer().catch((err: Error) =>
 			logger.error('Error disconnecting WS server:', err),
 		);
 
 		logger.info('Closing HTTP server...');
 		await new Promise<void>((resolve, reject) => {
-			httpServer.close((err) => {
+			httpServer.close((err: Error | undefined) => {
 				if (err) {
 					logger.error('Error closing HTTP server:', err);
 					reject(err);

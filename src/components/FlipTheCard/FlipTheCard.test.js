@@ -17,7 +17,7 @@ test('initial state should have no open cards and solved cards', () => {
 
 test('clicking on a card should open it', () => {
 	const { container } = render(<FlipTheCard />);
-	const card = container.querySelector('.card');
+	const card = container.querySelector('.child');
 
 	// Click on the card
 	fireEvent.click(card);

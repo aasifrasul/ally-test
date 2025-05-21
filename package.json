@@ -27,8 +27,8 @@
 	},
 	"browser": {
 		"fs": false,
-		"path": false,
-		"os": false
+		"os": false,
+		"path": false
 	},
 	"browserslist": {
 		"production": [
@@ -202,6 +202,7 @@
 		"postcss-nested": "^7.0.2",
 		"postcss-random": "1.0.9",
 		"postcss-simple-vars": "^7.0.1",
+		"prettier": "3.5.3",
 		"react-test-renderer": "^19.1.0",
 		"resolve": "1.22.2",
 		"stats-webpack-plugin": "0.7.0",
@@ -221,5 +222,6 @@
 		"webpack-dev-server": "5.0.4",
 		"webpack-hot-middleware": "2.26.1",
 		"webpack-visualizer-plugin": "0.1.11"
-	}
+	},
+	"packageManager": "yarn@4.9.1+sha512.f95ce356460e05be48d66401c1ae64ef84d163dd689964962c6888a9810865e39097a5e9de748876c2e0bf89b232d583c33982773e9903ae7a76257270986538"
 }

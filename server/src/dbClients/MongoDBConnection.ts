@@ -5,7 +5,7 @@ import { MongoDBConfig, DBType } from '../types';
 import { constants } from '../constants';
 import { logger } from '../Logger';
 
-class MongoDBConnection {
+export class MongoDBConnection {
 	private static instance: MongoDBConnection;
 	private isConnected: boolean = false;
 
@@ -33,10 +33,10 @@ class MongoDBConnection {
 			return;
 		}
 
-		const mongoDBConf: MongoDBConfig = constants.dbLayer.mongodb;
-		const { uri, ...rest } = mongoDBConf;
-
 		try {
+			const mongoDBConf: MongoDBConfig = constants.dbLayer.mongodb;
+			const { uri, ...rest } = mongoDBConf;
+
 			this.validateConfig(mongoDBConf);
 
 			// Check if MongoDB is available before attempting to connect
@@ -59,8 +59,8 @@ class MongoDBConnection {
 		try {
 			// Parse connection string to extract server details
 			const parsedUri = new URL(uri.replace('mongodb://', 'http://'));
-			const host = parsedUri.hostname;
-			const port = parsedUri.port || '27017';
+			const host = parsedUri?.hostname;
+			const port = parsedUri?.port || '27017';
 
 			// Use TCP socket to check if MongoDB server is listening
 			const socket = new net.Socket();
@@ -118,5 +118,3 @@ class MongoDBConnection {
 		return this.isConnected;
 	}
 }
-
-export default MongoDBConnection;
