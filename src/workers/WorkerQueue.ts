@@ -34,19 +34,19 @@ export class WorkerQueue {
 		const { id, data, error } = event.data;
 		const pending = this.queue.get(id);
 
-		if (pending) {
-			const timeoutId = this.timeouts.get(id);
-			if (timeoutId) {
-				clearTimeout(timeoutId);
-				this.timeouts.delete(id);
-			}
+		if (!pending) return;
+		
+		const timeoutId = this.timeouts.get(id);
+		if (timeoutId) {
+			clearTimeout(timeoutId);
+			this.timeouts.delete(id);
+		}
 
-			this.queue.delete(id);
-			if (error) {
-				pending.reject(new Error(error));
-			} else {
-				pending.resolve(data);
-			}
+		this.queue.delete(id);
+		if (error) {
+			pending.reject(new Error(error));
+		} else {
+			pending.resolve(data);
 		}
 	}
 

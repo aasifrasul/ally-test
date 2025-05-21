@@ -274,6 +274,12 @@ const asyncUtils = {
 				return this;
 			},
 
+			unshift(data, callback) {
+				tasks.unshift({ data, callback });
+				processQueue();
+				return this;
+			},
+
 			drain(callback) {
 				drainCallback = callback;
 				if (workers === 0 && tasks.length === 0) {

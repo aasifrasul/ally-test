@@ -1,9 +1,13 @@
 function concurrentQueue(processorFn, onCompleteFn, concurrency) {
-	const items = [];
 	let drainCallback = null;
 	let errorCallback = null;
+	
+	let processorCallback = typeof processorFn === 'function' ? processorFn : () => console.log('processorFn is not proper');
+	let completionCallback = typeof onCompleteFn === 'function' ? onCompleteFn : () => console.log('onCompleteFn is not proper');
+
 	let runningCount = 0;
 	let index = 0;
+	const items = [];
 
 	function processNext() {
 		while (items.length > 0 && runningCount < concurrency) {
@@ -11,20 +15,14 @@ function concurrentQueue(processorFn, onCompleteFn, concurrency) {
 
 			const currentItem = items.shift();
 
-			processorFn(currentItem, (error, data) => {
+			processorCallback(currentItem, (error, data) => {
 				runningCount--;
 
-				if (error) {
-					typeof errorCallback === 'function' && errorCallback(error, currentItem);
-					return;
-				}
+				if (error) return errorCallback(error, currentItem);
 
-				typeof onCompleteFn === 'function' && onCompleteFn(data, error, currentItem);
+				completionCallback(data, error, currentItem);
 
-				if (0 === items.length) {
-					typeof drainCallback === 'function' && drainCallback();
-					return;
-				}
+				if (0 === items.length) return drainCallback();
 
 				processNext();
 			});
@@ -37,18 +35,18 @@ function concurrentQueue(processorFn, onCompleteFn, concurrency) {
 		processNext();
 	}
 
-	function unshift(tasks, callbackFn) {
+	function unshift(tasks) {
 		const newItems = Array.isArray(tasks) ? [...tasks] : [tasks];
 		items.unshift(...newItems);
 		processNext();
 	}
 
 	function drain(callbackFn) {
-		drainCallback = callbackFn;
+		drainCallback = typeof callbackFn === 'function' ? callbackFn : () => console.log('drain Callabck Fn is not proper');
 	}
 
 	function error(callbackFn) {
-		errorCallback = callbackFn;
+		errorCallback = typeof callbackFn === 'function' ? callbackFn : () => console.log('error Callabck Fn is not proper');
 	}
 
 	return {

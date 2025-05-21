@@ -1,3 +1,5 @@
+import { createKey } from '../keyGeneration';
+
 /**
 Implement the memoize function which optimizes repeated calls to an asynchronous
  function by caching the results. The memoize function takes an asynchronous function
@@ -20,7 +22,7 @@ export const memoizeAsync = (function () {
 
 		const cache = allCaches.get(asyncFn);
 
-		return function (...args) {
+		return function inner(...args) {
 			// Extract the callback function (last argument)
 			const originalArgs = [...args];
 			const callback = originalArgs.pop();
@@ -31,7 +33,7 @@ export const memoizeAsync = (function () {
 			}
 
 			// Create a key from all arguments except the callback
-			const key = JSON.stringify(originalArgs);
+			const key = createKey(originalArgs);
 
 			// If we have a cached result, use it
 			if (cache.has(key)) {

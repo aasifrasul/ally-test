@@ -8,10 +8,10 @@ type Task = any;
 type Queue = (ProcessorFn, OnCompleteFn, concurrency: number) => QueueObject
 
 type QueueObject = {
-  drain: (error?: Error) => void
-  push: (Task or Array<Task>, CallbackFn) => void
-  error: (error?: Error, Task) => void
-  unshift: (Task or Array<Task>, CallbackFn) => void
+	drain: (error?: Error) => void
+	push: (Task or Array<Task>, CallbackFn) => void
+	error: (error?: Error, Task) => void
+	unshift: (Task or Array<Task>, CallbackFn) => void
 }
 
 type ProcessorFn = (Task, CallbackFn) => void
@@ -22,8 +22,8 @@ type CallbackFn = (error?: Error) => void
 
 const processorFn = (task, callback) => {
 	setTimeout(() => {
-	  console.log('Processing task ' + task.name);
-	  callback(`${task.name} done`);
+		console.log('Processing task ' + task.name);
+		callback(`${task.name} done`);
 	}, 500);
 }
 
@@ -69,8 +69,8 @@ class ConcurrentQueue {
 	constructor(processorFn, onCompleteFn, concurrency) {
 		this.queue = new Queue();
 		this.concurrency = concurrency;
-		this.processorFn = processorFn;
-		this.onCompleteFn = onCompleteFn;
+		this.processorFn = typeof processorFn === 'function' ? processorFn : () => console.log('processorFn is not a function');
+		this.onCompleteFn = typeof onCompleteFn === 'function' ? onCompleteFn : () => console.log('onCompleteFn is not a function');
 
 		this.processingCount = 0;
 	}
@@ -84,47 +84,37 @@ class ConcurrentQueue {
 
 		this.processingCount++;
 
-		if (typeof this.processorFn === 'function') {
-			this.processorFn(item, (data, error) => {
-				this.processingCount--;
-				// This is for error handling
-				if (error && typeof this.errorCallback === 'function') {
-					this.errorCallback(error);
-					return;
-				}
+		this.processorFn(item, (data, error) => {
+			this.processingCount--;
 
-				if (typeof this.onCompleteFn === 'function') {
-					this.onCompleteFn(data, error, item);
-				}
+			if (error) return this.errorCallback(error);
 
-				if (this.queue.isEmpty() && typeof this.drainCallback === 'function') {
-					this.drainCallback();
-					return;
-				}
+			this.onCompleteFn(data, error, item);
 
-				this.processNext();
-			});
-		}
+			if (this.queue.isEmpty()) return this.drainCallback();
+
+			this.processNext();
+		});
 	}
 
 	push(tasks) {
 		const items = Array.isArray(tasks) ? [...tasks] : [tasks];
 		items.forEach((item) => this.queue.enqueue(item));
-		items.forEach(() => this.processNext());
+		this.processNext();
 	}
 
 	unshift(tasks) {
 		const items = Array.isArray(tasks) ? [...tasks] : [tasks];
 		items.reverse().forEach((item) => this.queue.preQueue(item));
-		items.forEach(() => this.processNext());
+		this.processNext();
 	}
 
 	drain(callbackFn) {
-		this.drainCallback = callbackFn;
+		this.drainCallback = typeof callbackFn === 'function' ? callbackFn : () => console.log('drain callbackFn is not a function');
 	}
 
 	error(callbackFn) {
-		this.errorCallback = callbackFn;
+		this.errorCallback = typeof callbackFn === 'function' ? callbackFn : () => console.log('error callbackFn is not a function');
 	}
 }
 

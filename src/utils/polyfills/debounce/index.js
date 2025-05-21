@@ -6,24 +6,24 @@ function debounce(fn, delay, options = { leading: false, trailing: true }) {
 		lastThis = lastArgs = null;
 	}
 
+	function later() {
+		inner.cancel();
+		if (options.trailing) {
+			core();
+		}
+	};
+
 	function inner(...args) {
 		lastThis = this;
 		lastArgs = args;
-		const callNow = options.leading && !timeoutId;
 
-		const later = () => {
-			inner.cancel();
-			if (options.trailing) {
-				core();
-			}
-		};
-
+		if (options.leading && !timeoutId) {
+			core();
+		}
+		
 		inner.cancel();
 		timeoutId = setTimeout(later, delay);
 
-		if (callNow) {
-			core();
-		}
 	}
 
 	inner.flush = function () {
