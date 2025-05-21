@@ -1,30 +1,29 @@
 function debounce(fn, delay, options = { leading: false, trailing: true }) {
-	let timeoutId, result, lastArgs, lastThis;
+	let timeoutId, lastArgs, lastThis;
 
 	function core() {
-		result = fn.apply(lastThis, lastArgs);
+		fn.apply(lastThis, lastArgs);
 		lastThis = lastArgs = null;
-		return result;
 	}
+
+	function later() {
+		inner.cancel();
+		if (options.trailing) {
+			core();
+		}
+	};
 
 	function inner(...args) {
 		lastThis = this;
 		lastArgs = args;
-		const callNow = options.leading && !timeoutId;
 
-		const later = () => {
-			inner.cancel();
-			if (options.trailing) {
-				core();
-			}
-		};
-
+		if (options.leading && !timeoutId) {
+			core();
+		}
+		
 		inner.cancel();
 		timeoutId = setTimeout(later, delay);
 
-		if (callNow) {
-			core();
-		}
 	}
 
 	inner.flush = function () {

@@ -3,13 +3,10 @@ import { useState, useEffect } from 'react';
 import { InputText } from '../Common/InputText';
 import Separator from '../Common/Separator';
 
-import { Book, BookStoreState } from '../../store/bookStore';
+import useBookStore, { Book, BookStoreState } from '../../store/bookStore';
 
-interface Props extends BookStoreState {
-	book: Book | null;
-}
-
-const BookForm: React.FC<Props> = ({ books, updateBook, addBook, book }) => {
+const BookForm = () => {
+	const { books, updateBook, addBook, editingBook } = useBookStore();
 	const [bookDetails, setBookDetails] = useState<Book>({
 		id: 0,
 		title: '',
@@ -18,10 +15,10 @@ const BookForm: React.FC<Props> = ({ books, updateBook, addBook, book }) => {
 	});
 
 	useEffect(() => {
-		if (book) {
-			setBookDetails({ ...book });
+		if (editingBook) {
+			setBookDetails({ ...editingBook });
 		}
-	}, [book]);
+	}, [editingBook]);
 
 	const handleOnChangeTitle = (value: string): void => {
 		setBookDetails({ ...bookDetails, title: value });
@@ -35,9 +32,8 @@ const BookForm: React.FC<Props> = ({ books, updateBook, addBook, book }) => {
 		if (!bookDetails.title || !bookDetails.author) {
 			return alert('Please enter book details!');
 		}
-		const maxId = books.reduce((maxId, { id }) => (id > maxId ? id : maxId), 0);
 
-		addBook({ ...bookDetails, id: maxId + 1 });
+		addBook({ ...bookDetails });
 	};
 
 	const handleUpdateBook = () => {
@@ -48,7 +44,7 @@ const BookForm: React.FC<Props> = ({ books, updateBook, addBook, book }) => {
 	};
 
 	const handleSubmit = () => {
-		book?.id ? handleUpdateBook() : handleAddBook();
+		editingBook?.id ? handleUpdateBook() : handleAddBook();
 		resetForm();
 	};
 
@@ -56,7 +52,7 @@ const BookForm: React.FC<Props> = ({ books, updateBook, addBook, book }) => {
 		setBookDetails({ id: 0, title: '', author: '', status: 'available' });
 	};
 
-	const addEditText = book?.id ? 'Edit' : 'Add';
+	const addEditText = editingBook?.id ? 'Edit' : 'Add';
 
 	return (
 		<div className="input-div">

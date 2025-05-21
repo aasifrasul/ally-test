@@ -1,14 +1,10 @@
-import { Book, BookStoreState } from '../../store/bookStore';
+import useBookStore, { Book, BookStoreState } from '../../store/bookStore';
 
 import Separator from '../Common/Separator';
 
-interface Props extends BookStoreState {
-	onEditBook: (book: Book) => void;
-}
-
-const BookList: React.FC<Props> = (props) => {
-	const { books, noOfAvailable, noOfIssued, issueBook, returnBook, deleteBook, onEditBook } =
-		props;
+const BookList = () => {
+	const { books, noOfAvailable, noOfIssued, issueBook, returnBook, deleteBook, updateBook } =
+		useBookStore();
 
 	const getBookById = (id: number, books: Book[]): Book | undefined =>
 		books.find((book) => book.id === id);
@@ -26,7 +22,7 @@ const BookList: React.FC<Props> = (props) => {
 			return;
 		}
 
-		onEditBook(book);
+		updateBook(book);
 	};
 
 	const handleDeleteBook = (id: number): void => {

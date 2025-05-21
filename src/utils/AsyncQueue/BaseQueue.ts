@@ -1,7 +1,9 @@
+type Key = number;
+
 export class BaseQueue<T> {
-	protected map: Map<number, T> = new Map();
-	protected upperLimit: number = 0;
-	protected lowerLimit: number = 0;
+	private map: Map<Key, T> = new Map();
+	private upperLimit: Key = 0;
+	private lowerLimit: Key = 0;
 
 	constructor() {
 		this.reset();
@@ -14,13 +16,20 @@ export class BaseQueue<T> {
 		this.map.set(++this.upperLimit, item);
 	}
 
+	prequeue(item: T): void {
+		if (item === undefined || item === null) {
+			throw new Error('Cannot enqueue null or undefined values.');
+		}
+		this.map.set(this.lowerLimit--, item);
+	}
+
 	dequeue(): T | undefined {
 		if (this.isEmpty()) {
 			return undefined;
 		}
 
 		const key = this.lowerLimit + 1;
-		const result = this.map.get(this.lowerLimit + 1);
+		const result = this.map.get(key);
 		this.map.delete(key);
 		this.lowerLimit++;
 

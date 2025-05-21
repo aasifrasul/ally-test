@@ -22,18 +22,18 @@ function mapLimit(items, concurrencyLimit, iterateeCallback, finalCallback) {
 		throw new Error('First param should be an array');
 	}
 
-	const itemsCount = items.length;
-
-	if (itemsCount === 0) {
-		return finalCallback(null, []);
-	}
-
 	if (typeof iterateeCallback !== 'function') {
 		throw new Error('third param should be a function');
 	}
 
 	if (typeof finalCallback !== 'function') {
 		throw new Error('fourth param should be a function');
+	}
+
+	const itemsCount = items.length;
+
+	if (itemsCount === 0) {
+		return finalCallback(null, []);
 	}
 
 	const results = new Array(itemsCount);
@@ -84,7 +84,9 @@ mapLimit(
 	// This is the iterateeCallback that processes each input
 	(input, callback) => {
 		setTimeout(() => {
-			callback(null, input * 2); // First param is for errors, second is result
+			console.log(input);
+			const error  = input === 11 ?  new Error('Error  at 10') : null;
+			callback(error, input * 2); // First param is for errors, second is result
 		}, Math.random() * 500);
 	},
 	// This is the finalCallback that receives all results

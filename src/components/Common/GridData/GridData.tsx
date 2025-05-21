@@ -1,6 +1,6 @@
 import { JSX, useState, useEffect, useRef, useCallback } from 'react';
 import { DataGrid, Column } from 'react-data-grid';
-import { useSocket } from '../../../Context/SocketContextProvider';
+import { useSocket } from '../../../Context/SocketProvider';
 
 const MAX_ROWS = 1000;
 const BATCH_UPDATE_INTERVAL = 500; // Update UI every 500ms
@@ -53,30 +53,30 @@ function GridData(): JSX.Element {
 		};
 	}, [processIncomingData]);
 
+	const handleCurrencyPairData = (data: Row) => {
+		// Add timestamp and store in incoming data ref
+		const rowWithTimestamp = { ...data, timestamp: Date.now() };
+		incomingDataRef.current.push(rowWithTimestamp);
+	};
+
 	// Socket initialization
 	useEffect(() => {
 		if (isConnected) {
-			socket!.emit('fetchCurrencyPair');
+			socket?.emit('fetchCurrencyPair');
+
+			// Setup socket listeners
+			socket?.on('currencyPairData', handleCurrencyPairData);
 		}
 
-		const handleCurrencyPairData = (data: Row) => {
-			// Add timestamp and store in incoming data ref
-			const rowWithTimestamp = { ...data, timestamp: Date.now() };
-			incomingDataRef.current.push(rowWithTimestamp);
-		};
-
-		// Setup socket listeners
-		socket!.on('currencyPairData', handleCurrencyPairData);
-
 		// Connect socket if not already connected
-		if (socket!.disconnected) {
-			socket!.connect();
+		if (!isConnected || socket?.disconnected) {
+			socket?.connect();
 		}
 
 		// Cleanup function
 		return () => {
-			socket!.off('currencyPairData', handleCurrencyPairData);
-			socket!.emit('stopFetchCurrencyPair');
+			socket?.off('currencyPairData', handleCurrencyPairData);
+			socket?.emit('stopFetchCurrencyPair');
 		};
 	}, [socket, isConnected]);
 

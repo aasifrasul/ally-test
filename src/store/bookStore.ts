@@ -4,7 +4,6 @@ import { immer } from 'zustand/middleware/immer';
 import { produce } from '../utils/immutable';
 import { gql } from '@apollo/client';
 import { client } from '../apolloClient';
-import { stat } from 'fs';
 
 export interface Book {
 	id: number;
@@ -20,12 +19,14 @@ export interface BookStoreState {
 	books: Book[];
 	noOfAvailable: number;
 	noOfIssued: number;
-	filterText: string;
+	searchText: string;
 	filteredBooks: Book[];
 	loading: boolean;
 	error: Error | null;
 	fetchBooks: () => Promise<void>;
 	addBook: AddBookType;
+	editingBook: Book | null;
+	editBook: (id: number) => void;
 	issueBook: (id: number) => Promise<void>;
 	returnBook: (id: number) => Promise<void>;
 	deleteBook: (id: number) => Promise<void>;
@@ -96,8 +97,8 @@ const filterBooks = (books: Book[], text: string): Book[] => {
 	);
 };
 
-const calculateCounts = (books: Book[]) => {
-	return books.reduce(
+const calculateCounts = (books: Book[]) =>
+	books.reduce(
 		(counts, book) => {
 			if (book.status === 'available') {
 				counts.available += 1;
@@ -108,7 +109,6 @@ const calculateCounts = (books: Book[]) => {
 		},
 		{ available: 0, issued: 0 },
 	);
-};
 
 const useBookStore = create<BookStoreState>()(
 	devtools(
@@ -116,11 +116,12 @@ const useBookStore = create<BookStoreState>()(
 			(set, get): BookStoreState => ({
 				books: [],
 				filteredBooks: [],
-				filterText: '',
+				searchText: '',
 				noOfAvailable: 0,
 				noOfIssued: 0,
 				loading: false,
 				error: null,
+				editingBook: null,
 				setStatus: () =>
 					set(
 						produce((state: BookStoreState) => {
@@ -153,7 +154,7 @@ const useBookStore = create<BookStoreState>()(
 									state.books = data.getBooks;
 									state.filteredBooks = filterBooks(
 										data.getBooks,
-										state.filterText,
+										state.searchText,
 									);
 									state.noOfAvailable = counts.available;
 									state.noOfIssued = counts.issued;
@@ -169,7 +170,7 @@ const useBookStore = create<BookStoreState>()(
 				filterByText: (text) =>
 					set(
 						produce((state: BookStoreState) => {
-							state.filterText = text;
+							state.searchText = text;
 							state.filteredBooks = filterBooks(state.books, text);
 						}),
 					),
@@ -195,7 +196,7 @@ const useBookStore = create<BookStoreState>()(
 									state.books.push(newBook);
 									state.filteredBooks = filterBooks(
 										state.books,
-										state.filterText,
+										state.searchText,
 									);
 									state.noOfAvailable += 1;
 									state.loading = false;
@@ -205,6 +206,14 @@ const useBookStore = create<BookStoreState>()(
 					} catch (error) {
 						get().setError(error as Error);
 					}
+				},
+
+				editBook: (id) => {
+					set(
+						produce((state: BookStoreState) => {
+							state.editingBook = get().books.find((b) => b.id === id) || null;
+						}),
+					);
 				},
 
 				updateBook: async (updateData) => {
@@ -247,7 +256,7 @@ const useBookStore = create<BookStoreState>()(
 										state.books[bookIndex] = updatedBook;
 										state.filteredBooks = filterBooks(
 											state.books,
-											state.filterText,
+											state.searchText,
 										);
 									}
 									state.loading = false;
@@ -295,7 +304,7 @@ const useBookStore = create<BookStoreState>()(
 										state.books.splice(bookIndex, 1);
 										state.filteredBooks = filterBooks(
 											state.books,
-											state.filterText,
+											state.searchText,
 										);
 
 										if (deletedBook.status === 'available') {
@@ -318,11 +327,12 @@ const useBookStore = create<BookStoreState>()(
 						produce((state: BookStoreState) => {
 							state.books = [];
 							state.filteredBooks = [];
-							state.filterText = '';
+							state.searchText = '';
 							state.noOfAvailable = 0;
 							state.noOfIssued = 0;
 							state.loading = false;
 							state.error = null;
+							state.editingBook = null;
 						}),
 					);
 				},

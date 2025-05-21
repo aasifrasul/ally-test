@@ -6,30 +6,37 @@ export interface QueueItem<T> {
 	reject: (reason?: any) => void;
 }
 
-export class AsyncQueue<T> extends BaseQueue<QueueItem<T>> {
-	protected isRunning: boolean = false;
+export class AsyncQueue<T> extends BaseQueue<{
+	action: () => Promise<T>;
+	resolve: (value: T | PromiseLike<T>) => void;
+	reject: (reason?: any) => void;
+}> {
 	protected isPaused: boolean = false;
 	protected isStopped: boolean = false;
+	protected isRunning: boolean = false;
 
 	constructor() {
 		super();
 	}
 
-	addToQueue(action: () => Promise<T>, autoDequeue: boolean = true): Promise<T> {
+	// Add an async action to the queue
+	async addToQueue(action: () => Promise<T>, autoDequeue: boolean = true): Promise<T> {
 		return new Promise<T>((resolve, reject) => {
-			super.enqueue({ action, resolve, reject });
+			this.enqueue({ action, resolve, reject });
+
 			if (autoDequeue) {
 				void this.processQueue();
 			}
 		});
 	}
 
+	// Process the next item in the queue
 	async processQueue(): Promise<boolean> {
-		if (this.isEmpty() || this.isRunning || this.isPaused || this.isStopped) {
+		if (this.isEmpty() || this.isPaused || this.isStopped) {
 			return false;
 		}
 
-		const item = super.dequeue();
+		const item = this.dequeue();
 		if (!item) return false;
 
 		this.isRunning = true;
@@ -38,35 +45,57 @@ export class AsyncQueue<T> extends BaseQueue<QueueItem<T>> {
 			const payload = await item.action();
 			item.resolve(payload);
 		} catch (error) {
-			console.error('Error processing queue item:', error); // Log the error
+			console.error('Error processing queue item:', error);
 			item.reject(error);
 		} finally {
-			this.isRunning = false;
-			void this.processQueue();
+			this.isRunning = !this.isEmpty() && !this.isPaused && !this.isStopped;
+
+			// Process the next item if there are any left
+			if (!this.isEmpty() && !this.isPaused && !this.isStopped) {
+				void this.processQueue();
+			}
 		}
 
 		return true;
 	}
 
-	stop(): void {
-		this.isStopped = true;
-
-		// Reject all pending items
-		while (!this.isEmpty()) {
-			const item = super.dequeue();
-			if (item) {
-				item.reject(new Error('Queue processing was stopped'));
-			}
-		}
-	}
-
-	pause(): void {
-		this.isPaused = true;
-	}
-
+	// Start processing the queue
 	async start(): Promise<boolean> {
 		this.isStopped = false;
 		this.isPaused = false;
 		return this.processQueue();
+	}
+
+	// Pause processing the queue
+	pause(): void {
+		this.isPaused = true;
+	}
+
+	// Resume processing the queue
+	resume(): void {
+		if (this.isPaused) {
+			this.isPaused = false;
+			void this.processQueue();
+		}
+	}
+
+	// Stop processing the queue completely
+	stop(): void {
+		this.isStopped = true;
+	}
+
+	// Check if the queue is currently processing items
+	get running(): boolean {
+		return this.isRunning;
+	}
+
+	// Check if the queue is paused
+	get paused(): boolean {
+		return this.isPaused;
+	}
+
+	// Check if the queue is stopped
+	get stopped(): boolean {
+		return this.isStopped;
 	}
 }

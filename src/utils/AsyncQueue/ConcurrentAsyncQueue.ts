@@ -9,9 +9,11 @@ export class ConcurrentAsyncQueue<T> extends AsyncQueue<T> {
 		this.concurrentLimit = concurrentLimit;
 	}
 
+	// Override to handle concurrency
 	async addToQueue(action: () => Promise<T>, autoDequeue: boolean = true): Promise<T> {
 		return new Promise<T>((resolve, reject) => {
 			super.enqueue({ action, resolve, reject });
+
 			if (autoDequeue) {
 				// Start as many tasks as possible up to the concurrency limit
 				for (let i = 0; i < this.concurrentLimit; i++) {
@@ -21,6 +23,7 @@ export class ConcurrentAsyncQueue<T> extends AsyncQueue<T> {
 		});
 	}
 
+	// Override to handle concurrency tracking
 	async processQueue(): Promise<boolean> {
 		if (
 			this.isEmpty() ||
@@ -55,7 +58,7 @@ export class ConcurrentAsyncQueue<T> extends AsyncQueue<T> {
 		return true;
 	}
 
-	// Override the start method to properly handle concurrency
+	// Override to properly handle concurrency
 	async start(): Promise<boolean> {
 		this.isStopped = false;
 		this.isPaused = false;
@@ -68,5 +71,25 @@ export class ConcurrentAsyncQueue<T> extends AsyncQueue<T> {
 		}
 
 		return started;
+	}
+
+	// Get current number of running tasks
+	get activeTaskCount(): number {
+		return this.runningTasks;
+	}
+
+	// Update concurrency limit (useful for dynamic adjustment)
+	setConcurrencyLimit(limit: number): void {
+		if (limit < 1) {
+			throw new Error('Concurrency limit must be at least 1');
+		}
+		this.concurrentLimit = limit;
+
+		// If we increased the limit, try to process more items
+		if (!this.isPaused && !this.isStopped) {
+			for (let i = 0; i < this.concurrentLimit; i++) {
+				void this.processQueue();
+			}
+		}
 	}
 }
