@@ -12,6 +12,7 @@ import { type FetchNextPage } from '../../types';
 
 interface customFetchOptions extends RequestInit {
 	nextPage?: number;
+	url?: string;
 }
 
 export interface FetchOptions<T, U = T> {
@@ -71,8 +72,9 @@ function useFetch<T, U = T>(
 
 	const fetchData = useCallback(
 		async (fetchOptions: customFetchOptions = {}): Promise<void> => {
-			if (!BASE_URL || !schema) {
-				const error = new Error('Missing required parameters: BASE_URL or schema');
+			const endpoint = fetchOptions.url || BASE_URL;
+			if (!endpoint || !schema) {
+				const error = new Error('Missing required parameters: endpoint or schema');
 				onError?.(error);
 				return;
 			}
@@ -90,7 +92,7 @@ function useFetch<T, U = T>(
 
 			delete fetchOptions.nextPage;
 
-			const url = `${BASE_URL}?${buildQueryParams(newQueryParams)}`;
+			const url = `${endpoint}?${buildQueryParams(newQueryParams)}`;
 
 			const cleanUp = () => {
 				cleanUpTopLevel();

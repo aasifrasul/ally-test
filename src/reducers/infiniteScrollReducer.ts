@@ -19,7 +19,7 @@ const infiniteScrollReducer: ReducerFunction = (
 
 	switch (type) {
 		case ActionType.FETCH_SUCCESS:
-			const currentData: IS_Item[] = payload.results;
+			const currentData: IS_Item[] = payload.results || [];
 			const originalData: IS_Item[] = (state?.data as IS_Item[]) || [];
 			return {
 				...state,

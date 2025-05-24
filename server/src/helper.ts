@@ -1,6 +1,7 @@
 import fs from 'fs';
 import xss from 'xss';
 
+import { isCurrentEnvProd } from './envConfigDetails';
 import { pathBuildTime } from './paths';
 
 interface EncOptions {
@@ -102,7 +103,7 @@ const generateBuildTime = async (): Promise<void> => {
 };
 
 const getStartTime = (): string => {
-	if (process.env.NODE_ENV !== 'production') {
+	if (!isCurrentEnvProd) {
 		return getFileContents(pathBuildTime);
 	}
 

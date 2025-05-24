@@ -1,19 +1,23 @@
 import type { APIOptions, WorkerMessage } from '../types/api';
 import { createLogger } from '../utils/logger';
 import { getRandomId } from '../utils/common';
+import { PromiseFactory } from '../utils/PromiseFactory';
 
 const logger = createLogger('WorkerQueue');
 
 export class WorkerQueue {
 	private static instance: WorkerQueue | null = null;
 	private worker: Worker;
-	private queue: Map<string, { resolve: Function; reject: Function }>;
-	private timeouts: Map<string, NodeJS.Timeout>;
+	private factory: any;
 
 	private constructor() {
 		this.worker = new Worker(new URL('./MyWorker.worker.ts', import.meta.url));
-		this.queue = new Map();
-		this.timeouts = new Map();
+
+		this.factory = new PromiseFactory<string>({
+			autoCleanup: true,
+			cleanupDelay: 30000,
+			enableLogging: true,
+		});
 
 		this.worker.addEventListener('message', this.handleMessage.bind(this));
 		this.worker.addEventListener('error', this.handleError.bind(this));
@@ -32,17 +36,11 @@ export class WorkerQueue {
 
 	private handleMessage(event: MessageEvent<WorkerMessage>): void {
 		const { id, data, error } = event.data;
-		const pending = this.queue.get(id);
+		const pending = this.factory.get(id);
 
 		if (!pending) return;
-		
-		const timeoutId = this.timeouts.get(id);
-		if (timeoutId) {
-			clearTimeout(timeoutId);
-			this.timeouts.delete(id);
-		}
 
-		this.queue.delete(id);
+		this.factory.remove(id);
 		if (error) {
 			pending.reject(new Error(error));
 		} else {
@@ -53,24 +51,15 @@ export class WorkerQueue {
 	private async sendMessage(type: string, data: any, timeout = 30000): Promise<any> {
 		const id = getRandomId();
 
-		return new Promise((resolve, reject) => {
-			const timeoutId = setTimeout(() => {
-				this.queue.delete(id);
-				reject(new Error(`Request timeout after ${timeout}ms`));
-			}, timeout);
+		this.factory.create(id, timeout)
 
-			this.timeouts.set(id, timeoutId);
-			this.queue.set(id, { resolve, reject });
-
-			try {
-				this.worker.postMessage({ id, type, data });
-			} catch (error) {
-				this.queue.delete(id);
-				clearTimeout(timeoutId);
-				this.timeouts.delete(id);
-				reject(error);
-			}
-		});
+		try {
+			this.worker.postMessage({ id, type, data });
+			return this.factory.get(id).promise;
+		} catch (error) {
+			this.factory.reject(id, error);
+			this.factory.remove(id);
+		}
 	}
 
 	// Public API methods
@@ -95,9 +84,7 @@ export class WorkerQueue {
 	}
 
 	terminate(): void {
-		this.timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
-		this.timeouts.clear();
-		this.queue.clear();
+		this.factory.clear();
 		this.worker.terminate();
 		WorkerQueue.instance = null;
 	}
