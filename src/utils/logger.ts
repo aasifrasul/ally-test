@@ -1,5 +1,3 @@
-import { isCurrentEnvProd } from './envConfigDetails';
-
 export enum LogLevel {
 	DEBUG = 'DEBUG',
 	INFO = 'INFO',
@@ -28,7 +26,7 @@ export class Logger {
 
 	constructor(name: string, options: LoggerOptions = {}) {
 		this.level = options.level || LogLevel.INFO;
-		this.enabled = options.enabled ?? !isCurrentEnvProd;
+		this.enabled = options.enabled ?? process.env.NODE_ENV !== 'production';
 		this.prefix = options.prefix || name;
 	}
 

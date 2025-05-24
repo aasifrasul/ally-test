@@ -8,7 +8,6 @@ export function createImmutable<T extends object>(obj: T): T {
 					`This object is immutable, cannot set property: ${String(prop)}`,
 				);
 			}
-
 			throw new Error(
 				`This object is immutable, cannot set property: ${JSON.stringify(prop)}`,
 			);
@@ -20,12 +19,21 @@ export function createImmutable<T extends object>(obj: T): T {
 		},
 		defineProperty: (target: T, prop: PropertyKey, descriptor: PropertyDescriptor) => {
 			throw new Error(
-				`This object is immutable, cannot define new property: ${JSON.stringify(
-					prop,
-				)}`,
+				`This object is immutable, cannot define new property: ${JSON.stringify(prop)}`,
 			);
 		},
 		get(target: T, prop: PropertyKey, receiver: any) {
+			const descriptor = Object.getOwnPropertyDescriptor(target, prop);
+
+			// Handle getters - call them with the original target, not the proxy
+			if (descriptor && descriptor.get) {
+				const value = descriptor.get.call(target); // Use target instead of receiver
+				if (isObject(value)) {
+					return createImmutable(value);
+				}
+				return value;
+			}
+
 			const value = Reflect.get(target, prop, receiver);
 
 			if (isArray(target)) {
@@ -43,6 +51,7 @@ export function createImmutable<T extends object>(obj: T): T {
 			if (isObject(value)) {
 				return createImmutable(value);
 			}
+
 			return value;
 		},
 	});
