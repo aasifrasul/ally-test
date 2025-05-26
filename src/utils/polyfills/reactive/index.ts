@@ -1,4 +1,18 @@
-import { ComputedOptions, ComputedReader, Effect, EffectOptions, EffectCleanup, ErrorHandler, ReactiveConfig, ReactiveRoot, SignalOptions, SignalReader, SignalWriter, SignalGraph, SignalEquals } from './types';
+import {
+	ComputedOptions,
+	ComputedReader,
+	Effect,
+	EffectOptions,
+	EffectCleanup,
+	ErrorHandler,
+	ReactiveConfig,
+	ReactiveRoot,
+	SignalOptions,
+	SignalReader,
+	SignalWriter,
+	SignalGraph,
+	SignalEquals,
+} from './types';
 
 // Export types for external use
 export type {
@@ -14,7 +28,7 @@ export type {
 	SignalGraph,
 	EffectCleanup,
 	SignalEquals,
-	ErrorHandler
+	ErrorHandler,
 };
 
 // Global state
@@ -30,9 +44,9 @@ const cleanupRegistry = new WeakMap<Effect, Set<EffectCleanup>>();
 // Async scheduler for batching updates
 function scheduleEffect(effect: Effect): void {
 	if (scheduledEffects.has(effect)) return;
-	
+
 	scheduledEffects.add(effect);
-	
+
 	if (!isFlushingEffects) {
 		isFlushingEffects = true;
 		// Use microtask for batching (can be replaced with requestAnimationFrame for UI updates)
@@ -44,11 +58,11 @@ function scheduleEffect(effect: Effect): void {
 
 function flushEffects(): void {
 	let depth = 0;
-	
+
 	while (scheduledEffects.size > 0 && depth < maxDepth) {
 		const effects = [...scheduledEffects];
 		scheduledEffects.clear();
-	
+
 		for (const effect of effects) {
 			if (!effect.disposed) {
 				try {
@@ -61,28 +75,30 @@ function flushEffects(): void {
 		}
 		depth++;
 	}
-	
+
 	if (depth >= maxDepth) {
-		console.error('Maximum update depth exceeded. Possible infinite loop in reactive effects.');
+		console.error(
+			'Maximum update depth exceeded. Possible infinite loop in reactive effects.',
+		);
 		scheduledEffects.clear();
 	}
-	
+
 	isFlushingEffects = false;
 }
 
 export function createSignal<T>(
-	initialValue: T, 
-	options: SignalOptions<T> = {}
+	initialValue: T,
+	options: SignalOptions<T> = {},
 ): [SignalReader<T>, SignalWriter<T>] {
 	let value = initialValue;
 	const subscriptions = new Set<Effect>();
 	const { name, equals = Object.is } = options;
-	
+
 	const read: SignalReader<T> = () => {
 		const observer = context[context.length - 1];
 		if (observer && !observer.disposed) {
 			subscriptions.add(observer);
-		
+
 			// Track this signal for cleanup
 			if (!cleanupRegistry.has(observer)) {
 				cleanupRegistry.set(observer, new Set());
@@ -91,13 +107,13 @@ export function createSignal<T>(
 		}
 		return value;
 	};
-	
+
 	const write: SignalWriter<T> = (newValue: T) => {
 		// Only update if value actually changed
 		if (equals(value, newValue)) return;
-	
+
 		value = newValue;
-	
+
 		// Schedule all subscribed effects for async execution
 		for (const observer of subscriptions) {
 			if (!observer.disposed) {
@@ -105,33 +121,33 @@ export function createSignal<T>(
 			}
 		}
 	};
-	
+
 	// Add debugging info
 	read.signalName = name;
 	write.signalName = name;
-	
+
 	return [read, write];
 }
 
 export function createEffect(
-	fn: () => void | EffectCleanup, 
-	options: EffectOptions = {}
+	fn: () => void | EffectCleanup,
+	options: EffectOptions = {},
 ): Effect {
 	const { name, onError } = options;
 	let cleanup: EffectCleanup | null = null;
-	
+
 	const effect: Effect = {
 		disposed: false,
 		name,
 		execute() {
 			if (this.disposed) return;
-		
+
 			// Prevent circular execution
 			if (runningEffects.has(this)) {
 				console.warn('Circular dependency detected in effect:', name || 'anonymous');
 				return;
 			}
-		
+
 			// Cleanup previous run
 			if (cleanup) {
 				try {
@@ -141,17 +157,17 @@ export function createEffect(
 				}
 				cleanup = null;
 			}
-		
+
 			// Clear previous subscriptions
 			const prevCleanups = cleanupRegistry.get(this);
 			if (prevCleanups) {
-				prevCleanups.forEach(cleanupFn => cleanupFn());
+				prevCleanups.forEach((cleanupFn) => cleanupFn());
 				prevCleanups.clear();
 			}
-		
+
 			runningEffects.add(this);
 			context.push(this);
-		
+
 			try {
 				const result = fn();
 				// Support cleanup functions returned from effects
@@ -169,12 +185,12 @@ export function createEffect(
 				runningEffects.delete(this);
 			}
 		},
-	
+
 		dispose() {
 			if (this.disposed) return;
-		
+
 			this.disposed = true;
-		
+
 			// Run cleanup if exists
 			if (cleanup) {
 				try {
@@ -183,61 +199,64 @@ export function createEffect(
 					console.error('Error in effect cleanup during disposal:', error);
 				}
 			}
-		
+
 			// Clear all subscriptions
 			const cleanups = cleanupRegistry.get(this);
 			if (cleanups) {
-				cleanups.forEach(cleanupFn => cleanupFn());
+				cleanups.forEach((cleanupFn) => cleanupFn());
 				cleanupRegistry.delete(this);
 			}
-		
+
 			// Remove from scheduled effects
 			scheduledEffects.delete(this);
-		}
+		},
 	};
-	
+
 	// Initial execution
 	effect.execute();
-	
+
 	return effect;
 }
 
 // Computed values - cached reactive computations
 export function createComputed<T>(
-	fn: () => T, 
-	options: ComputedOptions<T> = {}
+	fn: () => T,
+	options: ComputedOptions<T> = {},
 ): ComputedReader<T> {
 	let value: T;
 	let isStale = true;
 	const { name, equals = Object.is } = options;
-	
-	const computedEffect = createEffect(() => {
-		const newValue = fn();
-		if (isStale || !equals(value, newValue)) {
-			value = newValue;
-			isStale = false;
-		}
-	}, { name: `computed:${name || 'anonymous'}` });
-	
+
+	const computedEffect = createEffect(
+		() => {
+			const newValue = fn();
+			if (isStale || !equals(value, newValue)) {
+				value = newValue;
+				isStale = false;
+			}
+		},
+		{ name: `computed:${name || 'anonymous'}` },
+	);
+
 	const read: ComputedReader<T> = () => {
 		const observer = context[context.length - 1];
 		if (observer && !observer.disposed && !computedEffect.disposed) {
 			// This computed value becomes a dependency
 			const mockSignal = new Set([observer]);
 			mockSignal.add(observer);
-		
+
 			if (!cleanupRegistry.has(observer)) {
 				cleanupRegistry.set(observer, new Set());
 			}
 			cleanupRegistry.get(observer)!.add(() => mockSignal.delete(observer));
 		}
-	
+
 		return value;
 	};
-	
+
 	read.dispose = computedEffect.dispose.bind(computedEffect);
 	read.computedName = name;
-	
+
 	return read;
 }
 
@@ -245,7 +264,7 @@ export function createComputed<T>(
 export function batch(fn: () => void): void {
 	const wasFlushingEffects = isFlushingEffects;
 	isFlushingEffects = true;
-	
+
 	try {
 		fn();
 	} finally {
@@ -260,7 +279,7 @@ export function batch(fn: () => void): void {
 export function untrack<T>(fn: () => T): T {
 	const prevContext = context.slice();
 	context.length = 0;
-	
+
 	try {
 		return fn();
 	} finally {
@@ -273,29 +292,29 @@ export function untrack<T>(fn: () => T): T {
 export function createRoot<T>(fn: () => T): ReactiveRoot<T> {
 	const effects = new Set<Effect>();
 	const originalCreateEffect = createEffect;
-	
+
 	// Override createEffect to track all effects in this root
 	const trackedCreateEffect = (
-		effectFn: () => void | EffectCleanup, 
-		options?: EffectOptions
+		effectFn: () => void | EffectCleanup,
+		options?: EffectOptions,
 	): Effect => {
 		const effect = originalCreateEffect(effectFn, options);
 		effects.add(effect);
 		return effect;
 	};
-	
+
 	try {
 		// Temporarily replace global createEffect
 		(globalThis as any).createEffect = trackedCreateEffect;
 		const result = fn();
-	
+
 		// Return disposal function
 		return {
 			result,
 			dispose() {
-				effects.forEach(effect => effect.dispose());
+				effects.forEach((effect) => effect.dispose());
 				effects.clear();
-			}
+			},
 		};
 	} finally {
 		(globalThis as any).createEffect = originalCreateEffect;
@@ -307,9 +326,9 @@ export function getSignalGraph(): SignalGraph {
 	const graph: SignalGraph = {
 		signals: new Map(),
 		effects: new Map(),
-		connections: []
+		connections: [],
 	};
-	
+
 	// This would need more sophisticated tracking in a real implementation
 	// For now, return a basic structure for debugging
 	return graph;
@@ -345,7 +364,7 @@ if (typeof window !== 'undefined') {
 		batch,
 		untrack,
 		createRoot,
-		configure
+		configure,
 	};
 }
 

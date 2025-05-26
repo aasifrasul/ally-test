@@ -6,10 +6,7 @@
  * @param dependencies An array of dependencies. The function will be re-memoized if any dependency changes.
  * @returns A memoized function.
  */
-function useCallback<T extends (...args: any[]) => any>(
-	fn: T,
-	dependencies: any[]
-): T {
+function useCallback<T extends (...args: any[]) => any>(fn: T, dependencies: any[]): T {
 	if (!Array.isArray(dependencies)) {
 		throw new Error('dependencies must be an array');
 	}

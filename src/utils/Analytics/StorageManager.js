@@ -83,11 +83,11 @@ class StorageManager {
 	async updateRetryStatus(batchId, status) {
 		const retryBatches = await this.getRetryBatches();
 		const retryInfo = retryBatches[batchId];
-		
+
 		if (retryInfo) {
 			retryInfo.status = status;
 			retryInfo.updatedAt = Date.now();
-			
+
 			await this.saveRetryInfo(batchId, retryInfo);
 		}
 	}
@@ -110,26 +110,26 @@ class StorageManager {
 
 		return new Promise((resolve, reject) => {
 			const request = indexedDB.open(this.dbName, 1);
-			
+
 			request.onupgradeneeded = (event) => {
 				const db = event.target.result;
-				
+
 				// Create object stores if they don't exist
 				if (!db.objectStoreNames.contains(this.storeName)) {
 					db.createObjectStore(this.storeName, { keyPath: 'id' });
 				}
-				
+
 				if (!db.objectStoreNames.contains(this.retryInfoStoreName)) {
 					db.createObjectStore(this.retryInfoStoreName, { keyPath: 'batchId' });
 				}
 			};
-			
+
 			request.onsuccess = (event) => {
 				this.db = event.target.result;
 				this.isDbInitialized = true;
 				resolve();
 			};
-			
+
 			request.onerror = (event) => {
 				console.error('IndexedDB error:', event.target.error);
 				reject(event.target.error);
@@ -139,24 +139,24 @@ class StorageManager {
 
 	async _saveToIndexedDB(events) {
 		await this._initIndexedDB();
-		
+
 		return new Promise((resolve, reject) => {
 			const transaction = this.db.transaction([this.storeName], 'readwrite');
 			const store = transaction.objectStore(this.storeName);
-			
+
 			let completed = 0;
 			const total = events.length;
-			
-			events.forEach(event => {
+
+			events.forEach((event) => {
 				const request = store.put(event);
-				
+
 				request.onsuccess = () => {
 					completed++;
 					if (completed === total) {
 						resolve();
 					}
 				};
-				
+
 				request.onerror = (event) => {
 					console.error('Error storing event:', event.target.error);
 					completed++;
@@ -165,7 +165,7 @@ class StorageManager {
 					}
 				};
 			});
-			
+
 			transaction.onerror = (event) => {
 				reject(event.target.error);
 			};
@@ -174,16 +174,16 @@ class StorageManager {
 
 	async _loadFromIndexedDB() {
 		await this._initIndexedDB();
-		
+
 		return new Promise((resolve, reject) => {
 			const transaction = this.db.transaction([this.storeName], 'readonly');
 			const store = transaction.objectStore(this.storeName);
 			const request = store.getAll();
-			
+
 			request.onsuccess = () => {
 				resolve(request.result);
 			};
-			
+
 			request.onerror = (event) => {
 				console.error('Error loading events:', event.target.error);
 				reject(event.target.error);
@@ -193,24 +193,24 @@ class StorageManager {
 
 	async _clearEventsFromIndexedDB(eventIds) {
 		await this._initIndexedDB();
-		
+
 		return new Promise((resolve, reject) => {
 			const transaction = this.db.transaction([this.storeName], 'readwrite');
 			const store = transaction.objectStore(this.storeName);
-			
+
 			let completed = 0;
 			const total = eventIds.length;
-			
-			eventIds.forEach(id => {
+
+			eventIds.forEach((id) => {
 				const request = store.delete(id);
-				
+
 				request.onsuccess = () => {
 					completed++;
 					if (completed === total) {
 						resolve();
 					}
 				};
-				
+
 				request.onerror = (event) => {
 					console.error('Error deleting event:', event.target.error);
 					completed++;
@@ -219,7 +219,7 @@ class StorageManager {
 					}
 				};
 			});
-			
+
 			transaction.onerror = (event) => {
 				reject(event.target.error);
 			};
@@ -228,18 +228,18 @@ class StorageManager {
 
 	async _saveRetryInfoToIndexedDB(batchId, retryInfo) {
 		await this._initIndexedDB();
-		
+
 		return new Promise((resolve, reject) => {
 			const transaction = this.db.transaction([this.retryInfoStoreName], 'readwrite');
 			const store = transaction.objectStore(this.retryInfoStoreName);
-			
+
 			const data = { batchId, ...retryInfo };
 			const request = store.put(data);
-			
+
 			request.onsuccess = () => {
 				resolve();
 			};
-			
+
 			request.onerror = (event) => {
 				console.error('Error saving retry info:', event.target.error);
 				reject(event.target.error);
@@ -249,20 +249,20 @@ class StorageManager {
 
 	async _getRetryBatchesFromIndexedDB() {
 		await this._initIndexedDB();
-		
+
 		return new Promise((resolve, reject) => {
 			const transaction = this.db.transaction([this.retryInfoStoreName], 'readonly');
 			const store = transaction.objectStore(this.retryInfoStoreName);
 			const request = store.getAll();
-			
+
 			request.onsuccess = () => {
 				const result = {};
-				request.result.forEach(item => {
+				request.result.forEach((item) => {
 					result[item.batchId] = item;
 				});
 				resolve(result);
 			};
-			
+
 			request.onerror = (event) => {
 				console.error('Error getting retry batches:', event.target.error);
 				reject(event.target.error);
@@ -272,38 +272,41 @@ class StorageManager {
 
 	async _clearIndexedDB() {
 		await this._initIndexedDB();
-		
+
 		return new Promise((resolve, reject) => {
-			const transaction = this.db.transaction([this.storeName, this.retryInfoStoreName], 'readwrite');
-			
+			const transaction = this.db.transaction(
+				[this.storeName, this.retryInfoStoreName],
+				'readwrite',
+			);
+
 			const eventStore = transaction.objectStore(this.storeName);
 			const retryStore = transaction.objectStore(this.retryInfoStoreName);
-			
+
 			const eventClearRequest = eventStore.clear();
 			const retryClearRequest = retryStore.clear();
-			
+
 			let completed = 0;
-			
+
 			const checkCompletion = () => {
 				completed++;
 				if (completed === 2) {
 					resolve();
 				}
 			};
-			
+
 			eventClearRequest.onsuccess = checkCompletion;
 			retryClearRequest.onsuccess = checkCompletion;
-			
+
 			eventClearRequest.onerror = (event) => {
 				console.error('Error clearing events:', event.target.error);
 				checkCompletion();
 			};
-			
+
 			retryClearRequest.onerror = (event) => {
 				console.error('Error clearing retry info:', event.target.error);
 				checkCompletion();
 			};
-			
+
 			transaction.onerror = (event) => {
 				reject(event.target.error);
 			};

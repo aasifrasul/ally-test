@@ -20,8 +20,7 @@ export const errorHandler = (
 	console.error(err.stack);
 	res.status(500).json({
 		error: {
-			message:
-				isCurrentEnvProd ? 'Internal Server Error' : err.message,
+			message: isCurrentEnvProd ? 'Internal Server Error' : err.message,
 			correlationId: req.correlationId,
 		},
 	});

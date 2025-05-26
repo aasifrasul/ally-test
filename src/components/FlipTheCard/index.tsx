@@ -16,9 +16,9 @@ export interface FlipTheCardProps {
 	onGameComplete?: () => void;
 }
 
-export default function FlipTheCard({ 
+export default function FlipTheCard({
 	mockCards = MOCK,
-	onGameComplete 
+	onGameComplete,
 }: FlipTheCardProps): React.JSX.Element {
 	const cards = React.useRef<Card[]>(shuffle([...mockCards]));
 	const solvedCards = React.useRef<number>(0);
@@ -39,7 +39,7 @@ export default function FlipTheCard({
 			const card1 = cards.current[openCards[1]];
 			card1.display = true;
 			card0.display = true;
-	  
+
 			if (card1.name !== card0.name) {
 				requestAnimationFrame(() => {
 					const timerId = setTimeout(() => {
@@ -74,9 +74,9 @@ export default function FlipTheCard({
 			<div className={styles.center}>
 				<div data-testid="timer">Time: {seconds}</div>
 				<div>
-					<button 
-						onClick={restart} 
-						className={styles.restart} 
+					<button
+						onClick={restart}
+						className={styles.restart}
 						data-testid="restart-button"
 					>
 						Restart
@@ -85,8 +85,8 @@ export default function FlipTheCard({
 			</div>
 			<div className={styles.parent}>
 				{cards.current.map(({ pic, display, name }, index) => (
-					<div 
-						key={`${name}-${index}`} 
+					<div
+						key={`${name}-${index}`}
 						className={`${styles.child} ${display ? 'card-open' : ''}`}
 						data-testid={`card-${index}`}
 						data-card-name={name}
@@ -94,10 +94,10 @@ export default function FlipTheCard({
 						{display ? (
 							<img src={pic} alt={name} data-testid={`card-image-${index}`} />
 						) : (
-							<img 
-								src={blankCard} 
-								onClick={() => handleClick(index)} 
-								alt="Card back" 
+							<img
+								src={blankCard}
+								onClick={() => handleClick(index)}
+								alt="Card back"
 								data-testid={`card-back-${index}`}
 							/>
 						)}

@@ -10,7 +10,7 @@ class EventQueueManager {
 			...item,
 			id: `event_${++this.upperLimit}_${Date.now()}`,
 			timestamp: item.timestamp || new Date().toISOString(),
-			queuedAt: Date.now()
+			queuedAt: Date.now(),
 		};
 		this.map.set(this.upperLimit, enhancedItem);
 		return enhancedItem.id;
@@ -18,7 +18,7 @@ class EventQueueManager {
 
 	dequeue() {
 		if (this.isEmpty()) return null;
-		
+
 		const key = ++this.lowerLimit;
 		const result = this.map.get(key);
 		this.map.delete(key);
@@ -28,11 +28,11 @@ class EventQueueManager {
 	getEvents(count) {
 		const events = [];
 		const actualCount = Math.min(count, this.size());
-		
+
 		for (let i = 0; i < actualCount; i++) {
 			events.push(this.dequeue());
 		}
-		
+
 		return events;
 	}
 

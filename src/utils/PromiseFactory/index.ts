@@ -31,7 +31,7 @@ const logger = createLogger('WorkerQueue');
 export class PromiseFactory<T = any> {
 	private promises: Map<string, Deferred<T>>;
 	private options: Required<PromiseFactoryOptions>;
-	private _cleanupInterval: NodeJS.Timeout | null = null;
+	private cleanupInterval: NodeJS.Timeout | null = null;
 
 	constructor(options: Partial<PromiseFactoryOptions> = {}) {
 		this.promises = new Map<string, Deferred<T>>();
@@ -78,7 +78,9 @@ export class PromiseFactory<T = any> {
 	 */
 	private _checkMaxPromises(): void {
 		if (this.promises.size >= this.options.maxPromises) {
-			throw new Error(`Maximum number of promises (${this.options.maxPromises}) exceeded`);
+			throw new Error(
+				`Maximum number of promises (${this.options.maxPromises}) exceeded`,
+			);
 		}
 	}
 
@@ -97,7 +99,7 @@ export class PromiseFactory<T = any> {
 			const promise = this.promises.get(key);
 
 			if (!promise) {
-				throw new Error(`Something weird!`)
+				throw new Error(`Something weird!`);
 			}
 
 			return promise;
@@ -333,9 +335,9 @@ export class PromiseFactory<T = any> {
 	 * Starts the auto-cleanup process. This periodically removes settled promises.
 	 */
 	startAutoCleanup(): void {
-		if (this._cleanupInterval) return;
+		if (this.cleanupInterval) return;
 
-		this._cleanupInterval = setInterval(() => {
+		this.cleanupInterval = setInterval(() => {
 			const now = Date.now();
 			const toRemove: string[] = [];
 
@@ -358,9 +360,9 @@ export class PromiseFactory<T = any> {
 	 * Stops the auto-cleanup process.
 	 */
 	stopAutoCleanup(): void {
-		if (this._cleanupInterval) {
-			clearInterval(this._cleanupInterval);
-			this._cleanupInterval = null;
+		if (this.cleanupInterval) {
+			clearInterval(this.cleanupInterval);
+			this.cleanupInterval = null;
 		}
 	}
 

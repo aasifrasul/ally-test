@@ -5,6 +5,8 @@ export enum StorageType {
 	INDEXED_DB = 'indexedDB',
 }
 
+export type Keys = string[] | IDBValidKey[];
+
 export interface StorageMapping {
 	stringify?: boolean;
 	getItem: (key: string) => Promise<any>;
@@ -12,7 +14,7 @@ export interface StorageMapping {
 	removeItem: (key: string) => Promise<void>;
 	contains: (key: string) => Promise<boolean>;
 	clear: () => Promise<void>;
-	keys: () => Promise<string[]>;
+	keys: () => Promise<Keys>;
 }
 
 export interface StorageCapacity {
