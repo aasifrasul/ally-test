@@ -1,61 +1,65 @@
-import { useState, useEffect, useCallback } from 'react';
-
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useEventListener } from './EventListeners';
 
 export function useSearchParams() {
-	// Initialize with current URL search params
-	const [searchParams, setSearchParamsState] = useState<URLSearchParams>(
-		new URLSearchParams(window.location.search),
+	const [searchParams, setSearchParamsState] = useState<URLSearchParams>(() =>
+		typeof window !== 'undefined'
+			? new URLSearchParams(window.location.search)
+			: new URLSearchParams(),
 	);
 
-	useEventListener('popstate', handlePopState, window);
+	// Use ref to track if we're updating from internal state vs external navigation
+	const isInternalUpdate = useRef(false);
 
-	// Wrapper for setSearchParams that accepts both direct value and callback
 	const setSearchParams = useCallback(
 		(
 			newParamsOrUpdater: URLSearchParams | ((prev: URLSearchParams) => URLSearchParams),
 		) => {
-			if (typeof newParamsOrUpdater === 'function') {
-				setSearchParamsState((prev) => newParamsOrUpdater(prev));
-			} else {
-				setSearchParamsState(newParamsOrUpdater);
-			}
+			isInternalUpdate.current = true;
+			setSearchParamsState(newParamsOrUpdater);
 		},
 		[],
 	);
 
 	// Update URL whenever searchParams changes
 	useEffect(() => {
-		// Store the params string in the state object
-		window.history.replaceState({ searchParams: getParamsString() }, '', getPageURL());
+		if (isInternalUpdate.current) {
+			const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
+			window.history.replaceState({ searchParams: searchParams.toString() }, '', newUrl);
+			isInternalUpdate.current = false;
+		}
 	}, [searchParams]);
 
-	function handlePopState(event: PopStateEvent) {
-		// Get params from event state if available, otherwise from URL
+	const handlePopState = useCallback((event: PopStateEvent) => {
 		const newParams = new URLSearchParams(
 			event.state?.searchParams || window.location.search,
 		);
+		// Don't trigger URL update for popstate events
+		isInternalUpdate.current = false;
 		setSearchParamsState(newParams);
-	}
+	}, []);
 
-	// Convenience method to update parameters
+	useEventListener('popstate', handlePopState, window);
+
 	const updateParams = useCallback(
 		(params: Record<string, string>) => {
-			setSearchParams((prevParams: URLSearchParams): URLSearchParams => {
-				const newParams: URLSearchParams = new URLSearchParams(prevParams);
-				for (const key in params) {
-					if (key.length === 0) continue;
-					newParams.set(key, params[key]);
-				}
+			setSearchParams((prevParams: URLSearchParams) => {
+				const newParams = new URLSearchParams(prevParams);
+				Object.entries(params).forEach(([key, value]) => {
+					if (key.length > 0) {
+						newParams.set(key, value);
+					}
+				});
 				return newParams;
 			});
 		},
 		[setSearchParams],
 	);
 
-	const getParamsString = () => searchParams.toString();
-
-	const getPageURL = (): string => `${window.location.pathname}?${getParamsString()}`;
+	const getPageURL = useCallback(
+		(): string => `${window.location.pathname}?${searchParams.toString()}`,
+		[searchParams],
+	);
 
 	return { searchParams, setSearchParams, updateParams, getPageURL };
 }

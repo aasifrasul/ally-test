@@ -16,16 +16,6 @@ export class IndexedDBStorage {
 		this.storeName = storeName;
 	}
 
-	private errorHandler(request: IDBTransaction | IDBRequest, operation: string): Promise<void> {
-		return new Promise((_, reject) => {
-			request.addEventListener('error', (event: Event) => {
-				const error = (event.target as IDBRequest).error;
-				logger.error(`${operation} request error:`, error);
-				reject(error);
-			});
-		});
-	}
-
 	// Helper method to wrap requests in promises with consistent error handling
 	private requestHandler<T>(request: IDBRequest<T>, operation: string): Promise<T> {
 		return new Promise((resolve, reject) => {
@@ -34,7 +24,11 @@ export class IndexedDBStorage {
 				resolve(request.result);
 			});
 
-			this.errorHandler(request, operation).then(reject);
+			request.addEventListener('error', (event: Event) => {
+				const error = (event.target as IDBRequest).error;
+				logger.error(`${operation} request error:`, error);
+				reject(error);
+			});
 		});
 	}
 
@@ -46,7 +40,11 @@ export class IndexedDBStorage {
 				resolve();
 			});
 
-			this.errorHandler(transaction, operation).then(reject);
+			transaction.addEventListener('error', (event: Event) => {
+				const error = (event.target as IDBTransaction).error;
+				logger.error(`${operation} transaction error:`, error);
+				reject(error);
+			});
 
 			transaction.addEventListener('abort', () => {
 				logger.warn(`${operation} transaction aborted`);
@@ -87,7 +85,11 @@ export class IndexedDBStorage {
 				resolve();
 			});
 
-			this.errorHandler(request, 'Database Open').then(reject);
+			request.addEventListener('error', (event: Event) => {
+				const error = (event.target as IDBOpenDBRequest).error;
+				logger.error('Database open error:', error);
+				reject(error);
+			});
 
 			request.addEventListener('upgradeneeded', (event: IDBVersionChangeEvent) => {
 				const database: IDBDatabase = (event.target as IDBOpenDBRequest).result;
@@ -103,9 +105,7 @@ export class IndexedDBStorage {
 						this.storeName,
 						{ keyPath: 'id' },
 					);
-					objectStore.transaction.addEventListener('complete', () => {
-						logger.info('Object store created successfully');
-					});
+					logger.info('Object store created successfully');
 				} else {
 					logger.info(`Object store '${this.storeName}' already exists.`);
 				}
@@ -113,9 +113,7 @@ export class IndexedDBStorage {
 		});
 	}
 
-	private async fetchTransaction(
-		mode: IDBTransactionMode = 'readonly',
-	): Promise<IDBTransaction> {
+	private getTransaction(mode: IDBTransactionMode = 'readonly'): IDBTransaction {
 		if (!this.initialized || !this.database) {
 			throw new Error(
 				'Storage not initialized or database not open. Call initialize() first.',
@@ -124,9 +122,9 @@ export class IndexedDBStorage {
 		return this.database.transaction([this.storeName], mode);
 	}
 
-	private async fetchObjectStore(storeName: string = this.storeName, mode: IDBTransactionMode = 'readonly') {
-		const transaction = await this.fetchTransaction(mode);
-		return transaction.objectStore(storeName);
+	private getObjectStore(mode: IDBTransactionMode = 'readonly'): IDBObjectStore {
+		const transaction = this.getTransaction(mode);
+		return transaction.objectStore(this.storeName);
 	}
 
 	async getAllKeys(): Promise<IDBValidKey[]> {
@@ -134,7 +132,7 @@ export class IndexedDBStorage {
 			throw new Error('Storage not initialized. Call initialize() first.');
 		}
 
-		const objectStore = await this.fetchObjectStore();
+		const objectStore = this.getObjectStore();
 		const request = objectStore.getAllKeys();
 
 		const keys = await this.requestHandler(request, 'getAllKeys');
@@ -147,7 +145,7 @@ export class IndexedDBStorage {
 			throw new Error('Storage not initialized. Call initialize() first.');
 		}
 
-		const objectStore = await this.fetchObjectStore();
+		const objectStore = this.getObjectStore();
 		const request = objectStore.get(key);
 
 		const result = await this.requestHandler(request, `getItem(${key})`);
@@ -166,12 +164,12 @@ export class IndexedDBStorage {
 			throw new Error('Storage not initialized. Call initialize() first.');
 		}
 
-		const transaction = await this.fetchTransaction('readwrite');
+		const transaction = this.getTransaction('readwrite');
 		const objectStore = transaction.objectStore(this.storeName);
 		const request = objectStore.put({ id: key, value: value });
 
 		// For write operations, we need to wait for transaction completion
-		const [,] = await Promise.all([
+		await Promise.all([
 			this.requestHandler(request, `setItem(${key})`),
 			this.transactionHandler(transaction, `setItem(${key})`),
 		]);
@@ -184,7 +182,7 @@ export class IndexedDBStorage {
 			throw new Error('Storage not initialized. Call initialize() first.');
 		}
 
-		const transaction = await this.fetchTransaction('readwrite');
+		const transaction = this.getTransaction('readwrite');
 		const objectStore = transaction.objectStore(this.storeName);
 		const request = objectStore.delete(key);
 
@@ -207,7 +205,7 @@ export class IndexedDBStorage {
 			throw new Error('Storage not initialized. Call initialize() first.');
 		}
 
-		const transaction = await this.fetchTransaction('readwrite');
+		const transaction = this.getTransaction('readwrite');
 		const objectStore = transaction.objectStore(this.storeName);
 		const request = objectStore.clear();
 
