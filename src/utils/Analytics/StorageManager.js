@@ -1,14 +1,47 @@
+import { Storage, StorageType } from './Storage';
+
 class StorageManager {
 	constructor(config) {
 		this.config = config;
 		this.dbName = 'analyticsDb';
-		this.storeName = 'events';
+		this.eventsStoreName = 'events';
 		this.retryInfoStoreName = 'retryInfo';
-		this.isDbInitialized = false;
+
+		// Create separate Storage instances for each store
+		this.eventsStorage = new Storage(
+			StorageType.INDEXED_DB,
+			this.dbName,
+			this.eventsStoreName,
+		);
+		this.retryStorage = new Storage(
+			StorageType.INDEXED_DB,
+			this.dbName,
+			this.retryInfoStoreName,
+		);
+
+		this.isInitialized = false;
 	}
 
 	/**
-	 * Save events to storage
+	 * Initialize both storage instances
+	 */
+	async initialize() {
+		if (this.isInitialized) return;
+
+		try {
+			await Promise.all([
+				this.eventsStorage.initialize(),
+				this.retryStorage.initialize(),
+			]);
+			this.isInitialized = true;
+		} catch (error) {
+			console.error('Failed to initialize storage:', error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Save events to storage (bulk operation)
 	 * @param {Array} events - Events to save
 	 * @returns {Promise}
 	 */
@@ -16,9 +49,17 @@ class StorageManager {
 		if (!events || events.length === 0) return;
 
 		try {
-			return this._saveToIndexedDB(events);
+			await this.initialize();
+
+			// Get existing events and merge with new ones
+			const existingEvents = await this.loadEvents();
+			const allEvents = [...existingEvents, ...events];
+
+			// Store as single bulk item
+			await this.eventsStorage.setItem('events_bulk', allEvents);
 		} catch (error) {
 			console.error('Failed to save events to storage:', error);
+			throw error;
 		}
 	}
 
@@ -28,7 +69,10 @@ class StorageManager {
 	 */
 	async loadEvents() {
 		try {
-			return this._loadFromIndexedDB();
+			await this.initialize();
+
+			const events = await this.eventsStorage.getItem('events_bulk');
+			return events || [];
 		} catch (error) {
 			console.error('Failed to load events from storage:', error);
 			return [];
@@ -41,10 +85,24 @@ class StorageManager {
 	 * @returns {Promise}
 	 */
 	async clearEvents(eventIds) {
+		if (!eventIds || eventIds.length === 0) return;
+
 		try {
-			return this._clearEventsFromIndexedDB(eventIds);
+			await this.initialize();
+
+			// Load all events, filter out the ones to clear, then save back
+			const allEvents = await this.loadEvents();
+			const eventIdsSet = new Set(eventIds);
+			const remainingEvents = allEvents.filter((event) => !eventIdsSet.has(event.id));
+
+			if (remainingEvents.length === 0) {
+				await this.eventsStorage.removeItem('events_bulk');
+			} else {
+				await this.eventsStorage.setItem('events_bulk', remainingEvents);
+			}
 		} catch (error) {
 			console.error('Failed to clear events from storage:', error);
+			throw error;
 		}
 	}
 
@@ -56,9 +114,18 @@ class StorageManager {
 	 */
 	async saveRetryInfo(batchId, retryInfo) {
 		try {
-			return this._saveRetryInfoToIndexedDB(batchId, retryInfo);
+			await this.initialize();
+
+			const retryData = {
+				batchId,
+				...retryInfo,
+				updatedAt: Date.now(),
+			};
+
+			await this.retryStorage.setItem(batchId, retryData);
 		} catch (error) {
 			console.error('Failed to save retry info:', error);
+			throw error;
 		}
 	}
 
@@ -68,7 +135,21 @@ class StorageManager {
 	 */
 	async getRetryBatches() {
 		try {
-			return this._getRetryBatchesFromIndexedDB();
+			await this.initialize();
+
+			const keys = await this.retryStorage.getAllKeys();
+			const loadPromises = keys.map((key) => this.retryStorage.getItem(key));
+
+			const retryInfos = await Promise.all(loadPromises);
+			const result = {};
+
+			retryInfos.forEach((retryInfo, index) => {
+				if (retryInfo) {
+					result[keys[index]] = retryInfo;
+				}
+			});
+
+			return result;
 		} catch (error) {
 			console.error('Failed to get retry batches:', error);
 			return {};
@@ -81,14 +162,37 @@ class StorageManager {
 	 * @param {string} status - New status
 	 */
 	async updateRetryStatus(batchId, status) {
-		const retryBatches = await this.getRetryBatches();
-		const retryInfo = retryBatches[batchId];
-		
-		if (retryInfo) {
-			retryInfo.status = status;
-			retryInfo.updatedAt = Date.now();
-			
-			await this.saveRetryInfo(batchId, retryInfo);
+		try {
+			await this.initialize();
+
+			const existingRetryInfo = await this.retryStorage.getItem(batchId);
+
+			if (existingRetryInfo) {
+				const updatedRetryInfo = {
+					...existingRetryInfo,
+					status,
+					updatedAt: Date.now(),
+				};
+
+				await this.retryStorage.setItem(batchId, updatedRetryInfo);
+			}
+		} catch (error) {
+			console.error('Failed to update retry status:', error);
+			throw error;
+		}
+	}
+
+	/**
+	 * Remove completed retry info
+	 * @param {string} batchId - ID of batch to remove
+	 */
+	async removeRetryInfo(batchId) {
+		try {
+			await this.initialize();
+			await this.retryStorage.removeItem(batchId);
+		} catch (error) {
+			console.error('Failed to remove retry info:', error);
+			throw error;
 		}
 	}
 
@@ -98,215 +202,49 @@ class StorageManager {
 	 */
 	async clearAllData() {
 		try {
-			return this._clearIndexedDB();
+			await this.initialize();
+
+			await Promise.all([
+				this.eventsStorage.removeItem('events_bulk'),
+				this.retryStorage.clear(),
+			]);
 		} catch (error) {
 			console.error('Failed to clear storage:', error);
+			throw error;
 		}
 	}
 
-	// Private methods for IndexedDB implementation
-	async _initIndexedDB() {
-		if (this.isDbInitialized) return;
+	/**
+	 * Get storage statistics
+	 * @returns {Promise<Object>} - Storage usage info
+	 */
+	async getStorageStats() {
+		try {
+			await this.initialize();
 
-		return new Promise((resolve, reject) => {
-			const request = indexedDB.open(this.dbName, 1);
-			
-			request.onupgradeneeded = (event) => {
-				const db = event.target.result;
-				
-				// Create object stores if they don't exist
-				if (!db.objectStoreNames.contains(this.storeName)) {
-					db.createObjectStore(this.storeName, { keyPath: 'id' });
-				}
-				
-				if (!db.objectStoreNames.contains(this.retryInfoStoreName)) {
-					db.createObjectStore(this.retryInfoStoreName, { keyPath: 'batchId' });
-				}
+			const [events, retryKeys, capacity] = await Promise.all([
+				this.loadEvents(),
+				this.retryStorage.getAllKeys(),
+				this.eventsStorage.getStorageCapacity(),
+			]);
+
+			return {
+				eventCount: events.length,
+				retryBatchCount: retryKeys.length,
+				capacity,
 			};
-			
-			request.onsuccess = (event) => {
-				this.db = event.target.result;
-				this.isDbInitialized = true;
-				resolve();
-			};
-			
-			request.onerror = (event) => {
-				console.error('IndexedDB error:', event.target.error);
-				reject(event.target.error);
-			};
-		});
+		} catch (error) {
+			console.error('Failed to get storage stats:', error);
+			return { eventCount: 0, retryBatchCount: 0, capacity: null };
+		}
 	}
 
-	async _saveToIndexedDB(events) {
-		await this._initIndexedDB();
-		
-		return new Promise((resolve, reject) => {
-			const transaction = this.db.transaction([this.storeName], 'readwrite');
-			const store = transaction.objectStore(this.storeName);
-			
-			let completed = 0;
-			const total = events.length;
-			
-			events.forEach(event => {
-				const request = store.put(event);
-				
-				request.onsuccess = () => {
-					completed++;
-					if (completed === total) {
-						resolve();
-					}
-				};
-				
-				request.onerror = (event) => {
-					console.error('Error storing event:', event.target.error);
-					completed++;
-					if (completed === total) {
-						resolve(); // Still resolve to continue with other events
-					}
-				};
-			});
-			
-			transaction.onerror = (event) => {
-				reject(event.target.error);
-			};
-		});
-	}
-
-	async _loadFromIndexedDB() {
-		await this._initIndexedDB();
-		
-		return new Promise((resolve, reject) => {
-			const transaction = this.db.transaction([this.storeName], 'readonly');
-			const store = transaction.objectStore(this.storeName);
-			const request = store.getAll();
-			
-			request.onsuccess = () => {
-				resolve(request.result);
-			};
-			
-			request.onerror = (event) => {
-				console.error('Error loading events:', event.target.error);
-				reject(event.target.error);
-			};
-		});
-	}
-
-	async _clearEventsFromIndexedDB(eventIds) {
-		await this._initIndexedDB();
-		
-		return new Promise((resolve, reject) => {
-			const transaction = this.db.transaction([this.storeName], 'readwrite');
-			const store = transaction.objectStore(this.storeName);
-			
-			let completed = 0;
-			const total = eventIds.length;
-			
-			eventIds.forEach(id => {
-				const request = store.delete(id);
-				
-				request.onsuccess = () => {
-					completed++;
-					if (completed === total) {
-						resolve();
-					}
-				};
-				
-				request.onerror = (event) => {
-					console.error('Error deleting event:', event.target.error);
-					completed++;
-					if (completed === total) {
-						resolve(); // Still resolve to continue with other events
-					}
-				};
-			});
-			
-			transaction.onerror = (event) => {
-				reject(event.target.error);
-			};
-		});
-	}
-
-	async _saveRetryInfoToIndexedDB(batchId, retryInfo) {
-		await this._initIndexedDB();
-		
-		return new Promise((resolve, reject) => {
-			const transaction = this.db.transaction([this.retryInfoStoreName], 'readwrite');
-			const store = transaction.objectStore(this.retryInfoStoreName);
-			
-			const data = { batchId, ...retryInfo };
-			const request = store.put(data);
-			
-			request.onsuccess = () => {
-				resolve();
-			};
-			
-			request.onerror = (event) => {
-				console.error('Error saving retry info:', event.target.error);
-				reject(event.target.error);
-			};
-		});
-	}
-
-	async _getRetryBatchesFromIndexedDB() {
-		await this._initIndexedDB();
-		
-		return new Promise((resolve, reject) => {
-			const transaction = this.db.transaction([this.retryInfoStoreName], 'readonly');
-			const store = transaction.objectStore(this.retryInfoStoreName);
-			const request = store.getAll();
-			
-			request.onsuccess = () => {
-				const result = {};
-				request.result.forEach(item => {
-					result[item.batchId] = item;
-				});
-				resolve(result);
-			};
-			
-			request.onerror = (event) => {
-				console.error('Error getting retry batches:', event.target.error);
-				reject(event.target.error);
-			};
-		});
-	}
-
-	async _clearIndexedDB() {
-		await this._initIndexedDB();
-		
-		return new Promise((resolve, reject) => {
-			const transaction = this.db.transaction([this.storeName, this.retryInfoStoreName], 'readwrite');
-			
-			const eventStore = transaction.objectStore(this.storeName);
-			const retryStore = transaction.objectStore(this.retryInfoStoreName);
-			
-			const eventClearRequest = eventStore.clear();
-			const retryClearRequest = retryStore.clear();
-			
-			let completed = 0;
-			
-			const checkCompletion = () => {
-				completed++;
-				if (completed === 2) {
-					resolve();
-				}
-			};
-			
-			eventClearRequest.onsuccess = checkCompletion;
-			retryClearRequest.onsuccess = checkCompletion;
-			
-			eventClearRequest.onerror = (event) => {
-				console.error('Error clearing events:', event.target.error);
-				checkCompletion();
-			};
-			
-			retryClearRequest.onerror = (event) => {
-				console.error('Error clearing retry info:', event.target.error);
-				checkCompletion();
-			};
-			
-			transaction.onerror = (event) => {
-				reject(event.target.error);
-			};
-		});
+	/**
+	 * Close storage connections
+	 */
+	close() {
+		this.eventsStorage.close();
+		this.retryStorage.close();
+		this.isInitialized = false;
 	}
 }

@@ -11,7 +11,7 @@ function debounce(fn, delay, options = { leading: false, trailing: true }) {
 		if (options.trailing) {
 			core();
 		}
-	};
+	}
 
 	function inner(...args) {
 		lastThis = this;
@@ -20,10 +20,9 @@ function debounce(fn, delay, options = { leading: false, trailing: true }) {
 		if (options.leading && !timeoutId) {
 			core();
 		}
-		
+
 		inner.cancel();
 		timeoutId = setTimeout(later, delay);
-
 	}
 
 	inner.flush = function () {

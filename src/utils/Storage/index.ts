@@ -1,5 +1,5 @@
 import { IndexedDBStorage } from './IndexedDBStorage';
-import { StorageType, StorageMapping, StorageCapacity } from './types';
+import { Keys, StorageType, StorageMapping, StorageCapacity } from './types';
 
 // Custom error types for better error handling
 class StorageError extends Error {
@@ -179,7 +179,7 @@ class Storage {
 		}
 	}
 
-	async getAllKeys(): Promise<string[]> {
+	async getAllKeys(): Promise<Keys> {
 		const storage = this.getStorageMapping();
 		try {
 			return await storage.keys();

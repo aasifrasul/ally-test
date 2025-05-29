@@ -4,10 +4,10 @@
 const DeferredState = {
 	PENDING: 'pending',
 	RESOLVED: 'resolved',
-	REJECTED: 'rejected'
+	REJECTED: 'rejected',
 } as const; // Using 'as const' for literal types
 
-type DeferredState = typeof DeferredState[keyof typeof DeferredState];
+type DeferredState = (typeof DeferredState)[keyof typeof DeferredState];
 
 export class Deferred<T> {
 	private state: DeferredState;
@@ -84,7 +84,8 @@ export class Deferred<T> {
 	/**
 	 * Get the current value (if resolved) or error (if rejected)
 	 */
-	get result(): T | any | null { // Union type for value or error
+	get result(): T | any | null {
+		// Union type for value or error
 		return this.isResolved ? this.value : this.error;
 	}
 

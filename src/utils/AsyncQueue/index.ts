@@ -6,11 +6,7 @@ export interface QueueItem<T> {
 	reject: (reason?: any) => void;
 }
 
-export class AsyncQueue<T> extends BaseQueue<{
-	action: () => Promise<T>;
-	resolve: (value: T | PromiseLike<T>) => void;
-	reject: (reason?: any) => void;
-}> {
+export class AsyncQueue<T> extends BaseQueue<QueueItem<T>> {
 	protected isPaused: boolean = false;
 	protected isStopped: boolean = false;
 	protected isRunning: boolean = false;

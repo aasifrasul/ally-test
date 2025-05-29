@@ -7,12 +7,12 @@
 
 .restart {
 	border: 1px solid black;
-  margin-left: 5px;
-  padding-left: 5px;
-  padding-right: 5px;
-  font-style: ;
-  background-color: lightblue;
-  border-radius: 10%;
+	margin-left: 5px;
+	padding-left: 5px;
+	padding-right: 5px;
+	font-style:;
+	background-color: lightblue;
+	border-radius: 10%;
 }
 
 .parent {

@@ -3,7 +3,7 @@
 import http from 'http';
 
 import { port, host, isCurrentEnvProd } from './envConfigDetails';
-import {MongoDBConnection} from './dbClients/MongoDBConnection';
+import { MongoDBConnection } from './dbClients/MongoDBConnection';
 import { connectToIOServer, disconnectIOServer } from './socketConnection';
 import { connectWSServer, disconnectWSServer } from './webSocketConnection';
 import { getDBInstance, type DBInstance } from './dbClients/helper';

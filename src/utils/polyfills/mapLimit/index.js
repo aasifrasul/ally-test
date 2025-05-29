@@ -85,7 +85,7 @@ mapLimit(
 	(input, callback) => {
 		setTimeout(() => {
 			console.log(input);
-			const error  = input === 11 ?  new Error('Error  at 10') : null;
+			const error = input === 11 ? new Error('Error  at 10') : null;
 			callback(error, input * 2); // First param is for errors, second is result
 		}, Math.random() * 500);
 	},

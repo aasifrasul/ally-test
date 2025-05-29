@@ -5,25 +5,25 @@ class BatchProcessor {
 		this.apiClient = apiClient;
 		this.storageManager = storageManager;
 		this.retryManager = retryManager;
-    
+
 		this.batchIdCounter = 0;
 		this.batchingTimeoutId = null;
 		this.isProcessing = false;
-    
+
 		// Bind methods for event listeners
 		this.handleBrowserUnload = this.handleBrowserUnload.bind(this);
-    
+
 		// Set up browser unload handler
 		if (this.config.RETRY_ON_RELOAD) {
 			window.addEventListener('beforeunload', this.handleBrowserUnload);
 		}
-    
+
 		// Schedule initial batch processing
 		this.scheduleBatch();
-    
+
 		// Process any pending retries
 		this.retryManager.processRetries();
-    
+
 		// Try to recover any stored events
 		this.recoverStoredEvents();
 	}
@@ -35,12 +35,12 @@ class BatchProcessor {
 	 */
 	createBatch(events) {
 		if (!events || events.length === 0) return null;
-    
+
 		return {
 			id: `batch_${++this.batchIdCounter}_${Date.now()}`,
 			events,
 			size: events.length,
-			createdAt: Date.now()
+			createdAt: Date.now(),
 		};
 	}
 
@@ -51,12 +51,12 @@ class BatchProcessor {
 	 */
 	async processBatch(batch) {
 		if (!batch || batch.events.length === 0) return;
-    
+
 		const result = await this.apiClient.sendBatch(batch);
-    
+
 		if (result.success) {
 			// Success - remove events from storage if they were there
-			const eventIds = batch.events.map(event => event.id);
+			const eventIds = batch.events.map((event) => event.id);
 			await this.storageManager.clearEvents(eventIds);
 		} else if (result.retryable) {
 			// Failed but retryable - handle via retry manager
@@ -67,7 +67,7 @@ class BatchProcessor {
 				await this.storageManager.saveEvents(batch.events);
 			}
 		}
-    
+
 		return result;
 	}
 
@@ -78,7 +78,7 @@ class BatchProcessor {
 		if (this.batchingTimeoutId) {
 			clearTimeout(this.batchingTimeoutId);
 		}
-    
+
 		this.batchingTimeoutId = setTimeout(() => {
 			this.attemptProcessing();
 		}, this.config.IDLE_THRESHOLD);
@@ -92,13 +92,13 @@ class BatchProcessor {
 			this.scheduleBatch();
 			return;
 		}
-    
+
 		this.isProcessing = true;
-    
+
 		try {
 			// Get events from queue up to max batch size
 			const events = this.queueManager.getEvents(this.config.MAX_BATCH_SIZE);
-      
+
 			if (events.length > 0) {
 				const batch = this.createBatch(events);
 				await this.processBatch(batch);
@@ -129,10 +129,10 @@ class BatchProcessor {
 			clearTimeout(this.batchingTimeoutId);
 			this.batchingTimeoutId = null;
 		}
-    
+
 		// Wait for any current processing to complete
 		if (this.isProcessing) {
-			await new Promise(resolve => {
+			await new Promise((resolve) => {
 				const checkProcessing = () => {
 					if (!this.isProcessing) {
 						resolve();
@@ -143,9 +143,9 @@ class BatchProcessor {
 				checkProcessing();
 			});
 		}
-    
+
 		this.isProcessing = true;
-    
+
 		try {
 			// Process all events in queue
 			while (!this.queueManager.isEmpty()) {
@@ -155,7 +155,7 @@ class BatchProcessor {
 					await this.processBatch(batch);
 				}
 			}
-      
+
 			// Try to process any stored events
 			await this.processStoredEvents();
 		} finally {
@@ -197,14 +197,14 @@ class BatchProcessor {
 	 */
 	async processStoredEvents() {
 		const events = await this.storageManager.loadEvents();
-    
+
 		if (events.length === 0) return;
-    
+
 		// Process in batches
 		for (let i = 0; i < events.length; i += this.config.MAX_BATCH_SIZE) {
 			const batchEvents = events.slice(i, i + this.config.MAX_BATCH_SIZE);
 			const batch = this.createBatch(batchEvents);
-      
+
 			if (batch) {
 				await this.processBatch(batch);
 			}
@@ -219,11 +219,11 @@ class BatchProcessor {
 			clearTimeout(this.batchingTimeoutId);
 			this.batchingTimeoutId = null;
 		}
-    
+
 		if (this.config.RETRY_ON_RELOAD) {
 			window.removeEventListener('beforeunload', this.handleBrowserUnload);
 		}
-    
+
 		this.retryManager.clearRetries();
 	}
 }

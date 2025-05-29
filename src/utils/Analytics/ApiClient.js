@@ -12,7 +12,12 @@ class ApiClient {
 		try {
 			// Check connectivity
 			if (!(await this.checkConnectivity())) {
-				return { success: false, error: 'No network connectivity', statusCode: 0, retryable: true };
+				return {
+					success: false,
+					error: 'No network connectivity',
+					statusCode: 0,
+					retryable: true,
+				};
 			}
 
 			if (this.config.USE_SERVICE_WORKER) {
@@ -22,11 +27,11 @@ class ApiClient {
 			}
 		} catch (error) {
 			console.error('API request failed:', error);
-			return { 
-				success: false, 
-				error: error.message, 
+			return {
+				success: false,
+				error: error.message,
 				statusCode: 0,
-				retryable: true 
+				retryable: true,
 			};
 		}
 	}
@@ -40,39 +45,42 @@ class ApiClient {
 		return new Promise((resolve, reject) => {
 			// Create a channel to communicate with the Service Worker
 			const messageChannel = new MessageChannel();
-			
+
 			messageChannel.port1.onmessage = (event) => {
 				if (event.data.error) {
 					resolve({
 						success: false,
 						error: event.data.error,
 						statusCode: event.data.statusCode || 0,
-						retryable: event.data.retryable !== false // Default to true
+						retryable: event.data.retryable !== false, // Default to true
 					});
 				} else {
 					resolve({
 						success: true,
 						data: event.data.data,
-						statusCode: event.data.statusCode || 200
+						statusCode: event.data.statusCode || 200,
 					});
 				}
 			};
-			
+
 			// Send to Service Worker
-			navigator.serviceWorker.controller.postMessage({
-				type: 'analytics_batch',
-				url: this.config.API_ENDPOINT,
-				headers: this.config.API_HEADERS,
-				batch: batch
-			}, [messageChannel.port2]);
-			
+			navigator.serviceWorker.controller.postMessage(
+				{
+					type: 'analytics_batch',
+					url: this.config.API_ENDPOINT,
+					headers: this.config.API_HEADERS,
+					batch: batch,
+				},
+				[messageChannel.port2],
+			);
+
 			// Set timeout
 			setTimeout(() => {
 				resolve({
 					success: false,
 					error: 'Service Worker response timeout',
 					statusCode: 0,
-					retryable: true
+					retryable: true,
 				});
 			}, 30000); // 30 second timeout
 		});
@@ -101,12 +109,12 @@ class ApiClient {
 		if ('navigator' in self && 'onLine' in navigator && !navigator.onLine) {
 			return false;
 		}
-		
+
 		// Try a HEAD request
 		try {
-			const response = await fetch(this.config.API_ENDPOINT, { 
+			const response = await fetch(this.config.API_ENDPOINT, {
 				method: 'HEAD',
-				cache: 'no-cache'
+				cache: 'no-cache',
 			});
 			return response.ok;
 		} catch (error) {
@@ -121,29 +129,29 @@ class ApiClient {
 	 */
 	async handleResponse(response) {
 		let data;
-		
+
 		if (response.ok) {
 			try {
 				data = await response.json();
 				return {
 					success: true,
 					data,
-					statusCode: response.status
+					statusCode: response.status,
 				};
 			} catch (error) {
 				data = null;
 			}
 		}
-		
+
 		// Determine if error is retryable
 		const isRetryable = response.status >= 500 || response.status === 429;
-		
+
 		return {
 			success: false,
 			error: data?.error || `HTTP error ${response.status}`,
 			statusCode: response.status,
 			retryable: isRetryable,
-			data
+			data,
 		};
 	}
 }

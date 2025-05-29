@@ -62,4 +62,8 @@ export class BaseQueue<T> {
 	isEmpty(): boolean {
 		return this.size === 0;
 	}
+
+	clear() {
+		this.map.clear();
+	}
 }

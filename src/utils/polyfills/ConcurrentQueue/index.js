@@ -1,9 +1,15 @@
 function concurrentQueue(processorFn, onCompleteFn, concurrency) {
 	let drainCallback = null;
 	let errorCallback = null;
-	
-	let processorCallback = typeof processorFn === 'function' ? processorFn : () => console.log('processorFn is not proper');
-	let completionCallback = typeof onCompleteFn === 'function' ? onCompleteFn : () => console.log('onCompleteFn is not proper');
+
+	let processorCallback =
+		typeof processorFn === 'function'
+			? processorFn
+			: () => console.log('processorFn is not proper');
+	let completionCallback =
+		typeof onCompleteFn === 'function'
+			? onCompleteFn
+			: () => console.log('onCompleteFn is not proper');
 
 	let runningCount = 0;
 	let index = 0;
@@ -42,11 +48,17 @@ function concurrentQueue(processorFn, onCompleteFn, concurrency) {
 	}
 
 	function drain(callbackFn) {
-		drainCallback = typeof callbackFn === 'function' ? callbackFn : () => console.log('drain Callabck Fn is not proper');
+		drainCallback =
+			typeof callbackFn === 'function'
+				? callbackFn
+				: () => console.log('drain Callabck Fn is not proper');
 	}
 
 	function error(callbackFn) {
-		errorCallback = typeof callbackFn === 'function' ? callbackFn : () => console.log('error Callabck Fn is not proper');
+		errorCallback =
+			typeof callbackFn === 'function'
+				? callbackFn
+				: () => console.log('error Callabck Fn is not proper');
 	}
 
 	return {
