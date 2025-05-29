@@ -7,7 +7,7 @@ export function useDebouncedCallback<A extends any[]>(
 	// Store latest callback and args
 	const callbackRef = useRef(callback);
 	const argsRef = useRef<A | undefined>(undefined);
-	const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const timeout = useRef<NodeJS.Timeout | null>(null);
 
 	// Keep callback ref updated
 	useEffect(() => {

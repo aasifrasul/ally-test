@@ -12,10 +12,7 @@ export const getRandomInt = (min = 1000 * 1000, max = 2000 * 1000): number => {
 	return Math.floor(Math.random() * (max - min) + min);
 };
 
-export const getRandomId = (): string => {
-	const randomId = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-	return randomId;
-};
+export const getRandomId = (): string => `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
 export function compareStrings(item1: string, item2: string): number {
 	const str1 = String(item1);
@@ -100,10 +97,10 @@ export const searchTextOnData = (
 
 	return lowerCasedSearchText
 		? data.filter((item) =>
-				searchFields.some((field) =>
-					item[field]?.toLowerCase().includes(lowerCasedSearchText),
-				),
-			)
+			searchFields.some((field) =>
+				item[field]?.toLowerCase().includes(lowerCasedSearchText),
+			),
+		)
 		: data;
 };
 
