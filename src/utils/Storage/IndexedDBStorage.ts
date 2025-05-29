@@ -77,7 +77,10 @@ export class IndexedDBStorage {
 				return;
 			}
 
-			const request: IDBOpenDBRequest = indexedDB.open(this.databaseName, this.dbVersion);
+			const request: IDBOpenDBRequest = indexedDB.open(
+				this.databaseName,
+				this.dbVersion,
+			);
 
 			request.addEventListener('success', (event: Event) => {
 				this.database = (event.target as IDBOpenDBRequest).result;

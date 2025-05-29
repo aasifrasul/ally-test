@@ -1,4 +1,5 @@
 import { deepCopy } from './deepCopy';
+import { isArray, isObject } from './typeChecking';
 
 export const alphabets = [
 	'a',
@@ -29,14 +30,14 @@ export const alphabets = [
 	'z',
 ];
 
-export const getArrayCount = <T>(arr: T[]): number => (Array.isArray(arr) && arr.length) || 0;
+export const getArrayCount = <T>(arr: T[]): number => (isArray(arr) && arr.length) || 0;
 
 /**
  * Shuffles a given array
  * Randomize the indexes
  */
 export const shuffle = <T>(arr: T[]): T[] => {
-	if (!Array.isArray(arr)) {
+	if (!isArray(arr)) {
 		throw new Error('Please provide a valid array');
 	}
 
@@ -56,3 +57,46 @@ export const arrayChunks = <T>(a: T[], size: number): T[][] =>
 	Array.from(new Array(Math.ceil(a.length / size)), (_, i) =>
 		a.slice(i * size, i * size + size),
 	);
+
+/**
+ * Performs a shallow comparison between two values (primitives, arrays, or objects).
+ * @param a The first value to compare
+ * @param b The second value to compare
+ * @returns True if the values are shallowly equal, false otherwise
+ */
+export function shallowEqual(a: unknown, b: unknown): boolean {
+	// Same reference or primitive equality
+	if (a === b) return true;
+
+	// Handle null/undefined cases
+	if (a == null || b == null) return a === b;
+
+	// Different types cannot be equal
+	if (typeof a !== typeof b) return false;
+
+	// Handle arrays
+	if (isArray(a) && isArray(b)) {
+		if (a.length !== b.length) return false;
+
+		for (let i = 0; i < a.length; i++) {
+			if (a[i] !== b[i]) return false;
+		}
+		return true;
+	}
+
+	// Handle objects
+	if (isObject(a) && isObject(b)) {
+		const keysA = Object.keys(a);
+		const keysB = Object.keys(b);
+
+		if (keysA.length !== keysB.length) return false;
+
+		for (const key of keysA) {
+			if (!(key in b) || a[key] !== b[key]) return false;
+		}
+		return true;
+	}
+
+	// For primitives that aren't strictly equal, return false
+	return false;
+}
