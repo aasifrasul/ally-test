@@ -4,18 +4,18 @@
 (function () {
 	const timeouts = [];
 	const messageName = 'zero-timeout-message';
-	
+
 	// Like setTimeout, but with zero delay and support for parameters
 	function setZeroTimeout(fn, ...args) {
 		if (typeof fn !== 'function') {
 			throw new Error('Please pass a valid function');
 		}
-		
+
 		// Store both the function and its arguments
 		timeouts.push(() => fn(...args));
 		window.postMessage(messageName, '*');
 	}
-	
+
 	function handleMessage(event) {
 		if (event.source == window && event.data == messageName) {
 			event.stopPropagation();
@@ -25,9 +25,9 @@
 			}
 		}
 	}
-	
+
 	window.addEventListener('message', handleMessage, true);
-	
+
 	// Add the one thing we want added to the window object.
 	window.setZeroTimeout = setZeroTimeout;
 })();
@@ -41,17 +41,17 @@
 (function () {
 	const timeouts = [];
 	const messageName = 'zero-timeout-message-v2';
-	
+
 	function setZeroTimeoutV2(fn, delay = 0, ...args) {
 		// Note: delay parameter is ignored (always 0), but kept for setTimeout compatibility
 		if (typeof fn !== 'function') {
 			throw new Error('Please pass a valid function');
 		}
-		
+
 		timeouts.push(() => fn(...args));
 		window.postMessage(messageName, '*');
 	}
-	
+
 	function handleMessage(event) {
 		if (event.source == window && event.data == messageName) {
 			event.stopPropagation();
@@ -61,9 +61,9 @@
 			}
 		}
 	}
-	
+
 	window.addEventListener('message', handleMessage, true);
-	
+
 	// Alternative version with setTimeout-like signature
 	window.setZeroTimeoutV2 = setZeroTimeoutV2;
 })();

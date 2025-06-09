@@ -1,6 +1,8 @@
+'use client';
 import { useEffect, useRef, useCallback } from 'react';
 import { createLogger, LogLevel, Logger } from '../../utils/logger';
 import { ErrorHandlingOptions, Options, Target, EventMap } from './types';
+import { isFunction } from '../../utils/typeChecking';
 
 const logger: Logger = createLogger('useEventListener', {
 	level: LogLevel.DEBUG,
@@ -24,26 +26,26 @@ export function useEventListener<K extends keyof EventMap = keyof EventMap>(
 		errorHandlingRef.current = errorHandling;
 	}, [callback, options, errorHandling]);
 
-	// Memoize the event handler
-	const eventHandler = useCallback((event: Event) => {
-		try {
-			if (callbackRef.current) {
-				callbackRef.current(event as EventMap[K]);
-			}
-		} catch (error) {
-			const err =
-				error instanceof Error ? error : new Error('Unknown error in event handler');
-			logger.error('Error in event handler:', err);
-
-			if (errorHandlingRef.current.onError) {
-				errorHandlingRef.current.onError(err);
-			}
-
-			if (!errorHandlingRef.current.suppressErrors) {
-				throw err;
-			}
+	const handleError = useCallback((message: string, error: unknown): void => {
+		const err = error instanceof Error ? error : new Error(message);
+		logger.error(message, err); // Use message for logging
+		errorHandlingRef.current.onError?.(err);
+		if (!errorHandlingRef.current.suppressErrors) {
+			throw err;
 		}
 	}, []);
+
+	// Memoize the event handler
+	const eventHandler = useCallback(
+		(event: Event) => {
+			try {
+				callbackRef.current?.(event as EventMap[K]);
+			} catch (error) {
+				handleError('Unknown error in event handler', error);
+			}
+		},
+		[handleError],
+	);
 
 	useEffect(() => {
 		if (!element) {
@@ -53,7 +55,7 @@ export function useEventListener<K extends keyof EventMap = keyof EventMap>(
 
 		try {
 			// Check if the event type is supported
-			if (typeof element.addEventListener !== 'function') {
+			if (!isFunction(element.addEventListener)) {
 				throw new Error('Target element does not support event listeners');
 			}
 
@@ -68,19 +70,9 @@ export function useEventListener<K extends keyof EventMap = keyof EventMap>(
 				element.removeEventListener(eventType, eventHandler, optionsRef.current);
 			};
 		} catch (error) {
-			const err =
-				error instanceof Error ? error : new Error('Failed to attach event listener');
-			logger.error('Error setting up event listener:', err);
-
-			if (errorHandlingRef.current.onError) {
-				errorHandlingRef.current.onError(err);
-			}
-
-			if (!errorHandlingRef.current.suppressErrors) {
-				throw err;
-			}
+			handleError('Failed to attach event listener', error);
 		}
-	}, [eventType, element, eventHandler]);
+	}, [eventType, element, eventHandler, handleError]);
 }
 
 /**

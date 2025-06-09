@@ -65,17 +65,14 @@ export const arrayChunks = <T>(a: T[], size: number): T[][] =>
  * @returns True if the values are shallowly equal, false otherwise
  */
 export function shallowEqual(a: unknown, b: unknown): boolean {
-	// Same reference or primitive equality
-	if (a === b) return true;
-
-	// Handle null/undefined cases
-	if (a == null || b == null) return a === b;
-
 	// Different types cannot be equal
 	if (typeof a !== typeof b) return false;
 
+	// Same reference or primitive equality
+	if (a === b) return true;
+
 	// Handle arrays
-	if (isArray(a) && isArray(b)) {
+	if (isArray(a)) {
 		if (a.length !== b.length) return false;
 
 		for (let i = 0; i < a.length; i++) {
@@ -85,7 +82,7 @@ export function shallowEqual(a: unknown, b: unknown): boolean {
 	}
 
 	// Handle objects
-	if (isObject(a) && isObject(b)) {
+	if (isObject(a)) {
 		const keysA = Object.keys(a);
 		const keysB = Object.keys(b);
 
@@ -93,6 +90,46 @@ export function shallowEqual(a: unknown, b: unknown): boolean {
 
 		for (const key of keysA) {
 			if (!(key in b) || a[key] !== b[key]) return false;
+		}
+		return true;
+	}
+
+	// For primitives that aren't strictly equal, return false
+	return false;
+}
+
+/**
+ * Performs a deep comparison between two values (primitives, arrays, or objects).
+ * @param a The first value to compare
+ * @param b The second value to compare
+ * @returns True if the values are shallowly equal, false otherwise
+ */
+export function deepEqual(a: unknown, b: unknown): boolean {
+	// Different types cannot be equal
+	if (typeof a !== typeof b) return false;
+
+	// Same reference or primitive equality
+	if (a === b) return true;
+
+	// Handle arrays
+	if (isArray(a)) {
+		if (a.length !== b.length) return false;
+
+		for (let i = 0; i < a.length; i++) {
+			if (!deepEqual(a[i], b[i])) return false;
+		}
+		return true;
+	}
+
+	// Handle objects
+	if (isObject(a)) {
+		const keysA = Object.keys(a);
+		const keysB = Object.keys(b);
+
+		if (keysA.length !== keysB.length) return false;
+
+		for (const key of keysA) {
+			if (!(key in b) || !deepEqual(a[key], b[key])) return false;
 		}
 		return true;
 	}

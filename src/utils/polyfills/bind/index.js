@@ -16,28 +16,34 @@ Function.prototype.myBind = function (context, ...boundArgs) {
 
 	const originalFunc = this;
 
-	// Handle null/undefined context
-	context = context === null || context === undefined ? globalThis : Object(context);
+	// Handle null/undefined context (non-strict mode behavior)
+	if (context == null) {
+		context = globalThis;
+	} else {
+		context = Object(context);
+	}
 
 	const boundFunction = function (...args) {
 		const finalArgs = [...boundArgs, ...args];
 
 		// Handle being used as a constructor
-		if (this instanceof boundFunction) {
+		if (new.target) {
 			return new originalFunc(...finalArgs);
 		}
 
+		// Use call/apply instead of property assignment
 		return originalFunc.apply(context, finalArgs);
 	};
 
-	// Set up prototype chain
+	// Set up prototype chain for constructor calls
 	if (originalFunc.prototype) {
 		boundFunction.prototype = Object.create(originalFunc.prototype);
 	}
 
-	// Preserve function properties
+	// Preserve function length
 	Object.defineProperty(boundFunction, 'length', {
 		value: Math.max(0, originalFunc.length - boundArgs.length),
+		configurable: true,
 	});
 
 	return boundFunction;

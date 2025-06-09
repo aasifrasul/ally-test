@@ -7,12 +7,13 @@ import useFetch, { FetchResult } from '../../hooks/useFetch';
 import { InitialState, Schema } from '../../constants/types';
 import { handleAsyncCalls } from '../../utils/common';
 
-const { PRODUCT_LIST, ADD_ITEM_URL } =
-	constants.dataSources!.searchForm;
+const { PRODUCT_LIST, ADD_ITEM_URL } = constants.dataSources!.searchForm;
 
 export default function SearchFormContainer() {
 	const [data, setData] = React.useState<any>(null);
-	const { fetchData }: FetchResult<InitialState, InitialState> = useFetch(Schema.SEARCH_FORM);
+	const { fetchData }: FetchResult<InitialState, InitialState> = useFetch(
+		Schema.SEARCH_FORM,
+	);
 
 	const addItem = async (data: any) => {
 		if (ADD_ITEM_URL) {
@@ -35,9 +36,7 @@ export default function SearchFormContainer() {
 	React.useEffect(() => {
 		const fetchInitialData = async () => {
 			if (PRODUCT_LIST) {
-				const result = await handleAsyncCalls(
-					fetchData({ url: PRODUCT_LIST}),
-				);
+				const result = await handleAsyncCalls(fetchData({ url: PRODUCT_LIST }));
 				if (!result.success) {
 					console.error('Failed to fetch:', result.error);
 				} else {

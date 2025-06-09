@@ -51,7 +51,7 @@ export class WorkerQueue {
 
 	private async sendMessage(type: string, data: any, timeout = 30000): Promise<any> {
 		const id = getRandomId();
-		const pending = this.promiseFactory.create(id, timeout)
+		const pending = this.promiseFactory.create(id, timeout);
 
 		try {
 			this.worker.postMessage({ id, type, data });
