@@ -11,11 +11,11 @@ export const useDebouncedCallback = <A extends any[]>(
 
 	return useCallback(
 		(...args: A) => {
-			const currentTimeout: NodeJS.Timer = setTimeout(() => {
+			const currentTimeout: NodeJS.Timeout = setTimeout(() => {
 				callbackRef.current?.(...args);
 			}, delay);
 
-			return () => clearTimeout(currentTimeout as unknown as number);
+			return () => clearTimeout(currentTimeout);
 		},
 		[delay],
 	);

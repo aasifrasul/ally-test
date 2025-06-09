@@ -12,7 +12,6 @@ function useCallback<T extends (...args: any[]) => any>(fn: T, dependencies: any
 	if (!Array.isArray(dependencies)) {
 		throw new Error('dependencies must be an array');
 	}
-
 	if (typeof fn !== 'function') {
 		throw new Error('First Param should be a function');
 	}
@@ -20,7 +19,7 @@ function useCallback<T extends (...args: any[]) => any>(fn: T, dependencies: any
 	let memoizedFn: T | null = null;
 	let previousDependencies: any[] | null = null;
 
-	return function (this: any, ...args: Parameters<T>): ReturnType<T> {
+	return function (...args: Parameters<T>): ReturnType<T> {
 		if (
 			previousDependencies === null ||
 			!shallowEqual(dependencies, previousDependencies)
@@ -28,6 +27,6 @@ function useCallback<T extends (...args: any[]) => any>(fn: T, dependencies: any
 			memoizedFn = fn;
 			previousDependencies = dependencies;
 		}
-		return memoizedFn!.apply(this, args); // Use non-null assertion as memoizedFn is guaranteed to be set
-	} as T; // Cast to T to maintain the original function signature
+		return memoizedFn!.apply(this, args);
+	} as T;
 }

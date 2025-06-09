@@ -85,14 +85,14 @@ function useFetch<T, U = T>(
 
 			cleanUpTopLevel();
 			fetchStarted();
-			const newQueryParams = {
+			const enhancedQueryParams = {
 				...queryParams,
 				page: fetchOptions.nextPage || queryParams?.page,
 			};
 
 			delete fetchOptions.nextPage;
 
-			const url = `${endpoint}?${buildQueryParams(newQueryParams)}`;
+			const url = `${endpoint}?${buildQueryParams(enhancedQueryParams)}`;
 
 			const cleanUp = () => {
 				cleanUpTopLevel();
@@ -130,8 +130,8 @@ function useFetch<T, U = T>(
 				fetchSucceeded(transformedData);
 				onSuccess(transformedData);
 
-				if (newQueryParams.page) {
-					advancePage(newQueryParams.page);
+				if (enhancedQueryParams.page) {
+					advancePage(enhancedQueryParams.page);
 				}
 			}
 

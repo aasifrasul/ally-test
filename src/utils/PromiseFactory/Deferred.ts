@@ -15,6 +15,7 @@ export class Deferred<T> {
 	private error: any; // Consider a more specific error type if known
 	public createdAt: number;
 	public promise: Promise<T>; // Publicly expose the promise
+	private timeoutId: ReturnType<typeof setTimeout> | null;
 
 	// Private functions to resolve/reject the internal promise
 	private _resolve!: (value: T | PromiseLike<T>) => void;
@@ -28,6 +29,7 @@ export class Deferred<T> {
 		this.state = DeferredState.PENDING;
 		this.value = null;
 		this.error = null;
+		this.timeoutId = null;
 		this.createdAt = Date.now();
 
 		this.promise = new Promise<T>((resolve, reject) => {
@@ -35,6 +37,7 @@ export class Deferred<T> {
 				if (this.state === DeferredState.PENDING) {
 					this.state = DeferredState.RESOLVED;
 					this.value = value as T; // Type assertion
+					this.clearTimeout();
 					resolve(value);
 				}
 			};
@@ -43,6 +46,7 @@ export class Deferred<T> {
 				if (this.state === DeferredState.PENDING) {
 					this.state = DeferredState.REJECTED;
 					this.error = error;
+					this.clearTimeout();
 					reject(error);
 				}
 			};
@@ -97,11 +101,17 @@ export class Deferred<T> {
 	 * Timeout the promise after specified milliseconds
 	 */
 	timeout(ms: number, message: string = 'Promise timed out'): this {
-		setTimeout(() => {
+		this.timeoutId = setTimeout(() => {
 			if (this.isPending) {
 				this.reject(new Error(message));
 			}
 		}, ms);
 		return this;
+	}
+
+	clearTimeout() {
+		if (this.timeoutId) {
+			clearTimeout(this.timeoutId);
+		}
 	}
 }

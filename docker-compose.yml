@@ -48,6 +48,7 @@ services:
 
     postgres:
         image: postgres:15
+        profiles: ["database", "postgres"]
         environment:
             POSTGRES_DB: test
             POSTGRES_USER: test
@@ -75,6 +76,7 @@ services:
 
     mongodb:
         image: mongo:6.0
+        profiles: ["database", "mongodb"]
         environment:
             MONGO_INITDB_ROOT_USERNAME: test
             MONGO_INITDB_ROOT_PASSWORD: test

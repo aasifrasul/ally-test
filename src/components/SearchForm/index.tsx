@@ -3,20 +3,23 @@ import React from 'react';
 import { constants } from '../../constants';
 
 import SearchForm from './SearchForm';
-import { fetchAPIData } from '../../utils/common';
+import useFetch, { FetchResult } from '../../hooks/useFetch';
+import { InitialState, Schema } from '../../constants/types';
+import { handleAsyncCalls } from '../../utils/common';
 
-const { PRODUCT_LIST, ADD_ITEM_URL, API_KEY, options, headers } =
-	constants.dataSources!.searchForm;
+const { PRODUCT_LIST, ADD_ITEM_URL } = constants.dataSources!.searchForm;
 
 export default function SearchFormContainer() {
 	const [data, setData] = React.useState<any>(null);
+	const { fetchData }: FetchResult<InitialState, InitialState> = useFetch(
+		Schema.SEARCH_FORM,
+	);
 
 	const addItem = async (data: any) => {
 		if (ADD_ITEM_URL) {
-			const result = await fetchAPIData(
-				fetch(ADD_ITEM_URL, {
-					...options,
-					headers,
+			const result = await handleAsyncCalls(
+				fetchData({
+					url: ADD_ITEM_URL,
 					body: JSON.stringify(data),
 				}),
 			);
@@ -33,9 +36,7 @@ export default function SearchFormContainer() {
 	React.useEffect(() => {
 		const fetchInitialData = async () => {
 			if (PRODUCT_LIST) {
-				const result = await fetchAPIData(
-					fetch(PRODUCT_LIST, { ...options, headers }),
-				);
+				const result = await handleAsyncCalls(fetchData({ url: PRODUCT_LIST }));
 				if (!result.success) {
 					console.error('Failed to fetch:', result.error);
 				} else {

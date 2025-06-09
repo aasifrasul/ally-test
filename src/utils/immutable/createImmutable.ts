@@ -2,6 +2,17 @@ import { isArray, isObject } from '../typeChecking';
 
 const proxyCache = new WeakMap<object, object>();
 
+const mutatingArrayMethods: string[] = [
+	'push',
+	'pop',
+	'shift',
+	'unshift',
+	'splice',
+	'sort',
+	'reverse',
+];
+const nonMutatingArrayMethods: string[] = ['map', 'filter', 'slice', 'concat'];
+
 export function createImmutable<T extends object>(obj: T): T {
 	if (proxyCache.has(obj)) {
 		return proxyCache.get(obj) as T;
@@ -36,16 +47,12 @@ export function createImmutable<T extends object>(obj: T): T {
 
 			if (isArray(target)) {
 				// Handle array methods
-				if (
-					['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'].includes(
-						String(prop),
-					)
-				) {
+				if (mutatingArrayMethods.includes(String(prop))) {
 					throw new Error(
 						`Cannot use mutating method ${String(prop)} on immutable array`,
 					);
 				}
-				if (['map', 'filter', 'slice', 'concat'].includes(String(prop))) {
+				if (nonMutatingArrayMethods.includes(String(prop))) {
 					return (...args: any[]) => createImmutable((target as any)[prop](...args));
 				}
 			}

@@ -8,12 +8,12 @@ const logger = createLogger('WorkerQueue');
 export class WorkerQueue {
 	private static instance: WorkerQueue | null = null;
 	private worker: Worker;
-	private factory: any;
+	private promiseFactory: PromiseFactory;
 
 	private constructor() {
 		this.worker = new Worker(new URL('./MyWorker.worker.ts', import.meta.url));
 
-		this.factory = new PromiseFactory<string>({
+		this.promiseFactory = new PromiseFactory<string>({
 			autoCleanup: true,
 			cleanupDelay: 30000,
 			enableLogging: true,
@@ -36,11 +36,12 @@ export class WorkerQueue {
 
 	private handleMessage(event: MessageEvent<WorkerMessage>): void {
 		const { id, data, error } = event.data;
-		const pending = this.factory.get(id);
+		const pending = this.promiseFactory.get(id);
 
 		if (!pending) return;
 
-		this.factory.remove(id);
+		this.promiseFactory.remove(id);
+
 		if (error) {
 			pending.reject(new Error(error));
 		} else {
@@ -50,15 +51,14 @@ export class WorkerQueue {
 
 	private async sendMessage(type: string, data: any, timeout = 30000): Promise<any> {
 		const id = getRandomId();
-
-		this.factory.create(id, timeout);
+		const pending = this.promiseFactory.create(id, timeout);
 
 		try {
 			this.worker.postMessage({ id, type, data });
-			return this.factory.get(id).promise;
+			return pending.promise;
 		} catch (error) {
-			this.factory.reject(id, error);
-			this.factory.remove(id);
+			pending.reject(error);
+			this.promiseFactory.remove(id);
 		}
 	}
 
@@ -84,7 +84,7 @@ export class WorkerQueue {
 	}
 
 	terminate(): void {
-		this.factory.clear();
+		this.promiseFactory.clear();
 		this.worker.terminate();
 		WorkerQueue.instance = null;
 	}
