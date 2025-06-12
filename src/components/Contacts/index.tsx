@@ -1,11 +1,11 @@
-import { Segment, Header } from 'semantic-ui-react';
+import { Segment } from '../Common/Segment';
 import Form from './ContactForm';
 import Table from './ContactTable';
 
 function Contacts() {
 	return (
-		<Segment basic>
-			<Header as="h3">Contacts</Header>
+		<Segment raised padded>
+			<h3>Contacts</h3>
 			<Form />
 			<Table />
 		</Segment>

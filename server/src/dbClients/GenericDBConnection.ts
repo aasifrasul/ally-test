@@ -55,7 +55,7 @@ export class GenericDBConnection {
 	): Promise<T> {
 		let rows: any;
 		if (this.dbInstance instanceof PostgresDBConnection) {
-			rows = await this.dbInstance.executeQuery<any>(query, params);
+			rows = await this.dbInstance.executeQuery<QueryResultRow>(query, params);
 			// Handle PostgreSQL result
 		} else if (this.dbInstance instanceof MysqlDBConnection) {
 			rows = await this.dbInstance.executeQuery<any[]>(query, params);

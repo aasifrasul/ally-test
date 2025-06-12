@@ -160,8 +160,10 @@ export { getProduct, getProducts, createProduct, updateProduct, deleteProduct };
  * create table TEST_PRODUCTS ( id number generated always as identity, "name" varchar2(4000), "category" varchar2(4000), primary key (id));
  * 
  * PGSQL
- * CREATE TABLE "TEST_PRODUCTS" (
-	id SERIAL PRIMARY KEY,  -- SERIAL is a convenient way to create an auto-incrementing integer primary key
+ * 
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE TABLE "TEST_PRODUCTS" (
+	id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
 	name VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
 	category VARCHAR(4000)  -- VARCHAR is the correct type, and length is specified in parentheses
 );

@@ -1,19 +1,18 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { produce } from '../utils/immutable';
 import { gql } from '@apollo/client';
 import { client } from '../apolloClient';
 
 export interface Book {
-	id: number;
+	id?: string;
 	title: string;
 	author: string;
-	status: 'available' | 'issued';
+	status?: 'available' | 'issued';
 }
 
-export type AddBookType = (book: Omit<Book, 'status'>) => void;
-export type UpdateBookType = Partial<Book> & { id: number };
+export type AddBookType = (book: Book) => void;
+export type UpdateBookType = Book;
 
 export interface BookStoreState {
 	books: Book[];
@@ -26,10 +25,10 @@ export interface BookStoreState {
 	fetchBooks: () => Promise<void>;
 	addBook: AddBookType;
 	editingBook: Book | null;
-	editBook: (id: number) => void;
-	issueBook: (id: number) => Promise<void>;
-	returnBook: (id: number) => Promise<void>;
-	deleteBook: (id: number) => Promise<void>;
+	editBook: (id: string) => void;
+	issueBook: (id: string) => Promise<void>;
+	returnBook: (id: string) => Promise<void>;
+	deleteBook: (id: string) => Promise<void>;
 	filterByText: (text: string) => void;
 	updateBook: (book: UpdateBookType) => Promise<void>;
 	reset: () => void;
@@ -122,21 +121,20 @@ const useBookStore = create<BookStoreState>()(
 				loading: false,
 				error: null,
 				editingBook: null,
+
 				setStatus: () =>
-					set(
-						produce((state: BookStoreState) => {
-							state.loading = true;
-							state.error = null;
-						}),
-					),
+					set((state) => {
+						state.loading = true;
+						state.error = null;
+					}),
+
 				setError: (error) =>
-					set(
-						produce((state: BookStoreState) => {
-							state.error =
-								error instanceof Error ? error : new Error(String(error));
-							state.loading = false;
-						}),
-					),
+					set((state) => {
+						state.error =
+							error instanceof Error ? error : new Error(String(error));
+						state.loading = false;
+					}),
+
 				fetchBooks: async () => {
 					get().setStatus();
 
@@ -149,18 +147,16 @@ const useBookStore = create<BookStoreState>()(
 						if (data && data.getBooks) {
 							const counts = calculateCounts(data.getBooks);
 
-							set(
-								produce((state: BookStoreState) => {
-									state.books = data.getBooks;
-									state.filteredBooks = filterBooks(
-										data.getBooks,
-										state.searchText,
-									);
-									state.noOfAvailable = counts.available;
-									state.noOfIssued = counts.issued;
-									state.loading = false;
-								}),
-							);
+							set((state) => {
+								state.books = data.getBooks;
+								state.filteredBooks = filterBooks(
+									data.getBooks,
+									state.searchText,
+								);
+								state.noOfAvailable = counts.available;
+								state.noOfIssued = counts.issued;
+								state.loading = false;
+							});
 						}
 					} catch (error) {
 						get().setError(error as Error);
@@ -168,12 +164,10 @@ const useBookStore = create<BookStoreState>()(
 				},
 
 				filterByText: (text) =>
-					set(
-						produce((state: BookStoreState) => {
-							state.searchText = text;
-							state.filteredBooks = filterBooks(state.books, text);
-						}),
-					),
+					set((state) => {
+						state.searchText = text;
+						state.filteredBooks = filterBooks(state.books, text);
+					}),
 
 				addBook: async (bookData) => {
 					get().setStatus();
@@ -181,87 +175,76 @@ const useBookStore = create<BookStoreState>()(
 					try {
 						const { data } = await client.mutate({
 							mutation: ADD_BOOK,
-							variables: {
-								title: bookData.title,
-								author: bookData.author,
-								status: 'available',
-							},
+							variables: { ...bookData, status: 'available' },
 						});
 
-						if (data!.addBook!.success) {
+						if (data?.addBook?.success) {
 							const newBook = data.addBook.book;
 
-							set(
-								produce((state: BookStoreState) => {
-									state.books.push(newBook);
-									state.filteredBooks = filterBooks(
-										state.books,
-										state.searchText,
-									);
-									state.noOfAvailable += 1;
-									state.loading = false;
-								}),
-							);
+							set((state) => {
+								state.books.push(newBook);
+								state.filteredBooks = filterBooks(
+									state.books,
+									state.searchText,
+								);
+								state.noOfAvailable += 1;
+								state.loading = false;
+							});
 						}
 					} catch (error) {
 						get().setError(error as Error);
 					}
 				},
 
-				editBook: (id) => {
-					set(
-						produce((state: BookStoreState) => {
-							state.editingBook = get().books.find((b) => b.id === id) || null;
-						}),
-					);
+				editBook: (id: string | null) => {
+					set((state) => {
+						state.editingBook = get().books.find((b) => b.id === id) || null;
+					});
 				},
 
 				updateBook: async (updateData) => {
 					get().setStatus();
 
 					try {
+						const { id, title, author, status } = updateData;
 						const { data } = await client.mutate({
 							mutation: UPDATE_BOOK,
 							variables: {
-								id: updateData.id.toString(),
-								...(updateData.title && { title: updateData.title }),
-								...(updateData.author && { author: updateData.author }),
-								...(updateData.status && { status: updateData.status }),
+								id: id,
+								...(title && { title }),
+								...(author && { author }),
+								...(status && { status }),
 							},
 						});
 
 						if (data!.updateBook!.success) {
 							const updatedBook = data.updateBook.book;
 
-							set(
-								produce((state: BookStoreState) => {
-									const bookIndex = state.books.findIndex(
-										(b) => b.id === updatedBook.id,
-									);
-									if (bookIndex !== -1) {
-										// If the status is changing, update counts
-										if (
-											state.books[bookIndex].status !==
-											updatedBook.status
-										) {
-											if (updatedBook.status === 'available') {
-												state.noOfAvailable += 1;
-												state.noOfIssued -= 1;
-											} else {
-												state.noOfAvailable -= 1;
-												state.noOfIssued += 1;
-											}
+							set((state) => {
+								state.editingBook = null;
+								const bookIndex = state.books.findIndex(
+									(b) => b.id === updatedBook.id,
+								);
+								if (bookIndex !== -1) {
+									// If the status is changing, update counts
+									if (state.books[bookIndex].status !== updatedBook.status) {
+										if (updatedBook.status === 'available') {
+											state.noOfAvailable += 1;
+											state.noOfIssued -= 1;
+										} else {
+											state.noOfAvailable -= 1;
+											state.noOfIssued += 1;
 										}
-
-										state.books[bookIndex] = updatedBook;
-										state.filteredBooks = filterBooks(
-											state.books,
-											state.searchText,
-										);
 									}
-									state.loading = false;
-								}),
-							);
+
+									state.books[bookIndex] = updatedBook;
+									state.filteredBooks = filterBooks(
+										state.books,
+										state.searchText,
+									);
+								}
+								state.loading = false;
+							});
 						}
 					} catch (error) {
 						get().setError(error as Error);
@@ -271,14 +254,14 @@ const useBookStore = create<BookStoreState>()(
 				issueBook: async (id) => {
 					const book = get().books.find((b) => b.id === id);
 					if (book?.status === 'available') {
-						await get().updateBook({ id, status: 'issued' });
+						await get().updateBook({ ...book, id, status: 'issued' });
 					}
 				},
 
 				returnBook: async (id) => {
 					const book = get().books.find((b) => b.id === id);
 					if (book?.status === 'issued') {
-						await get().updateBook({ id, status: 'available' });
+						await get().updateBook({ ...book, id, status: 'available' });
 					}
 				},
 
@@ -289,33 +272,29 @@ const useBookStore = create<BookStoreState>()(
 						const { data } = await client.mutate({
 							mutation: DELETE_BOOK,
 							variables: {
-								id: id.toString(),
+								id,
 							},
 						});
 
 						if (data && data.deleteBook) {
-							set(
-								produce((state: BookStoreState) => {
-									const bookIndex = state.books.findIndex(
-										(b) => b.id === id,
+							set((state) => {
+								const bookIndex = state.books.findIndex((b) => b.id === id);
+								if (bookIndex !== -1) {
+									const deletedBook = state.books[bookIndex];
+									state.books.splice(bookIndex, 1);
+									state.filteredBooks = filterBooks(
+										state.books,
+										state.searchText,
 									);
-									if (bookIndex !== -1) {
-										const deletedBook = state.books[bookIndex];
-										state.books.splice(bookIndex, 1);
-										state.filteredBooks = filterBooks(
-											state.books,
-											state.searchText,
-										);
 
-										if (deletedBook.status === 'available') {
-											state.noOfAvailable -= 1;
-										} else {
-											state.noOfIssued -= 1;
-										}
+									if (deletedBook.status === 'available') {
+										state.noOfAvailable -= 1;
+									} else {
+										state.noOfIssued -= 1;
 									}
-									state.loading = false;
-								}),
-							);
+								}
+								state.loading = false;
+							});
 						}
 					} catch (error) {
 						get().setError(error as Error);
@@ -323,18 +302,16 @@ const useBookStore = create<BookStoreState>()(
 				},
 
 				reset: async () => {
-					set(
-						produce((state: BookStoreState) => {
-							state.books = [];
-							state.filteredBooks = [];
-							state.searchText = '';
-							state.noOfAvailable = 0;
-							state.noOfIssued = 0;
-							state.loading = false;
-							state.error = null;
-							state.editingBook = null;
-						}),
-					);
+					set((state) => {
+						state.books = [];
+						state.filteredBooks = [];
+						state.searchText = '';
+						state.noOfAvailable = 0;
+						state.noOfIssued = 0;
+						state.loading = false;
+						state.error = null;
+						state.editingBook = null;
+					});
 				},
 			}),
 		),

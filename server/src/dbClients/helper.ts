@@ -1,3 +1,5 @@
+import { PostgresDBConnection, QueryResultRow, } from './PostgresDBConnection';
+import { logger } from '../Logger';
 import { DBType } from '../types';
 import {
 	GenericDBConnection,
@@ -32,6 +34,19 @@ const getDBInstance = async (currentDB: DBType): Promise<DBInstance | null> => {
 	const genericInstance = await getGenericDBInstance(currentDB);
 	return genericInstance.getDBInstance();
 };
+
+export async function executeQuery<T extends QueryResultRow>(
+	query: string,
+	params?: any[],
+): Promise<T[]> {
+	try {
+		const dbClient = await PostgresDBConnection.getInstance({});
+		return await dbClient.executeQuery<T>(query, params);
+	} catch (error) {
+		logger.error(error);
+		throw error;
+	}
+}
 
 export {
 	GenericDBConnection,

@@ -2,7 +2,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { DBType } from '../types';
 import { Book, IBook, BookArgs, BookMutationResponse, UpdatebookArgs } from '../models';
 import { RedisClient } from '../cachingClients/redis';
-import { GenericDBConnection, getLimitCond, getGenericDBInstance } from '../dbClients/helper';
+import { GenericDBConnection, getLimitCond, executeQuery } from '../dbClients/helper';
 import { constants } from '../constants';
 import { logger } from '../Logger';
 
@@ -36,13 +36,11 @@ const getBook = async (parent: any, args: { id: string }): Promise<IBook | null>
 			return null;
 		}
 	} else {
-		const whereClause = id ? `WHERE id = ${id}` : getLimitCond(currentDB, 1);
+		const whereClause = id ? `WHERE id = $1` : getLimitCond(currentDB, 1);
 		const query = `SELECT id, title, author, status FROM ${table} ${whereClause}`;
 
 		try {
-			genericDBInstance = await getGenericDBInstance(currentDB);
-			logger.info(`genericDBInstance: ${JSON.stringify(genericDBInstance)}`);
-			const rows = await genericDBInstance?.executeQuery<any>(query);
+			const rows = await executeQuery<any>(query, [id]);
 			return rows[0] || null;
 		} catch (err) {
 			logger.error(`Failed to fetch book: ${query} - ${err}`);
@@ -75,8 +73,7 @@ const getBooks = async (parent: any, args: BookArgs = {}): Promise<IBook[]> => {
 		}
 		const query: string = `SELECT id, title, author, status FROM ${table} ${whereClause}`;
 		try {
-			genericDBInstance = await getGenericDBInstance(currentDB);
-			const result: IBook[] = await genericDBInstance?.executeQuery<any[]>(query);
+			const result: IBook[] = await executeQuery(query);
 			return result;
 		} catch (error) {
 			logger.error(`Failed to fetch books: ${query} - ${error}`);
@@ -114,11 +111,11 @@ const addBook = async (parent: any, args: IBook): Promise<BookMutationResponse> 
 			};
 		}
 	} else {
-		const query = `INSERT INTO ${table} (title, author, status) VALUES ('${title}', '${author}', ${status})`;
+		const query = `INSERT INTO ${table} (title, author, status) VALUES ($1, $2, $3) RETURNING *`; // <-- No single quotes around $1, $2, $3
+		const params = [title, author, status];
 
 		try {
-			genericDBInstance = await getGenericDBInstance(currentDB);
-			const result = await genericDBInstance?.executeQuery<any>(query);
+			const result = await executeQuery<any>(query, params);
 			pubsub.publish('BOOK_CREATED', { bookCreated: result });
 			logger.info(result);
 			return {
@@ -171,11 +168,10 @@ const updateBook = async (
 			};
 		}
 	} else {
-		const query = `UPDATE ${table} SET title = '${title}', author = '${author}', status = ${status} WHERE id = ${id}`;
-
+		const query = `UPDATE ${table} SET title = $1, author = $2, status = $3 WHERE id = $4 RETURNING *`;
+		const params = [title, author, status, id];
 		try {
-			genericDBInstance = await getGenericDBInstance(currentDB);
-			const result = await genericDBInstance?.executeQuery<any>(query);
+			const result = await executeQuery<any>(query, params);
 			return {
 				success: true,
 				message: 'Book updated successfully',
@@ -207,11 +203,10 @@ const deleteBook = async (parent: any, args: { id: string }): Promise<boolean> =
 			return false;
 		}
 	} else {
-		const query = `DELETE FROM ${table} WHERE id = ${id}`;
+		const query = `DELETE FROM ${table} WHERE id = $1`;
 
 		try {
-			genericDBInstance = await getGenericDBInstance(currentDB);
-			await genericDBInstance?.executeQuery<any>(query);
+			await executeQuery<any>(query, [id]);
 			return true;
 		} catch (error) {
 			logger.error(`Failed to delete book : ${query} - ${error}`);
@@ -235,11 +230,13 @@ export { getBook, getBooks, addBook, updateBook, deleteBook, bookCreated };
  * create table book_store ( "id" number generated always as identity, "title" varchar2(4000), "author" varchar2(4000), "status" number, primary key ("id"));
  * 
  * PGSQL
- * CREATE TABLE "book_store" (
-	id SERIAL PRIMARY KEY,  -- SERIAL is a convenient way to create an auto-incrementing integer primary key
-	firstname VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
-	lastname VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
-	status INTEGER               -- INTEGER is the correct type
+ * 
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE TABLE "book_store" (
+	id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+	title VARCHAR(4000),	-- VARCHAR is the correct type, and length is specified in parentheses
+	author VARCHAR(4000),	-- VARCHAR is the correct type, and length is specified in parentheses
+	status VARCHAR(4000)	-- INTEGER is the correct type
 );
  * 
  * {

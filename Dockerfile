@@ -4,11 +4,14 @@ FROM node:20-slim
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json first for caching
-COPY package*.json ./
+# Enable Corepack to manage package manager versions
+RUN corepack enable
 
-# Install dependencies
-RUN yarn config set "strict-ssl" false -g && yarn install --frozen-lockfile
+# Copy package.json and yarn.lock first for caching
+COPY package.json yarn.lock* ./
+
+# Install dependencies using the updated immutable flag
+RUN yarn install --immutable
 
 # Copy remaining application code
 COPY . .

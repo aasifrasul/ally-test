@@ -30,32 +30,27 @@ const TodoList: React.FC = () => {
 	return (
 		<div>
 			<form onSubmit={handleSubmit}>
-				<input
-					type="text"
+				<InputText
+					name="searchTodos"
 					placeholder="Search todos"
-					value={searchText}
-					onChange={(e) => dispatch(setSearchText(e.target.value))}
+					initialValue=''
+					onChange={(text) => dispatch(setSearchText(text))}
 				/>
-
 				<label>
-					<input
-						type="checkbox"
+					<CombinedRefCheckbox
 						checked={showCompleted}
 						onChange={() => dispatch(toggleShowCompleted())}
 					/>
 					Show Completed
 				</label>
-
-				<input
-					type="text"
+				<InputText
+					name="addNewTodo"
 					placeholder="Add new todo"
-					value={newTodoText}
-					onChange={(e) => setNewTodoText(e.target.value)}
+					initialValue=''
+					onChange={(text) => setNewTodoText(text)}
 				/>
-
 				<button type="submit">Add Todo</button>
 			</form>
-
 			<div>
 				{filteredTodos.map((todo) => (
 					<div key={todo.id}>
