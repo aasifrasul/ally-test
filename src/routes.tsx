@@ -26,10 +26,6 @@ const landingPages = constants.routes!.reduce<
 	return acc;
 }, {});
 
-(landingPages.AutoComplete as any).props = {
-	suggestions: constants?.autoComplete?.initialFeed,
-};
-
 const Home = landingPages.Home;
 delete landingPages.Home;
 

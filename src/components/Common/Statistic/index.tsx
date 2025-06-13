@@ -5,24 +5,24 @@ interface StatisticProps {
 	size?: 'sm' | 'md' | 'lg';
 }
 
-export const Statistic: React.FC<StatisticProps> = ({ 
-	label, 
-	value, 
+export const Statistic: React.FC<StatisticProps> = ({
+	label,
+	value,
 	color = 'blue',
-	size = 'md' 
+	size = 'md',
 }) => {
 	const colorClasses = {
 		blue: 'text-blue-600',
 		green: 'text-green-600',
 		red: 'text-red-600',
 		yellow: 'text-yellow-600',
-		purple: 'text-purple-600'
+		purple: 'text-purple-600',
 	};
 
 	const sizeClasses = {
 		sm: 'text-xl',
 		md: 'text-3xl',
-		lg: 'text-5xl'
+		lg: 'text-5xl',
 	};
 
 	return (

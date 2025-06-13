@@ -1,4 +1,4 @@
-import { PostgresDBConnection, QueryResultRow, } from './PostgresDBConnection';
+import { PostgresDBConnection, QueryResultRow } from './PostgresDBConnection';
 import { logger } from '../Logger';
 import { DBType } from '../types';
 import {

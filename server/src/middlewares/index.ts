@@ -8,6 +8,7 @@ import { schema } from '../schema';
 import { parse } from '../UaParser';
 import { fetchCSVasJSON } from '../fetchCSVasJSON';
 import { pathAssets, pathTemplate } from '../paths';
+import { streamCSVService } from '../utility/streamCSVService';
 
 const { headers, result } = fetchCSVasJSON(path.join(pathAssets, 'winemag-data-130k-v2.csv'));
 
@@ -27,7 +28,7 @@ const webWorkerContent: string = getFileContents(`./src/utils/WebWorker.js`);
 // PreeCopile template
 const templatePath = path.join(pathTemplate, 'index.hbs');
 const templateContent = getFileContents(templatePath);
-const compiledTemplate = handlebars.compile(templateContent);
+export const compiledTemplate = handlebars.compile(templateContent);
 
 /**
  * Generate user agent object (platform, version, ...)
@@ -35,7 +36,7 @@ const compiledTemplate = handlebars.compile(templateContent);
  * @param res
  * @param next
  */
-const userAgentHandler = (req: any, res: any, next: Function) => {
+export const userAgentHandler = (req: any, res: any, next: Function) => {
 	const { headers } = req;
 	let userAgent =
 		headers['X-User-Agent'] ||
@@ -58,13 +59,25 @@ const userAgentHandler = (req: any, res: any, next: Function) => {
 	next();
 };
 
-const getCSVData = (req: any, res: any) => {
-	const pageNum = parseInt(req.query.page || '0', 10);
-	const pageData = result.slice(pageNum * 10, (pageNum + 1) * 10);
-	res.end(JSON.stringify(pageNum ? { pageData } : { headers, pageData }));
+export const fetchWineData = async (req: any, res: any) => {
+	try {
+		const filePath = path.join(process.cwd(), 'assets', 'winemag-data-130k-v2.csv');
+		const pageNum = parseInt(req.query.page || '0', 10);
+		const pageSize = parseInt(req.query.pageSize || '10', 10);
+
+		const [headers, pageData] = await Promise.all([
+			streamCSVService.getHeaders(filePath),
+			streamCSVService.getPageData(filePath, pageNum, pageSize),
+		]);
+
+		res.json(pageNum ? { pageData } : { headers, pageData });
+	} catch (error) {
+		console.error('Error fetching CSV data:', error);
+		res.status(500).json({ error: 'Failed to fetch CSV data' });
+	}
 };
 
-const fetchImage = (req: any, res: any) => {
+export const fetchImage = (req: any, res: any) => {
 	const imagePath = path.join(pathAssets, 'images');
 	const img = getFileContents(`${imagePath}/${req.params[0]}`);
 
@@ -73,21 +86,12 @@ const fetchImage = (req: any, res: any) => {
 	res.end(img, 'binary');
 };
 
-const fetchWorker = (req: any, res: any, fileContent: string) => {
+export const fetchWorker = (req: any, res: any, fileContent: string) => {
 	res.set('Content-Type', 'application/javascript; charset=utf-8');
 	nocache(res);
 	res.end(fileContent);
 };
 
-const fetchWebWorker = (req: any, res: any) => fetchWorker(req, res, webWorkerContent);
+export const fetchWebWorker = (req: any, res: any) => fetchWorker(req, res, webWorkerContent);
 
-const handleGraphql = (req: any, res: any) => handler(req, res);
-
-export {
-	userAgentHandler,
-	getCSVData,
-	fetchImage,
-	fetchWebWorker,
-	compiledTemplate,
-	handleGraphql,
-};
+export const handleGraphql = (req: any, res: any) => handler(req, res);

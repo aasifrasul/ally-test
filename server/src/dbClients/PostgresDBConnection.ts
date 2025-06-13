@@ -17,7 +17,7 @@ export class DatabaseConnectionError extends Error {
 
 export class QueryExecutionError extends Error {
 	public query: string;
-    
+
 	constructor(message: string, query: string) {
 		super(message);
 		this.query = query;
@@ -63,7 +63,9 @@ export class PostgresDBConnection {
 		return PostgresDBConnection.instance;
 	}
 
-	private static async createInstance(config: PostgresDBConnectionConfig): Promise<PostgresDBConnection> {
+	private static async createInstance(
+		config: PostgresDBConnectionConfig,
+	): Promise<PostgresDBConnection> {
 		try {
 			const instance = new PostgresDBConnection(config);
 			await instance.testConnection();

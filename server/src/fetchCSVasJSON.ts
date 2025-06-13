@@ -6,8 +6,6 @@ interface CsvRow {
 	[key: string]: string | string[];
 }
 
-let obj: CsvRow = {};
-
 export const fetchCSVasJSON = (filePath: string) => {
 	const csv: string = getFileContents(filePath);
 
@@ -38,6 +36,7 @@ export const fetchCSVasJSON = (filePath: string) => {
 		// string s
 		let str = array[i];
 		let s = '';
+		let obj: CsvRow = {};
 
 		// By Default, we get the comma separated
 		// values of a cell in quotes " " so we

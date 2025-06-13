@@ -1,8 +1,8 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import Button from '../Common/Button';
+import { InputText } from '../Common/InputText';
 import { FormField, FormItem, FormLabel } from '@/components/ui/form';
 
 import { ChangeEvent, FormData } from './types';
@@ -44,7 +44,7 @@ function ContactForm() {
 					<FormField>
 						<FormItem>
 							<FormLabel>Name</FormLabel>
-							<Input
+							<InputText
 								name="name"
 								placeholder="Enter Name"
 								value={formData.name}
@@ -58,7 +58,7 @@ function ContactForm() {
 					<FormField>
 						<FormItem>
 							<FormLabel>Email</FormLabel>
-							<Input
+							<InputText
 								name="email"
 								type="email"
 								placeholder="Enter Email"

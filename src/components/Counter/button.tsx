@@ -8,8 +8,12 @@ export default function CounterButtons({ count, setCount }: CounterContextType) 
 
 	return (
 		<div>
-			<Button primary positive basic onClick={increment}>+</Button>
-			<Button primary negative basic onClick={decrement}>-</Button>
+			<Button primary positive basic onClick={increment}>
+				+
+			</Button>
+			<Button primary negative basic onClick={decrement}>
+				-
+			</Button>
 		</div>
 	);
 }

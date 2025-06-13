@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Modal from '../Modal';
 import { useHover } from '../../../hooks/useHover';
+import * as styles from './AdvancedTruncate.module.css';
 
 interface Props {
 	text: string;
@@ -26,7 +27,6 @@ const AdvancedTruncate = ({ text, maxLength = 100, customClass = '' }: Props) =>
 		if (isHovered && isTruncated) {
 			setShowModal(true);
 		} else if (!isHovered) {
-			// Add a small delay before hiding to prevent flicker
 			const timeout = setTimeout(() => {
 				setShowModal(false);
 			}, 1000);
@@ -47,12 +47,10 @@ const AdvancedTruncate = ({ text, maxLength = 100, customClass = '' }: Props) =>
 	);
 
 	return (
-		<div className="relative" ref={containerRef}>
+		<div className={styles.container} ref={containerRef}>
 			<span
 				ref={hoverRef}
-				className={`${customClass} ${
-					isTruncated ? 'cursor-pointer hover:underline' : ''
-				}`}
+				className={`${customClass} ${isTruncated ? styles.truncated : ''}`}
 				role="button"
 				tabIndex={isTruncated ? 0 : -1}
 				aria-expanded={showModal}
@@ -61,11 +59,8 @@ const AdvancedTruncate = ({ text, maxLength = 100, customClass = '' }: Props) =>
 				{truncatedText}
 			</span>
 			<Modal isOpen={showModal}>
-				<div
-					className="fixed bg-yellow border border-gray-200 rounded-lg shadow-lg p-4 max-w-sm max-h-96 overflow-y-auto z-50"
-					role="tooltip"
-				>
-					<div className="whitespace-pre-wrap">{text}</div>
+				<div className={styles.tooltip} role="tooltip">
+					<div className={styles.tooltipContent}>{text}</div>
 				</div>
 			</Modal>
 		</div>

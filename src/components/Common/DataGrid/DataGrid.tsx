@@ -1,40 +1,44 @@
 import * as React from 'react';
-
-import Cell from './Cell';
-import * as styles from './DataGrid.module.css';
+import { Table, TableHeader, TableBody, TableCell, TableRow, TableHeaderCell } from '../Table';
+import { Segment } from '../Segment';
+import AdvancedTruncate from '../AdvancedTruncate';
 
 // Define types for component props
 interface DataGridProps {
-	headings: Array<{ name: string }>;
+	headings: Array<{ name: string; key: string }>;
 	rows: Array<Record<string, string | number>>;
 }
 
 const DataGrid: React.FC<DataGridProps> = ({ headings, rows }) => {
-	const renderHeadingRow = (item: { name: string }, cellIndex: number) => (
-		<Cell key={`heading-${cellIndex}`} content={item.name} header={true} styles={styles} />
+	const renderHeadingRow = () => (
+		<TableRow key="heading-row">
+			{headings.map((item, index) => (
+				<TableHeaderCell key={`heading-${index}`}>{item.name}</TableHeaderCell>
+			))}
+		</TableRow>
 	);
 
 	const renderRow = (row: Record<string, string | number>, rowIndex: number) => (
-		<div className={styles.row} key={`row-${rowIndex}`}>
-			{Object.keys(row).map((key, cellIndex) => (
-				<Cell key={`${key}-${cellIndex}`} content={row[key]} styles={styles} />
+		<TableRow key={`row-${rowIndex}`}>
+			{headings.map(({ key }, index) => (
+				<TableCell key={`${key}-${index}`}>
+					<AdvancedTruncate text={row[key] as string} maxLength={10} />
+				</TableCell>
 			))}
-		</div>
+		</TableRow>
 	);
 
-	const theadMarkup = (
-		<div key="heading" className={styles.header}>
-			{headings.map(renderHeadingRow)}
-		</div>
-	);
+	const theadMarkup = <TableHeader>{renderHeadingRow()}</TableHeader>;
 
-	const tbodyMarkup = <div className={styles.body}>{rows.map(renderRow)}</div>;
+	const tbodyMarkup = <TableBody>{rows.map(renderRow)}</TableBody>;
 
 	return (
-		<div className={styles.table}>
-			{theadMarkup}
-			{tbodyMarkup}
-		</div>
+		<Segment>
+			<Table celled striped>
+				{theadMarkup}
+				{tbodyMarkup}
+			</Table>
+		</Segment>
 	);
 };
 

@@ -33,7 +33,7 @@ const TodoList: React.FC = () => {
 				<InputText
 					name="searchTodos"
 					placeholder="Search todos"
-					initialValue=''
+					initialValue=""
 					onChange={(text) => dispatch(setSearchText(text))}
 				/>
 				<label>
@@ -46,7 +46,7 @@ const TodoList: React.FC = () => {
 				<InputText
 					name="addNewTodo"
 					placeholder="Add new todo"
-					initialValue=''
+					initialValue=""
 					onChange={(text) => setNewTodoText(text)}
 				/>
 				<button type="submit">Add Todo</button>
