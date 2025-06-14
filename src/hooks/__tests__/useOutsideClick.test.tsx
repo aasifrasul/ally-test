@@ -1,11 +1,9 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { renderHook } from '@testing-library/react-hooks';
-import { useClickOutside } from '../useClickOutside';
-import { useEventListener } from '../EventListeners/';
+import { useEventListener, useClickOutside } from '../EventListeners/';
 
 // Mock useEventListener
-jest.mock('../useEventListener');
 
 // Mock component using the hook
 const TestComponent: React.FC = () => {

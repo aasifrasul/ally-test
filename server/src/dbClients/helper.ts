@@ -7,7 +7,7 @@ import {
 	type ExecuteQueryType,
 } from './GenericDBConnection';
 
-const getLimitCond = (currentDB: DBType, count: number): string => {
+export const getLimitCond = (currentDB: DBType, count: number): string => {
 	switch (currentDB) {
 		case 'mysql':
 			return `LIMIT ${count}`;
@@ -20,7 +20,7 @@ const getLimitCond = (currentDB: DBType, count: number): string => {
 	}
 };
 
-const getGenericDBInstance = async (currentDB: DBType): Promise<GenericDBConnection> => {
+export const getGenericDBInstance = async (currentDB: DBType): Promise<GenericDBConnection> => {
 	const genericInstance = await GenericDBConnection.getInstance(currentDB);
 
 	if (!genericInstance) {
@@ -30,7 +30,7 @@ const getGenericDBInstance = async (currentDB: DBType): Promise<GenericDBConnect
 	return genericInstance;
 };
 
-const getDBInstance = async (currentDB: DBType): Promise<DBInstance | null> => {
+export const getDBInstance = async (currentDB: DBType): Promise<DBInstance | null> => {
 	const genericInstance = await getGenericDBInstance(currentDB);
 	return genericInstance.getDBInstance();
 };
@@ -49,10 +49,6 @@ export async function executeQuery<T extends QueryResultRow>(
 }
 
 export {
-	GenericDBConnection,
-	getLimitCond,
-	getDBInstance,
-	getGenericDBInstance,
 	type DBInstance,
 	type ExecuteQueryType,
 };

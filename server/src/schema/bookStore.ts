@@ -2,7 +2,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { DBType } from '../types';
 import { Book, IBook, BookArgs, BookMutationResponse, UpdatebookArgs } from '../models';
 import { RedisClient } from '../cachingClients/redis';
-import { GenericDBConnection, getLimitCond, executeQuery } from '../dbClients/helper';
+import { getLimitCond, executeQuery } from '../dbClients/helper';
 import { constants } from '../constants';
 import { logger } from '../Logger';
 
@@ -10,7 +10,6 @@ const { currentDB } = constants.dbLayer;
 
 const pubsub = new PubSub();
 
-let genericDBInstance: GenericDBConnection;
 const redisClient = RedisClient.getInstance();
 redisClient.connect();
 const table = 'book_store';
@@ -111,7 +110,7 @@ const addBook = async (parent: any, args: IBook): Promise<BookMutationResponse> 
 			};
 		}
 	} else {
-		const query = `INSERT INTO ${table} (title, author, status) VALUES ($1, $2, $3) RETURNING *`; // <-- No single quotes around $1, $2, $3
+		const query = `INSERT INTO ${table} (title, author, status) VALUES ($1, $2, $3) RETURNING *`;
 		const params = [title, author, status];
 
 		try {
@@ -242,29 +241,29 @@ CREATE TABLE "book_store" (
  * {
  "query": "mutation addBook($title: String!, $author: String!, $status: String!) { addBook(title: $title, author: $author, status: $status) }",
  "variables": {
-   "title": "Aasif",
-   "author": "Rasul",
-   "status": "available"
+	 "title": "Aasif",
+	 "author": "Rasul",
+	 "status": "available"
  }
 }
  * 
  * {
-  "query": "{ getBook(id: \"67dbd86a20663aeb49393e32\") {id, title, author, status} }"
+	"query": "{ getBook(id: \"67dbd86a20663aeb49393e32\") {id, title, author, status} }"
 }
  * 
  * 
  * {
-  "query": "{ getBooks {id, title, author, status} }"
+	"query": "{ getBooks {id, title, author, status} }"
 }
  * 
  * 
  * {
  "query": "mutation updateBook($id: ID!, $title: String!, $author: String!, $status: String) { updateBook(id: $id, title: $title, author: $author, status: $status) }",
  "variables": {
-   "id": "67dbd86a20663aeb49393e32",
-   "title": "John",
-   "author": "Doe",
-   "status": "issued"
+	 "id": "67dbd86a20663aeb49393e32",
+	 "title": "John",
+	 "author": "Doe",
+	 "status": "issued"
  }
 }
  * 
@@ -273,7 +272,7 @@ CREATE TABLE "book_store" (
  * {
  "query": "mutation deleteBook($id: ID!) { deleteBook(id: $id) }",
  "variables": {
-   "id": "67dbd86a20663aeb49393e32"
+	 "id": "67dbd86a20663aeb49393e32"
  }
 }
  * 
