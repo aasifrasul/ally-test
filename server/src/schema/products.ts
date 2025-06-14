@@ -1,7 +1,7 @@
-import { DBType } from '../types';
+import { DBType, IProduct } from '../types';
 import { RedisClient } from '../cachingClients/redis';
 import { Product } from '../models';
-import { GenericDBConnection, getLimitCond, getGenericDBInstance } from '../dbClients/helper';
+import { getLimitCond, executeQuery } from '../dbClients/helper';
 import { constants } from '../constants';
 import { logger } from '../Logger';
 
@@ -11,13 +11,24 @@ interface ProductArgs {
 	category: string;
 }
 
+type ProductResult = {
+	success: Boolean
+	message?: String
+	product?: IProduct | null
+}
+
+type DeleteResult = {
+	success: Boolean
+	message?: String
+	id: String
+}
+
 const { currentDB } = constants.dbLayer;
 
-let genericDBInstance: GenericDBConnection;
 const redisClient = RedisClient.getInstance();
 redisClient.connect();
 
-const table = 'TEST_PRODUCTS';
+const table = '"TEST_PRODUCTS"';
 
 const getProduct = async (parent: any, args: { id: string }): Promise<ProductArgs | null> => {
 	const { id } = args;
@@ -38,10 +49,9 @@ const getProduct = async (parent: any, args: { id: string }): Promise<ProductArg
 			return null;
 		}
 	} else {
-		genericDBInstance = await getGenericDBInstance(currentDB);
-		const whereClause = id ? `WHERE id = ${id}` : getLimitCond(currentDB, 1);
+		const whereClause = id ? `WHERE id = $1` : getLimitCond(currentDB, 1);
 		const query = `SELECT id, "name", "category" FROM ${table} ${whereClause}`;
-		const rows: ProductArgs[] = await genericDBInstance.executeQuery(query);
+		const rows: ProductArgs[] = await executeQuery(query, [id]);
 		return rows[0] || null;
 	}
 };
@@ -56,7 +66,6 @@ const getProducts = async (parent: any, args?: { [key: string]: any }): Promise<
 			return [];
 		}
 	} else {
-		genericDBInstance = await getGenericDBInstance(currentDB);
 		const keys = Object.keys(args || {});
 		let whereClause = getLimitCond(currentDB, 10);
 		if (keys.length) {
@@ -64,32 +73,32 @@ const getProducts = async (parent: any, args?: { [key: string]: any }): Promise<
 				'WHERE ' + keys.map((key) => `"${key}" = '${args?.[key]}'`).join(' AND ');
 		}
 		const query = `SELECT id, "name", "category" FROM ${table} ${whereClause}`;
-		return await genericDBInstance.executeQuery(query);
+		return await executeQuery(query);
 	}
 };
 
-const createProduct = async (parent: any, args: ProductArgs): Promise<boolean> => {
+const createProduct = async (parent: any, args: ProductArgs): Promise<ProductResult> => {
 	const { name, category } = args;
 
 	if (currentDB === DBType.MONGODB) {
 		try {
 			const product = await new Product({ name, category }).save();
 			redisClient.cacheData(product.id, product);
-			return true;
+			return { success: true, product };
 		} catch (error) {
 			logger.error(`Failed to create product in MongoDB: ${error}`);
-			return false;
+			return { success: false };
 		}
 	} else {
 		try {
-			genericDBInstance = await getGenericDBInstance(currentDB);
-			const query = `INSERT INTO ${table} ("name", "category") VALUES ('${name}', '${category}')`;
-			const result = await genericDBInstance.executeQuery(query);
+			const query = `INSERT INTO ${table} ("name", "category") VALUES ($1, $2) RETURNING *`;
+			const params = [name, category]
+			const result = await executeQuery<IProduct>(query, params);
 			logger.info(result);
-			return true;
+			return { success: true, product: result[0] };
 		} catch (error) {
 			logger.error(`Failed to create product ${error}`);
-			return false;
+			return { success: false };
 		}
 	}
 };
@@ -97,7 +106,7 @@ const createProduct = async (parent: any, args: ProductArgs): Promise<boolean> =
 const updateProduct = async (
 	parent: any,
 	args: { id: string; name: string; category: string },
-): Promise<boolean> => {
+): Promise<ProductResult> => {
 	const { id, name, category } = args;
 
 	if (currentDB === DBType.MONGODB) {
@@ -108,47 +117,46 @@ const updateProduct = async (
 				{ new: true },
 			);
 			redisClient.cacheData(id, product);
-			return true;
+			return { success: true, product };
 		} catch (error) {
 			logger.error(`Failed to create product in MongoDB: ${error}`);
-			return false;
+			return { success: false };
 		}
 	} else {
 		try {
-			genericDBInstance = await getGenericDBInstance(currentDB);
-			const query = `UPDATE ${table} SET "name" = '${name}', "category" = '${category}' WHERE id = ${id}`;
-			const result = await genericDBInstance.executeQuery(query);
+			const query = `UPDATE ${table} SET "name" = $1, "category" = $2 WHERE id = $3 RETURNING *`;
+			const params = [name, category, id]
+			const result = await executeQuery<IProduct>(query, params);
 			logger.info(result);
-			return true;
+			return { success: true, product: result[0] };
 		} catch (error) {
 			logger.error(`Failed to update product ${error}`);
-			return false;
+			return { success: false };
 		}
 	}
 };
 
-const deleteProduct = async (parent: any, args: { id: string }): Promise<boolean> => {
+const deleteProduct = async (parent: any, args: { id: string }): Promise<DeleteResult> => {
 	const { id } = args;
 
 	if (currentDB === 'mongodb') {
 		try {
 			await Product.findByIdAndDelete(id, { new: true });
 			redisClient.deleteCachedData(id);
-			return true;
+			return { success: false, id };
 		} catch (error) {
 			logger.error(`Failed to create product in MongoDB: ${error}`);
-			return false;
+			return { success: false, id };
 		}
 	} else {
 		try {
-			genericDBInstance = await getGenericDBInstance(currentDB);
-			const query = `DELETE FROM ${table} WHERE id = ${id}`;
-			const result = await genericDBInstance.executeQuery(query);
+			const query = `DELETE FROM ${table} WHERE id = $1`;
+			const result = await executeQuery(query, [id]);
 			logger.info(result);
-			return true;
+			return { success: true, id };
 		} catch (error) {
 			logger.error(`Failed to DELETE product with id ${id} ${error}`);
-			return false;
+			return { success: false, id };
 		}
 	}
 };
@@ -169,38 +177,38 @@ CREATE TABLE "TEST_PRODUCTS" (
 );
  * 
 {
- "query": "mutation createProduct($name: String!, $category: String!) { createProduct(name: $name, category: $category) }",
+ "query": "mutation createProduct($name: String!, $category: String!) { createProduct(name: $name, category: $category) { success message product { id name category } } }",
  "variables": {
-   "name": "ABC",
-   "category": "XYZ"
+	 "name": "ABC",
+	 "category": "XYZ"
  }
 }
  * 
 {
-  "query": "{ getProduct(id: 1) {id, name, category} }"
+	"query": "{ getProduct(id: \"402e856f-6cf1-49e6-8735-f49b7502cd59\") {id, name, category} }"
 }
  * 
  * 
 {
-  "query": "{ getProducts {id, name, category} }"
+	"query": "{ getProducts {id, name, category} }"
 }
  * 
  * 
  * {
- "query": "mutation updateProduct($id: ID!, $name: String!, $category: String!) { updateProduct(id: $id, name: $name, category: $category) }",
+ "query": "mutation updateProduct($id: ID!, $name: String!, $category: String!) { updateProduct(id: $id, name: $name, category: $category) { success message product { id name category } } }",
  "variables": {
-   "id": "1",
-   "name": "John",
-   "category": "Doe"
+	 "id": "1",
+	 "name": "John",
+	 "category": "Doe"
  }
 }
  * 
  * 
  * 
 {
- "query": "mutation deleteProduct($id: ID!) { deleteProduct(id: $id) }",
+ "query": "mutation deleteProduct($id: ID!) { deleteProduct(id: $id) { success message id } }",
  "variables": {
-   "id": "2"
+	 "id": "2"
  }
 }
  * 

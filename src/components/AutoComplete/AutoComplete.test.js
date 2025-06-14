@@ -3,7 +3,7 @@ import { render, fireEvent, screen, act } from '@testing-library/react';
 import AutoComplete from '.';
 import * as styles from './styles.module.css';
 
-jest.mock('../../hooks/useClickOutside', () => ({
+jest.mock('../../hooks/EventListeners/useClickOutside', () => ({
 	__esModule: true,
 	default: () => [false],
 }));

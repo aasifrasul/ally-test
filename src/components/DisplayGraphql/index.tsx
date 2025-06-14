@@ -14,20 +14,25 @@ interface GraphqlData {
 }
 
 export default function DisplayGraphql() {
-	const [data, setData] = useState<GraphqlData | null>(null);
+	const [data, setData] = useState<User[]>([]);
 
 	useEffect(() => {
-		subscribe('{ users {id, first_name, last_name, age} }')
-			.then((result) => {
+		fetch(`${BASE_URL}/graphql`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				query: '{ getUsers {id, first_name, last_name, age} }'
+			}),
+		})
+			.then(response => response.json())
+			.then(result => {
 				if (result?.data) {
-					setData(result.data as GraphqlData);
-				} else {
-					console.error('Invalid subscription result:', result);
+					setData(result.data);
 				}
 			})
-			.catch((error) => {
-				console.error('Subscription error:', error);
-			});
+			.catch(error => console.error('Query error:', error));
 
 		fetch(`${BASE_URL}/graphql`, {
 			method: 'POST',
@@ -36,8 +41,9 @@ export default function DisplayGraphql() {
 				Accept: 'application/json',
 			},
 			body: JSON.stringify({
-				query: `mutation CreateUser($first_name: String!, $last_name: String!, $age: Int!) {
+				query: `mutation createUser($first_name: String!, $last_name: String!, $age: Int!) {
 					createUser(first_name: $first_name, last_name: $last_name, age: $age)
+					{ success message user { id first_name last_name age } }
 				}`,
 				variables: {
 					first_name: 'John',
@@ -47,10 +53,25 @@ export default function DisplayGraphql() {
 			}),
 		})
 			.then((response) => response.json())
-			.then((data) => setData(data))
+			.then(({ user }) => {
+				if (user) {
+					setData((prev) => [...prev, user])
+				}
+			})
 			.catch((error) => {
 				console.error('Mutation error:', error);
 			});
+
+		const subscriptionPromise = subscribe('subscription { userCreated {id, first_name, last_name, age} }')
+			.then((result) => {
+				console.log('result', result);
+				if (result?.data) {
+					//setData(result.data);
+				}
+			})
+			.catch((error) => console.error('Subscription error:', error));
+
+		//return () => unsubscribe(); 
 	}, []);
 
 	return (
