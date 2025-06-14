@@ -1,6 +1,6 @@
 import React from 'react';
-import classnames from 'classnames';
-import Icon from '../Icon';
+import clsx from 'clsx';
+import { Icon } from '../Icon';
 
 export enum Shape {
 	REGULAR_CIRCLE = 'regularCircle',
@@ -31,7 +31,7 @@ export class Spinner extends React.Component<SpinnerProps> {
 		let { icon, size, testAutomationId, style, className, shapeName, children, ...props } =
 			this.props;
 
-		className = classnames(
+		className = clsx(
 			'rc-spinner',
 			{ 'rc-spinner-regularCircle': shapeName === Shape.REGULAR_CIRCLE },
 			className,

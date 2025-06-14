@@ -1,3 +1,5 @@
+import { getRandomId } from '../../../utils/common';
+
 export interface ShortcutConfig {
 	keyPress: string;
 	ctrl?: boolean;
@@ -37,7 +39,7 @@ export class KeyboardShortcutHelper {
 	}
 
 	registerShortcut(config: ShortcutConfig): string {
-		const id = Math.random().toString(36).substring(7);
+		const id = getRandomId();
 		this.shortcuts.set(id, config);
 
 		// Add listener if this is the first shortcut

@@ -1,4 +1,4 @@
-import { Segment } from 'semantic-ui-react';
+import { Segment } from '../Common/Segment';
 
 import { CounterContextProvider, useCounterContext } from '../../Context/CounterContext';
 
@@ -11,7 +11,7 @@ function Counter() {
 	return (
 		<>
 			<h3>Counter</h3>
-			<Segment textAlign="center">
+			<Segment className="text-center">
 				<Display count={count} />
 				<Button count={count} setCount={setCount} />
 			</Segment>

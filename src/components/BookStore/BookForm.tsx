@@ -7,40 +7,41 @@ import useBookStore, { Book, BookStoreState } from '../../store/bookStore';
 
 const BookForm = () => {
 	const { books, updateBook, addBook, editingBook } = useBookStore();
-	const [bookDetails, setBookDetails] = useState<Book>({
-		id: 0,
-		title: '',
-		author: '',
-		status: 'available',
-	});
+	const [title, setTitle] = useState<string>('');
+	const [author, setAuthor] = useState<string>('');
 
 	useEffect(() => {
 		if (editingBook) {
-			setBookDetails({ ...editingBook });
+			setTitle(editingBook.title);
+			setAuthor(editingBook.author);
+		} else {
+			resetForm();
 		}
 	}, [editingBook]);
 
 	const handleOnChangeTitle = (value: string): void => {
-		setBookDetails({ ...bookDetails, title: value });
+		setTitle(value);
 	};
 
 	const handleOnChangeAuthor = (value: string): void => {
-		setBookDetails({ ...bookDetails, author: value });
+		setAuthor(value);
 	};
 
 	const handleAddBook = (): void => {
-		if (!bookDetails.title || !bookDetails.author) {
+		if (!title || !author) {
 			return alert('Please enter book details!');
 		}
 
-		addBook({ ...bookDetails });
+		addBook({ title, author });
+		resetForm();
 	};
 
 	const handleUpdateBook = () => {
-		if (!bookDetails.title || !bookDetails.author) {
+		if (!title || !author) {
 			return alert('Please enter book details!');
 		}
-		updateBook({ ...bookDetails });
+		updateBook({ ...editingBook, title, author });
+		resetForm();
 	};
 
 	const handleSubmit = () => {
@@ -49,7 +50,8 @@ const BookForm = () => {
 	};
 
 	const resetForm = () => {
-		setBookDetails({ id: 0, title: '', author: '', status: 'available' });
+		setTitle('');
+		setAuthor('');
 	};
 
 	const addEditText = editingBook?.id ? 'Edit' : 'Add';
@@ -61,7 +63,7 @@ const BookForm = () => {
 					id="title"
 					name="title"
 					placeholder="Title"
-					initialValue={bookDetails?.title}
+					initialValue={title}
 					hideWrapper
 					onChange={handleOnChangeTitle}
 				/>
@@ -70,7 +72,7 @@ const BookForm = () => {
 					id="author"
 					name="author"
 					placeholder="Author"
-					initialValue={bookDetails?.author}
+					initialValue={author}
 					hideWrapper
 					onChange={handleOnChangeAuthor}
 				/>

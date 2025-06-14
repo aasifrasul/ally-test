@@ -17,7 +17,7 @@ const timeout = require('connect-timeout');
 import { host, port, isCurrentEnvProd, ALLOWED_ORIGINS } from './envConfigDetails';
 import {
 	userAgentHandler,
-	getCSVData,
+	fetchWineData,
 	fetchImage,
 	fetchWebWorker,
 	compiledTemplate,
@@ -28,11 +28,11 @@ import { setupProxy } from './setupProxy';
 import { constructReqDataObject, generateBuildTime } from './helper';
 import { pathPublic, pathTemplate, pathRootDir } from './paths';
 import { finalHandler, setupGlobalAsyncErrorHandling } from './globalErrorHandler';
-import { logger } from './Logger';
-import { csp } from './middlewares/csp';
+//import { logger } from './Logger';
+//import { csp } from './middlewares/csp';
 import { constants } from '../../src/constants';
-import { processMessage } from './messageProcessing';
-import { runDialogFlow } from './utility/dialogFlow';
+//import { processMessage } from './messageProcessing';
+//import { runDialogFlow } from './utility/dialogFlow';
 
 interface CustomError extends Error {
 	status?: number;
@@ -145,7 +145,7 @@ app.post('/api/chat', async (req, res) => {
 
 // middlewares
 app.get('/WebWorker.js', fetchWebWorker);
-app.get('/api/fetchWineData/*', getCSVData);
+app.get('/api/fetchWineData/*', fetchWineData);
 app.get('/images/*', fetchImage);
 
 app.use('/login', (_, res: Response) => {

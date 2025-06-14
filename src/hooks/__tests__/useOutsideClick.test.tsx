@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { renderHook } from '@testing-library/react-hooks';
-import useClickOutside from '../useClickOutside';
-import { useEventListener } from '../EventListeners/useEventListener';
+import { useClickOutside } from '../useClickOutside';
+import { useEventListener } from '../EventListeners/';
 
 // Mock useEventListener
 jest.mock('../useEventListener');

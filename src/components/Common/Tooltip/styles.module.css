@@ -1,0 +1,139 @@
+.tooltip {
+    background-color: #1f2937; /* Dark background */
+    color: white;
+    border: 1px solid rgba(55, 65, 81, 0.7); /* Slightly softer border */
+    border-radius: 0.5rem;
+    box-shadow:
+        0 10px 15px -3px rgba(0, 0, 0, 0.1), /* Adjusted shadow */
+        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    padding: 0.75rem 1rem;
+    max-width: 24rem;
+    max-height: 16rem;
+    overflow-y: auto;
+    font-size: 0.875rem;
+    line-height: 1.4; /* Slightly increased line height for readability */
+    animation: tooltipFadeIn 0.2s ease-out forwards; /* Slightly longer, forwards to retain final state */
+    pointer-events: none;
+    position: relative; /* For arrow pseudo-element */
+    text-shadow: 0px 0px 1px rgba(0, 0, 0, 0.1);
+}
+
+/* Arrow for the tooltip */
+.tooltip::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    /* Default: points up from bottom */
+    border-width: 8px 8px 0 8px;
+    border-color: #1f2937 transparent transparent transparent; /* Match tooltip background */
+    left: 50%;
+    transform: translateX(-50%);
+    top: 100%;
+}
+
+/* Class to apply if tooltip is positioned above the trigger */
+.tooltip.tooltip-above::before {
+    border-width: 0 8px 8px 8px; /* Points down from top */
+    border-color: transparent transparent #1f2937 transparent;
+    top: -8px;
+}
+
+
+.tooltipContent {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Tooltip animations */
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.98); /* More noticeable Y-shift and scale */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Light mode tooltip */
+@media (prefers-color-scheme: light) {
+    .tooltip {
+        background-color: #fffbeb; /* Lighter yellow for light mode */
+        color: #374151; /* Darker text */
+        border-color: #d1d5db; /* gray-300 */
+        box-shadow:
+            0 10px 15px -3px rgba(0, 0, 0, 0.05),
+            0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    }
+    .tooltip::before {
+        border-color: #fffbeb transparent transparent transparent;
+    }
+    .tooltip.tooltip-above::before {
+        border-color: transparent transparent #fffbeb transparent;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .tooltip {
+        border: 2px solid currentColor;
+        box-shadow: none;
+    }
+    .tooltip::before {
+        border-color: currentColor transparent transparent transparent;
+    }
+    .tooltip.tooltip-above::before {
+        border-color: transparent transparent currentColor transparent;
+    }
+
+    .truncated:focus {
+        outline: 3px solid currentColor;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .tooltip {
+        animation: none;
+    }
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+    .tooltip {
+        max-width: calc(100vw - 2rem);
+        font-size: 0.8rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+/* Scrollbar styling for tooltip */
+.tooltip::-webkit-scrollbar {
+    width: 4px;
+}
+
+.tooltip::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tooltip::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+}
+
+.tooltip::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Light mode scrollbar */
+@media (prefers-color-scheme: light) {
+    .tooltip::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+    }
+    .tooltip::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.4);
+    }
+}

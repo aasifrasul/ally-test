@@ -1,0 +1,20 @@
+.container {
+	position: relative;
+	display: inline-block;
+}
+
+.truncated {
+	cursor: pointer;
+	text-decoration: underline;
+	outline: none;
+}
+
+.truncated:hover {
+	text-decoration: underline;
+}
+
+.truncated:focus {
+	outline: 2px solid #007bff;
+	outline-offset: 2px;
+	border-radius: 2px;
+}

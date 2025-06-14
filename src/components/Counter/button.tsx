@@ -1,19 +1,19 @@
-import { Button } from 'semantic-ui-react';
-
-import CustomButton from './CustomButton';
+import Button from '../Common/Button';
 
 import { CounterContextType } from '../../Context/CounterContext';
 
 export default function CounterButtons({ count, setCount }: CounterContextType) {
-	const increment = () => () => setCount(count + 1);
-	const decrement = () => () => setCount(count - 1);
+	const increment = () => setCount(count + 1);
+	const decrement = () => setCount(count - 1);
 
 	return (
 		<div>
-			<Button.Group>
-				<CustomButton text="Add" color="green" callback={increment} />
-				<CustomButton text="Minus" color="red" callback={decrement} />
-			</Button.Group>
+			<Button primary positive basic onClick={increment}>
+				+
+			</Button>
+			<Button primary negative basic onClick={decrement}>
+				-
+			</Button>
 		</div>
 	);
 }

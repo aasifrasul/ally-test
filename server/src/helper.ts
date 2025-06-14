@@ -24,18 +24,18 @@ const getPlatformString = (uaData: UaData): string => {
 	return uaData?.fkApp?.platform?.toLowerCase() || 'web';
 };
 
-const isMobileApp = (uaData: UaData): boolean => {
+export const isMobileApp = (uaData: UaData): boolean => {
 	const platforms = ['android', 'ios', 'windows'];
 	return platforms.includes(getPlatformString(uaData));
 };
 
-const getAppEnvironment = (req: any): string => {
+export const getAppEnvironment = (req: any): string => {
 	return JSON.stringify(
 		isMobileApp(req.userAgentData) === true ? _getAppParams(req) : _getWebEnvParams(req),
 	);
 };
 
-const _getAppParams = (request: any): Record<string, any> => {
+export const _getAppParams = (request: any): Record<string, any> => {
 	const { platform = '', version, string } = request.userAgentData?.fkApp || {};
 	if (!platform) {
 		throw new Error('InvalidUserAgentObject');
@@ -48,7 +48,7 @@ const _getAppParams = (request: any): Record<string, any> => {
 	return { ...appEnvironment, ..._getLoginParams(request) };
 };
 
-const _getWebEnvParams = (req: any): Record<string, any> => {
+export const _getWebEnvParams = (req: any): Record<string, any> => {
 	const { cookies, fkUA, fkLocale, nonce, abConfig } = req;
 	const { SN, SC } = cookies;
 	return {
@@ -63,14 +63,14 @@ const _getWebEnvParams = (req: any): Record<string, any> => {
 	};
 };
 
-const _getLoginParams = (request: any): Record<string, any> => ({
+export const _getLoginParams = (request: any): Record<string, any> => ({
 	omnitureVisitorId: _getValueFromHeaderAndParam(request, 'appVisitorId'),
 	SN: _getValueFromHeaderAndParam(request, '_sn_') || _getValueFromCookie(request, 'SN'),
 	SC: _getValueFromHeaderAndParam(request, '_sc_') || _getValueFromCookie(request, 'SC'),
 	secureToken: _getValueFromHeaderAndParam(request, 'secureToken'),
 });
 
-const _getValueFromHeaderAndParam = (request: any, paramName: string): any => {
+export const _getValueFromHeaderAndParam = (request: any, paramName: string): any => {
 	if (paramName in request.body) {
 		return getParsedUserAgentData(request.body[paramName]);
 	} else if (paramName in request.headers) {
@@ -78,7 +78,7 @@ const _getValueFromHeaderAndParam = (request: any, paramName: string): any => {
 	}
 };
 
-const constructReqDataObject = (req: any): Record<string, any> => {
+export const constructReqDataObject = (req: any): Record<string, any> => {
 	const data: Record<string, any> = {};
 	data.appEnvDetails = getAppEnvironment(req);
 	data.nonce = req.nonce;
@@ -86,7 +86,7 @@ const constructReqDataObject = (req: any): Record<string, any> => {
 	return data;
 };
 
-const _getValueFromCookie = (request: any, paramName: string): any => {
+export const _getValueFromCookie = (request: any, paramName: string): any => {
 	return (
 		request.cookies &&
 		request.cookies[paramName] &&
@@ -94,7 +94,7 @@ const _getValueFromCookie = (request: any, paramName: string): any => {
 	);
 };
 
-const generateBuildTime = async (): Promise<void> => {
+export const generateBuildTime = async (): Promise<void> => {
 	try {
 		await fs.promises.writeFile(pathBuildTime, new Date().toUTCString());
 	} catch (err) {
@@ -102,7 +102,7 @@ const generateBuildTime = async (): Promise<void> => {
 	}
 };
 
-const getStartTime = (): string => {
+export const getStartTime = (): string => {
 	if (!isCurrentEnvProd) {
 		return getFileContents(pathBuildTime);
 	}
@@ -111,7 +111,7 @@ const getStartTime = (): string => {
 	return new Date(Date.parse(startTime) + 1000000000).toUTCString();
 };
 
-const nocache = (res: any): void => {
+export const nocache = (res: any): void => {
 	res.set({
 		'Cache-Control': 'private, no-cache, no-store, must-revalidate, max-age=0',
 		Expires: 'Thu, 01 Jan 1970 00:00:00 GMT',
@@ -120,9 +120,9 @@ const nocache = (res: any): void => {
 	});
 };
 
-const getParsedUserAgentData = (userAgentData: string): string => xss(userAgentData);
+export const getParsedUserAgentData = (userAgentData: string): string => xss(userAgentData);
 
-const getFileContentsAsync = async <T>(filePath: string): Promise<T> => {
+export const getFileContentsAsync = async <T>(filePath: string): Promise<T> => {
 	try {
 		await fs.promises.stat(filePath);
 		const data = await fs.promises.readFile(filePath, 'utf-8');
@@ -133,7 +133,7 @@ const getFileContentsAsync = async <T>(filePath: string): Promise<T> => {
 	}
 };
 
-const getFileContents = <T>(filePath: string): T => {
+export const getFileContents = <T>(filePath: string): T => {
 	try {
 		fs.stat(filePath, (err, stats) => {
 			if (err) {
@@ -147,7 +147,7 @@ const getFileContents = <T>(filePath: string): T => {
 	}
 };
 
-const readJson = async <T>(filePath: string): Promise<T> => {
+export const readJson = async <T>(filePath: string): Promise<T> => {
 	try {
 		await fs.promises.stat(filePath);
 		const fileContents = await fs.promises.readFile(filePath, 'utf-8');
@@ -158,7 +158,7 @@ const readJson = async <T>(filePath: string): Promise<T> => {
 	}
 };
 
-const safeStringify = (obj: any): string => {
+export const safeStringify = (obj: any): string => {
 	function replacer(key: string, value: any): any {
 		if (key === 'stack') return undefined;
 		if (value === obj) return '[Circular]';
@@ -175,16 +175,4 @@ const safeStringify = (obj: any): string => {
 	const root = obj;
 
 	return JSON.stringify(obj, replacer);
-};
-
-export {
-	isMobileApp,
-	constructReqDataObject,
-	generateBuildTime,
-	getStartTime,
-	nocache,
-	getParsedUserAgentData,
-	getFileContents,
-	readJson,
-	safeStringify,
 };

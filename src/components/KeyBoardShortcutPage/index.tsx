@@ -1,19 +1,29 @@
+import React from 'react';
+
 import KeyBoardShortcut from '../Common/KeyBoardShortcut/KeyBoardShortcut';
 import Spacer from '../Common/Spacer/Spacer';
 
 function ImplementKeyBoardShortcut() {
+	const containerRef = React.useRef<HTMLDivElement>(null);
+
 	const toggleGreen = () => {
-		const currentColor = document.body.style.backgroundColor;
-		document.body.style.backgroundColor = currentColor === 'green' ? '' : 'green';
+		const element = containerRef?.current;
+		if (!element) return;
+
+		const currentColor = element.style.backgroundColor;
+		element.style.backgroundColor = currentColor === 'green' ? '' : 'green';
 	};
 
 	const toggleRed = () => {
-		const currentColor = document.body.style.backgroundColor;
-		document.body.style.backgroundColor = currentColor === 'red' ? '' : 'red';
+		const element = containerRef?.current;
+		if (!element) return;
+
+		const currentColor = element.style.backgroundColor;
+		element.style.backgroundColor = currentColor === 'red' ? '' : 'red';
 	};
 
 	return (
-		<div>
+		<div ref={containerRef}>
 			<Spacer size={16} />
 			<KeyBoardShortcut
 				keyPress="c"

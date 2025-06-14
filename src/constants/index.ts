@@ -4,52 +4,34 @@ import { BASE_URL, WS_URL } from './base';
 
 import { AutoCompleteConfig, Constants } from './types';
 
-const autoComplete: AutoCompleteConfig = {
-	initialFeed: ['Oranges', 'Apples', 'Banana', 'Kiwi', 'Mango'],
-	debounceDelay: 150,
-};
-
 const routes = [
-	'Counter',
 	'AccordionDemo',
 	'AsyncArticles',
-	'AutoComplete',
 	'BookStore',
 	'ChatBot',
 	'Comments',
 	'Contacts',
 	'CurrencyStream',
-	'Dashboard',
-	'DeeplyNestedCategories',
-	'DisplayNestedData',
-	'DigitalClock',
 	'DisplayGraphql',
 	'FlipTheCard',
 	'GraphqlSubscription',
 	'Home',
 	'InfiniteScroll',
 	'KeyBoardShortcutPage',
-	'ListExchange',
 	'MovieList',
 	'NestedCategories',
-	'NewsFeed',
-	'ProgressBar',
 	'ReactQuery',
 	'SearchForm',
-	'SortUsers',
 	'Stopwatch',
 	'TabsComponent',
-	'TicTacToe',
 	'TodoGroups',
 	'Todos',
-	'TrafficLight',
 	'UsersGraphql',
 	'WineConnoisseur',
 ];
 
 export const constants = createImmutable<Constants>({
 	common: {},
-	autoComplete,
 	dataSources,
 	routes,
 	BASE_URL,

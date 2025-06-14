@@ -16,18 +16,11 @@ export class DatabaseConnectionError extends Error {
 }
 
 export class QueryExecutionError extends Error {
+	public query: string;
+
 	constructor(message: string, query: string) {
 		super(message);
-		this.name = 'QueryExecutionError';
 		this.query = query;
-	}
-
-	public get query(): string {
-		return this.query;
-	}
-
-	public set query(value: string) {
-		this.query = value;
 	}
 }
 
@@ -62,23 +55,27 @@ export class PostgresDBConnection {
 	public static async getInstance(
 		config: PostgresDBConnectionConfig,
 	): Promise<PostgresDBConnection> {
-		if (!PostgresDBConnection.instance) {
-			PostgresDBConnection.checkForValidDBType();
+		PostgresDBConnection.checkForValidDBType();
 
-			PostgresDBConnection.instance = new PostgresDBConnection(config);
+		if (PostgresDBConnection.instance) return PostgresDBConnection.instance;
 
-			try {
-				await PostgresDBConnection.instance.testConnection();
-				logger.info('PostgresDBConnection instantiated');
-			} catch (err) {
-				PostgresDBConnection.instance = undefined as any; // Reset instance on failure
-				throw new DatabaseConnectionError(
-					`Failed to connect to database: ${(err as Error).message}`,
-				);
-			}
-		}
-
+		PostgresDBConnection.instance = await PostgresDBConnection.createInstance(config);
 		return PostgresDBConnection.instance;
+	}
+
+	private static async createInstance(
+		config: PostgresDBConnectionConfig,
+	): Promise<PostgresDBConnection> {
+		try {
+			const instance = new PostgresDBConnection(config);
+			await instance.testConnection();
+			return instance;
+			logger.info('PostgresDBConnection instantiated');
+		} catch (err) {
+			throw new DatabaseConnectionError(
+				`Failed to connect to database: ${(err as Error).message}`,
+			);
+		}
 	}
 
 	private static checkForValidDBType(): void {

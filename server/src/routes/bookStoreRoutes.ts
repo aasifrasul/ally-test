@@ -48,28 +48,3 @@ router
 	});
 
 export default router;
-
-// Book resource routes
-router
-	.route('/')
-	.get((req: BookStoreRequest, res: Response) => {
-		res.json(req.bookStore?.getBooks());
-	})
-	.post((req: BookStoreRequest, res: Response) => {
-		req.bookStore?.addBook(req.body);
-		res.json({ message: 'Book added successfully' });
-	});
-
-router
-	.route('/:id')
-	.get((req: BookStoreRequest, res: Response) => {
-		res.json(req.bookStore?.getBook(req.params.id));
-	})
-	.put((req: BookStoreRequest, res: Response) => {
-		req.bookStore?.updateBook(req.params.id, req.body);
-		res.json({ message: 'Book updated successfully' });
-	})
-	.delete((req: BookStoreRequest, res: Response) => {
-		req.bookStore?.deleteBook(req.params.id);
-		res.json({ message: 'Book deleted successfully' });
-	});

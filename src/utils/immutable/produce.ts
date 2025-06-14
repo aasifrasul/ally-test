@@ -116,11 +116,9 @@ function finalize(draft: any): any {
 		}
 	}
 
-	return createImmutable(result);
+	return result;
 }
 
-export function produce<T extends object>(fn: (draft: T) => void | T): (state: T) => T;
-export function produce<T extends object>(state: T, fn: (draft: T) => void | T): T;
 export function produce<T extends object>(
 	stateOrFn: T | ((draft: T) => void | T),
 	maybeFn?: (draft: T) => void | T,

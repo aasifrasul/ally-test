@@ -1,7 +1,6 @@
-'use client';
 import { useCallback, useRef, RefObject } from 'react';
-import { useEventListener } from './EventListeners/useEventListener';
-import { useToggle } from './useToggle';
+import { useEventListener } from './';
+import { useToggle } from '../useToggle';
 
 type EventType =
 	| 'mousedown'
@@ -26,7 +25,7 @@ type ElementRef =
 	| HTMLUListElement
 	| null;
 
-interface UseClickOutside<T extends ElementRef> {
+interface useClickOutside<T extends ElementRef> {
 	isOutsideClick: boolean;
 	outsideRef: RefObject<T | null>;
 }

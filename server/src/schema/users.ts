@@ -202,8 +202,10 @@ export { getUser, getUsers, createUser, updateUser, deleteUser, userCreated };
  * create table TEST_USERS ( "id" number generated always as identity, "first_name" varchar2(4000), "last_name" varchar2(4000), "age" number, primary key ("id"));
  * 
  * PGSQL
- * CREATE TABLE "TEST_USERS" (
-	id SERIAL PRIMARY KEY,  -- SERIAL is a convenient way to create an auto-incrementing integer primary key
+ * 
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE TABLE "TEST_USERS" (
+	id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
 	firstname VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
 	lastname VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
 	age INTEGER               -- INTEGER is the correct type
