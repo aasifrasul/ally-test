@@ -1,29 +1,20 @@
 .container {
 	position: relative;
+	display: inline-block;
 }
 
 .truncated {
 	cursor: pointer;
 	text-decoration: underline;
+	outline: none;
 }
 
 .truncated:hover {
 	text-decoration: underline;
 }
 
-.tooltip {
-	position: fixed;
-	background-color: #fef3c7; /* yellow-100 */
-	border: 1px solid #d1d5db; /* gray-300 */
-	border-radius: 0.5rem;
-	box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-	padding: 1rem;
-	max-width: 24rem;
-	max-height: 24rem;
-	overflow-y: auto;
-	z-index: 50;
-}
-
-.tooltipContent {
-	white-space: pre-wrap;
+.truncated:focus {
+	outline: 2px solid #007bff;
+	outline-offset: 2px;
+	border-radius: 2px;
 }

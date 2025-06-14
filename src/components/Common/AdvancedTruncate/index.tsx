@@ -1,6 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import Modal from '../Modal';
-import { useHover } from '../../../hooks/useHover';
+import { Tooltip } from '../Tooltip';
 import * as styles from './AdvancedTruncate.module.css';
 
 interface Props {
@@ -10,59 +9,78 @@ interface Props {
 }
 
 const AdvancedTruncate = ({ text, maxLength = 100, customClass = '' }: Props) => {
-	const [showModal, setShowModal] = useState(false);
+	const [showTooltip, setShowTooltip] = useState(false);
+	const [isHovered, setIsHovered] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
-
-	// Use hover state to trigger modal
-	const { hoverRef, isHovered } = useHover({
-		enterDelay: 100,
-		leaveDelay: 100,
-	});
+	const triggerRef = useRef<HTMLSpanElement>(null);
 
 	const isTruncated = text.length > maxLength;
 	const truncatedText = isTruncated ? `${text.substring(0, maxLength)}...` : text;
 
-	// Update modal visibility based on hover state
-	useEffect(() => {
-		if (isHovered && isTruncated) {
-			setShowModal(true);
-		} else if (!isHovered) {
-			const timeout = setTimeout(() => {
-				setShowModal(false);
-			}, 1000);
-			return () => clearTimeout(timeout);
+	// Handle mouse events directly
+	const handleMouseEnter = useCallback(() => {
+		if (isTruncated) {
+			const timer = setTimeout(() => {
+				setIsHovered(true);
+				setShowTooltip(true);
+			}, 100);
+			return () => clearTimeout(timer);
 		}
-	}, [isHovered, isTruncated]);
+	}, [isTruncated]);
+
+	const handleMouseLeave = useCallback(() => {
+		const timer = setTimeout(() => {
+			setIsHovered(false);
+			setShowTooltip(false);
+		}, 100);
+		return () => clearTimeout(timer);
+	}, []);
 
 	// Handle keyboard interactions
 	const handleKeyDown = useCallback(
 		(event: React.KeyboardEvent) => {
 			if (event.key === 'Escape') {
-				setShowModal(false);
+				setShowTooltip(false);
 			} else if ((event.key === 'Enter' || event.key === ' ') && isTruncated) {
-				setShowModal((prev) => !prev);
+				setShowTooltip((prev) => !prev);
+				event.preventDefault();
 			}
 		},
 		[isTruncated],
 	);
 
+	// Close tooltip when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+				setShowTooltip(false);
+			}
+		};
+
+		if (showTooltip) {
+			document.addEventListener('mousedown', handleClickOutside);
+			return () => document.removeEventListener('mousedown', handleClickOutside);
+		}
+	}, [showTooltip]);
+
 	return (
 		<div className={styles.container} ref={containerRef}>
 			<span
-				ref={hoverRef}
+				ref={triggerRef}
 				className={`${customClass} ${isTruncated ? styles.truncated : ''}`}
 				role="button"
 				tabIndex={isTruncated ? 0 : -1}
-				aria-expanded={showModal}
+				aria-expanded={showTooltip}
+				aria-describedby={showTooltip ? 'tooltip-content' : undefined}
+				onMouseEnter={handleMouseEnter}
+				onMouseLeave={handleMouseLeave}
 				onKeyDown={handleKeyDown}
 			>
 				{truncatedText}
 			</span>
-			<Modal isOpen={showModal}>
-				<div className={styles.tooltip} role="tooltip">
-					<div className={styles.tooltipContent}>{text}</div>
-				</div>
-			</Modal>
+			<Tooltip isOpen={showTooltip} triggerRef={triggerRef}>
+				<div id="tooltip-content">{text}</div>
+			</Tooltip>
 		</div>
 	);
 };

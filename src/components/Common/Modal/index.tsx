@@ -48,7 +48,7 @@ const Modal = React.memo(
 			[closeOnEscape, onClose],
 		);
 
-		useEventListener('keydown', handleEscape, document)
+		useEventListener('keydown', handleEscape, document);
 
 		// Handle backdrop click
 		const handleBackdropClick = useCallback(

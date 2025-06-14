@@ -1,5 +1,5 @@
-import { useState, useRef, RefObject, useCallback } from 'react';
-import { useEventListener } from './EventListeners/useEventListener';
+import { useState, useRef, RefObject, useCallback, useEffect } from 'react';
+import { useEventListener } from './EventListeners';
 
 interface UseHoverOptions {
 	enterDelay?: number;
@@ -17,19 +17,48 @@ export function useHover<T extends HTMLElement = HTMLElement>({
 }: UseHoverOptions = {}): UseHoverReturn<T> {
 	const [isHovered, setIsHovered] = useState(false);
 	const hoverRef = useRef<T>(null);
+	const enterTimeoutRef = useRef<NodeJS.Timeout>(null);
+	const leaveTimeoutRef = useRef<NodeJS.Timeout>(null);
 
 	const handleMouseEnter = useCallback(() => {
-		const timer = setTimeout(() => setIsHovered(true), enterDelay);
-		return () => clearTimeout(timer);
+		// Clear any pending leave timeout
+		if (leaveTimeoutRef.current) {
+			clearTimeout(leaveTimeoutRef.current);
+		}
+
+		enterTimeoutRef.current = setTimeout(() => {
+			setIsHovered(true);
+		}, enterDelay);
 	}, [enterDelay]);
 
 	const handleMouseLeave = useCallback(() => {
-		const timer = setTimeout(() => setIsHovered(false), leaveDelay);
-		return () => clearTimeout(timer);
+		// Clear any pending enter timeout
+		if (enterTimeoutRef.current) {
+			clearTimeout(enterTimeoutRef.current);
+		}
+
+		leaveTimeoutRef.current = setTimeout(() => {
+			setIsHovered(false);
+		}, leaveDelay);
 	}, [leaveDelay]);
 
-	useEventListener('mouseover', handleMouseEnter, hoverRef.current);
-	useEventListener('mouseout', handleMouseLeave, hoverRef.current);
+	useEventListener('mouseenter', handleMouseEnter, hoverRef.current);
+	useEventListener('mouseleave', handleMouseLeave, hoverRef.current);
+
+	useEffect(() => {
+		const element = hoverRef.current;
+		if (!element) return;
+
+		return () => {
+			// Clean up any pending timeouts
+			if (enterTimeoutRef.current) {
+				clearTimeout(enterTimeoutRef.current);
+			}
+			if (leaveTimeoutRef.current) {
+				clearTimeout(leaveTimeoutRef.current);
+			}
+		};
+	}, [handleMouseEnter, handleMouseLeave]);
 
 	return { hoverRef, isHovered };
 }

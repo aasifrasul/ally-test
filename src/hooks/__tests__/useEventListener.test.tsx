@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { fireEvent, act } from '@testing-library/react';
-import { useEventListener } from '../EventListeners/useEventListener';
+import { useEventListener } from '../EventListeners/';
 
 describe('useEventListener', () => {
 	// Clear all mocks before each test
