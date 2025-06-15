@@ -11,7 +11,6 @@ const { currentDB } = constants.dbLayer;
 const pubsub = new PubSub();
 
 const redisClient = RedisClient.getInstance();
-redisClient.connect();
 const table = 'book_store';
 
 const getBook = async (parent: any, args: { id: string }): Promise<IBook | null> => {

@@ -42,7 +42,7 @@ export class RedisClient {
 		try {
 			this.client = createClient({
 				url,
-				socket: { 
+				socket: {
 					reconnectStrategy: this.reconnectStrategy,
 					connectTimeout: 5000, // 5 second timeout
 				},
@@ -87,7 +87,7 @@ export class RedisClient {
 
 	private handleConnectionError(err: Error): void {
 		this.consecutiveFailures++;
-		
+
 		// Check for specific error types that indicate Redis is unavailable
 		const errorMessage = err.message.toLowerCase();
 		const unavailableErrors = [
@@ -96,17 +96,17 @@ export class RedisClient {
 			'etimedout',
 			'connection refused',
 			'host unreachable',
-			'network unreachable'
+			'network unreachable',
 		];
 
-		const isUnavailableError = unavailableErrors.some(errorType => 
-			errorMessage.includes(errorType)
+		const isUnavailableError = unavailableErrors.some((errorType) =>
+			errorMessage.includes(errorType),
 		);
 
 		if (isUnavailableError && this.consecutiveFailures >= this.MAX_CONSECUTIVE_FAILURES) {
 			logger.error(
 				`Redis appears to be unavailable after ${this.consecutiveFailures} consecutive failures. ` +
-				`Stopping reconnection attempts. Error: ${err.message}`
+					`Stopping reconnection attempts. Error: ${err.message}`,
 			);
 			this.redisUnavailable = true;
 		}
@@ -207,9 +207,9 @@ export class RedisClient {
 
 		try {
 			if (!this.subscriberClient) {
-				this.subscriberClient = createClient({ 
+				this.subscriberClient = createClient({
 					url,
-					socket: { connectTimeout: 5000 }
+					socket: { connectTimeout: 5000 },
 				});
 				await this.subscriberClient.connect();
 			}

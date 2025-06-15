@@ -12,22 +12,20 @@ interface ProductArgs {
 }
 
 type ProductResult = {
-	success: Boolean
-	message?: String
-	product?: IProduct | null
-}
+	success: Boolean;
+	message?: String;
+	product?: IProduct | null;
+};
 
 type DeleteResult = {
-	success: Boolean
-	message?: String
-	id: String
-}
+	success: Boolean;
+	message?: String;
+	id: String;
+};
 
 const { currentDB } = constants.dbLayer;
 
 const redisClient = RedisClient.getInstance();
-redisClient.connect();
-
 const table = '"TEST_PRODUCTS"';
 
 const getProduct = async (parent: any, args: { id: string }): Promise<ProductArgs | null> => {
@@ -92,7 +90,7 @@ const createProduct = async (parent: any, args: ProductArgs): Promise<ProductRes
 	} else {
 		try {
 			const query = `INSERT INTO ${table} ("name", "category") VALUES ($1, $2) RETURNING *`;
-			const params = [name, category]
+			const params = [name, category];
 			const result = await executeQuery<IProduct>(query, params);
 			logger.info(result);
 			return { success: true, product: result[0] };
@@ -125,7 +123,7 @@ const updateProduct = async (
 	} else {
 		try {
 			const query = `UPDATE ${table} SET "name" = $1, "category" = $2 WHERE id = $3 RETURNING *`;
-			const params = [name, category, id]
+			const params = [name, category, id];
 			const result = await executeQuery<IProduct>(query, params);
 			logger.info(result);
 			return { success: true, product: result[0] };

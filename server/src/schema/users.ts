@@ -13,16 +13,16 @@ interface UserInput {
 }
 
 type UserResult = {
-	success: Boolean
-	message?: String
-	user?: IUser | null
-}
+	success: Boolean;
+	message?: String;
+	user?: IUser | null;
+};
 
 type DeleteResult = {
-	success: Boolean
-	message?: String
-	id: String
-}
+	success: Boolean;
+	message?: String;
+	id: String;
+};
 
 interface UserArgs extends Partial<UserInput> {
 	id?: string;
@@ -33,7 +33,6 @@ const { currentDB } = constants.dbLayer;
 const pubsub = new PubSub();
 
 const redisClient = RedisClient.getInstance();
-redisClient.connect();
 const table = `"TEST_USERS"`;
 
 const getUser = async (parent: any, args: { id: string }): Promise<IUser | null> => {
@@ -135,7 +134,10 @@ const createUser = async (parent: any, args: UserInput): Promise<UserResult> => 
 	}
 };
 
-const updateUser = async (parent: any, args: UserArgs & { id: string }): Promise<UserResult> => {
+const updateUser = async (
+	parent: any,
+	args: UserArgs & { id: string },
+): Promise<UserResult> => {
 	const { id, first_name, last_name, age } = args;
 
 	if (currentDB === DBType.MONGODB) {

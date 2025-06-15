@@ -20,7 +20,9 @@ export const getLimitCond = (currentDB: DBType, count: number): string => {
 	}
 };
 
-export const getGenericDBInstance = async (currentDB: DBType): Promise<GenericDBConnection> => {
+export const getGenericDBInstance = async (
+	currentDB: DBType,
+): Promise<GenericDBConnection> => {
 	const genericInstance = await GenericDBConnection.getInstance(currentDB);
 
 	if (!genericInstance) {
@@ -48,7 +50,4 @@ export async function executeQuery<T extends QueryResultRow>(
 	}
 }
 
-export {
-	type DBInstance,
-	type ExecuteQueryType,
-};
+export { type DBInstance, type ExecuteQueryType };

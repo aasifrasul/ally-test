@@ -144,7 +144,7 @@ const useBookStore = create<BookStoreState>()(
 							fetchPolicy: 'network-only',
 						});
 
-						if (data && data.getBooks) {
+						if (data?.getBooks) {
 							const counts = calculateCounts(data.getBooks);
 
 							set((state) => {
@@ -276,7 +276,7 @@ const useBookStore = create<BookStoreState>()(
 							},
 						});
 
-						if (data && data.deleteBook) {
+						if (data?.deleteBook) {
 							set((state) => {
 								const bookIndex = state.books.findIndex((b) => b.id === id);
 								if (bookIndex !== -1) {
