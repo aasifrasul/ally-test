@@ -5227,6 +5227,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/ws@npm:^8.18.1":
+  version: 8.18.1
+  resolution: "@types/ws@npm:8.18.1"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/61aff1129143fcc4312f083bc9e9e168aa3026b7dd6e70796276dcfb2c8211c4292603f9c4864fae702f2ed86e4abd4d38aa421831c2fd7f856c931a481afbab
+  languageName: node
+  linkType: hard
+
 "@types/yargs-parser@npm:*":
   version: 21.0.3
   resolution: "@types/yargs-parser@npm:21.0.3"
@@ -5993,6 +6002,7 @@ __metadata:
     "@types/react-test-renderer": "npm:^19.0.0"
     "@types/ua-parser-js": "npm:0.7.39"
     "@types/uuid": "npm:10.0.0"
+    "@types/ws": "npm:^8.18.1"
     "@typescript-eslint/eslint-plugin": "npm:^8.28.0"
     "@typescript-eslint/parser": "npm:^8.28.0"
     "@wojtekmaj/enzyme-adapter-react-17": "npm:0.8.0"
@@ -6035,7 +6045,7 @@ __metadata:
     graphql-http: "npm:1.22.1"
     graphql-request: "npm:7.1.2"
     graphql-subscriptions: "npm:^3.0.0"
-    graphql-ws: "npm:^6.0.4"
+    graphql-ws: "npm:^6.0.5"
     handlebars: "npm:4.7.7"
     handlebars-loader: "npm:1.7.3"
     helmet: "npm:8.0.0"
@@ -6103,7 +6113,7 @@ __metadata:
     webpack-hot-middleware: "npm:2.26.1"
     webpack-visualizer-plugin: "npm:0.1.11"
     winston: "npm:3.11.0"
-    ws: "npm:8.18.0"
+    ws: "npm:8.18.2"
     xss: "npm:1.0.15"
     zustand: "npm:5.0.1"
   languageName: unknown
@@ -11234,7 +11244,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-ws@npm:^6.0.3, graphql-ws@npm:^6.0.4":
+"graphql-ws@npm:^6.0.3":
   version: 6.0.4
   resolution: "graphql-ws@npm:6.0.4"
   peerDependencies:
@@ -11250,6 +11260,28 @@ __metadata:
     ws:
       optional: true
   checksum: 10c0/ed17502300c702d42820ca2acc593d82acbcbec91fa93e588dc008d07d7b6914b4b22062f1ee181cff6ac62f69ea0052555ee75f270601311b943a6b7ef709dc
+  languageName: node
+  linkType: hard
+
+"graphql-ws@npm:^6.0.5":
+  version: 6.0.5
+  resolution: "graphql-ws@npm:6.0.5"
+  peerDependencies:
+    "@fastify/websocket": ^10 || ^11
+    crossws: ~0.3
+    graphql: ^15.10.1 || ^16
+    uWebSockets.js: ^20
+    ws: ^8
+  peerDependenciesMeta:
+    "@fastify/websocket":
+      optional: true
+    crossws:
+      optional: true
+    uWebSockets.js:
+      optional: true
+    ws:
+      optional: true
+  checksum: 10c0/7b882a4f47be2c67e8ae2357fb84ac7026ed8d6152eebb164aed53b8d1234f123a9a6d036fd53c8aea97a6197c7f748861205dc289ff418666cd0446571635e9
   languageName: node
   linkType: hard
 
@@ -21594,9 +21626,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:8.18.0":
-  version: 8.18.0
-  resolution: "ws@npm:8.18.0"
+"ws@npm:8.18.2":
+  version: 8.18.2
+  resolution: "ws@npm:8.18.2"
   peerDependencies:
     bufferutil: ^4.0.1
     utf-8-validate: ">=5.0.2"
@@ -21605,7 +21637,7 @@ __metadata:
       optional: true
     utf-8-validate:
       optional: true
-  checksum: 10c0/25eb33aff17edcb90721ed6b0eb250976328533ad3cd1a28a274bd263682e7296a6591ff1436d6cbc50fa67463158b062f9d1122013b361cec99a05f84680e06
+  checksum: 10c0/4b50f67931b8c6943c893f59c524f0e4905bbd183016cfb0f2b8653aa7f28dad4e456b9d99d285bbb67cca4fedd9ce90dfdfaa82b898a11414ebd66ee99141e4
   languageName: node
   linkType: hard
 

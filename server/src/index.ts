@@ -4,6 +4,7 @@ import http from 'http';
 
 import { port, host, isCurrentEnvProd } from './envConfigDetails';
 import { MongoDBConnection } from './dbClients/MongoDBConnection';
+import { RedisClient } from './cachingClients/redis';
 import { connectToIOServer, disconnectIOServer } from './socketConnection';
 import { connectWSServer, disconnectWSServer } from './webSocketConnection';
 import { getDBInstance, type DBInstance } from './dbClients/helper';
@@ -14,6 +15,7 @@ import { logger } from './Logger';
 const httpServer: http.Server = http.createServer(app);
 
 MongoDBConnection.getInstance()?.connect();
+RedisClient.getInstance()?.connect();
 
 // httpServer.on('request', () => logger.info('httpServer.request'));
 
