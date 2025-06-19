@@ -1,6 +1,7 @@
 import useBookStore, { Book } from '../../store/bookStore';
 
 import Separator from '../Common/Separator';
+import Button from '../Common/Button';
 
 const BookList = () => {
 	const { books, editBook, noOfAvailable, noOfIssued, issueBook, returnBook, deleteBook } =
@@ -38,21 +39,22 @@ const BookList = () => {
 					<p>{author}</p>
 					<p>Status: {status}</p>
 					{status === 'available' ? (
-						<button onClick={() => issueBook(id)}>Issue</button>
+						<Button onClick={() => issueBook(id)}>Issue</Button>
 					) : (
-						<button onClick={() => returnBook(id)}>Return</button>
+						<Button onClick={() => returnBook(id)}>Return</Button>
 					)}
 					<Separator width="10px" inline />
-					<button disabled={status === 'issued'} onClick={() => editBook(id)}>
+					<Button disabled={status === 'issued'} onClick={() => editBook(id)}>
 						Edit
-					</button>
+					</Button>
 					<Separator width="10px" inline />
-					<button
+					<Button
+						negative
 						disabled={status === 'issued'}
 						onClick={() => handleDeleteBook(id)}
 					>
 						Delete
-					</button>
+					</Button>
 				</li>
 			))}
 		</ul>

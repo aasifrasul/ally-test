@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { gql } from '@apollo/client';
-import { client } from '../apolloClient';
+import { client } from '../ApolloClient';
 
 export interface Book {
 	id?: string;

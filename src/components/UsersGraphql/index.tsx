@@ -1,5 +1,5 @@
 import { useQuery, gql } from '@apollo/client';
-import { client } from '../../apolloClient';
+import { client } from '../../ApolloClient';
 
 const GET_USERS = gql`
 	query users {

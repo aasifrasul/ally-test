@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 import { InputText } from '../Common/InputText';
 import Separator from '../Common/Separator';
+import Button from '../Common/Button';
 
 import useBookStore, { Book, BookStoreState } from '../../store/bookStore';
 
@@ -77,7 +78,7 @@ const BookForm = () => {
 					onChange={handleOnChangeAuthor}
 				/>
 				<Separator width="10px" inline />
-				<button onClick={handleSubmit}>{addEditText} Book</button>
+				<Button onClick={handleSubmit}>{addEditText} Book</Button>
 			</div>
 		</div>
 	);

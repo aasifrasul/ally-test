@@ -74,7 +74,7 @@ services:
             - app-network
 
     mongodb:
-        image: mongo:8.0
+        image: mongo:4.4
         environment:
             MONGO_INITDB_ROOT_USERNAME: test
             MONGO_INITDB_ROOT_PASSWORD: test

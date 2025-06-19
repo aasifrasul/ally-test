@@ -21,7 +21,7 @@ export const MovieList = (props: Props): React.ReactNode => {
 	const { filterByText } = searchActions();
 
 	useInfiniteScroll({
-		scrollRef: observerRef.current,
+		scrollRef: observerRef,
 		callback: () => fetchNextPage(currentPage! + 1),
 	});
 
