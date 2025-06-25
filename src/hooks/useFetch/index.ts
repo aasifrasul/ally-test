@@ -25,10 +25,12 @@ export interface FetchOptions<T, U = T> {
 	onUpdateError?: (error: Error) => void;
 }
 
-export interface UpdateConfig {
+export interface ModifyOptions {
+	url?: string;
 	method?: HTTPMethod;
 	headers?: Record<string, string>;
 	queryParams?: QueryParams;
+	body?: string;
 }
 
 export interface FetchResult<T, U = T> {
@@ -36,7 +38,7 @@ export interface FetchResult<T, U = T> {
 	getList: (schema?: Schema) => InitialState;
 	fetchData: (options?: customFetchOptions) => Promise<void>;
 	fetchNextPage: FetchNextPage;
-	updateData: (data: Partial<T>, config?: UpdateConfig) => Promise<U | null>;
+	updateData: (config?: ModifyOptions) => Promise<U | null>;
 }
 
 const DEFAULT_TIMEOUT = 2000;
@@ -108,6 +110,7 @@ function useFetch<T, U = T>(
 			const enhancedOptions: RequestInit = {
 				headers: {
 					'Content-Type': 'application/json',
+					...dataSource?.headers,
 				},
 				...fetchOptions,
 			};
@@ -146,11 +149,12 @@ function useFetch<T, U = T>(
 	);
 
 	const updateData = useCallback(
-		async (data: Partial<T>, config: UpdateConfig = {}): Promise<U | null> => {
+		async (config: ModifyOptions = {}): Promise<U | null> => {
 			const {
 				method = HTTPMethod.POST,
-				headers = {},
+				headers = dataSource?.headers,
 				queryParams: updateQueryParams = {},
+				body = '',
 			} = config;
 
 			if (!BASE_URL || !schema) {
@@ -170,7 +174,7 @@ function useFetch<T, U = T>(
 				...updateQueryParams,
 			};
 
-			const url = `${BASE_URL}?${buildQueryParams(mergedQueryParams)}`;
+			const url = `${config.url || BASE_URL}?${buildQueryParams(mergedQueryParams)}`;
 
 			const cleanUp = () => {
 				cleanUpTopLevel();
@@ -187,15 +191,17 @@ function useFetch<T, U = T>(
 			const enhancedOptions: RequestInit = {
 				headers: {
 					'Content-Type': 'application/json',
+					...dataSource?.headers,
 					...headers,
 				},
-				body: JSON.stringify(data),
+				body,
 			};
 
 			try {
 				const rawData = await workerManager.fetchAPIData(url, {
 					...enhancedOptions,
 					method,
+					body,
 				});
 				const transformedData = transformUpdateResponse(rawData);
 

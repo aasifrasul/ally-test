@@ -101,7 +101,6 @@ export const constants = createImmutable<Constants>({
 				cols: 21,
 				initialValue: '',
 				label: 'Description',
-				validate: 'alphabets',
 			},
 			{
 				type: 'submit',

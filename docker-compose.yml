@@ -107,6 +107,8 @@ networks:
     app-network:
         driver: bridge
 # To start the services: docker-compose up --build
+# To start the services(V2): docker compose up --build
+# docker compose -f 'docker-compose.yml' up -d --build 'mongodb'
 # To stop the services: docker-compose down
 
 # On Linux

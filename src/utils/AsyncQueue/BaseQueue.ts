@@ -24,14 +24,12 @@ export class BaseQueue<T> {
 	}
 
 	dequeue(): T | undefined {
-		if (this.isEmpty()) {
-			return undefined;
-		}
+		if (this.isEmpty()) return undefined;
 
-		const key = this.lowerLimit + 1;
+		const key = this.lowerLimit++;
 		const result = this.map.get(key);
 		this.map.delete(key);
-		this.lowerLimit++;
+		if (this.isEmpty()) this.reset();
 
 		return result;
 	}
@@ -43,9 +41,7 @@ export class BaseQueue<T> {
 	}
 
 	peek(): T | undefined {
-		if (this.isEmpty()) {
-			return undefined;
-		}
+		if (this.isEmpty()) return undefined;
 		return this.map.get(this.lowerLimit + 1);
 	}
 

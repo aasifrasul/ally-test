@@ -32,7 +32,10 @@ export const isNumber = (data: unknown): data is number =>
 export const isString = (data: unknown): data is string => typeof data === 'string';
 export const isBoolean = (data: unknown): data is boolean => typeof data === 'boolean';
 export const isMap = (data: unknown): data is Map<unknown, unknown> => data instanceof Map;
+export const isWeakMap = (data: unknown): data is WeakMap<WeakKey, unknown> =>
+	data instanceof WeakMap;
 export const isSet = (data: unknown): data is Set<unknown> => data instanceof Set;
+export const isWeakSet = (data: unknown): data is WeakSet<WeakKey> => data instanceof WeakSet;
 export const isPromise = (data: unknown): data is Promise<unknown> => data instanceof Promise;
 export const isDate = (data: unknown): data is Date => data instanceof Date;
 export const isSymbol = (data: unknown): data is symbol => typeof data === 'symbol';

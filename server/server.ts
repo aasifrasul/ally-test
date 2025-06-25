@@ -8,7 +8,8 @@ import csv from 'csv-parser';
 import express, { Application, Request, Response, NextFunction } from 'express';
 
 import { logger } from './src/Logger';
-import { pathRootDir } from './src/paths';
+import { pathRootDir, pathAssets } from './src/paths';
+import { executeQuery } from './src/dbClients/helper';
 
 const port = 3000;
 const host = '127.0.0.1';
@@ -83,20 +84,62 @@ app.post('/upload', (req, res) => {
 	});
 });
 
-app.post('/process-csv', (req, res) => {
-	req.pipe(csv())
-		.on('data', (row: any) => {
-			// Process each row of the CSV data here
-			console.log('Processing row:', row);
-			// You could save this data to a database, perform calculations, etc.
+app.get('/db-setup', async (req, res) => {
+	try {
+		await executeQuery('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
+		await executeQuery(`CREATE TABLE IF NOT EXISTS "TEST_USERS" (
+			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+			first_name VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
+			last_name VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
+			age INTEGER               -- INTEGER is the correct type
+		);`);
+		await executeQuery(`CREATE TABLE IF NOT EXISTS "TEST_PRODUCTS" (
+			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+			name VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
+			category VARCHAR(4000)  -- VARCHAR is the correct type, and length is specified in parentheses
+		);`);
+		await executeQuery(`CREATE TABLE IF NOT EXISTS "book_store" (
+			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+			title VARCHAR(4000),	-- VARCHAR is the correct type, and length is specified in parentheses
+			author VARCHAR(4000),	-- VARCHAR is the correct type, and length is specified in parentheses
+			status VARCHAR(4000)	-- INTEGER is the correct type
+		);`);
+		res.send('Postgres Db setup successfully!');
+	} catch (err) {
+		logger.warn(`Datanse Error => ${err}`);
+		res.status(500).send(`Datanse Error => ${err}`);
+	}
+});
+
+app.get('/process-csv', (req, res) => {
+	res.setHeader('Content-Type', 'application/json');
+	res.setHeader('Transfer-Encoding', 'chunked');
+
+	let isFirstChunk = true;
+	const filePath = path.join(pathAssets, 'winemag-data-130k-v2.csv');
+	const processRow = (row: string) => row;
+	res.write('['); // Start JSON array
+
+	fs.createReadStream(filePath, 'utf8')
+		.pipe(csv())
+		.on('data', (row) => {
+			// Process each row
+			const processedRow = processRow(row); // Your processing logic
+
+			if (!isFirstChunk) {
+				res.write(',');
+			}
+			res.write(JSON.stringify(processedRow));
+			isFirstChunk = false;
 		})
 		.on('end', () => {
-			res.send('CSV file processed successfully!');
+			res.write(']'); // End JSON array
+			res.end();
 			console.log('CSV processing complete.');
 		})
-		.on('error', (err: any) => {
+		.on('error', (err) => {
 			console.error('Error processing CSV:', err);
-			res.status(500).send('Error processing CSV file.');
+			res.status(500).end('Error processing CSV file.');
 		});
 });
 
