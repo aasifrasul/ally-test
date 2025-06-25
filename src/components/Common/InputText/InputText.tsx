@@ -24,7 +24,7 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 	} = props;
 
 	const id = props.id || `id-${name}`;
-	const { value, error, touched, dirty, isValid, handleChange } = useFormField({
+	const { value, error, touched, isValid, handleChange } = useFormField({
 		id,
 		initialValue,
 		validate,

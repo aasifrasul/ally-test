@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, ChangeEvent } from 'react';
+import { useState, useCallback, useEffect, useRef, ChangeEvent } from 'react';
 import { debounce } from '../../utils/throttleAndDebounce';
 
 import { ValidationResult, UseFormFieldProps, FormFieldState } from './types';
@@ -17,6 +17,9 @@ export function useFormField({
 		dirty: false,
 		isValid: true,
 	});
+
+	// Track the previous initialValue to detect actual changes
+	const prevInitialValueRef = useRef(initialValue);
 
 	// Debounced validation and onChange handler
 	const debouncedValidation = useCallback(
@@ -47,15 +50,19 @@ export function useFormField({
 		[validate, onChange, id, customErrorMessage],
 	);
 
-	// Handle external value updates
+	// Handle initialValue changes (both when clean and dirty)
 	useEffect(() => {
-		if (initialValue !== state.value && !state.dirty) {
+		// Only update if initialValue actually changed (not just different from current value)
+		if (initialValue !== prevInitialValueRef.current) {
 			setState((prev) => ({
 				...prev,
 				value: initialValue,
+				dirty: false, // Reset dirty state on external update
 			}));
+			debouncedValidation(initialValue);
+			prevInitialValueRef.current = initialValue;
 		}
-	}, [initialValue, state.dirty]);
+	}, [initialValue, debouncedValidation]);
 
 	const handleChange = useCallback(
 		(event: ChangeEvent<HTMLInputElement>) => {
@@ -81,7 +88,20 @@ export function useFormField({
 			isValid: true,
 			error: undefined,
 		});
+		prevInitialValueRef.current = initialValue;
 	}, [initialValue]);
+
+	const setValue = useCallback(
+		(newValue: string, markAsDirty = true) => {
+			setState((prev) => ({
+				...prev,
+				value: newValue,
+				dirty: markAsDirty,
+			}));
+			debouncedValidation(newValue);
+		},
+		[debouncedValidation],
+	);
 
 	return {
 		value: state.value,
@@ -91,16 +111,6 @@ export function useFormField({
 		isValid: state.isValid,
 		handleChange,
 		reset,
-		setValue: useCallback(
-			(newValue: string) => {
-				setState((prev) => ({
-					...prev,
-					value: newValue,
-					dirty: true,
-				}));
-				debouncedValidation(newValue);
-			},
-			[debouncedValidation],
-		),
+		setValue,
 	};
 }

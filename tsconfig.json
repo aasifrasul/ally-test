@@ -5,6 +5,7 @@
 		"lib": ["dom", "dom.iterable", "esnext"],
 		"allowJs": true,
 		"skipLibCheck": true,
+		"sourceMap": true, // <--- Ensure this is true for debugging
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"strict": true,

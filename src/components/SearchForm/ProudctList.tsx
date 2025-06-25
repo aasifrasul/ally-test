@@ -1,7 +1,15 @@
 import React from 'react';
 
 import { InputText } from '../Common/InputText';
-import Table from '../Common/Table';
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHeader,
+	TableHeaderCell,
+	TableRow,
+} from '../Common/Table';
+import { Segment } from '../Common/Segment';
 
 interface ProductListProps {
 	data: any[];
@@ -31,6 +39,14 @@ export default function ProductList({
 		}
 	};
 
+	const rows = data.map((item, id) => (
+		<TableRow key={id}>
+			{headers.map(({ key }) => (
+				<TableCell>{item[key]}</TableCell>
+			))}
+		</TableRow>
+	));
+
 	return (
 		<>
 			<div>
@@ -47,13 +63,18 @@ export default function ProductList({
 				</span>
 			</div>
 			<hr />
-			<Table
-				headers={headers}
-				rowData={data}
-				keyIdentifier="id"
-				tableWidth="100%"
-				sortCallback={sortCallback}
-			/>
+			<Segment>
+				<Table celled striped>
+					<TableHeader>
+						<TableRow>
+							{headers.map(({ value }) => (
+								<TableHeaderCell>{value}</TableHeaderCell>
+							))}
+						</TableRow>
+					</TableHeader>
+					<TableBody>{rows}</TableBody>
+				</Table>
+			</Segment>
 		</>
 	);
 }

@@ -15,6 +15,8 @@ export interface FormWithElements extends HTMLFormElement {
 	elements: FormElements;
 }
 
+const emptyFunc = (): void => {};
+
 interface FormGeneratorProps {
 	id: string;
 	name: string;
@@ -61,8 +63,10 @@ export default function FormGenerator(props: FormGeneratorProps) {
 								initialValue={initialValue}
 								placeholder={placeholder}
 								label={label}
-								validate={(value) =>
-									validate ? props.validations[validate](value) || '' : ''
+								validate={
+									validate
+										? props.validations[validate] || emptyFunc
+										: emptyFunc
 								}
 							/>
 							<hr />

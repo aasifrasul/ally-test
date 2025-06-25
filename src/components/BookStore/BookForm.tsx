@@ -3,10 +3,10 @@ import { useState, useEffect } from 'react';
 import { InputText } from '../Common/InputText';
 import Separator from '../Common/Separator';
 
-import useBookStore, { Book, BookStoreState } from '../../store/bookStore';
+import useBookStore from '../../store/bookStore';
 
 const BookForm = () => {
-	const { books, updateBook, addBook, editingBook } = useBookStore();
+	const { updateBook, addBook, editingBook } = useBookStore();
 	const [title, setTitle] = useState<string>('');
 	const [author, setAuthor] = useState<string>('');
 

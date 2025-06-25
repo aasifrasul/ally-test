@@ -94,14 +94,6 @@ export class APIService {
 		return fetchPromise;
 	}
 
-	async saveData(endpoint: string, data: Record<string, any>): Promise<SaveDataResponse> {
-		return this.fetch<SaveDataResponse>(endpoint, {
-			method: HTTPMethod.POST,
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(data),
-		});
-	}
-
 	abort(endpoint: string): void {
 		const controller = this.abortControllers.get(endpoint);
 		if (controller) {
