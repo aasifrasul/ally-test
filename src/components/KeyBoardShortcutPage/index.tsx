@@ -1,7 +1,7 @@
 import React from 'react';
 
 import KeyBoardShortcut from '../Common/KeyBoardShortcut/KeyBoardShortcut';
-import Spacer from '../Common/Spacer/Spacer';
+import Spacer from '../Common/Spacer';
 
 function ImplementKeyBoardShortcut() {
 	const containerRef = React.useRef<HTMLDivElement>(null);

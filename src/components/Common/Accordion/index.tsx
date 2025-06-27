@@ -2,23 +2,28 @@ import React from 'react';
 
 import AccordionSection from './AccordionSection';
 
+type KeyValuePair = {
+	label: string,
+	value: string,
+}
+
+type Section = {
+	label: string,
+	isOpen: boolean,
+	content: KeyValuePair[],
+}
+
 interface AccordionProps {
 	allowMultipleOpen?: boolean;
-	children?: Array<{
-		props: {
-			children: React.ReactNode;
-			isOpen?: boolean;
-			label: string;
-		};
-	}>;
+	sections: Section[];
 }
 
 function Accordion(props: AccordionProps) {
 	const [openSections, setOpenSections] = React.useState<{ [key: string]: boolean }>({});
 
 	React.useEffect(() => {
-		props.children?.forEach(
-			({ props: { isOpen, label } }) =>
+		props.sections?.forEach(
+			({ isOpen, label }) =>
 				isOpen &&
 				setOpenSections((sections) => {
 					return {
@@ -37,23 +42,27 @@ function Accordion(props: AccordionProps) {
 		setOpenSections((sections) => {
 			return props.allowMultipleOpen
 				? {
-						...sections,
-						...section,
-					}
+					...sections,
+					...section,
+				}
 				: section;
 		});
 	};
 
 	return (
 		<div style={{ border: '2px solid #008f68' }}>
-			{props.children?.map(({ props: { children, label } }) => (
+			{props.sections?.map(({ content, label }) => (
 				<AccordionSection
 					key={label}
 					isOpen={!!openSections[label]}
 					label={label}
 					onClick={() => onClick(label)}
 				>
-					{children}
+					{content.map((item, index) => (
+						<p key={index}>
+							<strong>{item.label}:</strong> {item.value}
+						</p>
+					))}
 				</AccordionSection>
 			))}
 		</div>

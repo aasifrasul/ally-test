@@ -4,7 +4,7 @@ import { WorkerQueue } from '../../workers/WorkerQueue';
 import { useSelector } from '../useSelector';
 import { createActionHooks } from '../createActionHooks';
 
-import { buildQueryParams, handleAsyncCalls } from '../../utils/common';
+import { buildQueryParams, Result } from '../../utils/common';
 import { constants } from '../../constants';
 import { DataSource, InitialState, QueryParams, Schema } from '../../constants/types';
 import { HTTPMethod } from '../../types/api';
@@ -115,19 +115,12 @@ function useFetch<T, U = T>(
 				...fetchOptions,
 			};
 
-			const result = await handleAsyncCalls(
-				workerManager.fetchAPIData(url, {
-					...enhancedOptions,
-					method: HTTPMethod.GET,
-				}),
-			);
+			const result: Result<T> = await workerManager.fetchAPIData(url, {
+				...enhancedOptions,
+				method: HTTPMethod.GET,
+			});
 
-			if (!result.success) {
-				if (result.error.name !== 'AbortError') {
-					fetchFailed();
-					onError(result.error);
-				}
-			} else {
+			if (result.success) {
 				const transformedData = transformResponse(result.data);
 
 				fetchSucceeded(transformedData);
@@ -135,6 +128,11 @@ function useFetch<T, U = T>(
 
 				if (enhancedQueryParams.page) {
 					advancePage(enhancedQueryParams.page);
+				}
+			} else {
+				if (result.error.name !== 'AbortError') {
+					fetchFailed();
+					onError(result.error);
 				}
 			}
 
@@ -197,30 +195,29 @@ function useFetch<T, U = T>(
 				body,
 			};
 
-			try {
-				const rawData = await workerManager.fetchAPIData(url, {
-					...enhancedOptions,
-					method,
-					body,
-				});
-				const transformedData = transformUpdateResponse(rawData);
+			const result: Result<T> = await workerManager.fetchAPIData(url, {
+				...enhancedOptions,
+				method,
+				body,
+			});
+
+			if (result.success) {
+				const transformedData = transformResponse(result.data);
 
 				updateSucceeded();
-				onUpdateSuccess(transformedData);
-			} catch (error: any) {
-				if (error.name !== 'AbortError') {
-					const errorObj = error instanceof Error ? error : new Error(String(error));
-
+				onSuccess(transformedData);
+			} else {
+				if (result.error.name !== 'AbortError') {
 					updateFailed();
-					onUpdateError(errorObj);
+					onError(result.error);
 				}
-			} finally {
-				if (timeoutId.current) {
-					clearTimeout(timeoutId.current);
-					timeoutId.current = null;
-				}
-				updateCompleted();
 			}
+
+			if (timeoutId.current) {
+				clearTimeout(timeoutId.current);
+				timeoutId.current = null;
+			}
+			updateCompleted();
 			return null;
 		},
 		[

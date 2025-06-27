@@ -9,7 +9,7 @@ type ErrorResult = {
 	error: Error;
 };
 
-type Result<T> = SuccessResult<T> | ErrorResult;
+export type Result<T> = SuccessResult<T> | ErrorResult;
 
 export interface ResponseLike {
 	ok: boolean;
@@ -46,6 +46,14 @@ export async function fetchAPIData<T>(promise: Promise<ResponseLike>): Promise<R
 		return {
 			success: false,
 			error: new Error('Expected Response-like object'),
+		};
+	}
+
+	// ✅ Now check the VALUE of response.ok
+	if (!response.ok) {
+		return {
+			success: false,
+			error: new Error(`HTTP Error ${response.status || 'unknown'}`),
 		};
 	}
 

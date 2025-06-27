@@ -16,7 +16,7 @@ export default function SearchFormContainer() {
 	);
 
 	function onSuccess({ message }: { message: unknown[] }) {
-		setData(message);
+		setData(message as unknown as any);
 	}
 
 	const addItem = async (data: any) => {

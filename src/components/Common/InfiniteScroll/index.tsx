@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Shape, Spinner } from '../Spinner/Spinner';
-//import { Block } from './Block';
+import { Shape, Spinner } from '../Spinner';
 
 interface Props {
 	hasMore: boolean;

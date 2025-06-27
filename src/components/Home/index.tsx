@@ -1,6 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import Spacer from '../Common/Spacer/Spacer';
+import Spacer from '../Common/Spacer';
 import RootNavigation from '../RootNavigation';
 
 interface HomeProps {
