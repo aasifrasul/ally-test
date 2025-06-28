@@ -1,38 +1,38 @@
 [
-    {
-        "label": "Alligator Mississippiensis",
-        "isOpen": true,
-        "content": [
-            {
-                "label": "Common Name",
-                "value": "American Alligator"
-            },
-            {
-                "label": "Distribution", 
-                "value": "Texas to North Carolina, US"
-            },
-            {
-                "label": "Endangered Status",
-                "value": "Currently Not Endangered"
-            }
-        ]
-    },
-    {
-        "label": "Alligator Sinensis",
-        "isOpen": true,
-        "content": [
-            {
-                "label": "Common Name",
-                "value": "Chinese Alligator"
-            },
-            {
-                "label": "Distribution", 
-                "value": "Eastern China"
-            },
-            {
-                "label": "Endangered Status",
-                "value": "Critically Endangered"
-            }
-        ]
-    }
+	{
+		"label": "Alligator Mississippiensis",
+		"isOpen": true,
+		"content": [
+			{
+				"label": "Common Name",
+				"value": "American Alligator"
+			},
+			{
+				"label": "Distribution",
+				"value": "Texas to North Carolina, US"
+			},
+			{
+				"label": "Endangered Status",
+				"value": "Currently Not Endangered"
+			}
+		]
+	},
+	{
+		"label": "Alligator Sinensis",
+		"isOpen": true,
+		"content": [
+			{
+				"label": "Common Name",
+				"value": "Chinese Alligator"
+			},
+			{
+				"label": "Distribution",
+				"value": "Eastern China"
+			},
+			{
+				"label": "Endangered Status",
+				"value": "Critically Endangered"
+			}
+		]
+	}
 ]

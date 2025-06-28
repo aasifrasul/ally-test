@@ -3,7 +3,7 @@ import { Schema, model, Document } from 'mongoose';
 export interface IBook {
 	title: string;
 	author: string;
-	status?: 'available' | 'issued';
+	issued: boolean;
 }
 
 // Interface for a Book document (including Document properties like _id)
@@ -29,11 +29,10 @@ const bookSchema = new Schema<IBookDocument>(
 	{
 		title: { type: String, required: true },
 		author: { type: String, required: true },
-		status: {
-			type: String,
+		issued: {
+			type: Boolean,
 			required: true,
-			enum: ['available', 'issued'],
-			default: 'available',
+			default: false,
 		},
 	},
 	{

@@ -8,7 +8,7 @@ export interface Book {
 	id?: string;
 	title: string;
 	author: string;
-	status?: 'available' | 'issued';
+	issued: boolean;
 }
 
 export type AddBookType = (book: Book) => void;
@@ -43,36 +43,36 @@ const GET_BOOKS = gql`
 			id
 			title
 			author
-			status
+			issued
 		}
 	}
 `;
 
 const ADD_BOOK = gql`
-	mutation AddBook($title: String!, $author: String!, $status: String!) {
-		addBook(title: $title, author: $author, status: $status) {
+	mutation AddBook($title: String!, $author: String!, $issued: Boolean!) {
+		addBook(title: $title, author: $author, issued: $issued) {
 			success
 			message
 			book {
 				id
 				title
 				author
-				status
+				issued
 			}
 		}
 	}
 `;
 
 const UPDATE_BOOK = gql`
-	mutation UpdateBook($id: ID!, $title: String, $author: String, $status: String) {
-		updateBook(id: $id, title: $title, author: $author, status: $status) {
+	mutation UpdateBook($id: ID!, $title: String, $author: String, $issued: Boolean) {
+		updateBook(id: $id, title: $title, author: $author, issued: $issued) {
 			success
 			message
 			book {
 				id
 				title
 				author
-				status
+				issued
 			}
 		}
 	}
@@ -99,10 +99,10 @@ const filterBooks = (books: Book[], text: string): Book[] => {
 const calculateCounts = (books: Book[]) =>
 	books.reduce(
 		(counts, book) => {
-			if (book.status === 'available') {
-				counts.available += 1;
-			} else {
+			if (book.issued) {
 				counts.issued += 1;
+			} else {
+				counts.available += 1;
 			}
 			return counts;
 		},
@@ -175,7 +175,7 @@ const useBookStore = create<BookStoreState>()(
 					try {
 						const { data } = await client.mutate({
 							mutation: ADD_BOOK,
-							variables: { ...bookData, status: 'available' },
+							variables: { ...bookData, issued: false },
 						});
 
 						if (data?.addBook?.success) {
@@ -206,14 +206,14 @@ const useBookStore = create<BookStoreState>()(
 					get().setStatus();
 
 					try {
-						const { id, title, author, status } = updateData;
+						const { id, title, author, issued } = updateData;
 						const { data } = await client.mutate({
 							mutation: UPDATE_BOOK,
 							variables: {
 								id: id,
 								...(title && { title }),
 								...(author && { author }),
-								...(status && { status }),
+								...(issued && { issued }),
 							},
 						});
 
@@ -226,14 +226,14 @@ const useBookStore = create<BookStoreState>()(
 									(b) => b.id === updatedBook.id,
 								);
 								if (bookIndex !== -1) {
-									// If the status is changing, update counts
-									if (state.books[bookIndex].status !== updatedBook.status) {
-										if (updatedBook.status === 'available') {
-											state.noOfAvailable += 1;
-											state.noOfIssued -= 1;
-										} else {
+									// If the issued is changing, update counts
+									if (state.books[bookIndex].issued !== updatedBook.issued) {
+										if (updatedBook.issued) {
 											state.noOfAvailable -= 1;
 											state.noOfIssued += 1;
+										} else {
+											state.noOfAvailable += 1;
+											state.noOfIssued -= 1;
 										}
 									}
 
@@ -253,15 +253,15 @@ const useBookStore = create<BookStoreState>()(
 
 				issueBook: async (id) => {
 					const book = get().books.find((b) => b.id === id);
-					if (book?.status === 'available') {
-						await get().updateBook({ ...book, id, status: 'issued' });
+					if (book && !book.issued) {
+						await get().updateBook({ ...book, id, issued: true });
 					}
 				},
 
 				returnBook: async (id) => {
 					const book = get().books.find((b) => b.id === id);
-					if (book?.status === 'issued') {
-						await get().updateBook({ ...book, id, status: 'available' });
+					if (book?.issued) {
+						await get().updateBook({ ...book, id, issued: false });
 					}
 				},
 
@@ -287,10 +287,10 @@ const useBookStore = create<BookStoreState>()(
 										state.searchText,
 									);
 
-									if (deletedBook.status === 'available') {
-										state.noOfAvailable -= 1;
-									} else {
+									if (deletedBook.issued) {
 										state.noOfIssued -= 1;
+									} else {
+										state.noOfAvailable -= 1;
 									}
 								}
 								state.loading = false;

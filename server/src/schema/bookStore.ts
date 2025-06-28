@@ -35,7 +35,7 @@ const getBook = async (parent: any, args: { id: string }): Promise<IBook | null>
 		}
 	} else {
 		const whereClause = id ? `WHERE id = $1` : getLimitCond(currentDB, 1);
-		const query = `SELECT id, title, author, status FROM ${table} ${whereClause}`;
+		const query = `SELECT id, title, author, issued FROM ${table} ${whereClause}`;
 
 		try {
 			const rows = await executeQuery<any>(query, [id]);
@@ -69,7 +69,7 @@ const getBooks = async (parent: any, args: BookArgs = {}): Promise<IBook[]> => {
 				'WHERE ' +
 				keys.map((key) => `"${key}" = '${args[key as keyof BookArgs]}'`).join(' AND ');
 		}
-		const query: string = `SELECT id, title, author, status FROM ${table} ${whereClause}`;
+		const query: string = `SELECT id, title, author, issued FROM ${table} ${whereClause}`;
 		try {
 			const result: IBook[] = await executeQuery(query);
 			return result;
@@ -81,15 +81,15 @@ const getBooks = async (parent: any, args: BookArgs = {}): Promise<IBook[]> => {
 };
 
 const addBook = async (parent: any, args: IBook): Promise<BookMutationResponse> => {
-	const { title, author, status } = args;
+	const { title, author, issued = false } = args;
 	// Validation
-	if (!title || !author || !status) {
-		throw new Error('Title, author and status are required');
+	if (!title || !author) {
+		throw new Error('Title, author and issued are required');
 	}
 
 	if (currentDB === DBType.MONGODB) {
 		try {
-			const book = new Book({ title, author, status });
+			const book = new Book({ title, author, issued });
 			await book.save();
 
 			pubsub.publish('BOOK_CREATED', { bookCreated: book });
@@ -109,8 +109,8 @@ const addBook = async (parent: any, args: IBook): Promise<BookMutationResponse> 
 			};
 		}
 	} else {
-		const query = `INSERT INTO ${table} (title, author, status) VALUES ($1, $2, $3) RETURNING *`;
-		const params = [title, author, status];
+		const query = `INSERT INTO ${table} (title, author, issued) VALUES ($1, $2, $3) RETURNING *`;
+		const params = [title, author, issued];
 
 		try {
 			const result = await executeQuery<any>(query, params);
@@ -136,17 +136,17 @@ const updateBook = async (
 	parent: any,
 	args: UpdatebookArgs,
 ): Promise<BookMutationResponse> => {
-	const { id, title, author, status } = args;
+	const { id, title, author, issued = false } = args;
 	// Validation
-	if (!title && !author && !status) {
-		throw new Error('Title, author and status all three cannot be empty');
+	if (!title && !author) {
+		throw new Error('Title, author and issued all three cannot be empty');
 	}
 
 	if (currentDB === DBType.MONGODB) {
 		try {
 			const book = await Book.findByIdAndUpdate(
 				id,
-				{ title, author, status },
+				{ title, author, issued },
 				{ new: true },
 			);
 			if (book) {
@@ -166,8 +166,8 @@ const updateBook = async (
 			};
 		}
 	} else {
-		const query = `UPDATE ${table} SET title = $1, author = $2, status = $3 WHERE id = $4 RETURNING *`;
-		const params = [title, author, status, id];
+		const query = `UPDATE ${table} SET title = $1, author = $2, issued = $3 WHERE id = $4 RETURNING *`;
+		const params = [title, author, issued, id];
 		try {
 			const result = await executeQuery<any>(query, params);
 			return {
@@ -225,44 +225,44 @@ export { getBook, getBooks, addBook, updateBook, deleteBook, bookCreated };
 
 /**
  * Oracle
- * create table book_store ( "id" number generated always as identity, "title" varchar2(4000), "author" varchar2(4000), "status" number, primary key ("id"));
+ * create table book_store ( "id" number generated always as identity, "title" varchar2(4000), "author" varchar2(4000), "issued" boolean, primary key ("id"));
  * 
  * PGSQL
  * 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE "book_store" (
 	id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-	title VARCHAR(4000),	-- VARCHAR is the correct type, and length is specified in parentheses
-	author VARCHAR(4000),	-- VARCHAR is the correct type, and length is specified in parentheses
-	status VARCHAR(4000)	-- INTEGER is the correct type
+	title VARCHAR(4000),
+	author VARCHAR(4000),
+	issued BOOLEAN NOT NULL DEFAULT TRUE
 );
  * 
  * {
- "query": "mutation addBook($title: String!, $author: String!, $status: String!) { addBook(title: $title, author: $author, status: $status) }",
+ "query": "mutation addBook($title: String!, $author: String!, $issued: Boolean!) { addBook(title: $title, author: $author, issued: $issued) }",
  "variables": {
 	 "title": "Aasif",
 	 "author": "Rasul",
-	 "status": "available"
+	 "issued": false
  }
 }
  * 
  * {
-	"query": "{ getBook(id: \"67dbd86a20663aeb49393e32\") {id, title, author, status} }"
+	"query": "{ getBook(id: \"67dbd86a20663aeb49393e32\") {id, title, author, issued} }"
 }
  * 
  * 
  * {
-	"query": "{ getBooks {id, title, author, status} }"
+	"query": "{ getBooks {id, title, author, issued} }"
 }
  * 
  * 
  * {
- "query": "mutation updateBook($id: ID!, $title: String!, $author: String!, $status: String) { updateBook(id: $id, title: $title, author: $author, status: $status) }",
+ "query": "mutation updateBook($id: ID!, $title: String!, $author: String!, $issued: Boolean) { updateBook(id: $id, title: $title, author: $author, issued: $issued) }",
  "variables": {
 	 "id": "67dbd86a20663aeb49393e32",
 	 "title": "John",
 	 "author": "Doe",
-	 "status": "issued"
+	 "issued": false
  }
 }
  * 

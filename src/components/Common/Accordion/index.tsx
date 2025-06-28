@@ -3,15 +3,15 @@ import React from 'react';
 import AccordionSection from './AccordionSection';
 
 type KeyValuePair = {
-	label: string,
-	value: string,
-}
+	label: string;
+	value: string;
+};
 
 type Section = {
-	label: string,
-	isOpen: boolean,
-	content: KeyValuePair[],
-}
+	label: string;
+	isOpen: boolean;
+	content: KeyValuePair[];
+};
 
 interface AccordionProps {
 	allowMultipleOpen?: boolean;
@@ -42,9 +42,9 @@ function Accordion(props: AccordionProps) {
 		setOpenSections((sections) => {
 			return props.allowMultipleOpen
 				? {
-					...sections,
-					...section,
-				}
+						...sections,
+						...section,
+					}
 				: section;
 		});
 	};

@@ -73,7 +73,7 @@ export class APIService {
 	private async executeRequest<T>(
 		endpoint: string,
 		options: APIOptions,
-		cacheKey: string
+		cacheKey: string,
 	): Promise<Result<T>> {
 		const abortKey = `${endpoint}_${Date.now()}_${Math.random()}`;
 		const abortController = new AbortController();
@@ -88,7 +88,7 @@ export class APIService {
 					...options.headers,
 				},
 				body: options.body as BodyInit | undefined,
-			})
+			}),
 		);
 
 		// Cache successful GET results only

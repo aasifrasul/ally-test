@@ -78,7 +78,7 @@ export const constants: Constants = {
 		},
 	},
 	dbLayer: {
-		currentDB: DBType.MONGODB,
+		currentDB: DBType.POSTGRES,
 		MAX_RETRIES: 3,
 		mongodb: {
 			uri: 'mongodb://test:test@localhost:27017/test?authSource=admin',
