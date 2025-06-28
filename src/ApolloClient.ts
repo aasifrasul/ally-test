@@ -3,6 +3,17 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 import { constants } from './constants/';
+import { createLogger, Logger, LogLevel } from './utils/logger';
+
+const getWsUrl = (httpUrl: string) => {
+	return httpUrl.replace(/^https?:\/\//, (match) =>
+		match === 'https://' ? 'wss://' : 'ws://',
+	);
+};
+
+const logger: Logger = createLogger('ApolloClient', {
+	level: LogLevel.DEBUG,
+});
 
 const httpLink = new HttpLink({
 	uri: `${constants.BASE_URL}/graphql/`,
@@ -10,7 +21,7 @@ const httpLink = new HttpLink({
 
 const wsLink = new GraphQLWsLink(
 	createClient({
-		url: `${constants.BASE_URL.replace('http', 'ws')}/graphql/`,
+		url: `${getWsUrl(constants.BASE_URL!)}/graphql/`,
 		connectionParams: {
 			// Add any authentication tokens if needed
 			// authToken: user.authToken

@@ -29,15 +29,10 @@ connectToIOServer(httpServer);
 let isShuttingDown = false;
 
 process.on('unhandledRejection', (error: unknown) => {
-	if (error instanceof Error) {
-		logger.error(`Unhandled Rejection: ${error.message}`);
-	} else {
-		logger.error('Unhandled Rejection: Unknown error occurred');
-	}
+	const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
+	logger.error(`Unhandled Rejection: ${errorMsg}`);
 
-	if (isCurrentEnvProd) {
-		void gracefulShutdown('unhandledRejection');
-	}
+	if (isCurrentEnvProd) void gracefulShutdown('unhandledRejection');
 });
 
 process.on('uncaughtException', (e) => {

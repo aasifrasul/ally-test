@@ -6,7 +6,7 @@ import ProductList from './ProudctList';
 import Pagination from '../Common/Pagination';
 import FormGenerator, { FormWithElements } from '../Common/FormGenerator';
 import { constants } from '../../constants';
-import { Spinner } from '../Common/Spinner/Spinner';
+import { Spinner } from '../Common/Spinner';
 
 import { sortMixedArray, searchTextOnData } from '../../utils/common';
 
@@ -60,7 +60,7 @@ export default function SearchForm({ data, addItem }: SearchFormProps) {
 		processData(data);
 	}, [data, searchParams]);
 
-	const handleSubmit = (e: React.FormEvent<FormWithElements>) => {
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const formData = new FormData(e.currentTarget);
 		const jsonFormData = Object.fromEntries(formData.entries());
@@ -68,7 +68,7 @@ export default function SearchForm({ data, addItem }: SearchFormProps) {
 		clearForm(e.currentTarget);
 	};
 
-	const clearForm = (form: FormWithElements) => {
+	const clearForm = (form: HTMLFormElement) => {
 		Array.from(form.elements).forEach((item) => {
 			const inputElement = item as HTMLInputElement;
 			if (inputElement.value) {

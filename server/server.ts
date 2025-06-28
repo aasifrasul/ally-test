@@ -100,9 +100,9 @@ app.get('/db-setup', async (req, res) => {
 		);`);
 		await executeQuery(`CREATE TABLE IF NOT EXISTS "book_store" (
 			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-			title VARCHAR(4000),	-- VARCHAR is the correct type, and length is specified in parentheses
-			author VARCHAR(4000),	-- VARCHAR is the correct type, and length is specified in parentheses
-			status VARCHAR(4000)	-- INTEGER is the correct type
+			title VARCHAR(4000),
+			author VARCHAR(4000),
+			issued BOOLEAN NOT NULL DEFAULT TRUE
 		);`);
 		res.send('Postgres Db setup successfully!');
 	} catch (err) {

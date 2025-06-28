@@ -3,7 +3,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import { routes, ErrorPage } from '../../routes';
-import Spinner from '../Common/Spinner';
+import { Spinner } from '../Common/Spinner';
 import { configureGlobalLogger, LogLevel } from '../../utils/logger';
 
 import './App.css';

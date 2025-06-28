@@ -7,7 +7,7 @@ import { FetchStoreProvider } from './Context/dataFetchContext';
 import { ThemeProvider } from './Context/ThemeProvider';
 
 import store from './store';
-import { client } from './apolloClient';
+import { client } from './ApolloClient';
 
 import App from './components/App';
 

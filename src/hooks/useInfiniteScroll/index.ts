@@ -1,32 +1,58 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useIntersectionObserver } from '../useIntersectionObserver';
 
 interface UseInfiniteScrollProps {
-	scrollRef: HTMLElement | null;
+	scrollRef: React.RefObject<HTMLElement>;
 	callback: () => void;
+	enabled?: boolean; // Add option to disable
 }
 
-export const useInfiniteScroll = ({ scrollRef, callback }: UseInfiniteScrollProps): void => {
+export const useInfiniteScroll = ({
+	scrollRef,
+	callback,
+	enabled = true,
+}: UseInfiniteScrollProps): void => {
+	const callbackRef = useRef(callback);
+	const cleanupRef = useRef<(() => void) | undefined>(null);
+
+	// Keep callback ref current
+	useEffect(() => {
+		callbackRef.current = callback;
+	}, [callback]);
+
 	const handleIntersection: IntersectionObserverCallback = useCallback(
-		(entries, observer) => {
+		(entries) => {
 			entries.forEach((entry) => {
-				if (entry.intersectionRatio > 0) {
-					callback();
+				if (entry.isIntersecting && enabled) {
+					callbackRef.current();
 				}
 			});
 		},
-		[callback],
+		[enabled],
 	);
 
 	const observe = useIntersectionObserver({
 		threshold: 0,
-		rootMargin: '2000px',
+		rootMargin: '100px', // Reduced from 2000px - that's excessive
 		onIntersect: handleIntersection,
 	});
 
-	useEffect(() => {
-		if (scrollRef) {
-			observe(scrollRef);
+	const cleanup = () => {
+		if (cleanupRef.current) {
+			cleanupRef.current();
+			cleanupRef.current = null;
 		}
-	}, [observe, scrollRef]);
+	};
+
+	useEffect(() => {
+		// Cleanup previous observation
+		cleanup();
+
+		if (enabled && scrollRef.current) {
+			cleanupRef.current = observe(scrollRef.current);
+		}
+
+		// Cleanup on unmount or when dependencies change
+		return () => cleanup();
+	}, [observe, scrollRef, enabled]);
 };

@@ -52,9 +52,10 @@ export class WorkerQueue {
 	private async sendMessage(type: string, data: any, timeout = 30000): Promise<any> {
 		const id = getRandomId();
 		const pending = this.promiseFactory.create(id, timeout);
+		const message: WorkerMessage = { id, type, data };
 
 		try {
-			this.worker.postMessage({ id, type, data });
+			this.worker.postMessage(message);
 			return pending.promise;
 		} catch (error) {
 			pending.reject(error);
@@ -63,7 +64,7 @@ export class WorkerQueue {
 	}
 
 	// Public API methods
-	async fetchAPIData<T>(endpoint: string, options?: APIOptions): Promise<T> {
+	async fetchAPIData<T = unknown>(endpoint: string, options?: APIOptions): Promise<T> {
 		return this.sendMessage('fetchAPIData', { endpoint, options });
 	}
 

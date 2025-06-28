@@ -17,8 +17,8 @@ export const typeDefs = `
 		updateProduct(id: ID!, name: String!, category: String!): ProductResult
 		deleteProduct(id: ID!): DeleteResult
 
-		addBook(title: String!, author: String!, status: String!): BookMutationResponse
-		updateBook(id: ID!, title: String, author: String, status: String): BookMutationResponse
+		addBook(title: String!, author: String!, issued: Boolean!): BookMutationResponse
+		updateBook(id: ID!, title: String, author: String, issued: Boolean): BookMutationResponse
 		deleteBook(id: ID!): DeleteResult
 	}
 
@@ -44,7 +44,7 @@ export const typeDefs = `
 		id: ID!
 		title: String!
 		author: String!
-		status: String!
+		issued: Boolean!
 	}
 
 	type UserResult {

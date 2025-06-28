@@ -35,11 +35,11 @@ export async function getBook(id: string): Promise<IBookDocument | null> {
 }
 
 export const addBook = async (parent: any, args: IBook): Promise<boolean> => {
-	const { title, author, status } = args;
+	const { title, author, issued } = args;
 
 	if (currentDB === DBType.MONGODB) {
 		try {
-			const book = await new Book({ title, author, status }).save();
+			const book = await new Book({ title, author, issued }).save();
 			//redisClient.cacheData(product.id, product);
 			return true;
 		} catch (error) {

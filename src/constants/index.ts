@@ -22,7 +22,6 @@ const routes = [
 	'NestedCategories',
 	'ReactQuery',
 	'SearchForm',
-	'Stopwatch',
 	'TabsComponent',
 	'TodoGroups',
 	'Todos',

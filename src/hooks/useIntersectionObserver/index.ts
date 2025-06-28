@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface UseIntersectionObserverProps {
 	threshold?: number | number[];
@@ -14,36 +14,44 @@ export const useIntersectionObserver = ({
 	onIntersect,
 }: UseIntersectionObserverProps) => {
 	const observerRef = useRef<IntersectionObserver | null>(null);
-	const observedElements = useRef<Set<Element>>(new Set());
 
-	const unobserve = useCallback((element: Element) => {
-		if (observerRef.current && element) {
-			observerRef.current.unobserve(element);
-			observedElements.current.delete(element);
+	// Create observer with current callback
+	const createObserver = useCallback(() => {
+		if (observerRef.current) {
+			observerRef.current.disconnect();
 		}
-	}, []);
+		observerRef.current = new IntersectionObserver(onIntersect, {
+			threshold,
+			rootMargin,
+			root,
+		});
+		return observerRef.current;
+	}, [onIntersect, threshold, rootMargin, root]);
 
 	const observe = useCallback(
 		(element: Element | null) => {
-			if (!element || observedElements.current.has(element)) {
-				return () => unobserve(element!);
-			}
+			if (!element) return;
 
-			if (!observerRef.current) {
-				observerRef.current = new IntersectionObserver(onIntersect, {
-					threshold,
-					rootMargin,
-					root,
-				});
-			}
+			const observer = observerRef.current || createObserver();
+			observer.observe(element);
 
-			observerRef.current.observe(element);
-			observedElements.current.add(element);
-
-			return () => unobserve(element);
+			// Return cleanup function
+			return () => {
+				observer.unobserve(element);
+			};
 		},
-		[onIntersect, rootMargin, threshold, root, unobserve],
+		[createObserver],
 	);
+
+	// Cleanup on unmount
+	useEffect(() => {
+		return () => {
+			if (observerRef.current) {
+				observerRef.current.disconnect();
+				observerRef.current = null;
+			}
+		};
+	}, []);
 
 	return observe;
 };
