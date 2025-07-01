@@ -39,22 +39,27 @@ export const BookCard = ({ book }: { book: Book }) => {
 
 			<div className="flex gap-2">
 				<Button
+					primary
+					positive
 					onClick={handleIssueBook}
-					className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 rounded-md transition-colors duration-200 text-sm"
+					className="flex-1 font-medium py-2 px-3 rounded-md transition-colors duration-200 text-sm"
 				>
 					{book.issued ? 'Return' : 'Issue'}
 				</Button>
 				<Button
+					secondary
 					onClick={() => editBook(book.id!)}
-					className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-md transition-colors duration-200"
+					className="px-3 py-2 rounded-md transition-colors duration-200"
 					title="Edit"
 					disabled={book.issued}
 				>
 					✏️
 				</Button>
 				<Button
+					primary
+					negative
 					onClick={handleDeleteBook}
-					className="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded-md transition-colors duration-200"
+					className="px-3 py-2 rounded-md transition-colors duration-200"
 					title="Delete"
 					disabled={book.issued}
 				>

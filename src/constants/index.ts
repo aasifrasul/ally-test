@@ -12,7 +12,7 @@ const routes = [
 	'Comments',
 	'Contacts',
 	'CurrencyStream',
-	'DisplayGraphql',
+	'DisplayUsers',
 	'FlipTheCard',
 	'GraphqlSubscription',
 	'Home',

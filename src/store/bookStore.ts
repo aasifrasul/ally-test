@@ -32,6 +32,7 @@ export interface BookStoreState {
 	filterByText: (text: string) => void;
 	updateBook: (book: UpdateBookType) => Promise<void>;
 	reset: () => void;
+	resetEditingBook: () => void;
 	setStatus: () => void;
 	setError: (error: Error | string) => void;
 }
@@ -299,6 +300,12 @@ const useBookStore = create<BookStoreState>()(
 					} catch (error) {
 						get().setError(error as Error);
 					}
+				},
+
+				resetEditingBook: async () => {
+					set((state) => {
+						state.editingBook = null;
+					});
 				},
 
 				reset: async () => {
