@@ -1,18 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import { InputText } from '../Common/InputText';
+import Button from '../Common/Button';
 
 import useBookStore from '../../store/bookStore';
 
 const BookForm = () => {
-	const { updateBook, addBook, editingBook } = useBookStore();
+	const { updateBook, addBook, editingBook, resetEditingBook } = useBookStore();
 	const [title, setTitle] = useState<string>('');
 	const [author, setAuthor] = useState<string>('');
+
+	const titleRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
 		if (editingBook) {
 			setTitle(editingBook.title);
 			setAuthor(editingBook.author);
+			titleRef.current?.focus();
 		} else {
 			resetForm();
 		}
@@ -53,6 +57,11 @@ const BookForm = () => {
 		setAuthor('');
 	};
 
+	const handleClear = () => {
+		resetForm();
+		resetEditingBook();
+	};
+
 	const addEditText = editingBook?.id ? 'Edit' : 'Add';
 
 	return (
@@ -64,6 +73,7 @@ const BookForm = () => {
 						Title
 					</label>
 					<InputText
+						ref={titleRef}
 						id="title"
 						name="title"
 						placeholder="Title"
@@ -85,12 +95,24 @@ const BookForm = () => {
 						onChange={handleOnChangeAuthor}
 					/>
 				</div>
-				<button
+				{title || author ? (
+					<Button
+						primary
+						negative
+						onClick={handleClear}
+						className="w-full text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
+					>
+						Clear
+					</Button>
+				) : null}
+				<Button
 					onClick={handleSubmit}
-					className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
+					primary
+					positive
+					className="w-full text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
 				>
 					➕ {addEditText} Book
-				</button>
+				</Button>
 			</div>
 		</div>
 	);
