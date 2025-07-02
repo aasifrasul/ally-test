@@ -1,10 +1,12 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 
 import { useApi } from '../../utils/api-client/hooks/useApi';
+import useEffectOnce from '../../hooks/useEffectOnce';
 import Spacer from '../Common/Spacer';
 import ScrollToTop from '../Common/ScrollToTopButton';
 import { alphabets } from '../../utils/ArrayUtils';
 import { buildNestedStructure } from './helpers';
+
 import { Category, NestedCategoriesProps, SelectChangeEvent } from './types';
 import * as styles from './NestedCategories.module.css';
 
@@ -17,9 +19,9 @@ export const NestedCategories: React.FC<NestedCategoriesProps> = ({
 
 	const { execute, data, isLoading, error } = useApi();
 
-	useEffect(() => {
-		execute('/proxy/okrcentral');
-	}, []);
+	useEffectOnce(() => {
+		execute(fetchUrl);
+	});
 
 	// Memoized nested data processing
 	const { nestedStructure, categories } = useMemo(() => {

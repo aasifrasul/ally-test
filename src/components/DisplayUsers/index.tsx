@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { subscribeWithCallback, executeQuery } from '../../graphql/client';
 
 import useEffectOnce from '../../hooks/useEffectOnce';
 
+import { SearchUser } from './SearchUser';
 import { UserForm } from './UserForm';
 import { UsersList } from './UsersList';
+import ScrollToTop from '../Common/ScrollToTopButton';
 import { createLogger, LogLevel, Logger } from '../../utils/logger';
 
 import { User, AddUser, UpdateUser, EditUser, DeleteUser } from './types';
@@ -17,7 +19,22 @@ export default function DisplayUsers() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [users, setUsers] = useState<User[]>([]);
+	const [searchTerm, setSearchTerm] = useState<string>('');
 	const [editingUser, setEditingUser] = useState<User | null>(null);
+
+	const filteredUsers = useMemo(() => {
+		if (!searchTerm.trim()) return users;
+		const searchText = searchTerm.trim().toLowerCase();
+
+		return users.filter((user) => {
+			const searchFields = [
+				user.first_name.trim().toLowerCase(),
+				user.last_name.trim().toLowerCase(),
+				user.age.toString()
+			];
+			return searchFields.some(field => field.includes(searchText));
+		});
+	}, [users, searchTerm]);
 
 	useEffectOnce(() => {
 		let unsubscribe: (() => void) | null = null;
@@ -28,11 +45,11 @@ export default function DisplayUsers() {
 				setError(null);
 
 				// Load initial users
-				const result = await executeQuery<{ getUsers: User[] }>(`
+				const { getUsers = [] } = await executeQuery<{ getUsers: User[] }>(`
 					{ getUsers { id, first_name, last_name, age } }
 				`);
 
-				setUsers(result.getUsers);
+				setUsers(getUsers);
 
 				// Set up subscription for real-time updates
 				unsubscribe = subscribeWithCallback<{ userCreated: User }>(
@@ -110,7 +127,9 @@ export default function DisplayUsers() {
 		const { success, user } = updateUser;
 
 		if (success) {
-			setUsers((prevData) => prevData.map(item => item.id === user.id ? user : item));
+			setUsers((prevData) =>
+				prevData.map((item) => (item.id === user.id ? user : item)),
+			);
 			setEditingUser(null);
 		}
 	};
@@ -130,14 +149,14 @@ export default function DisplayUsers() {
 		);
 
 		if (deleteUser.success) {
-			setUsers((prevData) => prevData.filter(item => item.id !== deleteUser.id));
+			setUsers((prevData) => prevData.filter((item) => item.id !== deleteUser.id));
 		}
-	}
+	};
 
 	const handleEditUser: EditUser = (id) => {
-		const user: User | undefined = users.find(user => user.id === id);
+		const user: User | undefined = filteredUsers.find((user) => user.id === id);
 		user && setEditingUser(user);
-	}
+	};
 
 	if (isLoading) {
 		return <div>Loading...</div>;
@@ -148,9 +167,30 @@ export default function DisplayUsers() {
 	}
 
 	return (
-		<div>
-			<UserForm editingUser={editingUser} addUser={addUser} updateUser={updateUser} />
-			<UsersList users={users} handleEditUser={handleEditUser} handleDeleteUser={handleDeleteUser} />
+		<div className="min-h-screen bg-gray-50">
+			<div className="max-w-6xl mx-auto px-4 py-8">
+				{/* Header */}
+				<div className="text-center mb-8">
+					<h1 className="text-3xl font-bold text-gray-900 mb-2">📚 All Users</h1>
+				</div>
+
+				{/* Main Content */}
+				<div className="space-y-8">
+					<UserForm
+						editingUser={editingUser}
+						addUser={addUser}
+						updateUser={updateUser}
+					/>
+					<SearchUser filterByText={setSearchTerm} />
+					<UsersList
+						users={filteredUsers}
+						handleEditUser={handleEditUser}
+						handleDeleteUser={handleDeleteUser}
+					/>
+				</div>
+
+				<ScrollToTop />
+			</div>
 		</div>
 	);
 }
