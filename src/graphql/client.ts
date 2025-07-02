@@ -90,7 +90,8 @@ export const subscribeWithCallback = <T = any>(
 // Helper function for executing queries and mutations using the HTTP client
 export const executeQuery = async <T = any>(query: string, variables?: any): Promise<T> => {
 	return new Promise((resolve, reject) => {
-		let result: ExecutionResult<T>;
+		let result: ExecutionResult<Record<string, unknown>, unknown>;
+		let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
 		const cancel = client.subscribe(
 			{ query, variables },
@@ -101,11 +102,17 @@ export const executeQuery = async <T = any>(query: string, variables?: any): Pro
 					if (result.errors) {
 						reject(new Error(result.errors.map((e) => e.message).join(', ')));
 					} else {
-						resolve(result.data);
+						resolve(result.data as T);
 					}
 				},
 			},
 		);
+
+		timeoutId = setTimeout(() => {
+			timeoutId && clearTimeout(timeoutId);
+			cancel();
+			reject(new Error('API Timed out'));
+		}, 5000);
 
 		// Optional: return cancel function if you need to abort
 		// You can modify this function to return both result and cancel if needed

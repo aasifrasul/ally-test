@@ -19,7 +19,7 @@ interface FormData {
 const initialFormData: FormData = {
 	firstName: '',
 	lastName: '',
-	age: ''
+	age: '',
 };
 
 export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) => {
@@ -31,7 +31,7 @@ export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) =>
 			setFormData({
 				firstName: editingUser.first_name || '',
 				lastName: editingUser.last_name || '',
-				age: editingUser.age?.toString() || ''
+				age: editingUser.age?.toString() || '',
 			});
 		} else {
 			setFormData(initialFormData);
@@ -39,7 +39,7 @@ export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) =>
 	}, [editingUser]);
 
 	const handleInputChange = (field: keyof FormData) => (value: string) => {
-		setFormData(prev => ({ ...prev, [field]: value }));
+		setFormData((prev) => ({ ...prev, [field]: value }));
 	};
 
 	const isFormValid = () => {
@@ -106,9 +106,7 @@ export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) =>
 					/>
 				</div>
 				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Age
-					</label>
+					<label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
 					<InputText
 						id="age"
 						name="age"
