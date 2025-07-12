@@ -20,7 +20,7 @@ export function createKey(value, seen = new Set()) {
 
 	// Handle circular references
 	if (seen.has(value)) return 'circular';
-	seen.add(value);
+	seen.set(value);
 
 	// Handle arrays - sort them for consistency
 	if (Array.isArray(value)) {

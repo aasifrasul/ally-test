@@ -33,6 +33,8 @@ export interface MongoDBConfig {
 	serverSelectionTimeoutMS: number;
 	socketTimeoutMS: number;
 	connectTimeoutMS: number;
+	//bufferMaxEntries: number;
+	//bufferCommands: boolean;
 }
 
 export interface PostgresConfig {

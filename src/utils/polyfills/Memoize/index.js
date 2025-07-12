@@ -1,4 +1,4 @@
-import { createKey } from './keyGeneration';
+import { createKey } from '../../keyGeneration';
 
 /**
  * Polyfill Memoization

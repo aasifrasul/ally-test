@@ -14,7 +14,7 @@ import { logger } from './Logger';
 
 const httpServer: http.Server = http.createServer(app);
 
-MongoDBConnection.getInstance()?.connect();
+MongoDBConnection.initialize();
 RedisClient.getInstance()?.connect();
 
 // httpServer.on('request', () => logger.info('httpServer.request'));
@@ -76,22 +76,17 @@ async function gracefulShutdown(signal: string): Promise<void> {
 
 	try {
 		logger.info('Cleaning up active connections...');
-		const mongoDBInstance = MongoDBConnection.getInstance();
 
-		if (mongoDBInstance) {
-			mongoDBInstance
-				.cleanup()
-				.catch((err: Error) => logger.error('Error cleaning up MongoDB:', err));
-		}
+		const mongoDBInstance = MongoDBConnection.getInstance();
+		mongoDBInstance
+			?.cleanup()
+			.catch((err: Error) => logger.error('Error cleaning up MongoDB:', err));
 
 		// Then cleanup database instances
 		const dbInstance: DBInstance = await getDBInstance(constants.dbLayer.currentDB);
-		if (dbInstance) {
-			logger.info('Cleaning up DB instance...');
-			await dbInstance
-				.cleanup()
-				.catch((err: Error) => logger.error('Error cleaning up DB instance:', err));
-		}
+		await dbInstance
+			?.cleanup()
+			.catch((err: Error) => logger.error('Error cleaning up DB instance:', err));
 
 		disconnectIOServer().catch((err: Error) =>
 			logger.error('Error disconnecting IO server:', err),

@@ -1,63 +1,27 @@
-export function setInterval(callback, interval, ...params) {
-	if (typeof callback !== 'function') {
-		throw new TypeError('Callback must be a function');
-	}
+function mySetInterval(callback, interval, ...args) {
+	let timerId;
+	const params = args.slice();
 
-	if (typeof interval !== 'number' || interval < 0) {
-		throw new TypeError('Interval must be a positive number');
-	}
+	function inner() {
+		if (timerId === null) return;
 
-	let timeoutId;
-	let isRunning = false;
-	let isPaused = false;
-
-	function scheduleTimeout() {
-		if (timeoutId) {
-			clearTimeout(timeoutId);
-		}
-
-		timeoutId = setTimeout(internal, interval);
-	}
-
-	function internal() {
-		if (!isRunning) return;
-
-		scheduleTimeout();
 		try {
 			callback(...params);
-		} catch (error) {
-			stop();
-			throw error; // Re-throw to maintain error visibility
+		} catch (err) {
+			throw err;
 		}
+
+		timerId = setTimeout(inner, interval);
 	}
 
-	function stop() {
-		if (timeoutId) {
-			clearTimeout(timeoutId);
-			timeoutId = null;
-			isRunning = false;
-			isPaused = false;
-			interval = null;
-			callback = null;
-			pause = null;
-			resume = null;
-			params = null;
+	inner();
+
+	const cancel = () => {
+		if (timerId) {
+			clearTimeout(timerId);
+			timerId = null;
 		}
-	}
+	};
 
-	function pause() {
-		if (!isRunning || isPaused) return;
-		clearTimeout(timeoutId);
-		isPaused = true;
-	}
-
-	function resume() {
-		if (!isPaused || !isRunning) return;
-		isPaused = false;
-		scheduleTimeout();
-	}
-
-	isRunning = true;
-	scheduleTimeout();
-	return { stop, pause, resume };
+	return cancel;
 }
