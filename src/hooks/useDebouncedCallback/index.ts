@@ -1,62 +1,66 @@
-import { useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
-type DebounceFunction<A extends any[]> = (...args: A) => void;
-
-export const useDebouncedCallback = <A extends any[]>(
+export function useDebouncedCallback<A extends any[]>(
 	callback: (...args: A) => void,
-	delay: number,
-): DebounceFunction<A> => {
-	const callbackRef = useRef<DebounceFunction<A>>(callback);
-	callbackRef.current = callback;
-
-	return useCallback(
-		(...args: A) => {
-			const currentTimeout: NodeJS.Timeout = setTimeout(() => {
-				callbackRef.current?.(...args);
-			}, delay);
-
-			return () => clearTimeout(currentTimeout);
-		},
-		[delay],
-	);
-};
-
-/*
-
-export const useDebouncedCallback = <A extends any[]>(
-	callback: (...args: A) => void,
-	delay: number
-): DebounceFunction<A> => {
+	wait: number,
+) {
 	const callbackRef = useRef(callback);
-	callbackRef.current = callback; // Keep the ref updated
+	const argsRef = useRef<A>(null);
+	const timeout = useRef<NodeJS.Timeout>(null);
+
+	// Keep callback ref updated
+	useEffect(() => {
+		callbackRef.current = callback;
+	}, [callback]);
+
+	// Cleanup on unmount
+	useEffect(() => {
+		return cancel;
+	}, []);
 
 	const debouncedCallback = useCallback(
-		debounce((...args: A) => callbackRef.current(...args), delay),
-		[delay] //  Crucially, add 'delay' to the dependency array
+		(...args: A) => {
+			argsRef.current = args;
+
+			cancel();
+
+			timeout.current = setTimeout(() => {
+				if (argsRef.current) {
+					callbackRef.current(...argsRef.current);
+				}
+			}, wait);
+		},
+		[wait],
 	);
 
-	// Cleanup timeout on unmount or delay change
-	useEffect(() => {
-		return () => {
-			debouncedCallback.cancel(); // Assuming your debounce function has a cancel method
-		};
-	}, [debouncedCallback]); // Add debouncedCallback to the dependency array
+	const cancel = useCallback(() => {
+		if (timeout.current) {
+			clearTimeout(timeout.current);
+		}
+	}, []);
 
-	return debouncedCallback;
-};
-
-// Example usage:
-function MyComponent() {
-	const [count, setCount] = React.useState(0);
-
-	const handleClick = () => {
-		setCount((c) => c + 1);
-		console.log(count);
-	};
-
-	const debouncedClick = useDebouncedCallback(handleClick, 500);
-
-	return <button onClick={debouncedClick}>Click me</button>;
+	return { debouncedCallback, cancel };
 }
 
+/*
+// Usage Example:
+function MyComponent() {
+	const [value, setValue] = useState('');
+
+	const handleChange = useDebouncedCallback((newValue: string) => {
+		// This will only run after 500ms of no changes
+		console.log('Debounced value:', newValue);
+		makeAPICall(newValue);
+	}, 500);
+
+	return (
+		<input
+			value={value}
+			onChange={(e) => {
+				setValue(e.target.value);
+				handleChange(e.target.value);
+			}}
+		/>
+	);
+}
 */

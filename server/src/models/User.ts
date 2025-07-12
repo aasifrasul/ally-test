@@ -16,10 +16,21 @@ userSchema.virtual('id').get(function (this: { _id: { toHexString: () => string 
 // Transform the output to replace `_id` with `id`
 userSchema.set('toJSON', {
 	virtuals: true,
-	transform: (doc: any, ret: any) => {
-		delete ret.__v;
+	transform: (doc, ret) => {
 		ret.id = ret._id.toHexString();
 		delete ret._id;
+		delete ret.__v;
+		return ret;
+	},
+});
+
+// Also apply to toObject() calls
+userSchema.set('toObject', {
+	virtuals: true,
+	transform: (doc, ret) => {
+		ret.id = ret._id.toHexString();
+		delete ret._id;
+		delete ret.__v;
 		return ret;
 	},
 });

@@ -7,15 +7,20 @@ function myMap(callback, thisArg) {
 		throw new TypeError(callback + ' is not a function');
 	}
 
-	const originalArray = Object(this);
-	const len = originalArray.length;
+	const list = Object(this);
+	const len = list.length;
 	const result = new Array(len);
 
 	for (let i = 0; i < len; i++) {
 		// Only call callback for indices that exist on the array
-		if (i in originalArray) {
+		// filter out sparse
+		if (i in list) {
 			// Note: If callback is an arrow function, thisArg will be ignored
-			result[i] = callback.call(thisArg, originalArray[i], i, originalArray);
+			try {
+				result[i] = callback.call(thisArg, list[i], i, list);
+			} catch (err) {
+				throw err;
+			}
 		}
 	}
 

@@ -1,11 +1,17 @@
-`Sample qs: Implement mapLimit, Task:
-Implement mapLimit, a utility function that maps each input through an asynchronous iteratee function with a specified concurrencyLimit on concurrent operations.
+`
+Task: Implement mapLimit
+Implement mapLimit, a utility function that maps each input through an asynchronous 
+iteratee function with a specified concurrencyLimit on concurrent operations.
 Inputs:
-inputs: An array of inputs.
-concurrencyLimit: The maximum number of operations that can run concurrently.
-iterateeCallback: An async function that processes each input. It takes input and callback as arguments, where callback is called with the processed output.
+inputs: 
+	An array of inputs.
+concurrencyLimit: 
+	The maximum number of operations that can run concurrently.
+iterateeCallback: 
+	An async function that processes each input. It takes input and callback 
+	as arguments, where callback is called with the processed output.
 Output:
-Once all inputs are processed, call the provided callback with an array of results  /  
+Once all inputs are processed, call the provided callback with an array of results
 `;
 
 function* range(start, stop, step) {
@@ -79,7 +85,7 @@ function mapLimit(items, concurrencyLimit, iterateeCallback, finalCallback) {
 }
 
 mapLimit(
-	[...range(1, 20, 2)],
+	[...range(2, 40, 2)],
 	2,
 	// This is the iterateeCallback that processes each input
 	(input, callback) => {

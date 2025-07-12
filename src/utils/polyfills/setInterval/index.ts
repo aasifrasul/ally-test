@@ -15,44 +15,45 @@ export function setInterval(
 		throw new TypeError('Interval must be a positive number');
 	}
 
-	let timeoutId: NodeJS.Timeout | undefined;
-	let isRunning = false;
-	let isPaused = false;
+	let timeoutId: NodeJS.Timeout | null;
+	let state: 'running' | 'paused' | 'stopped' = 'running';
 
 	function internal() {
-		if (!isRunning) return;
+		if (state !== 'running') return;
 
-		timeoutId = setTimeout(internal, interval);
 		try {
 			callback(...params);
 		} catch (error) {
 			stop();
-			throw error; // Re-throw to maintain error visibility
+			throw error;
 		}
+
+		timeoutId = setTimeout(internal, interval);
 	}
 
 	function stop() {
 		if (timeoutId) {
 			clearTimeout(timeoutId);
-			timeoutId = undefined;
-			isRunning = false;
-			isPaused = false;
+			timeoutId = null;
 		}
+		state = 'stopped';
 	}
 
 	function pause() {
-		if (!isRunning || isPaused) return;
-		clearTimeout(timeoutId);
-		isPaused = true;
+		if (state !== 'running') return;
+		if (timeoutId) {
+			clearTimeout(timeoutId);
+			timeoutId = null;
+		}
+		state = 'paused';
 	}
 
 	function resume() {
-		if (!isPaused || !isRunning) return;
-		isPaused = false;
+		if (state !== 'paused') return;
+		state = 'running';
 		timeoutId = setTimeout(internal, interval);
 	}
 
-	isRunning = true;
 	timeoutId = setTimeout(internal, interval);
 	return { stop, pause, resume };
 }

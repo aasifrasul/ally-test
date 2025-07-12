@@ -86,6 +86,8 @@ export const constants: Constants = {
 			serverSelectionTimeoutMS: 5000,
 			socketTimeoutMS: 45000,
 			connectTimeoutMS: 30000,
+			//bufferMaxEntries: 0,
+			//bufferCommands: true,
 		},
 		postgres: {
 			user: 'test',

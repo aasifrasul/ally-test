@@ -7,7 +7,7 @@ import { logger } from '../Logger';
 
 export class MongoDBConnection {
 	private static instance: MongoDBConnection;
-	private isConnected: boolean = false;
+	private connectionPromise: Promise<void> | null = null;
 
 	private constructor() {
 		logger.info('MongoDB connection manager initialized.');
@@ -23,11 +23,29 @@ export class MongoDBConnection {
 	}
 
 	public async connect(): Promise<void> {
-		if (this.isConnected) {
+		// If connection is already in progress, wait for it
+		if (this.connectionPromise) {
+			return this.connectionPromise;
+		}
+
+		// If already connected, return immediately
+		if (mongoose.connection.readyState === 1) {
 			logger.info('MongoDB connection already established');
 			return;
 		}
 
+		// Create a new connection promise
+		this.connectionPromise = this.performConnection();
+
+		try {
+			await this.connectionPromise;
+		} finally {
+			// Clear the promise after completion (success or failure)
+			this.connectionPromise = null;
+		}
+	}
+
+	private async performConnection(): Promise<void> {
 		try {
 			const mongoDBConf: MongoDBConfig = constants.dbLayer.mongodb;
 			const { uri, ...rest } = mongoDBConf;
@@ -37,31 +55,44 @@ export class MongoDBConnection {
 			// Check if MongoDB is available before attempting to connect
 			const isAvailable = await this.checkMongoDBAvailability(uri);
 			if (!isAvailable) {
-				logger.warn('MongoDB is not available. Skipping connection attempt.');
-				return;
+				throw new Error('MongoDB server is not available');
 			}
 
 			await mongoose.connect(uri, rest);
-			logger.info('Connected to MongoDB successfully');
-			this.isConnected = true;
+
+			// Set up connection event listeners
+			mongoose.connection.on('connected', () => {
+				logger.info('MongoDB connected successfully');
+			});
+
+			mongoose.connection.on('error', (error) => {
+				logger.error('MongoDB connection error:', error);
+			});
+
+			mongoose.connection.on('disconnected', () => {
+				logger.warn('MongoDB disconnected');
+			});
+
+			logger.info('MongoDB connection established');
 		} catch (error) {
 			logger.error('Failed to connect to MongoDB:', error);
-			this.isConnected = false;
+			throw error;
 		}
 	}
 
 	private async checkMongoDBAvailability(uri: string): Promise<boolean> {
 		try {
-			// Parse connection string to extract server details
-			const parsedUri = new URL(uri.replace('mongodb://', 'http://'));
-			const host = parsedUri?.hostname;
-			const port = parsedUri?.port || '27017';
+			// Handle both mongodb:// and mongodb+srv:// URIs
+			const match = uri.match(/mongodb(?:\+srv)?:\/\/(?:[^@]+@)?([^\/]+)/);
+			if (!match) return false;
 
-			// Use TCP socket to check if MongoDB server is listening
+			const hostPort = match[1].split(':');
+			const host = hostPort[0];
+			const port = hostPort[1] || '27017';
+
 			const socket = new net.Socket();
 
 			return new Promise<boolean>((resolve) => {
-				// Set a timeout for the connection attempt
 				socket.setTimeout(3000);
 
 				socket.on('connect', () => {
@@ -78,7 +109,6 @@ export class MongoDBConnection {
 					resolve(false);
 				});
 
-				// Attempt to connect to the MongoDB port
 				socket.connect(parseInt(port), host);
 			});
 		} catch (error) {
@@ -91,11 +121,10 @@ export class MongoDBConnection {
 		if (!config.uri) {
 			throw new Error('MongoDB URI is required');
 		}
-		// Add more validation as needed
 	}
 
 	public async cleanup(): Promise<void> {
-		if (!this.isConnected) {
+		if (mongoose.connection.readyState === 0) {
 			logger.info('No active MongoDB connection to clean up.');
 			return;
 		}
@@ -103,13 +132,20 @@ export class MongoDBConnection {
 		try {
 			await mongoose.disconnect();
 			logger.info('Disconnected from MongoDB successfully');
-			this.isConnected = false;
 		} catch (error) {
 			logger.error('Failed to disconnect from MongoDB:', error);
 		}
 	}
 
 	public getIsConnected(): boolean {
-		return this.isConnected;
+		return mongoose.connection.readyState === 1;
+	}
+
+	// Initialize connection at startup
+	public static async initialize(): Promise<void> {
+		const instance = MongoDBConnection.getInstance();
+		if (instance) {
+			await instance.connect();
+		}
 	}
 }

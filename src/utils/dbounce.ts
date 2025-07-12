@@ -5,13 +5,11 @@ export function dbounce<T extends unknown[]>(
 	let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
 	const debounced = function (this: unknown, ...args: T) {
-		if (timeoutId !== null) {
-			clearTimeout(timeoutId);
-		}
+		debounced.cancel();
 
 		timeoutId = setTimeout(() => {
 			fn.apply(this, args);
-			timeoutId = null;
+			debounced.cancel();
 		}, delay);
 	} as ((...args: T) => void) & { cancel: () => void };
 

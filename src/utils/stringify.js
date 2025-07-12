@@ -26,20 +26,17 @@ function stringify(value, replacer, space, seen = new WeakSet()) {
 	if (typeof value === 'object') {
 		const result = [];
 		Reflect.ownKeys(value).forEach((key) => {
-			const stringifiedKey = isSymbol(key) ? key.toString() : key;
+			const stringifiedKey = isSymbol(key) ? key.toString() : stringify(key);
 			if (replacer) {
 				const replacement = replacer(key, value[key]);
 				if (replacement) {
 					result.push(
-						'"' +
-							stringifiedKey +
-							'":' +
-							stringify(replacement, replacer, space, seen),
+						`${stringifiedKey}:${stringify(replacement, replacer, space, seen)}`,
 					);
 				}
 			} else {
 				result.push(
-					'"' + stringifiedKey + '":' + stringify(value[key], replacer, space, seen),
+					`${stringifiedKey}:${stringify(value[key], replacer, space, seen)}`,
 				);
 			}
 		});
