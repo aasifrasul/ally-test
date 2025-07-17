@@ -91,7 +91,7 @@ export const subscribeWithCallback = <T = any>(
 export const executeQuery = async <T = any>(query: string, variables?: any): Promise<T> => {
 	return new Promise((resolve, reject) => {
 		let result: ExecutionResult<Record<string, unknown>, unknown>;
-		let timeoutId: ReturnType<typeof setTimeout> | null = null;
+		let timeoutId: NodeJS.Timeout | null = null;
 
 		const cancel = client.subscribe(
 			{ query, variables },

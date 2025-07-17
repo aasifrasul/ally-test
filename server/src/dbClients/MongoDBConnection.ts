@@ -144,8 +144,6 @@ export class MongoDBConnection {
 	// Initialize connection at startup
 	public static async initialize(): Promise<void> {
 		const instance = MongoDBConnection.getInstance();
-		if (instance) {
-			await instance.connect();
-		}
+		await instance?.connect();
 	}
 }

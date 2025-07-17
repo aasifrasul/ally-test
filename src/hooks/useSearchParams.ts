@@ -1,24 +1,19 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useEventListener } from './EventListeners';
 
 export function useSearchParams() {
 	const [isInitialized, setIsInitialized] = useState(false);
 	// Initialize with current URL search params
-	const [searchParams, setSearchParams] = useState<URLSearchParams>(
-		new URLSearchParams((window as Window & typeof globalThis).location.search),
-	);
+	const [searchParams, setSearchParams] = useState<URLSearchParams>(new URLSearchParams());
 
-	useEventListener('popstate', handlePopState, window as Window & typeof globalThis);
+	useEventListener('popstate', handlePopState, globalThis);
 
 	useEffect(() => {
-		setSearchParams(
-			new URLSearchParams((window as Window & typeof globalThis).location.search),
-		);
+		setSearchParams(new URLSearchParams(globalThis.location?.search));
 	}, []);
 
 	const getPageURL = useCallback(
-		(): string =>
-			`${(window as Window & typeof globalThis).location.pathname}?${searchParams.toString()}`,
+		(): string => `${globalThis.location.pathname}?${searchParams.toString()}`,
 		[searchParams],
 	);
 
@@ -28,7 +23,7 @@ export function useSearchParams() {
 			return;
 		}
 
-		(window as Window & typeof globalThis).history.replaceState(
+		globalThis.history.replaceState(
 			{ searchParams: searchParams.toString() },
 			'',
 			getPageURL(),
@@ -38,8 +33,7 @@ export function useSearchParams() {
 	function handlePopState(event: PopStateEvent) {
 		// Get params from event state if available, otherwise from URL
 		const newParams = new URLSearchParams(
-			event.state?.searchParams ||
-				(window as Window & typeof globalThis).location.search,
+			event.state?.searchParams || globalThis.location.search,
 		);
 		setSearchParams(newParams);
 	}
