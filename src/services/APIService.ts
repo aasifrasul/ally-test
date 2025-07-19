@@ -2,7 +2,7 @@ import type { APIOptions } from '../types/api';
 import { HTTPMethod } from '../types/api';
 import { createLogger, LogLevel, Logger } from '../utils/logger';
 import { fetch, BodyInit } from '../utils/fetch-polyfill';
-import { fetchAPIData, Result } from '../utils/common';
+import { fetchAPIData, Result, getRandomId } from '../utils/common';
 
 export interface SaveDataOptions extends APIOptions {
 	body: BodyInit;
@@ -75,21 +75,19 @@ export class APIService {
 		options: APIOptions,
 		cacheKey: string,
 	): Promise<Result<T>> {
-		const abortKey = `${endpoint}_${Date.now()}_${Math.random()}`;
+		const abortKey = `${endpoint}_${getRandomId()}`;
 		const abortController = new AbortController();
 		this.abortControllers.set(abortKey, abortController);
 
-		const result = await fetchAPIData<T>(
-			fetch(endpoint, {
-				...options,
-				signal: abortController.signal,
-				headers: {
-					'Content-Type': 'application/json',
-					...options.headers,
-				},
-				body: options.body as BodyInit | undefined,
-			}),
-		);
+		const result = await fetchAPIData<T>(endpoint, {
+			...options,
+			signal: abortController.signal,
+			headers: {
+				'Content-Type': 'application/json',
+				...options.headers,
+			},
+			body: options.body as BodyInit | undefined,
+		});
 
 		// Cache successful GET results only
 		if (result.success && this.shouldCache(options.method)) {

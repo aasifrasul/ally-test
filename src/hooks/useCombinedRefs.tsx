@@ -1,26 +1,17 @@
-import React, { useRef, useEffect, MutableRefObject, RefCallback } from 'react';
-import { isFunction } from '../utils/typeChecking';
+import { useCallback, MutableRefObject, RefCallback } from 'react';
 
-function useCombinedRefs<T>(
-	...refs: (MutableRefObject<T> | RefCallback<T> | null)[]
-): MutableRefObject<T | null> {
-	const targetRef = useRef<T | null>(null);
-
-	useEffect(() => {
+export function useCombinedRefs<T>(
+	...refs: (MutableRefObject<T | null> | RefCallback<T> | null | undefined)[]
+): RefCallback<T> {
+	return useCallback((element: T | null) => {
 		refs.forEach((ref) => {
 			if (!ref) return;
 
-			if (isFunction(ref)) {
-				(ref as RefCallback<T>)(targetRef.current);
+			if (typeof ref === 'function') {
+				ref(element);
 			} else {
-				if (targetRef.current !== null) {
-					(ref as MutableRefObject<T>).current = targetRef.current;
-				}
+				ref.current = element;
 			}
 		});
-	}, [refs]);
-
-	return targetRef;
+	}, refs);
 }
-
-export default useCombinedRefs;

@@ -5,11 +5,8 @@ import { createClient } from 'graphql-ws';
 import { constants } from './constants/';
 import { createLogger, Logger, LogLevel } from './utils/logger';
 
-const getWsUrl = (httpUrl: string) => {
-	return httpUrl.replace(/^https?:\/\//, (match) =>
-		match === 'https://' ? 'wss://' : 'ws://',
-	);
-};
+const getWsUrl = (httpUrl: string) =>
+	httpUrl.replace(/^https?:\/\//, (match) => (match === 'https://' ? 'wss://' : 'ws://'));
 
 const logger: Logger = createLogger('ApolloClient', {
 	level: LogLevel.DEBUG,
