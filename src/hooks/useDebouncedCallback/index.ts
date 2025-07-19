@@ -6,7 +6,7 @@ export function useDebouncedCallback<A extends any[]>(
 ) {
 	const callbackRef = useRef(callback);
 	const argsRef = useRef<A>(null);
-	const timeout = useRef<NodeJS.Timeout>(null);
+	const timeout = useRef<NodeJS.Timeout>(undefined);
 
 	// Keep callback ref updated
 	useEffect(() => {
@@ -18,26 +18,23 @@ export function useDebouncedCallback<A extends any[]>(
 		return cancel;
 	}, []);
 
-	const debouncedCallback = useCallback(
-		(...args: A) => {
-			argsRef.current = args;
-
-			cancel();
-
-			timeout.current = setTimeout(() => {
-				if (argsRef.current) {
-					callbackRef.current(...argsRef.current);
-				}
-			}, wait);
-		},
-		[wait],
-	);
-
 	const cancel = useCallback(() => {
 		if (timeout.current) {
 			clearTimeout(timeout.current);
+			timeout.current = undefined;
 		}
 	}, []);
+
+	const debouncedCallback = useCallback(
+		(...args: A) => {
+			argsRef.current = args;
+			cancel();
+			timeout.current = setTimeout(() => {
+				callbackRef.current(...argsRef.current!);
+			}, wait);
+		},
+		[wait, cancel],
+	);
 
 	return { debouncedCallback, cancel };
 }
@@ -47,7 +44,7 @@ export function useDebouncedCallback<A extends any[]>(
 function MyComponent() {
 	const [value, setValue] = useState('');
 
-	const handleChange = useDebouncedCallback((newValue: string) => {
+	const { debouncedCallback: handleChange } = useDebouncedCallback((newValue: string) => {
 		// This will only run after 500ms of no changes
 		console.log('Debounced value:', newValue);
 		makeAPICall(newValue);

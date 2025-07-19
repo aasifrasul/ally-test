@@ -3,18 +3,16 @@ import { createClient as createWSClient } from 'graphql-ws';
 import { ExecutionResult } from 'graphql';
 import { constants } from '../constants';
 
-const BASE_URL = constants.BASE_URL;
-
 // HTTP client for queries and mutations
 export const client: Client = createClient({
-	url: `${BASE_URL}/graphql/`,
+	url: `${constants.BASE_URL}/graphql/`,
 	fetchFn: fetch,
 	abortControllerImpl: AbortController,
 } as ClientOptions);
 
 // WebSocket client for subscriptions
 const wsClient = createWSClient({
-	url: `${BASE_URL!.replace('http', 'ws')}/graphql/`,
+	url: `${constants.BASE_URL!.replace('http', 'ws')}/graphql/`,
 	connectionParams: {
 		// Add auth if needed
 	},
@@ -91,7 +89,7 @@ export const subscribeWithCallback = <T = any>(
 export const executeQuery = async <T = any>(query: string, variables?: any): Promise<T> => {
 	return new Promise((resolve, reject) => {
 		let result: ExecutionResult<Record<string, unknown>, unknown>;
-		let timeoutId: ReturnType<typeof setTimeout> | null = null;
+		let timeoutId: NodeJS.Timeout | null = null;
 
 		const cancel = client.subscribe(
 			{ query, variables },

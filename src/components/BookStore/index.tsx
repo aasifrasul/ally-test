@@ -6,7 +6,7 @@ import BookForm from './BookForm';
 import BookList from './BookList';
 import { SearchBook } from './SearchBook';
 
-import useBookStore from '../../store/bookStore';
+import { useBookStore } from '../../store/bookStore';
 
 import './App.css';
 

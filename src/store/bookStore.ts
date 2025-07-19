@@ -110,7 +110,7 @@ const calculateCounts = (books: Book[]) =>
 		{ available: 0, issued: 0 },
 	);
 
-const useBookStore = create<BookStoreState>()(
+export const useBookStore = create<BookStoreState>()(
 	devtools(
 		immer(
 			(set, get): BookStoreState => ({
@@ -324,5 +324,3 @@ const useBookStore = create<BookStoreState>()(
 		),
 	),
 );
-
-export default useBookStore;

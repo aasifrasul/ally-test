@@ -52,7 +52,7 @@ function useRequestAnimationFrame(
 		rAFRef.current = requestAnimationFrame(tick);
 
 		return () => cancelAnimationFrame(rAFRef.current);
-	}, [callback]);
+	}, [callback, duration]);
 }
 
 export default useRequestAnimationFrame;

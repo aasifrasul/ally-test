@@ -1,5 +1,5 @@
 import React, { forwardRef, useState, useEffect, useRef, RefObject, ChangeEvent } from 'react';
-import useCombinedRefs from '../../../hooks/useCombinedRefs';
+import { useCombinedRefs } from '../../../hooks/useCombinedRefs';
 import { safelyExecuteFunction } from '../../../utils/typeChecking';
 
 interface CombinedRefCheckboxProps {

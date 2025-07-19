@@ -1,35 +1,58 @@
-import React from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 interface PortalProps {
 	container: HTMLElement | null;
-	children: React.ReactNode;
+	children: ReactNode;
+	className?: string;
 }
 
-// Corrected Portal component with proper TypeScript types
-export default function Portal({ container, children }: PortalProps) {
-	const [isMounted, setIsMounted] = React.useState(false);
-	const rootRef = React.useRef<HTMLDivElement | null>(null);
+export default function Portal({
+	container = document.body,
+	children,
+	className,
+}: PortalProps) {
+	const [isMounted, setIsMounted] = useState(false);
+	const rootRef = useRef<HTMLDivElement | null>(null);
 
-	React.useEffect(() => {
-		if (!container) return;
+	useEffect(() => {
+		if (!container || typeof document === 'undefined') return;
 
-		// Create the root element once
-		if (!rootRef.current) {
-			rootRef.current = document.createElement('div');
-		}
-
-		// Append to container
-		container.appendChild(rootRef.current);
-		setIsMounted(true);
-
-		// Cleanup on unmount
-		return () => {
-			if (rootRef.current && container.contains(rootRef.current)) {
-				container.removeChild(rootRef.current);
+		try {
+			if (!rootRef.current) {
+				rootRef.current = document.createElement('div');
+				if (className) {
+					rootRef.current.className = className;
+				}
 			}
-		};
+
+			container.appendChild(rootRef.current);
+			setIsMounted(true);
+
+			return () => {
+				if (rootRef.current && container.contains(rootRef.current)) {
+					container.removeChild(rootRef.current);
+				}
+			};
+		} catch (error) {
+			console.error('Portal mount error:', error);
+			setIsMounted(false);
+		}
 	}, [container]);
 
 	return isMounted && rootRef.current ? createPortal(children, rootRef.current) : null;
 }
+/**
+ * Simpler Approach
+ * export default function Portal({ container, children }: PortalProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted || !container) return null;
+  
+  return createPortal(children, container);
+}
+*/
