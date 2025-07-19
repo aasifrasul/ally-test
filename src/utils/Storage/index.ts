@@ -1,8 +1,8 @@
-import { LocalStorageAdapter } from "./LocalStorageAdapter";
-import { SessionStorageAdapter } from "./SessionStorageAdapter";
-import { IndexedDBAdapter } from "./IndexedDBAdapter";
+import { LocalStorageAdapter } from './LocalStorageAdapter';
+import { SessionStorageAdapter } from './SessionStorageAdapter';
+import { IndexedDBAdapter } from './IndexedDBAdapter';
 import { Keys, StorageType, StorageCapacity, IStorageAdapter } from './types';
-import { StorageError, StorageInitializationError } from "./common";
+import { StorageError, StorageInitializationError } from './common';
 
 class Storage {
 	private storageAdapter: IStorageAdapter;
@@ -41,7 +41,9 @@ class Storage {
 				this.needsStringify = false;
 				break;
 			default:
-				throw new StorageInitializationError(`Unsupported storage type: ${storageType}`);
+				throw new StorageInitializationError(
+					`Unsupported storage type: ${storageType}`,
+				);
 		}
 	}
 
@@ -146,7 +148,8 @@ class Storage {
 
 	async getStorageCapacity(): Promise<StorageCapacity | null> {
 		// This method remains the same as it's specific to web storage APIs
-		if (this.needsStringify) { // LocalStorage or SessionStorage
+		if (this.needsStringify) {
+			// LocalStorage or SessionStorage
 			try {
 				const quota = (await navigator?.storage?.estimate()) || null;
 				if (!quota) return null;

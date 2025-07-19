@@ -30,9 +30,9 @@ export default function DisplayUsers() {
 			const searchFields = [
 				user.first_name.trim().toLowerCase(),
 				user.last_name.trim().toLowerCase(),
-				user.age.toString()
+				user.age.toString(),
 			];
-			return searchFields.some(field => field.includes(searchText));
+			return searchFields.some((field) => field.includes(searchText));
 		});
 	}, [users, searchTerm]);
 

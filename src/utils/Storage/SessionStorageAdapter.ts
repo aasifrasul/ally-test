@@ -1,4 +1,4 @@
-import { StorageError } from "./common";
+import { StorageError } from './common';
 import { IStorageAdapter } from './types';
 
 export class SessionStorageAdapter implements IStorageAdapter {
