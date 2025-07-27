@@ -4,50 +4,50 @@ export function deepCopy<T>(obj: T, seen = new WeakMap()): T {
 
 	// Check for circular references
 	if (seen.has(obj)) return seen.get(obj);
-	seen.set(obj, true);
 
-	// Add to seen map early to handle all object types
+	// Mark as being processed to prevent infinite recursion
+	seen.set(obj, obj);
+
 	let result: any;
 
 	if (Array.isArray(obj)) {
-		result = [];
+		return obj.map((item) => deepCopy(item, seen)) as T;
+	}
 
-		obj.forEach((item, index) => {
-			result[index] = deepCopy(item, seen);
-		});
-	} else if (obj instanceof Date) {
-		result = new Date(obj);
-	} else if (obj instanceof RegExp) {
-		result = new RegExp(obj);
-	} else if (obj instanceof Map) {
+	if (obj instanceof Date) return new Date(obj) as T;
+	if (obj instanceof RegExp) return new RegExp(obj) as T;
+
+	if (obj instanceof Map) {
 		result = new Map();
 		for (const [key, value] of obj) {
 			result.set(deepCopy(key, seen), deepCopy(value, seen));
 		}
-	} else if (obj instanceof Set) {
+		return result as T;
+	}
+
+	if (obj instanceof Set) {
 		result = new Set();
 		for (const value of obj) {
 			result.add(deepCopy(value, seen));
 		}
-	} else {
-		// Handle plain objects
-		result = Object.create(Object.getPrototypeOf(obj));
+		return result as T;
+	}
 
-		const props = [
-			...Object.getOwnPropertyNames(obj),
-			...Object.getOwnPropertySymbols(obj),
-		];
-		for (const prop of props) {
-			const descriptor = Object.getOwnPropertyDescriptor(obj, prop);
-			if (descriptor) {
-				if (descriptor.get || descriptor.set) {
-					Object.defineProperty(result, prop, descriptor);
-				} else {
-					Object.defineProperty(result, prop, {
-						...descriptor,
-						value: deepCopy(descriptor.value, seen),
-					});
-				}
+	// Handle plain objects
+	result = Object.create(Object.getPrototypeOf(obj));
+
+	const props = [...Object.getOwnPropertyNames(obj), ...Object.getOwnPropertySymbols(obj)];
+
+	for (const prop of props) {
+		const descriptor = Object.getOwnPropertyDescriptor(obj, prop);
+		if (descriptor) {
+			if (descriptor.get || descriptor.set) {
+				Object.defineProperty(result, prop, descriptor);
+			} else {
+				Object.defineProperty(result, prop, {
+					...descriptor,
+					value: deepCopy(descriptor.value, seen),
+				});
 			}
 		}
 	}

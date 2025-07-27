@@ -56,12 +56,13 @@ export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) =>
 			return;
 		}
 
-		const ageNumber = Number(formData.age);
+		const {firstName, lastName, age} = formData;
+		const ageNumber = Number(age);
 
 		if (editingUser?.id) {
-			updateUser(editingUser.id, formData.firstName, formData.lastName, ageNumber);
+			updateUser(editingUser.id, firstName, lastName, ageNumber);
 		} else {
-			addUser(formData.firstName, formData.lastName, ageNumber);
+			addUser(firstName, lastName, ageNumber);
 		}
 
 		setFormData(initialFormData);

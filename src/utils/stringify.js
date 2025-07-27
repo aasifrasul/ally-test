@@ -3,8 +3,6 @@ const typeCheck = (data) => Object.prototype.toString.call(data).slice(8, -1).to
 const isSymbol = (data) => typeCheck(data) === 'symbol';
 
 function stringify(value, replacer, space, seen = new WeakSet()) {
-	if (value === undefined) return undefined;
-
 	if (value === null) return String(value);
 
 	if (typeof value === 'string') return '"' + value + '"';
@@ -12,6 +10,7 @@ function stringify(value, replacer, space, seen = new WeakSet()) {
 	if (typeof value !== 'object') return String(value);
 
 	if (value instanceof Date) return '"' + value.toISOString() + '"';
+	if (value instanceof RegExp) return '"' + value.toString() + '"';
 
 	// Handle circular references
 	if (seen.has(value)) return 'circular';

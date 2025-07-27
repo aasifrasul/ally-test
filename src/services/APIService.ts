@@ -1,8 +1,7 @@
 import type { APIOptions } from '../types/api';
 import { HTTPMethod } from '../types/api';
 import { createLogger, LogLevel, Logger } from '../utils/logger';
-import { fetch, BodyInit } from '../utils/fetch-polyfill';
-import { fetchAPIData, Result, getRandomId } from '../utils/common';
+import { fetchAPIData, Result } from '../utils/common';
 
 export interface SaveDataOptions extends APIOptions {
 	body: BodyInit;
@@ -75,9 +74,8 @@ export class APIService {
 		options: APIOptions,
 		cacheKey: string,
 	): Promise<Result<T>> {
-		const abortKey = `${endpoint}_${getRandomId()}`;
 		const abortController = new AbortController();
-		this.abortControllers.set(abortKey, abortController);
+		this.abortControllers.set(cacheKey, abortController);
 
 		const result = await fetchAPIData<T>(endpoint, {
 			...options,
@@ -95,7 +93,7 @@ export class APIService {
 			this.logger.debug('Cached result for:', endpoint);
 		}
 
-		this.abortControllers.delete(abortKey);
+		this.abortControllers.delete(cacheKey);
 		this.pendingRequests.delete(cacheKey);
 
 		return result;

@@ -23,7 +23,7 @@ export interface PromiseFactoryStats {
 	newest: string | null;
 }
 
-const logger = createLogger('WorkerQueue');
+const logger = createLogger('PromiseFactory');
 
 /**
  * Enhanced promise factory with better error handling, cleanup, and debugging
