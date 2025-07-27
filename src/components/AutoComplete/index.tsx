@@ -31,6 +31,7 @@ export default function AutoComplete() {
 
 	const modalContainerRef = useRef<RefObject<HTMLDivElement>>(null);
 	const searchCacheRef = useRef<Record<string, Item[]>>({});
+	const timoeutId = useRef<NodeJS.Timeout>(null);
 
 	const { searchParams, updateParams } = useSearchParams();
 
@@ -66,7 +67,15 @@ export default function AutoComplete() {
 		}
 	}, []);
 
-	const debouncedFetchData = useMemo(() => dbounce(fetchData, delay), [fetchData]);
+	//const debouncedFetchData = useMemo(() => dbounce(fetchData, delay), [fetchData]);
+	const debouncedFetchData = useCallback((searchText: string) => {
+		if (timoeutId.current) {
+			clearTimeout(timoeutId.current);
+			timoeutId.current = null;
+		}
+
+		timoeutId.current = setTimeout(() => fetchData(searchText), 300);
+	}, [fetchData]);
 
 	const handleChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {

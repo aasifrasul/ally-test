@@ -36,7 +36,7 @@ interface ResourceState<T = any> {
 }
 
 export function createResourceStore<T = any>(config: ResourceConfig) {
-	return create<ResourceState<T>>((set, get) => ({
+	return create<ResourceState<T>>((set, get): ResourceState<T> => ({
 		data: [],
 		isLoading: false,
 		error: null,

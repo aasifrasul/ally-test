@@ -1,23 +1,113 @@
-import { createClient, Client, ClientOptions } from 'graphql-http';
+import { createClient, Client, ClientOptions, RequestParams } from 'graphql-http';
 import { createClient as createWSClient } from 'graphql-ws';
 import { ExecutionResult } from 'graphql';
+
+import { GraphQLCache } from './GraphQLCache';
 import { constants } from '../constants';
 
-// HTTP client for queries and mutations
+const cache = new GraphQLCache();
+
+// === DEDUPLICATION ===
+const pendingQueries = new Map<string, Promise<any>>();
+
+// === YOUR EXISTING CLIENT SETUP ===
+interface CustomRequestParams extends RequestParams {
+	signal?: AbortSignal;
+}
+
 export const client: Client = createClient({
 	url: `${constants.BASE_URL}/graphql/`,
-	fetchFn: fetch,
-	abortControllerImpl: AbortController,
+	fetchFn: (input: RequestInfo | URL, init?: RequestInit) => {
+		return fetch(input, init);
+	},
 } as ClientOptions);
 
-// WebSocket client for subscriptions
 const wsClient = createWSClient({
 	url: `${constants.BASE_URL!.replace('http', 'ws')}/graphql/`,
-	connectionParams: {
-		// Add auth if needed
-	},
+	connectionParams: {},
 });
 
+// === ENHANCED EXECUTE QUERY ===
+interface QueryOptions {
+	cache?: boolean;
+	cacheTTL?: number;
+	timeout?: number;
+}
+
+export const executeQuery = async <T = any>(
+	query: string,
+	variables?: any,
+	timeoutMs: number = 5000,
+	options: QueryOptions = {},
+): Promise<T> => {
+	const { cache: useCache = true, cacheTTL } = options;
+	const cacheKey = `${query}${JSON.stringify(variables)}`;
+
+	// Check cache first (only for queries, not mutations)
+	const isMutation = query.trim().toLowerCase().startsWith('mutation');
+	if (useCache && !isMutation) {
+		const cached = cache.get(query, variables);
+		if (cached) {
+			return cached;
+		}
+	}
+
+	// Query deduplication
+	if (pendingQueries.has(cacheKey)) {
+		return pendingQueries.get(cacheKey)!;
+	}
+
+	const queryPromise = new Promise<T>((resolve, reject) => {
+		let result: ExecutionResult<Record<string, unknown>, unknown>;
+		let timeoutId: NodeJS.Timeout | null = null;
+
+		const cancelSubscription = client.subscribe(
+			{ query, variables },
+			{
+				next: (data) => (result = data),
+				error: (error) => {
+					cleanup();
+					reject(error);
+				},
+				complete: () => {
+					cleanup();
+
+					if (result.errors) {
+						reject(new Error(result.errors.map((e) => e.message).join(', ')));
+					} else {
+						const data = result.data as T;
+
+						// Cache the result (only for queries)
+						if (useCache && !isMutation) {
+							cache.set(query, variables, data, cacheTTL);
+						}
+
+						resolve(data);
+					}
+				},
+			},
+		);
+
+		const cleanup = () => {
+			if (timeoutId) {
+				clearTimeout(timeoutId);
+				timeoutId = null;
+			}
+			pendingQueries.delete(cacheKey);
+		};
+
+		timeoutId = setTimeout(() => {
+			cleanup();
+			cancelSubscription();
+			reject(new Error('API request timed out after ' + timeoutMs + 'ms'));
+		}, timeoutMs);
+	});
+
+	pendingQueries.set(cacheKey, queryPromise);
+	return queryPromise;
+};
+
+// === YOUR EXISTING SUBSCRIPTION CODE ===
 export interface SubscriptionResult<T = any> {
 	data?: T | null;
 	unsubscribe: () => void;
@@ -38,8 +128,6 @@ export const subscribe = <T = any>(query: string): Promise<SubscriptionResult<T>
 							unsubscribe: () => unsubscribe(),
 						});
 					}
-					// Handle subsequent messages here if needed
-					// You might want to emit events or use callbacks
 				},
 				error: (error) => {
 					if (!hasResolved) {
@@ -47,15 +135,12 @@ export const subscribe = <T = any>(query: string): Promise<SubscriptionResult<T>
 						reject(error);
 					}
 				},
-				complete: () => {
-					// Subscription ended
-				},
+				complete: () => {},
 			},
 		);
 	});
 };
 
-// Better approach: Event-based subscription
 export interface SubscriptionEventHandler<T = any> {
 	onData: (data: T) => void;
 	onError: (error: any) => void;
@@ -85,68 +170,50 @@ export const subscribeWithCallback = <T = any>(
 	return () => unsubscribe();
 };
 
-// Helper function for executing queries and mutations using the HTTP client
-export const executeQuery = async <T = any>(query: string, variables?: any): Promise<T> => {
-	return new Promise((resolve, reject) => {
-		let result: ExecutionResult<Record<string, unknown>, unknown>;
-		let timeoutId: NodeJS.Timeout | null = null;
-
-		const cancel = client.subscribe(
-			{ query, variables },
-			{
-				next: (data) => (result = data),
-				error: reject,
-				complete: () => {
-					if (result.errors) {
-						reject(new Error(result.errors.map((e) => e.message).join(', ')));
-					} else {
-						resolve(result.data as T);
-					}
-				},
-			},
-		);
-
-		timeoutId = setTimeout(() => {
-			timeoutId && clearTimeout(timeoutId);
-			cancel();
-			reject(new Error('API Timed out'));
-		}, 5000);
-
-		// Optional: return cancel function if you need to abort
-		// You can modify this function to return both result and cancel if needed
-	});
+// === CACHE UTILITIES ===
+export const invalidateCache = (pattern?: string) => {
+	cache.invalidate(pattern);
 };
 
-/**
- * Usage examples:
- *
- * // Query/Mutation (HTTP) - Using the helper function
- * const result = await executeQuery('{ users { id name age } }');
- *
- * // Query/Mutation (HTTP) - Using client.subscribe directly (as per official docs)
- * const result = await new Promise((resolve, reject) => {
- *   let result;
- *   const cancel = client.subscribe(
- *     { query: '{ users { id name age } }' },
- *     {
- *       next: (data) => (result = data),
- *       error: reject,
- *       complete: () => resolve(result),
- *     }
- *   );
- * });
- *
- * // Subscription (WebSocket) - Promise-based
- * const subscription = await subscribe('subscription { userCreated { id name } }');
- * // Later: subscription.unsubscribe();
- *
- * // Subscription (WebSocket) - Callback-based (Recommended)
- * const unsubscribe = subscribeWithCallback(
- *   'subscription { userCreated { id name } }',
- *   {
- *     onData: (data) => console.log('New user:', data),
- *     onError: (error) => console.error('Subscription error:', error)
- *   }
- * );
- * // Later: unsubscribe();
- */
+export const updateCache = (query: string, variables: any, updater: (data: any) => any) => {
+	cache.updateCache(query, variables, updater);
+};
+
+// === OPTIMISTIC MUTATIONS ===
+export const executeOptimisticMutation = async <T = any>(
+	mutation: string,
+	variables: any,
+	optimisticResponse: any,
+	options: {
+		updateQueries?: Array<{ query: string; variables?: any; updater: (data: any) => any }>;
+		invalidatePatterns?: string[];
+	} = {},
+): Promise<T> => {
+	const { updateQueries = [], invalidatePatterns = [] } = options;
+
+	try {
+		// Apply optimistic updates immediately
+		updateQueries.forEach(({ query, variables: queryVars, updater }) => {
+			cache.updateCache(query, queryVars, (cached) => {
+				return updater({ ...cached, ...optimisticResponse });
+			});
+		});
+
+		// Execute the actual mutation
+		const result = await executeQuery<T>(mutation, variables, 5000, { cache: false });
+
+		// Update cache with real results
+		updateQueries.forEach(({ query, variables: queryVars, updater }) => {
+			cache.updateCache(query, queryVars, updater);
+		});
+
+		return result;
+	} catch (error) {
+		// Rollback optimistic updates on error
+		invalidatePatterns.forEach((pattern) => {
+			cache.invalidate(pattern);
+		});
+
+		throw error;
+	}
+};
