@@ -1,9 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import {
-	executeQueryWithCache,
-	executeOptimisticMutation,
-	invalidateQueries,
-} from './client';
+import { executeQueryWithCache, executeOptimisticMutation, invalidateQueries } from './client';
 import { subscribeWithCallback } from './~client';
 
 interface QueryState<T> {

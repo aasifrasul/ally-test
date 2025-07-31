@@ -20,7 +20,7 @@ declare global {
 	}
 }
 
-class BrowserHistory {
+export class BrowserHistory {
 	private states: HistoryState[];
 	private urls: string[];
 	private titles: string[];
@@ -88,16 +88,12 @@ class BrowserHistory {
 			this.currentIndex = newIndex;
 		}
 
+		const { state, url, title } = this.currentState();
+
 		// Dispatch a custom event that components can listen to
 		const customEvent: CustomEvent<HistoryChangeEventDetail> = new CustomEvent(
 			'historychange',
-			{
-				detail: {
-					state: this.currentState().state,
-					url: this.currentState().url,
-					title: this.currentState().title,
-				},
-			},
+			{ detail: { state, url, title } },
 		);
 		window.dispatchEvent(customEvent);
 	}
@@ -161,7 +157,7 @@ interface AppState {
 	filters?: Record<string, string>;
 	userId?: number;
 }
-
+/*
 // Example usage
 const history = new BrowserHistory({ page: 'home' } as AppState, 'Home Page', '/home');
 
@@ -181,3 +177,4 @@ window.addEventListener('historychange', (event: CustomEvent<HistoryChangeEventD
 
 export default BrowserHistory;
 export type { HistoryState, CurrentStateResult, HistoryChangeEventDetail, AppState };
+*/

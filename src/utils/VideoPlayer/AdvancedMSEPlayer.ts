@@ -1,16 +1,16 @@
 class AdvancedMSEPlayer {
 	private video!: HTMLVideoElement;
+	private mediaSource: MediaSource = new MediaSource();
+	private sourceBuffers: Map<string, any> = new Map();
+	private segmentQueue: { type: string; data: any; timestamp: Date }[] = [];
+	private bufferThresholds: { low: number; target: number; max: number } = {
+		low: 10, // seconds
+		target: 30, // seconds
+		max: 60, // seconds
+	};
 
 	constructor(video: HTMLVideoElement) {
 		this.video = video;
-		this.mediaSource = new MediaSource();
-		this.sourceBuffers = new Map(); // Support multiple tracks
-		this.segmentQueue = [];
-		this.bufferThresholds = {
-			low: 10, // seconds
-			target: 30, // seconds
-			max: 60, // seconds
-		};
 	}
 
 	async initialize() {
@@ -27,7 +27,7 @@ class AdvancedMSEPlayer {
 		return new Promise((resolve) => {
 			this.mediaSource.addEventListener('sourceopen', () => {
 				this.setupSourceBuffers(videoCodec, audioCodec);
-				resolve();
+				resolve(null);
 			});
 		});
 	}

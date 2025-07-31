@@ -54,6 +54,8 @@ export type TextFieldProps = BaseFieldProps & {
 	maxLength?: number;
 	minLength?: number;
 	clearable?: boolean;
+	autoComplete?: string;
+	autoFocus?: boolean;
 };
 
 // Union type of all possible field props
