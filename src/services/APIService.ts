@@ -1,6 +1,6 @@
 import type { APIOptions } from '../types/api';
 import { HTTPMethod } from '../types/api';
-import { createLogger, LogLevel, Logger } from '../utils/logger';
+import { createLogger, LogLevel, Logger } from '../utils/Logger';
 import { fetchAPIData, Result } from '../utils/common';
 
 export interface SaveDataOptions extends APIOptions {

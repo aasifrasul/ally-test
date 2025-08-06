@@ -1,6 +1,6 @@
 import { APIService } from '../services/APIService';
 import { ImageService } from '../services/ImageService';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/Logger';
 import { WorkerMessage } from '../types/api';
 import { isObject } from '../utils/typeChecking';
 

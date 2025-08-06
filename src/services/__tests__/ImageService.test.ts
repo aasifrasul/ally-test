@@ -1,5 +1,5 @@
 import { ImageService } from '../ImageService';
-import { createLogger, LogLevel } from '../../utils/logger';
+import { createLogger, LogLevel } from '../../utils/Logger';
 
 jest.mock('../../utils/logger');
 

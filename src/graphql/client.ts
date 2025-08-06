@@ -114,7 +114,7 @@ export const subscribe = <T = any>(query: string): Promise<SubscriptionResult<T>
 				next: ({ data }: ExecutionResult<T>) => {
 					if (!hasResolved) {
 						hasResolved = true;
-						resolve({ data, unsubscribe: () => unsubscribe() });
+						resolve({ data, unsubscribe });
 					}
 				},
 				error: (error) => {

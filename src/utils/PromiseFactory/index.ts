@@ -1,5 +1,5 @@
 import { Deferred } from './Deferred';
-import { createLogger } from '../logger';
+import { createLogger } from '../Logger';
 
 /**
  * Interface for PromiseFactory configuration options.

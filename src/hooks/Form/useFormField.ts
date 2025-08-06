@@ -109,6 +109,16 @@ export function useFormField({
 		[debouncedValidation],
 	);
 
+	const setTouched = useCallback((touched: boolean = true) => {
+		setState((prevState): FormFieldState => {
+			if (touched === prevState.touched) return prevState;
+			return {
+				...prevState,
+				touched,
+			};
+		});
+	}, []);
+
 	return {
 		value: state.value,
 		error: state.error,
@@ -118,5 +128,6 @@ export function useFormField({
 		handleChange,
 		reset,
 		setValue,
+		setTouched,
 	};
 }

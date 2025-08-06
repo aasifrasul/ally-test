@@ -136,11 +136,7 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 		</>
 	);
 
-	if (hideWrapper) {
-		return component;
-	}
-
-	return <div className="space-y-1">{component}</div>;
+	return hideWrapper ? component : <div className="space-y-1">{component}</div>;
 });
 
 InputText.displayName = 'InputText';

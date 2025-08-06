@@ -8,7 +8,7 @@ import { SearchUser } from './SearchUser';
 import { UserForm } from './UserForm';
 import { UsersList } from './UsersList';
 
-import { createLogger, LogLevel, Logger } from '../../utils/logger';
+import { createLogger, LogLevel, Logger } from '../../utils/Logger';
 import { User, AddUser, UpdateUser, EditUser, DeleteUser } from './types';
 
 const logger: Logger = createLogger('DisplayUsers', {

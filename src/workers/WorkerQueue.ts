@@ -1,5 +1,5 @@
 import type { APIOptions, WorkerMessage } from '../types/api';
-import { createLogger } from '../utils/logger';
+import { createLogger } from '../utils/Logger';
 import { getRandomId } from '../utils/common';
 import { PromiseFactory } from '../utils/PromiseFactory';
 

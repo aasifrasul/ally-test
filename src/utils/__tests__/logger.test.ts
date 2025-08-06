@@ -1,4 +1,4 @@
-import { Logger, LogLevel, createLogger } from '../logger';
+import { Logger, LogLevel, createLogger } from '../Logger';
 
 describe('Logger', () => {
 	let consoleSpy: jest.SpyInstance;
