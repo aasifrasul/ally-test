@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, RefObject } from 'react';
 import { useIntersectionObserver } from '../useIntersectionObserver';
 
 interface UseInfiniteScrollProps {
-	scrollRef: React.RefObject<HTMLElement>;
+	scrollRef: RefObject<HTMLElement | null>;
 	callback: () => void;
 	enabled?: boolean; // Add option to disable
 }

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef, FC, RefObject } from 'react';
 import DataGrid from '../Common/DataGrid/DataGrid';
 import ScrollToTop from '../Common/ScrollToTopButton';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
@@ -13,7 +13,7 @@ interface WineConnoisseurProps {
 	currentPage: number;
 }
 
-const WineConnoisseur: React.FC<WineConnoisseurProps> = ({
+const WineConnoisseur: FC<WineConnoisseurProps> = ({
 	headers,
 	pageData,
 	fetchNextPage,
@@ -27,6 +27,18 @@ const WineConnoisseur: React.FC<WineConnoisseurProps> = ({
 		scrollRef: ioObserverRef,
 		callback: () => fetchNextPage(currentPage + 1),
 	});
+
+	if (isLoading) {
+		return <div>Loading...</div>
+	}
+
+	if (isError) {
+		return <div>Encountered some error, Please refresh the page</div>
+	}
+
+	if (pageData.length === 0) {
+		return <div>No Items found</div>
+	}
 
 	return (
 		<div className={styles.alignCenter}>
