@@ -2,7 +2,6 @@ import React, { useRef, useCallback } from 'react';
 import { InitialState } from '../../constants/types';
 import { MovieListProps } from '../../types/movieList';
 
-import { useImageLazyLoad } from '../../hooks/useImageLazyLoad';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { createActionHooks } from '../../hooks/createActionHooks';
 
@@ -23,11 +22,6 @@ export const MovieList = (props: Props): React.ReactNode => {
 	useInfiniteScroll({
 		scrollRef: observerRef,
 		callback: () => fetchNextPage(currentPage! + 1),
-	});
-
-	useImageLazyLoad({
-		imgSelector: 'img[data-src]',
-		count: data?.length as number,
 	});
 
 	const handleChange = useCallback(

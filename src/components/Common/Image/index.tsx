@@ -20,34 +20,32 @@ const Image: React.FC<ImageProps> = ({
 	width = 100,
 	height = 100,
 }) => {
-	const onLoadCallback = (e: React.SyntheticEvent<HTMLImageElement>) => {
-		const loader = e.currentTarget?.parentElement?.children[1];
-		loader && e.currentTarget?.parentElement?.removeChild(loader);
+	const [isLoaded, setIsLoaded] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
+
+	const handleLoad = () => {
+		setIsLoaded(true);
+		setIsLoading(false);
 	};
 
-	const img = lazy ? (
-		<img
-			data-src={src}
-			className={styles}
-			height={height}
-			width={width}
-			alt={alt}
-			loading="lazy"
-			decoding="async"
-			onLoad={onLoadCallback}
-		/>
-	) : (
-		<img src={src} className={styles} height={height} width={width} alt={alt} />
-	);
-
 	return (
-		<div>
-			{img}
-			<div className={imageStyles.snippet}>
-				<div className={clsx(imageStyles.stage, imageStyles.filterContrast)}>
-					<span className={'dot-pulse'}></span>
+		<div className={styles}>
+			<img
+				src={src}
+				alt={alt}
+				width={width}
+				height={height}
+				loading={lazy ? 'lazy' : 'eager'}
+				onLoad={handleLoad}
+				style={{ display: isLoaded ? 'block' : 'none' }}
+			/>
+			{isLoading && (
+				<div className={imageStyles.snippet}>
+					<div className={clsx(imageStyles.stage, imageStyles.filterContrast)}>
+						<span className="dot-pulse" />
+					</div>
 				</div>
-			</div>
+			)}
 		</div>
 	);
 };

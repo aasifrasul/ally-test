@@ -5,7 +5,7 @@ import { LazyImage } from '../Common/LazyImage';
 interface UserCardProps {
 	data: {
 		picture?: {
-			medium?: string;
+			thumbnail?: string;
 		};
 		name?: {
 			first?: string;
@@ -23,20 +23,18 @@ const UserCard: React.FC<UserCardProps> = ({ data }) => {
 	const { name, location, email, picture } = data;
 	const { first, last } = name || {};
 	const { city, country } = location || {};
-	const { medium } = picture || {};
+	const { thumbnail } = picture || {};
 
 	return (
 		<div className="p-4 border border-gray-500 rounded bg-white flex items-center">
-			{medium ? (
-				<div>
-					<LazyImage
-						src={medium}
-						className="w-16 h-16 rounded-full border-2 border-green-600"
-						width={72}
-						height={72}
-						alt="user"
-					/>
-				</div>
+			{thumbnail ? (
+				<LazyImage
+					src={thumbnail}
+					className="w-16 h-16 rounded-full border-2 border-green-600"
+					width={72}
+					height={72}
+					alt="user"
+				/>
 			) : (
 				<div className="w-16 h-16 rounded-full bg-gray-300"></div>
 			)}

@@ -8,9 +8,13 @@ import useFetch, { FetchResult } from '../../hooks/useFetch';
 export default function WineConnoisseurContainer() {
 	const result: FetchResult<InitialState> = useFetch(Schema.WINE_CONNOISSUER);
 	const { cleanUpTopLevel, getList, fetchData, fetchNextPage } = result;
-	const { headers, pageData, isLoading, isError, currentPage = 0 } = getList(
-		Schema.WINE_CONNOISSUER,
-	);
+	const {
+		headers,
+		pageData,
+		isLoading,
+		isError,
+		currentPage = 0,
+	} = getList(Schema.WINE_CONNOISSUER);
 
 	React.useEffect(() => {
 		fetchData();
