@@ -27,7 +27,7 @@ import { handleFileupload } from './fileUploads';
 import { setupProxy } from './setupProxy';
 import { constructReqDataObject, generateBuildTime } from './helper';
 import { pathPublic, pathTemplate, pathRootDir } from './paths';
-import { finalHandler, setupGlobalAsyncErrorHandling } from './globalErrorHandler';
+import { finalHandler } from './globalErrorHandler';
 import { constants } from '../../src/constants';
 
 // Import auth components

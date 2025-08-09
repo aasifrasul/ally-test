@@ -69,7 +69,7 @@ export const useImageLazyLoad = ({
 		return () => {
 			images.forEach((img) => {
 				const cleanup = observe(img);
-				cleanup();
+				cleanup?.();
 			});
 		};
 	}, [imgSelector, count, observe]);

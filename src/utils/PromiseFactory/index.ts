@@ -152,6 +152,16 @@ export class PromiseFactory<T = any> {
 		return this.promises.has(key);
 	}
 
+	// Get all current promise keys (useful for debugging)
+	getAllKeys(): string[] {
+		return Array.from(this.promises.keys());
+	}
+
+	// Get count of pending promises
+	getCount(): number {
+		return this.promises.size;
+	}
+
 	/**
 	 * Resolves a promise with the given key and value.
 	 * @param key The key of the promise to resolve.

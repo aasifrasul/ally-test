@@ -14,7 +14,7 @@ export default function WineConnoisseurContainer() {
 
 	React.useEffect(() => {
 		fetchData();
-		window.requestIdleCallback(() => fetchNextPage(currentPage + 1))
+		// window.requestIdleCallback(() => fetchNextPage(currentPage + 1))
 		return () => cleanUpTopLevel();
 	}, []);
 

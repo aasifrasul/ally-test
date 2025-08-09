@@ -10,7 +10,7 @@ type ErrorResult = {
 	error: Error;
 };
 
-type Result<T> = SuccessResult<T> | ErrorResult;
+export type Result<T> = SuccessResult<T> | ErrorResult;
 
 export interface ResponseLike {
 	ok: boolean;
