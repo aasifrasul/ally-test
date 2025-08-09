@@ -66,6 +66,7 @@ function useFetch<T, U = T>(
 	const { BASE_URL, queryParams } = dataSource ?? {};
 
 	const cleanUpTopLevel = useCallback(() => {
+		// Clear timeout
 		if (timeoutId.current) {
 			clearTimeout(timeoutId.current);
 			timeoutId.current = null;
@@ -81,12 +82,13 @@ function useFetch<T, U = T>(
 				return;
 			}
 
+			// Cleanup any previous request
+			cleanUpTopLevel();
+
 			const { advancePage } = usePageActions();
 			const { fetchStarted, fetchSucceeded, fetchFailed, fetchCompleted } =
 				useFetchActions();
 
-			cleanUpTopLevel();
-			fetchStarted();
 			const enhancedQueryParams = {
 				...queryParams,
 				page: fetchOptions.nextPage || queryParams?.page,
@@ -96,17 +98,6 @@ function useFetch<T, U = T>(
 
 			const url = `${endpoint}?${buildQueryParams(enhancedQueryParams)}`;
 
-			const cleanUp = () => {
-				cleanUpTopLevel();
-				//abortFetchRequest(url);
-			};
-
-			timeoutId.current = setTimeout(() => {
-				cleanUp();
-				const timeoutError = new Error('Request timeout');
-				onError?.(timeoutError);
-			}, timeout);
-
 			const enhancedOptions: RequestInit = {
 				headers: {
 					'Content-Type': 'application/json',
@@ -114,6 +105,23 @@ function useFetch<T, U = T>(
 				},
 				...fetchOptions,
 			};
+
+			const isRunning = workerManager.isAPIAlreadyRunning(url, {
+				...enhancedOptions,
+				method: HTTPMethod.GET,
+			});
+
+			if (isRunning) return;
+
+			fetchStarted();
+
+			// Set up timeout that will abort the request
+			timeoutId.current = setTimeout(() => {
+				const timeoutError = new Error('Request timeout');
+				fetchFailed();
+				onError?.(timeoutError);
+				fetchCompleted();
+			}, timeout);
 
 			const result: Result<T> = await workerManager.fetchAPIData(url, {
 				...enhancedOptions,
@@ -131,6 +139,12 @@ function useFetch<T, U = T>(
 				}
 			} else {
 				if (result.error.name !== 'AbortError') {
+					fetchFailed();
+					onError(result.error);
+				}
+
+				// Only treat as error if it wasn't an intentional abort
+				if (result.error instanceof Error && result.error.name !== 'AbortError') {
 					fetchFailed();
 					onError(result.error);
 				}
@@ -161,10 +175,12 @@ function useFetch<T, U = T>(
 				return null;
 			}
 
+			// Cleanup any previous request
+			cleanUpTopLevel();
+
 			const { updateStarted, updateSucceeded, updateFailed, updateCompleted } =
 				useUpdateActions();
 
-			cleanUpTopLevel();
 			updateStarted();
 
 			const mergedQueryParams = {
@@ -174,16 +190,12 @@ function useFetch<T, U = T>(
 
 			const url = `${config.url || BASE_URL}?${buildQueryParams(mergedQueryParams)}`;
 
-			const cleanUp = () => {
-				cleanUpTopLevel();
-				//abortFetchRequest(url);
-			};
-
+			// Set up timeout
 			timeoutId.current = setTimeout(() => {
-				cleanUp();
 				const timeoutError = new Error('Update request timeout');
-
+				updateFailed();
 				onUpdateError?.(timeoutError);
+				updateCompleted();
 			}, timeout);
 
 			const enhancedOptions: RequestInit = {
@@ -202,14 +214,20 @@ function useFetch<T, U = T>(
 			});
 
 			if (result.success) {
-				const transformedData = transformResponse(result.data);
+				const transformedData = transformUpdateResponse(result.data);
 
 				updateSucceeded();
-				onSuccess(transformedData);
+				onUpdateSuccess(transformedData);
+				return transformedData;
 			} else {
 				if (result.error.name !== 'AbortError') {
 					updateFailed();
-					onError(result.error);
+					onUpdateError(result.error);
+				}
+
+				if (result.error instanceof Error && result.error.name !== 'AbortError') {
+					updateFailed();
+					onUpdateError(result.error);
 				}
 			}
 
@@ -218,6 +236,7 @@ function useFetch<T, U = T>(
 				timeoutId.current = null;
 			}
 			updateCompleted();
+
 			return null;
 		},
 		[
@@ -228,7 +247,6 @@ function useFetch<T, U = T>(
 			transformUpdateResponse,
 			onUpdateSuccess,
 			onUpdateError,
-			fetchData,
 		],
 	);
 

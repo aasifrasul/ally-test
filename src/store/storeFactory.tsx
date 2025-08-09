@@ -11,7 +11,7 @@ import {
 	Store,
 } from '../constants/types';
 
-import { createLogger, LogLevel, Logger } from '../utils/logger';
+import { createLogger, LogLevel, Logger } from '../utils/Logger';
 
 const logger: Logger = createLogger('storeFactory', {
 	level: LogLevel.DEBUG,

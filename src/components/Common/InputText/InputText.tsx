@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, useCallback } from 'react';
 
 import { TextFieldProps } from './types';
 
@@ -22,6 +22,8 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 		type = 'text',
 		clearable = false,
 		onChange,
+		autoComplete,
+		autoFocus = false,
 	} = props;
 
 	const id = props.id || `id-${name}`;
@@ -33,14 +35,29 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 		debounceMs,
 	});
 
-	const handleClear = () => {
+	const handleClear = useCallback(() => {
 		const event = {
 			target: { value: '' },
 		} as React.ChangeEvent<HTMLInputElement>;
 		handleChange(event);
+	}, [handleChange]);
+
+	const showClearButton = clearable && value?.length > 0 && !disabled;
+
+	// Base input styles
+	const inputBaseStyles =
+		'w-full border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed';
+
+	// Size-specific styles
+	const inputSizeStyles = {
+		sm: 'text-sm py-1 px-2',
+		md: 'py-2 px-3',
+		lg: 'text-lg py-3 px-4',
 	};
 
-	const showClearButton = clearable && value && value.length > 0 && !disabled;
+	// Error styles
+	const inputErrorStyles =
+		touched && !isValid ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : '';
 
 	const component = (
 		<>
@@ -48,7 +65,7 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 				<label
 					htmlFor={id}
 					className={cn(
-						'block text-sm font-medium mb-1',
+						'block text-sm font-medium mb-1 text-gray-700',
 						required && "after:content-['*'] after:ml-0.5 after:text-red-500",
 					)}
 				>
@@ -66,13 +83,13 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 					onChange={handleChange}
 					disabled={disabled}
 					placeholder={placeholder}
+					autoComplete={autoComplete}
+					autoFocus={autoFocus}
 					className={cn(
-						'input',
-						size === 'sm' && 'text-sm py-1 px-2',
-						size === 'md' && 'py-2 px-3',
-						size === 'lg' && 'text-lg py-3 px-4',
+						inputBaseStyles,
+						inputSizeStyles[size],
+						inputErrorStyles,
 						showClearButton && 'pr-8', // Add padding for clear button
-						touched && !isValid && 'error',
 						className,
 					)}
 					aria-invalid={!isValid}
@@ -86,7 +103,7 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 						className={cn(
 							'absolute right-2 top-1/2 transform -translate-y-1/2',
 							'text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600',
-							'w-4 h-4 flex items-center justify-center',
+							'w-4 h-4 flex items-center justify-center transition-colors duration-150',
 							size === 'sm' && 'w-3 h-3 text-xs',
 							size === 'lg' && 'w-5 h-5 text-base',
 						)}
@@ -100,7 +117,7 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 							xmlns="http://www.w3.org/2000/svg"
 						>
 							<path
-								d="M9 3L3 9M3 3L9 9"
+								d="M9 3L3L9M3 3L9 9"
 								stroke="currentColor"
 								strokeWidth="1.5"
 								strokeLinecap="round"
@@ -119,11 +136,7 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 		</>
 	);
 
-	if (hideWrapper) {
-		return component;
-	}
-
-	return <div className="input-wrapper">{component}</div>;
+	return hideWrapper ? component : <div className="space-y-1">{component}</div>;
 });
 
 InputText.displayName = 'InputText';

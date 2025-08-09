@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useCallback } from 'react';
-import { createLogger, LogLevel, Logger } from '../../utils/logger';
+import { createLogger, LogLevel, Logger } from '../../utils/Logger';
 import { ErrorHandlingOptions, Options, Target, EventMap } from './types';
 import { isFunction } from '../../utils/typeChecking';
 

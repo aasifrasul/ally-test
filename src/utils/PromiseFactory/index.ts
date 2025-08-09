@@ -1,5 +1,5 @@
 import { Deferred } from './Deferred';
-import { createLogger } from '../logger';
+import { createLogger } from '../Logger';
 
 /**
  * Interface for PromiseFactory configuration options.
@@ -32,6 +32,7 @@ export class PromiseFactory<T = any> {
 	private promises: Map<string, Deferred<T>>;
 	private options: Required<PromiseFactoryOptions>;
 	private cleanupInterval: NodeJS.Timeout | null = null;
+	private scheduledCleanups: Map<string, NodeJS.Timeout> = new Map(); // Track individual cleanups
 
 	constructor(options: Partial<PromiseFactoryOptions> = {}) {
 		this.promises = new Map<string, Deferred<T>>();
@@ -53,7 +54,7 @@ export class PromiseFactory<T = any> {
 	 * @param key The key to validate.
 	 * @private
 	 */
-	private _validateKey(key: string): void {
+	private validateKey(key: string): void {
 		if (!key || typeof key !== 'string') {
 			throw new Error('Key must be a non-empty string');
 		}
@@ -66,7 +67,7 @@ export class PromiseFactory<T = any> {
 	 * @param extra Additional data to log.
 	 * @private
 	 */
-	private _log(action: string, key: string, extra: Record<string, any> = {}): void {
+	private log(action: string, key: string, extra: Record<string, any> = {}): void {
 		if (this.options.enableLogging) {
 			logger.debug(`[PromiseFactory] ${action}:`, { key, ...extra, total: this.size });
 		}
@@ -76,7 +77,7 @@ export class PromiseFactory<T = any> {
 	 * Checks if we've hit the maximum number of promises
 	 * @private
 	 */
-	private _checkMaxPromises(): void {
+	private checkMaxPromises(): void {
 		if (this.promises.size >= this.options.maxPromises) {
 			throw new Error(
 				`Maximum number of promises (${this.options.maxPromises}) exceeded`,
@@ -88,21 +89,24 @@ export class PromiseFactory<T = any> {
 	 * Creates a new deferred promise with the given key.
 	 * @param key The unique key for the promise.
 	 * @param timeoutMs Optional timeout in milliseconds for the promise.
+	 * @param allowOverwrite If true, overwrites existing promise instead of throwing
 	 * @returns The created Deferred promise.
-	 * @throws Error if a promise with the key already exists or max promises exceeded.
+	 * @throws Error if a promise with the key already exists (unless allowOverwrite is true) or max promises exceeded.
 	 */
-	create(key: string, timeoutMs: number | null = null): Deferred<T> {
-		this._checkMaxPromises();
+	create(
+		key: string,
+		timeoutMs: number | null = null,
+		allowOverwrite: boolean = false,
+	): Deferred<T> {
+		this.validateKey(key);
+		this.checkMaxPromises();
 
 		if (this.has(key)) {
-			logger.error(`Promise with key "${key}" already exists`);
-			const promise = this.promises.get(key);
-
-			if (!promise) {
-				throw new Error(`Something weird!`);
+			if (allowOverwrite) {
+				this.remove(key);
+			} else {
+				throw new Error(`Promise with key "${key}" already exists`);
 			}
-
-			return promise;
 		}
 
 		const deferred = new Deferred<T>();
@@ -112,7 +116,7 @@ export class PromiseFactory<T = any> {
 		}
 
 		this.promises.set(key, deferred);
-		this._log('CREATE', key, { timeout: timeoutMs });
+		this.log('CREATE', key, { timeout: timeoutMs, overwrite: allowOverwrite });
 
 		return deferred;
 	}
@@ -123,12 +127,13 @@ export class PromiseFactory<T = any> {
 	 * @returns The Deferred promise if found, otherwise undefined.
 	 */
 	get(key: string): Deferred<T> | undefined {
-		this._validateKey(key);
+		this.validateKey(key);
 		return this.promises.get(key);
 	}
 
 	/**
-	 * Gets an existing promise or creates a new one.
+	 * Creates a promise if it doesn't exist, or returns existing one.
+	 * This is different from create() which throws on existing keys.
 	 * @param key The key of the promise to get or create.
 	 * @param timeoutMs Optional timeout in milliseconds if a new promise is created.
 	 * @returns The Deferred promise.
@@ -143,8 +148,18 @@ export class PromiseFactory<T = any> {
 	 * @returns True if the promise exists, false otherwise.
 	 */
 	has(key: string): boolean {
-		this._validateKey(key);
+		this.validateKey(key);
 		return this.promises.has(key);
+	}
+
+	// Get all current promise keys (useful for debugging)
+	getAllKeys(): string[] {
+		return Array.from(this.promises.keys());
+	}
+
+	// Get count of pending promises
+	getCount(): number {
+		return this.promises.size;
 	}
 
 	/**
@@ -155,8 +170,7 @@ export class PromiseFactory<T = any> {
 	 * @throws Error if no promise is found with the key.
 	 */
 	resolve(key: string, value: T): boolean {
-		this._validateKey(key);
-		const deferred = this.promises.get(key);
+		const deferred = this.get(key);
 
 		if (!deferred) {
 			throw new Error(`No promise found with key "${key}"`);
@@ -168,11 +182,11 @@ export class PromiseFactory<T = any> {
 		}
 
 		deferred.resolve(value);
-		this._log('RESOLVE', key, { value });
+		this.log('RESOLVE', key, { value });
 
 		// Schedule cleanup if auto-cleanup is enabled
 		if (this.options.autoCleanup) {
-			this._scheduleCleanup(key);
+			this.scheduleCleanup(key);
 		}
 
 		return true;
@@ -186,8 +200,7 @@ export class PromiseFactory<T = any> {
 	 * @throws Error if no promise is found with the key.
 	 */
 	reject(key: string, error: any): boolean {
-		this._validateKey(key);
-		const deferred = this.promises.get(key);
+		const deferred = this.get(key);
 
 		if (!deferred) {
 			throw new Error(`No promise found with key "${key}"`);
@@ -199,27 +212,39 @@ export class PromiseFactory<T = any> {
 		}
 
 		deferred.reject(error);
-		this._log('REJECT', key, { error: error?.message });
+		this.log('REJECT', key, { error: error?.message });
 
 		// Schedule cleanup if auto-cleanup is enabled
 		if (this.options.autoCleanup) {
-			this._scheduleCleanup(key);
+			this.scheduleCleanup(key);
 		}
 
 		return true;
 	}
 
 	/**
-	 * Removes a promise from the factory.
+	 * Removes a promise from the factory with proper cleanup.
 	 * @param key The key of the promise to remove.
 	 * @returns True if the promise was removed, false otherwise.
 	 */
 	remove(key: string): boolean {
-		this._validateKey(key);
+		this.validateKey(key);
+
+		if (!this.has(key)) {
+			throw new Error(`No promise found with key "${key}"`);
+		}
+
+		// Clear any scheduled cleanup
+		const scheduledCleanup = this.scheduledCleanups.get(key);
+		if (scheduledCleanup) {
+			clearTimeout(scheduledCleanup);
+			this.scheduledCleanups.delete(key);
+		}
+
 		const existed = this.promises.delete(key);
 
 		if (existed) {
-			this._log('REMOVE', key);
+			this.log('REMOVE', key);
 		}
 
 		return existed;
@@ -232,7 +257,7 @@ export class PromiseFactory<T = any> {
 	clear(): number {
 		const count = this.promises.size;
 		this.promises.clear();
-		this._log('CLEAR_ALL', 'all', { cleared: count });
+		this.log('CLEAR_ALL', 'all', { cleared: count });
 		return count;
 	}
 
@@ -318,17 +343,72 @@ export class PromiseFactory<T = any> {
 	}
 
 	/**
-	 * Schedules cleanup for a settled promise.
+	 * Waits for any one of the specified promises to resolve.
+	 * @param keys An array of keys of the promises to wait for.
+	 * @param timeoutMs Optional timeout in milliseconds.
+	 * @returns A promise that resolves when the first promise resolves.
+	 */
+	async waitForAny(keys: string[], timeoutMs: number | null = null): Promise<T> {
+		if (!Array.isArray(keys) || keys.length === 0) {
+			throw new Error('Keys must be a non-empty array');
+		}
+
+		const promises = keys.map((key) => {
+			const deferred = this.get(key);
+			if (!deferred) {
+				throw new Error(`No promise found with key "${key}"`);
+			}
+			return deferred.promise;
+		});
+
+		if (timeoutMs) {
+			const timeoutPromise = new Promise<T>((_, reject) => {
+				setTimeout(
+					() => reject(new Error('Timeout waiting for any promise')),
+					timeoutMs,
+				);
+			});
+			return Promise.race([Promise.race(promises), timeoutPromise]);
+		}
+
+		return Promise.race(promises);
+	}
+
+	/**
+	 * Gets promises that match a pattern.
+	 * @param pattern RegExp or string pattern to match keys against.
+	 * @returns Array of matching deferred promises with their keys.
+	 */
+	findByPattern(pattern: RegExp | string): Array<{ key: string; deferred: Deferred<T> }> {
+		const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+		const matches: Array<{ key: string; deferred: Deferred<T> }> = [];
+
+		for (const [key, deferred] of this.promises) {
+			if (regex.test(key)) {
+				matches.push({ key, deferred });
+			}
+		}
+
+		return matches;
+	}
+
+	/**
+	 * Schedules cleanup for a settled promise with proper timeout tracking.
 	 * @param key The key of the promise to schedule for cleanup.
 	 * @private
 	 */
-	private _scheduleCleanup(key: string): void {
-		setTimeout(() => {
-			const deferred = this.promises.get(key);
-			if (deferred && deferred.isSettled) {
-				this.remove(key);
-			}
+	private scheduleCleanup(key: string): void {
+		// Clear existing cleanup timeout if any
+		const existingTimeout = this.scheduledCleanups.get(key);
+		if (existingTimeout) clearTimeout(existingTimeout);
+
+		const timeoutId = setTimeout(() => {
+			const deferred = this.get(key);
+			if (deferred?.isSettled) this.remove(key);
+			this.scheduledCleanups.delete(key);
 		}, this.options.cleanupDelay);
+
+		this.scheduledCleanups.set(key, timeoutId);
 	}
 
 	/**
@@ -351,7 +431,7 @@ export class PromiseFactory<T = any> {
 			toRemove.forEach((key) => this.remove(key));
 
 			if (toRemove.length > 0) {
-				this._log('AUTO_CLEANUP', 'multiple', { removed: toRemove.length });
+				this.log('AUTO_CLEANUP', 'multiple', { removed: toRemove.length });
 			}
 		}, this.options.cleanupDelay);
 	}

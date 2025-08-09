@@ -1,60 +1,42 @@
 /**
  * Represents the current state of a deferred promise
  */
-const DeferredState = {
-	PENDING: 'pending',
-	RESOLVED: 'resolved',
-	REJECTED: 'rejected',
-} as const; // Using 'as const' for literal types
-
-type DeferredState = (typeof DeferredState)[keyof typeof DeferredState];
+enum DeferredState {
+	PENDING = 'pending',
+	RESOLVED = 'resolved',
+	REJECTED = 'rejected',
+}
 
 export class Deferred<T> {
-	private state: DeferredState;
-	private value: T | null;
-	private error: any; // Consider a more specific error type if known
-	public createdAt: number;
+	private state: DeferredState = DeferredState.PENDING;
+	private value: T | null = null;
+	private error: any = null; // Consider a more specific error type if known
+	public createdAt: number = Date.now();
 	public promise: Promise<T>; // Publicly expose the promise
-	private timeoutId: ReturnType<typeof setTimeout> | null;
-
-	// Private functions to resolve/reject the internal promise
-	private _resolve!: (value: T | PromiseLike<T>) => void;
-	private _reject!: (reason?: any) => void;
+	private timeoutId: NodeJS.Timeout | null = null;
 
 	// Public methods to resolve/reject the Deferred
-	public resolve: (value: T | PromiseLike<T>) => void;
-	public reject: (reason?: any) => void;
+	public resolve!: (value: T | PromiseLike<T>) => void;
+	public reject!: (reason?: any) => void;
 
 	constructor() {
-		this.state = DeferredState.PENDING;
-		this.value = null;
-		this.error = null;
-		this.timeoutId = null;
-		this.createdAt = Date.now();
-
 		this.promise = new Promise<T>((resolve, reject) => {
-			this._resolve = (value) => {
-				if (this.state === DeferredState.PENDING) {
-					this.state = DeferredState.RESOLVED;
-					this.value = value as T; // Type assertion
-					this.clearTimeout();
-					resolve(value);
-				}
+			this.resolve = (value) => {
+				if (this.isSettled) return;
+				this.state = DeferredState.RESOLVED;
+				this.value = value as T; // Type assertion
+				this.cleanUp();
+				resolve(value);
 			};
 
-			this._reject = (error) => {
-				if (this.state === DeferredState.PENDING) {
-					this.state = DeferredState.REJECTED;
-					this.error = error;
-					this.clearTimeout();
-					reject(error);
-				}
+			this.reject = (error) => {
+				if (this.isSettled) return;
+				this.state = DeferredState.REJECTED;
+				this.error = error;
+				this.cleanUp();
+				reject(error);
 			};
 		});
-
-		// Bind methods to preserve context
-		this.resolve = this._resolve.bind(this);
-		this.reject = this._reject.bind(this);
 	}
 
 	/**
@@ -102,6 +84,7 @@ export class Deferred<T> {
 	 */
 	timeout(ms: number, message: string = 'Promise timed out'): this {
 		this.timeoutId = setTimeout(() => {
+			this.cleanUp();
 			if (this.isPending) {
 				this.reject(new Error(message));
 			}
@@ -109,7 +92,7 @@ export class Deferred<T> {
 		return this;
 	}
 
-	clearTimeout() {
+	cleanUp() {
 		if (this.timeoutId) {
 			clearTimeout(this.timeoutId);
 		}

@@ -1,4 +1,4 @@
-import { createLogger, LogLevel, Logger } from '../utils/logger';
+import { createLogger, LogLevel, Logger } from '../utils/Logger';
 
 interface ImageLoadOptions {
 	timeout?: number;

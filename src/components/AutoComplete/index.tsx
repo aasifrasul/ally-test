@@ -68,14 +68,17 @@ export default function AutoComplete() {
 	}, []);
 
 	//const debouncedFetchData = useMemo(() => dbounce(fetchData, delay), [fetchData]);
-	const debouncedFetchData = useCallback((searchText: string) => {
-		if (timoeutId.current) {
-			clearTimeout(timoeutId.current);
-			timoeutId.current = null;
-		}
+	const debouncedFetchData = useCallback(
+		(searchText: string) => {
+			if (timoeutId.current) {
+				clearTimeout(timoeutId.current);
+				timoeutId.current = null;
+			}
 
-		timoeutId.current = setTimeout(() => fetchData(searchText), 300);
-	}, [fetchData]);
+			timoeutId.current = setTimeout(() => fetchData(searchText), 300);
+		},
+		[fetchData],
+	);
 
 	const handleChange = useCallback(
 		(e: ChangeEvent<HTMLInputElement>) => {

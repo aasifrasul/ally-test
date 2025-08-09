@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import { InputText } from '../Common/InputText';
 import Button from '../Common/Button';
@@ -24,6 +24,7 @@ const initialFormData: FormData = {
 
 export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) => {
 	const [formData, setFormData] = useState<FormData>(initialFormData);
+	const firstNameRef = useRef<HTMLInputElement | null>(null);
 
 	// Update form when editingUser changes
 	useEffect(() => {
@@ -33,10 +34,15 @@ export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) =>
 				lastName: editingUser.last_name || '',
 				age: editingUser.age?.toString() || '',
 			});
+			firstNameRef.current?.focus();
 		} else {
 			setFormData(initialFormData);
 		}
 	}, [editingUser]);
+
+	useEffect(() => {
+		firstNameRef.current?.focus();
+	}, []);
 
 	const handleInputChange = (field: keyof FormData) => (value: string) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
@@ -56,7 +62,7 @@ export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) =>
 			return;
 		}
 
-		const {firstName, lastName, age} = formData;
+		const { firstName, lastName, age } = formData;
 		const ageNumber = Number(age);
 
 		if (editingUser?.id) {
@@ -85,12 +91,14 @@ export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) =>
 						First Name
 					</label>
 					<InputText
+						ref={firstNameRef}
 						id="firstName"
 						name="firstName"
 						placeholder="First Name"
 						initialValue={formData.firstName}
 						onChange={handleInputChange('firstName')}
 						hideWrapper
+						clearable
 					/>
 				</div>
 				<div>
@@ -104,6 +112,7 @@ export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) =>
 						initialValue={formData.lastName}
 						onChange={handleInputChange('lastName')}
 						hideWrapper
+						clearable
 					/>
 				</div>
 				<div>
@@ -115,6 +124,7 @@ export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) =>
 						initialValue={formData.age}
 						onChange={handleInputChange('age')}
 						hideWrapper
+						clearable
 					/>
 				</div>
 

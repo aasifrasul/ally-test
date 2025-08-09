@@ -1,13 +1,15 @@
 System Design (Instagram)
 
-1. scope (2-3 minutes): "Let me first understand the key features we need to design for Instagram. Would these be our core equirements:
+1. scope (2-3 minutes): "Let me first understand the key features we need to design 
+    for Instagram. Would these be our core equirements:
     - User feed with photos/videos
     - User profiles
     - Photo/video uploads
     - Like/comment functionality
     - Follow/unfollow users
     - Search functionality
-    - Should we include additional features like Stories, Direct Messages, or keep it focused on core features?"
+    - Should we include additional features like Stories, Direct Messages, 
+    or keep it focused on core features?"
 
 2. Define scale and constraints (2-3 minutes): Share rough estimates like:
     - Daily active users: ~1 billion
@@ -18,31 +20,65 @@ System Design (Instagram)
 3. High-level system design (10-15 minutes):
     - Client-side Architecture:
         * **Single Page Application (SPA):** 
-            * **Rationale:** SPAs offer a more interactive and responsive user experience compared to traditional multi-page applications. They load the initial HTML, CSS, and JavaScript once, and then dynamically update the content without requiring full page reloads. This leads to faster perceived performance and a smoother user experience.
-            * **Framework:** React/TypeScript is a popular choice for building SPAs due to its component-based architecture, strong typing capabilities, and large community support.
+            * **Rationale:** SPAs offer a more interactive and responsive user 
+            experience compared to traditional multi-page applications. 
+            They load the initial HTML, CSS, and JavaScript once, 
+            and then dynamically update the content without requiring full page reloads. 
+            This leads to faster perceived performance and a smoother user experience.
+            * **Framework:** React/TypeScript is a popular choice for building SPAs 
+            due to its component-based architecture, strong typing capabilities, 
+            and large community support.
 
         * **State Management:**
-            * **Redux:** A predictable state container that helps manage and update the application's state in a centralized and efficient way. It provides a clear and structured way to handle data flow and side effects.
-            * **Context API:** A built-in React feature for sharing data and state across different components without the need for props drilling. It can be simpler to use than Redux for smaller applications or when the state management needs are less complex.
-            * **Zustand:** A lightweight and performant state management library that offers a more concise and intuitive API compared to Redux. It's a good choice for applications that prioritize simplicity and performance.
-            * **Choice:** The best choice for state management depends on the specific needs of the application, the size of the team, and the desired level of complexity.
+            * **Redux:** A predictable state container that helps manage and update 
+            the application's state in a centralized and efficient way. 
+            It provides a clear and structured way to handle data flow and side effects.
+            * **Context API:** A built-in React feature for sharing data and state across 
+            different components without the need for props drilling. 
+            It can be simpler to use than Redux for smaller applications or 
+            when the state management needs are less complex.
+            * **Zustand:** A lightweight and performant state management library that 
+            offers a more concise and intuitive API compared to Redux. 
+            It's a good choice for applications that prioritize simplicity and performance.
+            * **Choice:** The best choice for state management depends on the 
+            specific needs of the application, the size of the team, 
+            and the desired level of complexity.
 
         * **Client-side Caching Strategy:**
-            * **Browser Caching:** Utilize browser caching mechanisms (e.g., HTTP caching headers) to store static assets (images, CSS, JavaScript) in the browser's cache. This significantly reduces the need to download these assets repeatedly.
-            * **Data Caching:** Implement a client-side cache (e.g., using libraries like `localForage`) to store frequently accessed data (e.g., user profiles, recent posts). This can improve performance and reduce the number of API requests.
+            * **Browser Caching:** Utilize browser caching mechanisms (e.g., 
+            HTTP caching headers) to store static assets (images, CSS, JavaScript) 
+            in the browser's cache. 
+            This significantly reduces the need to download these assets repeatedly.
+            * **Data Caching:** Implement a client-side cache (e.g., using libraries like 
+            `localForage`) to store frequently accessed data (e.g., user profiles, recent posts). 
+            This can improve performance and reduce the number of API requests.
 
         * **Progressive Image Loading:**
-            * **Placeholder Images:** Display low-resolution placeholders or blurred versions of images while the full-resolution images are loading. This provides a faster initial loading experience and improves perceived performance.
-            * **Lazy Loading:** Load images only when they are about to become visible in the viewport. This prevents unnecessary image downloads and saves bandwidth.
+            * **Placeholder Images:** Display low-resolution placeholders or blurred versions 
+            of images while the full-resolution images are loading. 
+            This provides a faster initial loading experience and improves perceived performance.
+            * **Lazy Loading:** Load images only when they are about to become visible in the viewport.
+            This prevents unnecessary image downloads and saves bandwidth.
 
         * **Infinite Scroll:**
-            * **Rationale:** Load content (e.g., posts in the feed) gradually as the user scrolls down the page. This enhances user experience by providing a continuous flow of content without the need for page reloads.
-            * **Implementation:** Use techniques like `Intersection Observer API` to detect when elements enter or leave the viewport and trigger the loading of additional content.
+            * **Rationale:** Load content (e.g., posts in the feed) gradually as the user 
+            scrolls down the page. 
+            This enhances user experience by providing a continuous flow of content without 
+            the need for page reloads.
+            * **Implementation:** Use techniques like `Intersection Observer API` to detect when 
+            elements enter or leave the viewport and trigger the loading of additional content.
 
         * **Real-time Updates Handling:**
-            * **WebSockets:** Establish a persistent, two-way communication channel between the client and server using WebSockets. This enables real-time updates for features like notifications, chat messages, and live updates to posts.
-            * **Server-Sent Events (SSE):** A simpler alternative to WebSockets for unidirectional communication from server to client. Suitable for scenarios where real-time updates are primarily from the server to the client.
-            * **Polling:** Regularly poll the server for updates at specific intervals. While less efficient than WebSockets or SSE, it can be a simpler option for less demanding real-time requirements.
+            * **WebSockets:** Establish a persistent, two-way communication channel between 
+            the client and server using WebSockets. 
+            This enables real-time updates for features like notifications, chat messages, 
+            and live updates to posts.
+            * **Server-Sent Events (SSE):** A simpler alternative to WebSockets for unidirectional 
+            communication from server to client. Suitable for scenarios where real-time 
+            updates are primarily from the server to the client.
+            * **Polling:** Regularly poll the server for updates at specific intervals. 
+            While less efficient than WebSockets or SSE, it can be a simpler option for 
+            less demanding real-time requirements.
 
     - API Design:
         - GET /api/feed/{id} - Get user's feed
@@ -101,9 +137,12 @@ System Design (Instagram)
         - CDN for static content
         - Object Storage (S3) for media
         - Microservices: 
-            Briefly discuss the potential benefits of a microservices architecture (e.g., breaking down the system into smaller, independent services for better scalability, maintainability, and fault isolation).
+            Briefly discuss the potential benefits of a microservices architecture 
+            (e.g., breaking down the system into smaller, 
+            independent services for better scalability, maintainability, and fault isolation).
         - Messaging Queue: 
-            Introduce a message queue (like Kafka or RabbitMQ) to handle asynchronous tasks like image processing, notifications, and background jobs.
+            Introduce a message queue (like Kafka or RabbitMQ) to handle asynchronous 
+            tasks like image processing, notifications, and background jobs.
 
 
 4. Deep dive into frontend-specific concerns (10-15 minutes):

@@ -1,5 +1,6 @@
 import React from 'react';
-import Image from '../Common/Image';
+
+import { LazyImage } from '../Common/LazyImage';
 
 interface UserCardProps {
 	data: {
@@ -28,13 +29,12 @@ const UserCard: React.FC<UserCardProps> = ({ data }) => {
 		<div className="p-4 border border-gray-500 rounded bg-white flex items-center">
 			{medium ? (
 				<div>
-					<Image
+					<LazyImage
 						src={medium}
-						styles="w-16 h-16 rounded-full border-2 border-green-600"
+						className="w-16 h-16 rounded-full border-2 border-green-600"
 						width={72}
 						height={72}
 						alt="user"
-						lazy={true}
 					/>
 				</div>
 			) : (

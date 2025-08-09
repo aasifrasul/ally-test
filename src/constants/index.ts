@@ -2,7 +2,7 @@ import { dataSources } from './dataSources';
 import { createImmutable } from '../utils/immutable';
 import { BASE_URL, WS_URL } from './base';
 
-import { AutoCompleteConfig, Constants } from './types';
+import { Constants } from './types';
 
 const routes = [
 	'AccordionDemo',

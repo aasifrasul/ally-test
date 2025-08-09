@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, ChangeEvent } from 'react';
-import { debounce } from '../../utils/throttleAndDebounce';
+import { useDebouncedCallback } from '../useDebouncedCallback';
 
 import { ValidationResult, UseFormFieldProps, FormFieldState } from './types';
 
@@ -21,9 +21,9 @@ export function useFormField({
 	// Track the previous initialValue to detect actual changes
 	const prevInitialValueRef = useRef(initialValue);
 
-	// Debounced validation and onChange handler
-	const debouncedValidation = useCallback(
-		debounce((value: string) => {
+	// validation and onChange handler
+	const validation = useCallback(
+		(value: string) => {
 			let validationResult: ValidationResult = { isValid: true };
 
 			if (validate) {
@@ -46,8 +46,14 @@ export function useFormField({
 			if (validationResult.isValid && onChange) {
 				onChange(value, id);
 			}
-		}, debounceMs),
+		},
 		[validate, onChange, id, customErrorMessage],
+	);
+
+	// Debounced validation
+	const { debouncedCallback: debouncedValidation } = useDebouncedCallback(
+		validation,
+		debounceMs,
 	);
 
 	// Handle initialValue changes (both when clean and dirty)
@@ -103,6 +109,16 @@ export function useFormField({
 		[debouncedValidation],
 	);
 
+	const setTouched = useCallback((touched: boolean = true) => {
+		setState((prevState): FormFieldState => {
+			if (touched === prevState.touched) return prevState;
+			return {
+				...prevState,
+				touched,
+			};
+		});
+	}, []);
+
 	return {
 		value: state.value,
 		error: state.error,
@@ -112,5 +128,6 @@ export function useFormField({
 		handleChange,
 		reset,
 		setValue,
+		setTouched,
 	};
 }

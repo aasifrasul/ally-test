@@ -10,11 +10,6 @@ const cache = new GraphQLCache();
 // === DEDUPLICATION ===
 const pendingQueries = new Map<string, Promise<any>>();
 
-// === YOUR EXISTING CLIENT SETUP ===
-interface CustomRequestParams extends RequestParams {
-	signal?: AbortSignal;
-}
-
 export const client: Client = createClient({
 	url: `${constants.BASE_URL}/graphql/`,
 	fetchFn: (input: RequestInfo | URL, init?: RequestInit) => {
@@ -27,7 +22,6 @@ const wsClient = createWSClient({
 	connectionParams: {},
 });
 
-// === ENHANCED EXECUTE QUERY ===
 interface QueryOptions {
 	cache?: boolean;
 	cacheTTL?: number;
@@ -52,7 +46,6 @@ export const executeQuery = async <T = any>(
 		}
 	}
 
-	// Query deduplication
 	if (pendingQueries.has(cacheKey)) {
 		return pendingQueries.get(cacheKey)!;
 	}
@@ -71,18 +64,17 @@ export const executeQuery = async <T = any>(
 				},
 				complete: () => {
 					cleanup();
+					const { data, errors } = result;
 
-					if (result.errors) {
-						reject(new Error(result.errors.map((e) => e.message).join(', ')));
+					if (errors) {
+						reject(new Error(errors.map((e) => e.message).join(', ')));
 					} else {
-						const data = result.data as T;
-
 						// Cache the result (only for queries)
 						if (useCache && !isMutation) {
 							cache.set(query, variables, data, cacheTTL);
 						}
 
-						resolve(data);
+						resolve(data as T);
 					}
 				},
 			},
@@ -107,7 +99,6 @@ export const executeQuery = async <T = any>(
 	return queryPromise;
 };
 
-// === YOUR EXISTING SUBSCRIPTION CODE ===
 export interface SubscriptionResult<T = any> {
 	data?: T | null;
 	unsubscribe: () => void;
@@ -120,13 +111,10 @@ export const subscribe = <T = any>(query: string): Promise<SubscriptionResult<T>
 		const unsubscribe = wsClient.subscribe(
 			{ query },
 			{
-				next: (data: ExecutionResult<T>) => {
+				next: ({ data }: ExecutionResult<T>) => {
 					if (!hasResolved) {
 						hasResolved = true;
-						resolve({
-							data: data.data,
-							unsubscribe: () => unsubscribe(),
-						});
+						resolve({ data, unsubscribe });
 					}
 				},
 				error: (error) => {
@@ -154,13 +142,9 @@ export const subscribeWithCallback = <T = any>(
 	const unsubscribe = wsClient.subscribe(
 		{ query },
 		{
-			next: (result: ExecutionResult<T>) => {
-				if (result.data) {
-					handlers.onData(result.data);
-				}
-				if (result.errors) {
-					handlers.onError(result.errors);
-				}
+			next: ({ data, errors }: ExecutionResult<T>) => {
+				if (data) handlers.onData(data);
+				if (errors) handlers.onError(errors);
 			},
 			error: handlers.onError,
 			complete: handlers.onComplete || (() => {}),

@@ -1,4 +1,4 @@
-import { createLogger, LogLevel, Logger } from '../../utils/logger';
+import { createLogger, LogLevel, Logger } from '../Logger';
 
 const logger: Logger = createLogger('IndexedDBStorage', {
 	level: LogLevel.DEBUG,

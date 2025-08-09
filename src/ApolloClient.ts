@@ -3,7 +3,7 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 import { constants } from './constants/';
-import { createLogger, Logger, LogLevel } from './utils/logger';
+import { createLogger, Logger, LogLevel } from './utils/Logger';
 
 const getWsUrl = (httpUrl: string) =>
 	httpUrl.replace(/^https?:\/\//, (match) => (match === 'https://' ? 'wss://' : 'ws://'));

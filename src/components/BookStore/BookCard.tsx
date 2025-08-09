@@ -1,4 +1,4 @@
-import useBookStore, { Book } from '../../store/bookStore';
+import { useBookStore, Book } from '../../store/bookStore';
 
 import Button from '../Common/Button';
 

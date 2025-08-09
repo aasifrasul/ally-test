@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { InputText } from '../Common/InputText';
 import Button from '../Common/Button';
 
-import useBookStore from '../../store/bookStore';
+import { useBookStore } from '../../store/bookStore';
 
 const BookForm = () => {
 	const { updateBook, addBook, editingBook, resetEditingBook } = useBookStore();
@@ -21,6 +21,10 @@ const BookForm = () => {
 			resetForm();
 		}
 	}, [editingBook]);
+
+	useEffect(() => {
+		titleRef.current?.focus();
+	}, []);
 
 	const handleOnChangeTitle = (value: string): void => {
 		setTitle(value);

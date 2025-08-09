@@ -1,8 +1,7 @@
 import { JSX, useEffect } from 'react';
 
 import useFetch, { FetchResult } from '../../hooks/useFetch';
-import { handleAsyncCalls } from '../../utils/common';
-import { InitialState, Schema } from '../../constants/types';
+import { InitialState, Schema, APIDataTypes } from '../../constants/types';
 
 import { MovieList } from './MovieList';
 
@@ -20,15 +19,7 @@ function MovieListContainer(props: ParentProps): JSX.Element {
 	const result: InitialState = getList(Schema.MOVIE_LIST);
 
 	useEffect(() => {
-		const fetchInitialData = async () => {
-			const result = await handleAsyncCalls(fetchData());
-
-			if (!result.success) {
-				console.error('Failed to fetch:', result.error);
-			}
-		};
-
-		fetchInitialData();
+		fetchData();
 		return () => cleanUpTopLevel();
 	}, []);
 
@@ -37,7 +28,7 @@ function MovieListContainer(props: ParentProps): JSX.Element {
 	return (
 		<MovieList
 			{...props}
-			{...result}
+			{...(result as APIDataTypes)}
 			schema={Schema.MOVIE_LIST}
 			fetchNextPage={fetchNextPage}
 		/>

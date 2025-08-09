@@ -27,12 +27,12 @@ import { handleFileupload } from './fileUploads';
 import { setupProxy } from './setupProxy';
 import { constructReqDataObject, generateBuildTime } from './helper';
 import { pathPublic, pathTemplate, pathRootDir } from './paths';
-import { finalHandler, setupGlobalAsyncErrorHandling } from './globalErrorHandler';
-//import { logger } from './Logger';
-//import { csp } from './middlewares/csp';
+import { finalHandler } from './globalErrorHandler';
 import { constants } from '../../src/constants';
-//import { processMessage } from './messageProcessing';
-//import { runDialogFlow } from './utility/dialogFlow';
+
+// Import auth components
+import { authRoutes } from './routes/authRoutes';
+import { authenticateToken, optionalAuth, authorizeRole } from './middlewares/authMiddleware';
 
 interface CustomError extends Error {
 	status?: number;
@@ -41,6 +41,11 @@ interface CustomError extends Error {
 interface Request extends ExpressRequest {
 	timedout?: boolean;
 	id?: string;
+	user?: {
+		id: string;
+		email: string;
+		role?: string;
+	};
 }
 
 const app: Application = express();
@@ -52,7 +57,7 @@ const limiter = rateLimit({
 	max: 100, // limit each IP to 100 requests per windowMs
 });
 
-setupGlobalAsyncErrorHandling(app);
+// setupGlobalAsyncErrorHandling(app);
 handleFileupload(app);
 
 app.all('/graphql', handleGraphql);
@@ -64,12 +69,12 @@ app.use(compression());
 app.use(
 	cors({
 		origin: isCurrentEnvProd ? ALLOWED_ORIGINS?.split(',') : `http://${host}:${port}`,
-		methods: ['GET', 'POST', 'OPTIONS'],
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Authorization'],
 		credentials: true,
 	}),
 );
-// app.use(helmet(csp));
+
 // Middleware for JSON
 app.use(express.json({ limit: '10kb' }));
 
@@ -94,65 +99,28 @@ app.get('/health', (req, res) => {
 	res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-/*
-app.get('/api/bookStore/', async (req, res) => {
-	const bookStore = await import('./store/bookStore');
-	const books = bookStore.getBooks();
-	res.json(books);
+// Auth routes
+app.use('/auth', authRoutes);
+
+// Protected API routes example
+app.get('/api/profile', authenticateToken, (req: any, res) => {
+	res.json({ message: 'This is a protected route', user: req.user });
 });
 
-app.post('/api/bookStore/', async (req, res) => {
-	const bookStore = await import('./store/bookStore');
-	const book = req.body;
-	bookStore.addBook(book);
-	res.json({ message: 'Book added successfully' });
+// Admin only route example
+app.get('/api/admin', authenticateToken, authorizeRole('admin'), (req, res) => {
+	res.json({ message: 'This is an admin-only route' });
 });
 
-app.get('/api/bookStore/:id', async (req, res) => {
-	const bookStore = await import('./store/bookStore');
-	const id = req.params.id;
-	const book = bookStore.getBook(id);
-	res.json(book);
+// Replace the simple login route with proper auth
+app.use('/login', (_, res: Response) => {
+	res.redirect('/auth/login');
 });
-
-app.put('/api/bookStore/:id', async (req, res) => {
-	const bookStore = await import('./store/bookStore');
-	const id = req.params.id;
-	const book = req.body;
-	bookStore.updateBook(id, book);
-	res.json({ message: 'Book updated successfully' });
-});
-
-app.delete('/api/bookStore/:id', async (req, res) => {
-	const bookStore = await import('./store/bookStore');
-	const id = req.params.id;
-	bookStore.deleteBook(id);
-	res.json({ message: 'Book deleted successfully' });
-});
-*/
-/*
-app.post('/api/chat', async (req, res) => {
-	const userMessage = req.body.message;
-	try {
-		const botResponse = await runDialogFlow(userMessage);
-		res.json({ message: botResponse });
-	} catch (error) {
-		logger.error('Error:', error);
-		res.status(500).json({ message: 'An error occurred while processing your message.' });
-	}
-});
-*/
 
 // middlewares
 app.get('/WebWorker.js', fetchWebWorker);
 app.get('/api/fetchWineData/*', fetchWineData);
 app.get('/images/*', fetchImage);
-
-app.use('/login', (_, res: Response) => {
-	res.send({
-		token: 'test123',
-	});
-});
 
 // Set hbs template config
 app.engine('.hbs', engine({ extname: '.hbs' }));
@@ -167,8 +135,11 @@ app.use(
 	}),
 );
 
+// Add user context to templates
+app.use(optionalAuth);
+
 // handles all the valid routes
-app.all(['/', '/:route'], (req: Request, res: Response, next: NextFunction) => {
+app.all(['/', '/:route'], (req: any, res: Response, next: NextFunction) => {
 	const { route } = req.params;
 	if (route && !constants.routes!.includes(route)) {
 		next();
@@ -177,6 +148,7 @@ app.all(['/', '/:route'], (req: Request, res: Response, next: NextFunction) => {
 	const data = {
 		js: bundleConfig,
 		...constructReqDataObject(req),
+		user: req.user, // Add user to template context
 		dev: true,
 		layout: false,
 	};

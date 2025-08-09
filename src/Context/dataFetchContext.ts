@@ -28,9 +28,9 @@ function createSchemaState() {
 }
 
 // Populate initialState based on dataSources
-Object.entries(dataSources).forEach(([key, dataSources]) => {
+Object.entries(dataSources).forEach(([key, dataSource]) => {
 	const individualState = createSchemaState();
-	individualState.currentPage = dataSources.queryParams?.page || 0;
+	individualState.currentPage = dataSource.queryParams?.page || 0;
 	initialState[key] = individualState;
 });
 

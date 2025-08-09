@@ -36,97 +36,102 @@ interface ResourceState<T = any> {
 }
 
 export function createResourceStore<T = any>(config: ResourceConfig) {
-	return create<ResourceState<T>>((set, get): ResourceState<T> => ({
-		data: [],
-		isLoading: false,
-		error: null,
+	return create<ResourceState<T>>(
+		(set, get): ResourceState<T> => ({
+			data: [],
+			isLoading: false,
+			error: null,
 
-		fetchData: async (additionalHeaders = {}) => {
-			const headers = { ...config.defaultHeaders, ...additionalHeaders };
+			fetchData: async (additionalHeaders = {}) => {
+				const headers = { ...config.defaultHeaders, ...additionalHeaders };
 
-			set({ isLoading: true, error: null });
-			const result = await apiService.fetch<T[]>(config.endpoints.list, headers);
+				set({ isLoading: true, error: null });
+				const result = await apiService.fetch<T[]>(config.endpoints.list, headers);
 
-			if (result.success) {
-				set({ data: result.data, isLoading: false });
-			} else {
-				set({ error: (result.error as Error).message, isLoading: false });
-			}
-		},
+				if (result.success) {
+					set({ data: result.data, isLoading: false });
+				} else {
+					set({ error: (result.error as Error).message, isLoading: false });
+				}
+			},
 
-		createItem: async (item, additionalHeaders = {}) => {
-			const headers = {
-				'Content-Type': 'application/json',
-				...config.defaultHeaders,
-				...additionalHeaders,
-			};
+			createItem: async (item, additionalHeaders = {}) => {
+				const headers = {
+					'Content-Type': 'application/json',
+					...config.defaultHeaders,
+					...additionalHeaders,
+				};
 
-			set({ isLoading: true, error: null });
-			const result = await apiService.fetch<T>(config.endpoints.create, {
-				...headers,
-				method: HTTPMethod.POST,
-				body: JSON.stringify(item),
-			});
+				set({ isLoading: true, error: null });
+				const result = await apiService.fetch<T>(config.endpoints.create, {
+					...headers,
+					method: HTTPMethod.POST,
+					body: JSON.stringify(item),
+				});
 
-			if (result.success) {
-				set((state) => ({
-					data: [...state.data, ...result.data],
-					isLoading: false,
-				}));
-			} else {
-				set({ error: (result.error as Error).message, isLoading: false });
-			}
-		},
+				if (result.success) {
+					set((state) => ({
+						data: [...state.data, ...result.data],
+						isLoading: false,
+					}));
+				} else {
+					set({ error: (result.error as Error).message, isLoading: false });
+				}
+			},
 
-		updateItem: async (id, updates, additionalHeaders = {}) => {
-			const headers = {
-				'Content-Type': 'application/json',
-				...config.defaultHeaders,
-				...additionalHeaders,
-			};
+			updateItem: async (id, updates, additionalHeaders = {}) => {
+				const headers = {
+					'Content-Type': 'application/json',
+					...config.defaultHeaders,
+					...additionalHeaders,
+				};
 
-			set({ isLoading: true, error: null });
-			const result = await apiService.fetch<T>(config.endpoints.update(id), {
-				...headers,
-				method: HTTPMethod.PUT,
-				body: JSON.stringify(updates),
-			});
+				set({ isLoading: true, error: null });
+				const result = await apiService.fetch<T>(config.endpoints.update(id), {
+					...headers,
+					method: HTTPMethod.PUT,
+					body: JSON.stringify(updates),
+				});
 
-			if (result.success) {
-				set((state) => ({
-					data: state.data.map((item: any) => (item.id === id ? result.data : item)),
-					isLoading: false,
-				}));
-			} else {
-				set({ error: (result.error as Error).message, isLoading: false });
-			}
-		},
+				if (result.success) {
+					set((state) => ({
+						data: state.data.map((item: any) =>
+							item.id === id ? result.data : item,
+						),
+						isLoading: false,
+					}));
+				} else {
+					set({ error: (result.error as Error).message, isLoading: false });
+				}
+			},
 
-		deleteItem: async (id, additionalHeaders = {}) => {
-			const headers = { ...config.defaultHeaders, ...additionalHeaders };
+			deleteItem: async (id, additionalHeaders = {}) => {
+				const headers = { ...config.defaultHeaders, ...additionalHeaders };
 
-			set({ isLoading: true, error: null });
-			const result = await apiService.fetch(config.endpoints.delete(id), {
-				...headers,
-				method: HTTPMethod.DELETE,
-			});
+				set({ isLoading: true, error: null });
+				const result = await apiService.fetch(config.endpoints.delete(id), {
+					...headers,
+					method: HTTPMethod.DELETE,
+				});
 
-			if (result.success) {
-				set((state) => ({
-					data: state.data.filter((item: any) => item.id !== id),
-					isLoading: false,
-				}));
-			} else {
-				set({ error: (result.error as Error).message, isLoading: false });
-			}
-		},
+				if (result.success) {
+					set((state) => ({
+						data: state.data.filter((item: any) => item.id !== id),
+						isLoading: false,
+					}));
+				} else {
+					set({ error: (result.error as Error).message, isLoading: false });
+				}
+			},
 
-		clearError: () => set({ error: null }),
+			clearError: () => set({ error: null }),
 
-		reset: () => set({ data: [], isLoading: false, error: null }),
-	}));
+			reset: () => set({ data: [], isLoading: false, error: null }),
+		}),
+	);
 }
 
+/*
 // Usage examples:
 export const useUsersStore = createResourceStore({
 	baseURL: '/api',
@@ -154,3 +159,4 @@ export const useProductsStore = createResourceStore({
 		'X-Client-Version': '1.0.0',
 	},
 });
+*/

@@ -4,7 +4,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 
 import { routes, ErrorPage } from '../../routes';
 import { Spinner } from '../Common/Spinner';
-import { configureGlobalLogger, LogLevel } from '../../utils/logger';
+import { configureGlobalLogger, LogLevel } from '../../utils/Logger';
 
 import './App.css';
 
