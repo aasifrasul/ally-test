@@ -12,6 +12,8 @@ import serveStatic from 'serve-static';
 import bodyParser from 'body-parser';
 import { rateLimit } from 'express-rate-limit';
 import compression from 'compression';
+import { v4 as uuidv4 } from 'uuid';
+
 const timeout = require('connect-timeout');
 
 import { host, port, isCurrentEnvProd, ALLOWED_ORIGINS } from './envConfigDetails';
@@ -19,7 +21,6 @@ import {
 	userAgentHandler,
 	fetchWineData,
 	fetchImage,
-	fetchWebWorker,
 	compiledTemplate,
 	handleGraphql,
 } from './middlewares';
@@ -75,6 +76,12 @@ app.use(
 	}),
 );
 
+app.use(
+	helmet({
+		contentSecurityPolicy: isCurrentEnvProd ? undefined : false,
+	}),
+);
+
 // Middleware for JSON
 app.use(express.json({ limit: '10kb' }));
 
@@ -84,26 +91,44 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 // Middleware for plain text
 app.use(bodyParser.text());
 
-app.use(limiter);
-
-// Timeout handling
 app.use(timeout('5s'));
 app.use(haltOnTimedout);
+app.use(limiter);
 
 function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
-	if (!req.timedout) next();
+	if (!req.timedout) {
+		next();
+	} else {
+		res.status(408).json({ error: 'Request timeout' });
+	}
 }
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-	res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+app.get('/health', async (req: Request, res: Response) => {
+	try {
+		// Check database connectivity, Redis, etc.
+		const health = {
+			status: 'OK',
+			timestamp: new Date().toISOString(),
+			uptime: process.uptime(),
+			// Add database/cache health checks
+		};
+		res.status(200).json(health);
+	} catch (error) {
+		res.status(503).json({ status: 'UNHEALTHY', error: (error as Error).message });
+	}
+});
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+	req.id = uuidv4();
+	next();
 });
 
 // Auth routes
 app.use('/auth', authRoutes);
 
 // Protected API routes example
-app.get('/api/profile', authenticateToken, (req: any, res) => {
+app.get('/api/profile', authenticateToken, (req: Request, res: Response) => {
 	res.json({ message: 'This is a protected route', user: req.user });
 });
 
@@ -118,7 +143,6 @@ app.use('/login', (_, res: Response) => {
 });
 
 // middlewares
-app.get('/WebWorker.js', fetchWebWorker);
 app.get('/api/fetchWineData/*', fetchWineData);
 app.get('/images/*', fetchImage);
 

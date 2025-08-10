@@ -37,11 +37,8 @@ function DropDown({ users, onSelectionChange }: DropDownProps) {
 	}, [isOutsideClick]);
 
 	return (
-		<div className={styles.dropdown} ref={outsideRef}>
-			<button
-				className={styles['dropdown-toggle']}
-				onClick={(e) => e.currentTarget.classList.toggle('active')}
-			>
+		<div ref={outsideRef}>
+			<button onClick={(e) => e.currentTarget.classList.toggle('active')}>
 				{selectedUsers.length ? selectedUsers.join(', ') : 'Select options'}
 			</button>
 			<div className={styles['dropdown-menu']}>
@@ -116,15 +113,10 @@ function Comments() {
 	};
 
 	const header = (
-		<header className={styles.header}>
+		<header>
 			<span>Comments ({data.length})</span>
 			<span>Loan ID {Math.ceil(Math.random() * 10000000000)}</span>
-			<button
-				onClick={() => setShowModal(false)}
-				type="button"
-				aria-label="close"
-				className={styles.closeButton}
-			>
+			<button onClick={() => setShowModal(false)} type="button" aria-label="close">
 				×
 			</button>
 		</header>

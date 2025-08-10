@@ -43,10 +43,7 @@ export const useLazyImage = (options: LazyImageOptions) => {
 				if (entry.isIntersecting && !loadedRef.current) {
 					loadImage();
 					// Stop observing once we start loading
-					if (cleanupRef.current) {
-						cleanupRef.current();
-						cleanupRef.current = null;
-					}
+					cleanup();
 				}
 			});
 		},

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import Form from '../Form';
-import InputText from '../InputText';
+import { InputText } from '../InputText';
 import TextArea from '../TextArea';
 
 export default function FormGenerator(props) {

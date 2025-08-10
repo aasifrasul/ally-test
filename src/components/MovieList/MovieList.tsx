@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import { ReactNode, useRef, useCallback } from 'react';
 import { InitialState } from '../../constants/types';
 import { MovieListProps } from '../../types/movieList';
 
@@ -13,8 +13,8 @@ import * as styles from './MovieList.module.css';
 
 type Props = Omit<InitialState, 'data'> & MovieListProps;
 
-export const MovieList = (props: Props): React.ReactNode => {
-	const { data, fetchNextPage, schema, TOTAL_PAGES, currentPage } = props;
+export const MovieList = (props: Props): ReactNode => {
+	const { data, fetchNextPage, schema, TOTAL_PAGES, currentPage, isLoading } = props;
 	const observerRef = useRef<HTMLDivElement>(null);
 	const { searchActions } = createActionHooks(schema);
 	const { filterByText } = searchActions();
@@ -28,8 +28,12 @@ export const MovieList = (props: Props): React.ReactNode => {
 		(searchedText: string) => {
 			filterByText({ filterText: searchedText?.trim() });
 		},
-		[schema],
+		[schema, filterByText],
 	);
+
+	if (isLoading) {
+		return <div>Loading...</div>;
+	}
 
 	if (!data?.length) {
 		return <div>No movies found</div>;

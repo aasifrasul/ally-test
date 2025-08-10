@@ -89,10 +89,12 @@ export class ImageLoader {
 	 * @param {ImageLoaderOptions} [options={}] - Options for configuring the ImageLoader.
 	 */
 	constructor(options: ImageLoaderOptions = {}) {
-		this.defaultPlaceholder = options.placeholder || 'placeholder.jpg';
+		this.defaultPlaceholder =
+			options.placeholder ||
+			'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNmNGY0ZjQiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlNWU1ZTUiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0idXJsKCNhKSIvPjwvc3ZnPg==';
 		this.enableLogging = options.enableLogging ?? true;
 		this.logger = createLogger('ImageLoader', {
-			level: LogLevel.DEBUG, // You might want to make this configurable via ImageLoaderOptions
+			level: LogLevel.DEBUG,
 		});
 	}
 

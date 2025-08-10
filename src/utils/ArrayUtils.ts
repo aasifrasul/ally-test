@@ -71,8 +71,8 @@ export function shallowEqual(a: unknown, b: unknown): boolean {
 	// Same reference or primitive equality
 	if (a === b) return true;
 
-	// Handle arrays
-	if (isArray(a)) {
+	// Handle arrays by checking if both are arrays
+	if (isArray(a) && isArray(b)) {
 		if (a.length !== b.length) return false;
 
 		for (let i = 0; i < a.length; i++) {
@@ -81,15 +81,19 @@ export function shallowEqual(a: unknown, b: unknown): boolean {
 		return true;
 	}
 
-	// Handle objects
-	if (isObject(a)) {
+	// Handle objects by checking if both are objects
+	if (isObject(a) && isObject(b)) {
 		const keysA = Object.keys(a);
 		const keysB = Object.keys(b);
 
 		if (keysA.length !== keysB.length) return false;
 
+		// Use a type assertion to tell TypeScript that a and b are objects that can be indexed by a string.
+		const objA = a as Record<string, unknown>;
+		const objB = b as Record<string, unknown>;
+
 		for (const key of keysA) {
-			if (!(key in b) || a[key] !== b[key]) return false;
+			if (!(key in objB) || objA[key] !== objB[key]) return false;
 		}
 		return true;
 	}
@@ -111,8 +115,8 @@ export function deepEqual(a: unknown, b: unknown): boolean {
 	// Same reference or primitive equality
 	if (a === b) return true;
 
-	// Handle arrays
-	if (isArray(a)) {
+	// Handle arrays by checking if both are arrays
+	if (isArray(a) && isArray(b)) {
 		if (a.length !== b.length) return false;
 
 		for (let i = 0; i < a.length; i++) {
@@ -121,15 +125,19 @@ export function deepEqual(a: unknown, b: unknown): boolean {
 		return true;
 	}
 
-	// Handle objects
-	if (isObject(a)) {
+	// Handle objects by checking if both are objects
+	if (isObject(a) && isObject(b)) {
 		const keysA = Object.keys(a);
 		const keysB = Object.keys(b);
 
 		if (keysA.length !== keysB.length) return false;
 
+		// Use a type assertion to tell TypeScript that a and b are objects that can be indexed by a string.
+		const objA = a as Record<string, unknown>;
+		const objB = b as Record<string, unknown>;
+
 		for (const key of keysA) {
-			if (!(key in b) || !deepEqual(a[key], b[key])) return false;
+			if (!(key in objB) || !deepEqual(objA[key], objB[key])) return false;
 		}
 		return true;
 	}

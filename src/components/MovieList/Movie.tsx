@@ -1,11 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import { FC, useState, useCallback, MouseEventHandler } from 'react';
 
 import { MovieProps } from '../../types/movieList';
 
 import Portal from '../Common/Portal';
 import { useLazyImage } from '../../hooks';
 
-export const Movie: React.FC<MovieProps> = ({ styles, item }) => {
+export const Movie: FC<MovieProps> = ({ styles, item }) => {
 	const { id, poster_path, title, vote_average, overview } = item;
 	const imagePath = poster_path
 		? `https://image.tmdb.org/t/p/w1280${poster_path}`
@@ -17,8 +17,13 @@ export const Movie: React.FC<MovieProps> = ({ styles, item }) => {
 		onLoad: () => console.log('Image loaded!'),
 	});
 
-	const handleMouseOver = useCallback(() => setIsShown(true), []);
-	const handleMouseOut = useCallback(() => setIsShown(false), []);
+	const handleMouseOver: MouseEventHandler<HTMLDivElement> = useCallback(() => {
+		setIsShown(true);
+	}, []);
+
+	const handleMouseOut: MouseEventHandler<HTMLDivElement> = useCallback(() => {
+		setIsShown(false);
+	}, []);
 
 	return (
 		<>

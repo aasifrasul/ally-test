@@ -32,7 +32,12 @@ export const LazyImage: React.FC<LazyImageProps> = ({
 
 	return (
 		<div className={`lazy-image-container ${className}`}>
-			<img ref={imgRef} className="lazy-image" alt={props.alt || ''} {...props} />
+			<img
+				ref={imgRef}
+				className={`lazy-image ${className}`}
+				alt={props.alt || ''}
+				{...props}
+			/>
 		</div>
 	);
 };

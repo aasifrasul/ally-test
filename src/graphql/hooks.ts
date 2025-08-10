@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { executeQueryWithCache, executeOptimisticMutation, invalidateQueries } from './client';
+import { executeQuery as executeQueryWithCache, executeOptimisticMutation } from './client';
 import { subscribeWithCallback } from './~client';
 
 interface QueryState<T> {
@@ -37,7 +37,7 @@ export function useQuery<T = any>(
 		setState((prev) => ({ ...prev, loading: true, error: null }));
 
 		try {
-			const data = await executeQueryWithCache<T>(query, variables, {
+			const data = await executeQueryWithCache<T>(query, variables, 4000, {
 				cache: options.cache,
 				cacheTTL: options.cacheTTL,
 			});
@@ -141,17 +141,12 @@ export function useMutation<T = any>(
 						},
 					);
 				} else {
-					result = await executeQueryWithCache<T>(mutation, variables, {
+					result = await executeQueryWithCache<T>(mutation, variables, 4000, {
 						cache: false,
 					});
 				}
 
 				setState({ loading: false, error: null, data: result });
-
-				// Invalidate cache patterns if specified
-				if (options.invalidatePatterns) {
-					invalidateQueries(options.invalidatePatterns);
-				}
 
 				options.onCompleted?.(result);
 				return result;

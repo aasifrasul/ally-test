@@ -1,4 +1,4 @@
-import useBookStore from '../../store/bookStore';
+import { useBookStore } from '../../store/bookStore';
 
 import { BookCard } from './BookCard';
 
