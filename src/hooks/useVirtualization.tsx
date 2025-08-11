@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState, useRef } from 'react';
+import { JSX, useEffect, useState, useRef } from 'react';
 
 import { useEventListener } from './EventListeners';
 

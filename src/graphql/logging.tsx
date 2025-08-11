@@ -1,4 +1,5 @@
-// DevTools integration for debugging
+import { executeQuery } from './client';
+
 interface QueryLog {
 	id: string;
 	query: string;
@@ -111,17 +112,15 @@ export const devTools = new GraphQLDevTools();
 export const executeQueryWithDevTools = async <T = any,>(
 	query: string,
 	variables?: any,
-	options: QueryOptions = {},
+	options: any = {},
 ): Promise<T> => {
 	const startTime = Date.now();
-	const cached =
-		!query.trim().toLowerCase().startsWith('mutation') &&
-		graphQLCache.get(query, variables) !== null;
+	const cached = !query.trim().toLowerCase().startsWith('mutation');
 
 	const logId = devTools.logQuery(query, variables, cached);
 
 	try {
-		const result = await executeQueryWithCache<T>(query, variables, options);
+		const result = await executeQuery<T>(query, variables, 4000, options);
 		const duration = Date.now() - startTime;
 
 		devTools.logResult(logId, result, undefined, duration);

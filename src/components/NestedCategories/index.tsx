@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { FC, useState, useMemo, useCallback } from 'react';
 
 import { useApi } from '../../utils/api-client/hooks/useApi';
 import useEffectOnce from '../../hooks/useEffectOnce';
@@ -10,7 +10,7 @@ import { buildNestedStructure } from './helpers';
 import { Category, NestedCategoriesProps, SelectChangeEvent } from './types';
 import * as styles from './NestedCategories.module.css';
 
-export const NestedCategories: React.FC<NestedCategoriesProps> = ({
+export const NestedCategories: FC<NestedCategoriesProps> = ({
 	data: initialData,
 	fetchUrl = 'https://okrcentral.github.io/sample-okrs/db.json',
 }) => {
@@ -54,48 +54,48 @@ export const NestedCategories: React.FC<NestedCategoriesProps> = ({
 		});
 	}, []);
 
-	const onSelectChange = useCallback((event: SelectChangeEvent) => {
-		const text: string = event.target.selectedOptions[0].text;
-		if (text === 'Select a category') {
-			handleCategorySelection('');
-			return;
-		}
-		handleCategorySelection(text);
-	}, []);
+	const onSelectChange = useCallback(
+		(event: React.ChangeEvent<HTMLSelectElement>) => {
+			const text: string = event.target.selectedOptions[0].text;
+			if (text === 'Select a category') {
+				handleCategorySelection('');
+				return;
+			}
+			handleCategorySelection(text);
+		},
+		[handleCategorySelection],
+	);
 
 	// Render category with children
-	const renderCategory = useCallback(
-		(category: Category, index: number) => {
-			const isHidden = hiddenCategories.has(category.id);
-			const visibleChildren = (category.children || []).filter((child) => child.title);
+	const renderCategory = (category: Category, index: number): React.ReactNode => {
+		const isHidden = hiddenCategories.has(category.id);
+		const visibleChildren = (category.children || []).filter((child) => child.title);
 
-			return (
-				<div key={category.id} className={styles['category-item']}>
-					<div className={styles['dev-wrapper']}>
-						<div onClick={() => toggleCategoryVisibility(category.id)}>
-							{isHidden ? '▶' : '▼'}
-						</div>
+		return (
+			<div key={category.id} className={styles['category-item']}>
+				<div className={styles['dev-wrapper']}>
+					<div onClick={() => toggleCategoryVisibility(category.id)}>
+						{isHidden ? '▶' : '▼'}
 					</div>
-					<div>
-						<span className={styles['category_parent']}>
-							{index + 1}. {category.title}
-						</span>
-						{!isHidden && visibleChildren.length > 0 && (
-							<div className={styles['category_children']}>
-								{visibleChildren.map((child, childIndex) => (
-									<div key={child.id}>
-										{alphabets[childIndex]}. {child.title}
-									</div>
-								))}
-							</div>
-						)}
-					</div>
-					<Spacer size={16} />
 				</div>
-			);
-		},
-		[hiddenCategories, toggleCategoryVisibility],
-	);
+				<div>
+					<span className={styles['category_parent']}>
+						{index + 1}. {category.title}
+					</span>
+					{!isHidden && visibleChildren.length > 0 && (
+						<div className={styles['category_children']}>
+							{visibleChildren.map((child, childIndex) => (
+								<div key={child.id}>
+									{alphabets[childIndex]}. {child.title}
+								</div>
+							))}
+						</div>
+					)}
+				</div>
+				<Spacer size={16} />
+			</div>
+		);
+	};
 
 	if (isLoading) return <div>Loading...</div>;
 	if (error) return <div>Error loading categories</div>;

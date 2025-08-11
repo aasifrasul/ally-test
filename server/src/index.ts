@@ -19,7 +19,7 @@ RedisClient.getInstance()?.connect();
 
 // httpServer.on('request', () => logger.info('httpServer.request'));
 
-httpServer.listen(Number(port), Number(host), () =>
+httpServer.listen(Number(port), host, () =>
 	logger.info(`node httpServer listening on port ${Number(port)}`),
 );
 
@@ -27,6 +27,8 @@ connectWSServer(httpServer);
 connectToIOServer(httpServer);
 
 let isShuttingDown = false;
+
+process.title = 'ally-test';
 
 process.on('unhandledRejection', (error: unknown) => {
 	const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -69,7 +71,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
 	isShuttingDown = true;
 	logger.info(`Received ${signal}. Starting graceful shutdown...`);
 
-	const shutdownTimeout = setTimeout(() => {
+	const timeoutId = setTimeout(() => {
 		logger.error('Forced shutdown due to timeout');
 		process.exit(1);
 	}, 15000);
@@ -78,20 +80,16 @@ async function gracefulShutdown(signal: string): Promise<void> {
 		logger.info('Cleaning up active connections...');
 
 		const mongoDBInstance = MongoDBConnection.getInstance();
-		mongoDBInstance
-			?.cleanup()
-			.catch((err: Error) => logger.error('Error cleaning up MongoDB:', err));
+		await mongoDBInstance?.cleanup();
 
 		// Then cleanup database instances
 		const dbInstance: DBInstance = await getDBInstance(constants.dbLayer.currentDB);
-		await dbInstance
-			?.cleanup()
-			.catch((err: Error) => logger.error('Error cleaning up DB instance:', err));
+		await dbInstance?.cleanup();
 
-		disconnectIOServer().catch((err: Error) =>
+		await disconnectIOServer().catch((err: Error) =>
 			logger.error('Error disconnecting IO server:', err),
 		);
-		disconnectWSServer().catch((err: Error) =>
+		await disconnectWSServer().catch((err: Error) =>
 			logger.error('Error disconnecting WS server:', err),
 		);
 
@@ -114,6 +112,6 @@ async function gracefulShutdown(signal: string): Promise<void> {
 		logger.error('Error during shutdown:', error);
 		process.exit(1);
 	} finally {
-		clearTimeout(shutdownTimeout);
+		clearTimeout(timeoutId);
 	}
 }

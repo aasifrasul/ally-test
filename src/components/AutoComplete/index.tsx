@@ -29,7 +29,7 @@ export default function AutoComplete() {
 	const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 	const [currentItem, setCurrentItem] = useState<Item | null>(null);
 
-	const modalContainerRef = useRef<RefObject<HTMLDivElement>>(null);
+	const modalContainerRef = useRef<HTMLDivElement>(null);
 	const searchCacheRef = useRef<Record<string, Item[]>>({});
 	const timoeutId = useRef<NodeJS.Timeout>(null);
 

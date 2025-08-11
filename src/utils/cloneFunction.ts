@@ -1,11 +1,15 @@
+interface Function {
+	clone(): this;
+}
+
 Function.prototype.clone = function () {
 	const cloneTarget = Symbol.for('cloneTarget');
-	const targetFn = this[cloneTarget] ?? this;
+	const targetFn: Function = (this as any)[cloneTarget] ?? this;
 
 	// Create clone function that calls the original
-	function clone(...args) {
+	const clone: Function = function (this: any, ...args: any[]): any {
 		return targetFn.apply(this, args);
-	}
+	} as any;
 
 	// Copy all properties including non-enumerable ones
 	const propertyNames = Object.getOwnPropertyNames(targetFn);
@@ -22,7 +26,7 @@ Function.prototype.clone = function () {
 			}
 		} catch (e) {
 			// Some properties might not be configurable or writable
-			clone[key] = targetFn[key];
+			(clone as any)[key] = (targetFn as any)[key];
 		}
 	});
 
@@ -39,7 +43,7 @@ Function.prototype.clone = function () {
 	}
 
 	// Mark this as a clone and remember the target
-	clone[cloneTarget] = targetFn;
+	(clone as any)[cloneTarget] = targetFn;
 
-	return clone;
+	return clone as any;
 };

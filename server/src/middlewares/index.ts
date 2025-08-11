@@ -23,8 +23,6 @@ const handler = createHandler({
 	context: () => ({ pubsub }),
 });
 
-const webWorkerContent: string = getFileContents(`./src/utils/WebWorker.js`);
-
 // PreeCopile template
 const templatePath = path.join(pathTemplate, 'index.hbs');
 const templateContent = getFileContents(templatePath);
@@ -91,7 +89,5 @@ export const fetchWorker = (req: any, res: any, fileContent: string) => {
 	nocache(res);
 	res.end(fileContent);
 };
-
-export const fetchWebWorker = (req: any, res: any) => fetchWorker(req, res, webWorkerContent);
 
 export const handleGraphql = (req: any, res: any) => handler(req, res);

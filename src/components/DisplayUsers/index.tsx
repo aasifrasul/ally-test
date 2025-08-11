@@ -1,32 +1,40 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 
-import { subscribeWithCallback, executeQuery, invalidateCache } from '../../graphql/client';
+import { subscribeWithCallback, invalidateCache } from '../../graphql/client';
+import { useQuery, useMutation } from '../../graphql/hooks';
 import ScrollToTop from '../Common/ScrollToTopButton';
 import useEffectOnce from '../../hooks/useEffectOnce';
+import { getRandomId } from '../../utils/common';
 
 import { SearchUser } from './SearchUser';
 import { UserForm } from './UserForm';
 import { UsersList } from './UsersList';
 
+import { GET_USERS, CREATE_USER, UPDATE_USER, DELETE_USER, USER_CREATED_SUBS } from './query';
+
 import { createLogger, LogLevel, Logger } from '../../utils/Logger';
-import { User, AddUser, UpdateUser, EditUser, DeleteUser } from './types';
+import { User } from './types';
 
 const logger: Logger = createLogger('DisplayUsers', {
 	level: LogLevel.DEBUG,
 });
 
 export default function DisplayUsers() {
-	const [isLoading, setIsLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
 	const [users, setUsers] = useState<User[]>([]);
 	const [searchTerm, setSearchTerm] = useState<string>('');
 	const [editingUser, setEditingUser] = useState<User | null>(null);
+
+	const { data, isLoading, error } = useQuery(GET_USERS, {});
+
+	const [createUser] = useMutation(CREATE_USER);
+	const [updateUser] = useMutation(UPDATE_USER);
+	const [deleteUser] = useMutation(DELETE_USER);
 
 	const filteredUsers = useMemo(() => {
 		if (!searchTerm.trim()) return users;
 		const searchText = searchTerm.trim().toLowerCase();
 
-		return users.filter((user) => {
+		return users.filter((user: User) => {
 			const searchFields = [
 				user.first_name.trim().toLowerCase(),
 				user.last_name.trim().toLowerCase(),
@@ -36,50 +44,27 @@ export default function DisplayUsers() {
 		});
 	}, [users, searchTerm]);
 
+	useEffect(() => {
+		if (data?.getUsers?.length > 0) setUsers(data?.getUsers);
+	}, [data?.getUsers]);
+
 	useEffectOnce(() => {
-		let unsubscribe: (() => void) | null = null;
-
-		const loadInitialData = async () => {
-			try {
-				setIsLoading(true);
-				setError(null);
-
-				// Load initial users - now with caching!
-				const { getUsers = [] } = await executeQuery<{ getUsers: User[] }>(
-					`{ getUsers { id, first_name, last_name, age } }`,
-					{}, // no variables
-					5000, // timeout
-					{ cache: true, cacheTTL: 5 * 60 * 1000 }, // 5 minute cache
-				);
-
-				setUsers(getUsers);
-
-				// Set up subscription for real-time updates
-				unsubscribe = subscribeWithCallback<{ userCreated: User }>(
-					'subscription { userCreated { id, first_name, last_name, age } }',
-					{
-						onData: (subscriptionData) => {
-							logger.info('New user created:', subscriptionData.userCreated);
-							setUsers((prev) => [...prev, subscriptionData.userCreated]);
-							// Invalidate users cache when new user is created via subscription
-							invalidateCache('getUsers');
-						},
-						onError: (error) => {
-							logger.error('Subscription error:', error);
-						},
-					},
-				);
-			} catch (err) {
-				const errorMessage =
-					err instanceof Error ? err.message : 'Something went wrong';
-				setError(errorMessage);
-				logger.error('Error loading users:', err);
-			} finally {
-				setIsLoading(false);
-			}
-		};
-
-		loadInitialData();
+		const unsubscribe = subscribeWithCallback<{ userCreated: User }>(USER_CREATED_SUBS, {
+			onData: ({ userCreated }) => {
+				logger.info('New user created:', userCreated);
+				setUsers((prevUsers) => {
+					// Prevent duplicates
+					if (prevUsers.some((user) => user.id === userCreated.id)) {
+						return prevUsers;
+					}
+					return [userCreated, ...prevUsers];
+				});
+				invalidateCache('getUsers');
+			},
+			onError: (error) => {
+				logger.error('Subscription error:', error);
+			},
+		});
 
 		return () => {
 			if (unsubscribe) {
@@ -88,135 +73,160 @@ export default function DisplayUsers() {
 		};
 	});
 
-	const addUser: AddUser = async (firstName, lastName, age) => {
-		try {
-			// Use optimistic mutation for better UX
+	const handleAddUser = useCallback(
+		async (first_name: string, last_name: string, age: number) => {
+			const tempId = `temp-${getRandomId()}`;
 			const optimisticUser = {
-				id: `temp-${Date.now()}`,
-				first_name: firstName,
-				last_name: lastName,
-				age: age,
+				id: tempId,
+				first_name,
+				last_name,
+				age,
 			};
 
-			// Optimistically update UI
-			setUsers((prevData) => [...prevData, optimisticUser]);
+			// Add optimistic user
+			setUsers((prevUsers) => [optimisticUser, ...prevUsers]);
 
-			const { createUser } = await executeQuery(
-				`mutation createUser($first_name: String!, $last_name: String!, $age: Int!) {
-					createUser(first_name: $first_name, last_name: $last_name, age: $age) {
-						success 
-						message 
-						user { id first_name last_name age }
+			try {
+				const { createUser: result } = await createUser({
+					variables: { first_name, last_name, age },
+				});
+
+				if (result.success) {
+					// Replace the temp user with the real one
+					setUsers((prevUsers) =>
+						prevUsers.map((user) => (user.id === tempId ? result.user : user)),
+					);
+					setEditingUser(null);
+					invalidateCache('getUsers');
+				} else {
+					// Remove the optimistic user on failure
+					setUsers((prevUsers) => prevUsers.filter((user) => user.id !== tempId));
+				}
+			} catch (error) {
+				// Remove the optimistic user on error
+				setUsers((prevUsers) => prevUsers.filter((user) => user.id !== tempId));
+				logger.error('Error creating user:', error);
+			}
+		},
+		[createUser], // Remove 'users' from dependencies
+	);
+
+	const handleUpdateUser = useCallback(
+		async (id: string, first_name: string, last_name: string, age: number) => {
+			const updatedUser = { id, first_name, last_name, age };
+
+			// Store original state for each user at the moment of optimistic update
+			let originalUserSnapshot: User | null = null;
+
+			// Optimistic update with snapshot capture
+			setUsers((prevUsers: User[]): User[] => {
+				const userIndex = prevUsers.findIndex((user) => user.id === id);
+				if (userIndex === -1) return prevUsers;
+
+				// Capture the original user data at this moment
+				originalUserSnapshot = prevUsers[userIndex];
+
+				return prevUsers.map((item: User) => (item.id === id ? updatedUser : item));
+			});
+
+			try {
+				const { updateUser: result } = await updateUser({
+					variables: updatedUser,
+				});
+
+				if (result.success) {
+					setEditingUser(null);
+					invalidateCache('getUsers');
+				} else {
+					// Rollback to original user if we captured it
+					if (originalUserSnapshot) {
+						setUsers((prevUsers: User[]): User[] =>
+							prevUsers.map((item: User) =>
+								item.id === id ? originalUserSnapshot! : item,
+							),
+						);
 					}
-				}`,
-				{
-					first_name: firstName,
-					last_name: lastName,
-					age: age,
-				},
-				5000,
-				{ cache: false }, // Don't cache mutations
-			);
+				}
+			} catch (error) {
+				logger.error('Error updating user:', error);
 
-			const { success, user } = createUser;
-
-			if (success) {
-				// Replace optimistic user with real user
-				setUsers((prevData) =>
-					prevData.map((u) => (u.id === optimisticUser.id ? user : u)),
-				);
-				// Invalidate cache to ensure fresh data on next query
-				invalidateCache('getUsers');
-			} else {
-				// Remove optimistic user on failure
-				setUsers((prevData) => prevData.filter((u) => u.id !== optimisticUser.id));
+				// Rollback to original user if we captured it
+				if (originalUserSnapshot) {
+					setUsers((prevUsers: User[]): User[] =>
+						prevUsers.map((item: User) =>
+							item.id === id ? originalUserSnapshot! : item,
+						),
+					);
+				}
 			}
-		} catch (error) {
-			// Remove optimistic user on error
-			setUsers((prevData) => prevData.filter((u) => u.id.startsWith('temp-')));
-			logger.error('Error creating user:', error);
-		}
-	};
+		},
+		[updateUser],
+	);
 
-	const updateUser: UpdateUser = async (id, firstName, lastName, age) => {
-		try {
-			const { updateUser } = await executeQuery(
-				`mutation updateUser($id: ID!, $first_name: String!, $last_name: String!, $age: Int!) { 
-					updateUser(id: $id, first_name: $first_name, last_name: $last_name, age: $age) { 
-						success 
-						message 
-						user { id first_name last_name age } 
-					} 
-				}`,
-				{
-					id,
-					first_name: firstName,
-					last_name: lastName,
-					age,
-				},
-				5000,
-				{ cache: false },
-			);
+	const handleDeleteUser = useCallback(
+		async (id: string) => {
+			// Store the user and its position for accurate rollback
+			let userSnapshot: { user: User; index: number } | null = null;
 
-			const { success, user } = updateUser;
+			// Optimistic delete with position capture
+			setUsers((prevUsers: User[]): User[] => {
+				const userIndex = prevUsers.findIndex((user) => user.id === id);
+				if (userIndex === -1) return prevUsers;
 
-			if (success) {
-				setUsers((prevData) =>
-					prevData.map((item) => (item.id === user.id ? user : item)),
-				);
-				setEditingUser(null);
-				// Invalidate cache
-				invalidateCache('getUsers');
+				// Capture user and position at this moment
+				userSnapshot = {
+					user: prevUsers[userIndex],
+					index: userIndex,
+				};
+
+				return prevUsers.filter((item: User) => item.id !== id);
+			});
+
+			try {
+				const { deleteUser: result } = await deleteUser({
+					variables: { id },
+				});
+
+				if (!result.success) {
+					// Restore user to original position
+					if (userSnapshot) {
+						setUsers((prevUsers) => {
+							const newUsers = [...prevUsers];
+							newUsers.splice(userSnapshot!.index, 0, userSnapshot!.user);
+							return newUsers;
+						});
+					}
+					logger.error('Error deleting user:', result.error);
+				}
+			} catch (error) {
+				// Rollback: restore user to original position
+				if (userSnapshot) {
+					setUsers((prevUsers) => {
+						const newUsers = [...prevUsers];
+						newUsers.splice(userSnapshot!.index, 0, userSnapshot!.user);
+						return newUsers;
+					});
+				}
+				logger.error('Error deleting user:', error);
 			}
-		} catch (error) {
-			logger.error('Error updating user:', error);
-		}
-	};
+		},
+		[deleteUser],
+	);
 
-	const handleDeleteUser: DeleteUser = async (id) => {
-		try {
-			// Optimistic delete
-			const originalUsers = users;
-			setUsers((prevData) => prevData.filter((item) => item.id !== id));
-
-			const { deleteUser } = await executeQuery(
-				`mutation deleteUser($id: ID!) { 
-					deleteUser(id: $id) { 
-						success 
-						message 
-						id 
-					} 
-				}`,
-				{ id },
-				5000,
-				{ cache: false },
-			);
-
-			if (!deleteUser.success) {
-				// Rollback on failure
-				setUsers(originalUsers);
-			} else {
-				// Invalidate cache
-				invalidateCache('getUsers');
-			}
-		} catch (error) {
-			// Rollback on error
-			setUsers(users);
-			logger.error('Error deleting user:', error);
-		}
-	};
-
-	const handleEditUser: EditUser = (id) => {
-		const user: User | undefined = filteredUsers.find((user) => user.id === id);
-		user && setEditingUser(user);
-	};
+	const handleEditUser = useCallback(
+		(id: string) => {
+			const user: User | undefined = filteredUsers.find((user: User) => user.id === id);
+			user && setEditingUser(user);
+		},
+		[filteredUsers],
+	);
 
 	if (isLoading) {
 		return <div>Loading...</div>;
 	}
 
 	if (error) {
-		return <div>Error: {error}</div>;
+		return <div>Error: {error as any}</div>;
 	}
 
 	return (
@@ -231,8 +241,8 @@ export default function DisplayUsers() {
 				<div className="space-y-8">
 					<UserForm
 						editingUser={editingUser}
-						addUser={addUser}
-						updateUser={updateUser}
+						handleAddUser={handleAddUser}
+						handleUpdateUser={handleUpdateUser}
 					/>
 					<SearchUser filterByText={setSearchTerm} />
 					<UsersList

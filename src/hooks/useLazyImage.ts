@@ -1,79 +1,89 @@
 import { useEffect, useRef, useCallback } from 'react';
 
+import { ImageLoader } from '../utils/ImageLoader';
+import { useIntersectionObserver } from './useIntersectionObserver';
+
 interface LazyImageOptions {
-    src: string;
-    placeholder?: string;
-    rootMargin?: string;
-    threshold?: number;
-    onLoad?: () => void;
-    onError?: (error: Error) => void;
+	src: string;
+	placeholder?: string;
+	rootMargin?: string;
+	threshold?: number;
+	onLoad?: () => void;
+	onError?: (error: Error) => void;
 }
 
+const imageLoader = new ImageLoader();
+
 export const useLazyImage = (options: LazyImageOptions) => {
-    const imgRef = useRef<HTMLImageElement>(null);
-    const observerRef = useRef<IntersectionObserver | null>(null);
-    const loadedRef = useRef(false);
+	const imgRef = useRef<HTMLImageElement>(null);
+	const loadedRef = useRef(false);
+	const cleanupRef = useRef<(() => void) | undefined>(null);
 
-    const loadImage = useCallback(async () => {
-        if (!imgRef.current || loadedRef.current) return;
+	const loadImage = useCallback(async () => {
+		if (!imgRef.current || loadedRef.current) return;
 
-        const img = imgRef.current;
-        loadedRef.current = true;
+		const img = imgRef.current;
+		loadedRef.current = true;
 
-        try {
-            // Create a new image to preload
-            const imageLoader = new Image();
+		try {
+			await imageLoader.loadImageSimple(options.src);
 
-            await new Promise<void>((resolve, reject) => {
-                imageLoader.onload = () => resolve();
-                imageLoader.onerror = () =>
-                    reject(new Error(`Failed to load: ${options.src}`));
-                imageLoader.src = options.src;
-            });
+			img.src = options.src;
+			img.classList.remove('loading');
+			options.onLoad?.();
+		} catch (error) {
+			console.error('Image loading failed:', error);
+			options.onError?.(error as Error);
+		}
+	}, [options.src, options.onLoad, options.onError]);
 
-            // Once loaded, update the actual img element
-            img.src = options.src;
-            img.classList.remove('loading');
-            options.onLoad?.();
-        } catch (error) {
-            console.error('Image loading failed:', error);
-            options.onError?.(error as Error);
-        }
-    }, [options.src, options.onLoad, options.onError]);
+	const handleIntersection: IntersectionObserverCallback = useCallback(
+		(entries) => {
+			entries.forEach((entry) => {
+				if (entry.isIntersecting && !loadedRef.current) {
+					loadImage();
+					// Stop observing once we start loading
+					cleanup();
+				}
+			});
+		},
+		[loadImage],
+	);
 
-    useEffect(() => {
-        const img = imgRef.current;
-        if (!img) return;
+	const observe = useIntersectionObserver({
+		threshold: options.threshold || 0,
+		rootMargin: options.rootMargin || '50px',
+		onIntersect: handleIntersection,
+	});
 
-        // Set initial placeholder
-        if (options.placeholder) {
-            img.src = options.placeholder;
-            img.classList.add('loading');
-        }
+	const cleanup = () => {
+		if (cleanupRef.current) {
+			cleanupRef.current();
+			cleanupRef.current = null;
+		}
+	};
 
-        // Create intersection observer
-        observerRef.current = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        loadImage();
-                        observerRef.current?.unobserve(img);
-                    }
-                });
-            },
-            {
-                rootMargin: options.rootMargin || '50px',
-                threshold: options.threshold || 0,
-            },
-        );
+	useEffect(() => {
+		const img = imgRef.current;
+		if (!img) return;
 
-        observerRef.current.observe(img);
+		// Set initial placeholder
+		if (options.placeholder) {
+			img.src = options.placeholder;
+			img.classList.add('loading');
+		}
 
-        return () => {
-            observerRef.current?.disconnect();
-            loadedRef.current = false;
-        };
-    }, [loadImage, options.rootMargin, options.threshold, options.placeholder]);
+		// Cleanup previous observation
+		cleanup();
 
-    return imgRef;
+		// Start observing
+		cleanupRef.current = observe(img);
+
+		return () => {
+			cleanup();
+			loadedRef.current = false;
+		};
+	}, [observe, options.placeholder]);
+
+	return imgRef;
 };

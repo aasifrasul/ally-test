@@ -12,4 +12,4 @@ export interface NestedCategoriesProps {
 	fetchUrl?: string;
 }
 
-export interface SelectChangeEvent extends React.ChangeEvent<HTMLSelectElement> {}
+export interface SelectChangeEvent extends React.ChangeEventHandler<HTMLSelectElement> {}

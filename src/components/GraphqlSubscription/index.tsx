@@ -1,36 +1,33 @@
-import React from 'react';
-import { useSubscription, gql } from '@apollo/client';
+import { useSubscription } from '../../graphql/hooks';
 
-const USER_CREATED_SUBSCRIPTION = gql`
-	subscription {
-		userCreated {
-			id
-			first_name
-			last_name
-			age
-		}
+interface UseSubscriptionResult<T> {
+	data: T | null;
+	isLoading: boolean;
+	error: Error | null;
+}
+
+const USER_CREATED_SUBSCRIPTION = `
+  subscription {
+	userCreated {
+	  id
+	  name
+	  email
 	}
+  }
 `;
 
-interface User {
-	id: string;
-	first_name: string;
-	last_name: string;
-	age: number;
-}
+export default function GraphqlSubscription() {
+	const { data, isLoading, error } = useSubscription(USER_CREATED_SUBSCRIPTION, {
+		onSubscriptionData: ({ subscriptionData }) => {
+			console.log('New user:', subscriptionData.data.userCreated);
+		},
+	});
 
-function GraphqlSubscription(): React.ReactNode {
-	const { error, data, loading } = useSubscription<{ userCreated: User }>(
-		USER_CREATED_SUBSCRIPTION,
+	return (
+		<div>
+			{isLoading && <div>Listening for new users...</div>}
+			{error && <div>Subscription error: {error.message}</div>}
+			{data && <div>New user created: {data.userCreated.name}</div>}
+		</div>
 	);
-
-	if (loading) return <p>Listening for new messages...</p>;
-	if (error) {
-		console.error(error);
-		return <p>Error :(</p>;
-	}
-
-	return <p>New message: {JSON.stringify(data?.userCreated)}</p>;
 }
-
-export default GraphqlSubscription;
