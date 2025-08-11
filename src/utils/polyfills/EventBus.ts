@@ -23,8 +23,6 @@ class EventBus<Events extends Record<string, any>> {
 			this.listeners[event]?.push(callback);
 		}
 
-		this.listeners[event]?.push(callback);
-
 		// Return cleanup function
 		return () => this.off(event, callback);
 	}

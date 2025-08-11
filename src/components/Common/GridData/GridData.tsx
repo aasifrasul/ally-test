@@ -22,7 +22,7 @@ function GridData(): JSX.Element {
 
 	// Use a ref to store incoming data
 	const incomingDataRef = useRef<Row[]>([]);
-	const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
+	const updateTimerRef = useRef<number | null>(null);
 
 	// Efficient data update mechanism
 	const processIncomingData = useCallback(() => {

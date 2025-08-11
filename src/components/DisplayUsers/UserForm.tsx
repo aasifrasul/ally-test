@@ -6,8 +6,8 @@ import { User, AddUser, UpdateUser } from './types';
 
 interface UserFormProps {
 	editingUser: User | null;
-	addUser: AddUser;
-	updateUser: UpdateUser;
+	handleAddUser: AddUser;
+	handleUpdateUser: UpdateUser;
 }
 
 interface FormData {
@@ -22,7 +22,7 @@ const initialFormData: FormData = {
 	age: '',
 };
 
-export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) => {
+export const UserForm = ({ editingUser, handleAddUser, handleUpdateUser }: UserFormProps) => {
 	const [formData, setFormData] = useState<FormData>(initialFormData);
 	const firstNameRef = useRef<HTMLInputElement | null>(null);
 
@@ -66,9 +66,9 @@ export const UserForm = ({ editingUser, addUser, updateUser }: UserFormProps) =>
 		const ageNumber = Number(age);
 
 		if (editingUser?.id) {
-			updateUser(editingUser.id, firstName, lastName, ageNumber);
+			handleUpdateUser(editingUser.id, firstName, lastName, ageNumber);
 		} else {
-			addUser(firstName, lastName, ageNumber);
+			handleAddUser(firstName, lastName, ageNumber);
 		}
 
 		setFormData(initialFormData);

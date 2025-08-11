@@ -1,187 +1,492 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { executeQuery as executeQueryWithCache, executeOptimisticMutation } from './client';
-import { subscribeWithCallback } from './~client';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
-interface QueryState<T> {
-	data: T | null;
-	loading: boolean;
-	error: string | null;
-}
+import {
+	executeQuery,
+	subscribeWithCallback,
+	executeMutation,
+	invalidateCache,
+	updateCache,
+} from './client';
 
-interface UseQueryOptions {
-	cache?: boolean;
-	cacheTTL?: number;
-	skip?: boolean;
-	pollInterval?: number;
-	subscription?: string; // Optional subscription for real-time updates
-}
+import {
+	QueryOptions,
+	QueryResult,
+	LazyQueryOptions,
+	LazyQueryExecute,
+	LazyQueryResult,
+	MutationHookOptions,
+	MutationExecute,
+	MutationResult,
+	SubscriptionOptions,
+	SubscriptionResult,
+	SubscriptionEventHandler,
+} from './types';
 
-// Custom hook for queries with caching and subscriptions
-export function useQuery<T = any>(
-	query: string,
-	variables?: any,
-	options: UseQueryOptions = {},
-): QueryState<T> & { refetch: () => Promise<void> } {
-	const [state, setState] = useState<QueryState<T>>({
-		data: null,
-		loading: !options.skip,
-		error: null,
-	});
+export function useQuery<T = any>(query: string, options: QueryOptions = {}): QueryResult<T> {
+	const {
+		variables,
+		skip = false,
+		cache = true,
+		cacheTTL,
+		timeout = 5000,
+		pollInterval,
+		onCompleted,
+		onError,
+	} = options;
+
+	const [data, setData] = useState<T | null>(null);
+	const [isLoading, setIsLoading] = useState(!skip);
+	const [error, setError] = useState<Error | null>(null);
 
 	const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
-	const subscriptionRef = useRef<(() => void) | null>(null);
+	const mountedRef = useRef(true);
 
-	const executeQuery = useCallback(async () => {
-		if (options.skip) return;
+	const executeQueryInternal = useCallback(
+		async (vars?: Record<string, any>) => {
+			if (skip || !mountedRef.current) return null;
 
-		setState((prev) => ({ ...prev, loading: true, error: null }));
+			setIsLoading(true);
+			setError(null);
 
-		try {
-			const data = await executeQueryWithCache<T>(query, variables, 4000, {
-				cache: options.cache,
-				cacheTTL: options.cacheTTL,
-			});
-			setState({ data, loading: false, error: null });
-		} catch (error) {
-			setState({
-				data: null,
-				loading: false,
-				error: error instanceof Error ? error.message : 'Unknown error',
-			});
-		}
-	}, [query, JSON.stringify(variables), options.skip, options.cache, options.cacheTTL]);
+			try {
+				const result = await executeQuery<T>(query, vars || variables, timeout, {
+					cache,
+					cacheTTL,
+				});
 
-	// Initial fetch and subscription setup
-	useEffect(() => {
-		executeQuery();
+				if (mountedRef.current) {
+					setData(result);
+					setIsLoading(false);
+					onCompleted?.(result);
+				}
 
-		// Set up polling if specified
-		if (options.pollInterval) {
-			pollIntervalRef.current = setInterval(executeQuery, options.pollInterval);
-		}
+				return result;
+			} catch (err) {
+				const errorObj = err instanceof Error ? err : new Error('Query failed');
 
-		// Set up subscription if specified
-		if (options.subscription) {
-			subscriptionRef.current = subscribeWithCallback(options.subscription, {
-				onData: (subscriptionData) => {
-					// Update state with subscription data
-					setState((prev) => ({
-						...prev,
-						data: { ...prev.data, ...subscriptionData } as T,
-					}));
-				},
-				onError: (error) => {
-					console.error('Subscription error:', error);
-				},
-			});
-		}
+				if (mountedRef.current) {
+					setError(errorObj);
+					setIsLoading(false);
+					onError?.(errorObj);
+				}
 
-		// Cleanup
-		return () => {
+				throw errorObj;
+			}
+		},
+		[query, variables, skip, cache, cacheTTL, timeout, onCompleted, onError],
+	);
+
+	const refetch = useCallback(
+		async (newVariables?: Record<string, any>) => {
+			return executeQueryInternal(newVariables);
+		},
+		[executeQueryInternal],
+	);
+
+	const startPolling = useCallback(
+		(interval: number) => {
 			if (pollIntervalRef.current) {
 				clearInterval(pollIntervalRef.current);
 			}
-			if (subscriptionRef.current) {
-				subscriptionRef.current();
-			}
+
+			pollIntervalRef.current = setInterval(() => {
+				executeQueryInternal();
+			}, interval);
+		},
+		[executeQueryInternal],
+	);
+
+	const stopPolling = useCallback(() => {
+		if (pollIntervalRef.current) {
+			clearInterval(pollIntervalRef.current);
+			pollIntervalRef.current = null;
+		}
+	}, []);
+
+	const updateQuery = useCallback((updater: (prev: T | null) => T | null) => {
+		setData((prev) => updater(prev));
+	}, []);
+
+	// Initial query execution
+	useEffect(() => {
+		if (!skip) {
+			executeQueryInternal();
+		}
+	}, [executeQueryInternal, skip]);
+
+	// Handle polling
+	useEffect(() => {
+		if (pollInterval && !skip) {
+			startPolling(pollInterval);
+		}
+
+		return () => stopPolling();
+	}, [pollInterval, skip, startPolling, stopPolling]);
+
+	// Cleanup on unmount
+	useEffect(() => {
+		mountedRef.current = true;
+		return () => {
+			mountedRef.current = false;
+			stopPolling();
 		};
-	}, [executeQuery, options.pollInterval, options.subscription]);
+	}, [stopPolling]);
 
 	return {
-		...state,
-		refetch: executeQuery,
+		data,
+		isLoading,
+		error,
+		refetch,
+		startPolling,
+		stopPolling,
+		updateQuery,
 	};
 }
 
-interface UseMutationOptions {
-	optimisticResponse?: any;
-	updateQueries?: Array<{
-		query: string;
-		variables?: any;
-		updater: (data: any) => any;
-	}>;
-	invalidatePatterns?: string[];
-	onCompleted?: (data: any) => void;
-	onError?: (error: Error) => void;
-}
+// ===== useLazyQuery Hook =====
 
-// Custom hook for mutations with optimistic updates
-export function useMutation<T = any>(
-	mutation: string,
-	options: UseMutationOptions = {},
-): [
-	(variables?: any) => Promise<T>,
-	{ loading: boolean; error: string | null; data: T | null },
-] {
-	const [state, setState] = useState<{
-		loading: boolean;
-		error: string | null;
-		data: T | null;
-	}>({
-		loading: false,
-		error: null,
-		data: null,
-	});
+export function useLazyQuery<T = any>(
+	query: string,
+	options: LazyQueryOptions = {},
+): [LazyQueryExecute<T>, LazyQueryResult<T>] {
+	const [data, setData] = useState<T | null>(null);
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState<Error | null>(null);
+	const [called, setCalled] = useState(false);
 
-	const executeMutation = useCallback(
-		async (variables?: any): Promise<T> => {
-			setState({ loading: true, error: null, data: null });
+	const execute = useCallback(
+		async (execOptions?: { variables?: Record<string, any> }) => {
+			setCalled(true);
+			setIsLoading(true);
+			setError(null);
 
 			try {
-				let result: T;
+				const result = await executeQuery<T>(
+					query,
+					execOptions?.variables || options.variables,
+					options.timeout || 5000,
+					{ cache: options.cache, cacheTTL: options.cacheTTL },
+				);
 
-				if (options.optimisticResponse || options.updateQueries) {
-					result = await executeOptimisticMutation<T>(
-						mutation,
-						variables,
-						options.optimisticResponse,
-						{
-							updateQueries: options.updateQueries,
-							invalidatePatterns: options.invalidatePatterns,
-						},
-					);
-				} else {
-					result = await executeQueryWithCache<T>(mutation, variables, 4000, {
-						cache: false,
-					});
-				}
-
-				setState({ loading: false, error: null, data: result });
-
+				setData(result);
+				setIsLoading(false);
 				options.onCompleted?.(result);
 				return result;
-			} catch (error) {
-				const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-				setState({ loading: false, error: errorMessage, data: null });
-				options.onError?.(error as Error);
-				throw error;
+			} catch (err) {
+				const errorObj = err instanceof Error ? err : new Error('Query failed');
+				setError(errorObj);
+				setIsLoading(false);
+				options.onError?.(errorObj);
+				return null;
+			}
+		},
+		[query, options],
+	);
+
+	return [execute, { data, isLoading, error, called }];
+}
+
+// ===== useMutation Hook (Optional - for stateful mutations) =====
+
+export function useMutation<T = any>(
+	mutation: string,
+	options: MutationHookOptions<T> = {},
+): [MutationExecute<T>, MutationResult<T>] {
+	const [data, setData] = useState<T | null>(null);
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState<Error | null>(null);
+
+	const execute = useCallback(
+		async (execOptions?: {
+			variables?: Record<string, any>;
+			optimisticResponse?: any;
+			refetchQueries?: Array<{
+				query: string;
+				variables?: Record<string, any>;
+			}>;
+		}) => {
+			setIsLoading(true);
+			setError(null);
+
+			try {
+				const result = await executeMutation<T>(mutation, {
+					...execOptions,
+					onCompleted: (data) => {
+						setData(data);
+						setIsLoading(false);
+						options.onCompleted?.(data);
+					},
+					onError: (err) => {
+						setError(err);
+						setIsLoading(false);
+						options.onError?.(err);
+						throw err;
+					},
+				});
+
+				return result;
+			} catch (err) {
+				// Error handling is done in executeMutation
+				throw err;
 			}
 		},
 		[mutation, options],
 	);
 
-	return [executeMutation, state];
+	const reset = useCallback(() => {
+		setData(null);
+		setIsLoading(false);
+		setError(null);
+	}, []);
+
+	return [execute, { data, isLoading, error, reset }];
 }
 
-// Hook for managing subscriptions
+// ===== useSubscription Hook =====
+
 export function useSubscription<T = any>(
 	subscription: string,
-	options: {
-		onData: (data: T) => void;
-		onError?: (error: any) => void;
-		skip?: boolean;
-	},
-) {
-	const { onData, onError, skip } = options;
+	options: SubscriptionOptions<T> = {},
+): SubscriptionResult<T> {
+	const {
+		variables,
+		skip = false,
+		onSubscriptionData,
+		onSubscriptionComplete,
+		onError,
+	} = options;
+
+	const [data, setData] = useState<T | null>(null);
+	const [isLoading, setIsLoading] = useState(!skip);
+	const [error, setError] = useState<Error | null>(null);
+
+	const handleData = useCallback(
+		(newData: T) => {
+			setData(newData);
+			setIsLoading(false);
+			setError(null);
+			onSubscriptionData?.({ subscriptionData: { data: newData } });
+		},
+		[onSubscriptionData],
+	);
+
+	const handleError = useCallback(
+		(err: any) => {
+			const errorObj = err instanceof Error ? err : new Error('Subscription failed');
+			setError(errorObj);
+			setIsLoading(false);
+			onError?.(errorObj);
+		},
+		[onError],
+	);
+
+	const handleComplete = useCallback(() => {
+		setIsLoading(false);
+		onSubscriptionComplete?.();
+	}, [onSubscriptionComplete]);
 
 	useEffect(() => {
-		if (skip) return;
+		if (skip) {
+			setIsLoading(false);
+			return;
+		}
 
+		setIsLoading(true);
+		setError(null);
+		setData(null);
+
+		// For now, we'll use the subscription without variables
+		// You might want to extend your subscribeWithCallback to support variables
 		const unsubscribe = subscribeWithCallback<T>(subscription, {
-			onData,
-			onError: onError || ((error) => console.error('Subscription error:', error)),
-		});
+			onData: handleData,
+			onError: handleError,
+			onComplete: handleComplete,
+		} as SubscriptionEventHandler<T>);
 
-		return unsubscribe;
-	}, [subscription, skip, onData, onError]);
+		return () => {
+			unsubscribe();
+		};
+	}, [subscription, variables, skip, handleData, handleError, handleComplete]);
+
+	return { data, isLoading, error };
 }
+
+// ===== Cache Management Hooks =====
+
+export function useInvalidateCache() {
+	return useCallback((pattern?: string) => {
+		invalidateCache(pattern);
+	}, []);
+}
+
+export function useUpdateCache() {
+	return useCallback((query: string, variables: any, updater: (data: any) => any) => {
+		updateCache(query, variables, updater);
+	}, []);
+}
+
+// ===== Usage Examples =====
+
+/*
+// Query Example
+const GET_USERS = `
+  query GetUsers($limit: Int) {
+    users(limit: $limit) {
+      id
+      name
+      email
+    }
+  }
+`;
+
+function UsersComponent() {
+  const { data, isLoading, error, refetch } = useQuery(GET_USERS, {
+    variables: { limit: 10 },
+    pollInterval: 5000, // Poll every 5 seconds
+    onCompleted: (data) => console.log('Users loaded:', data),
+  });
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      {data?.users?.map(user => (
+        <div key={user.id}>{user.name}</div>
+      ))}
+      <button onClick={() => refetch()}>Refresh</button>
+    </div>
+  );
+}
+
+// Lazy Query Example
+function SearchComponent() {
+  const [searchUsers, { data, isLoading, error }] = useLazyQuery(GET_USERS);
+
+  const handleSearch = () => {
+    searchUsers({ variables: { limit: 5 } });
+  };
+
+  return (
+    <div>
+      <button onClick={handleSearch}>Search Users</button>
+      {isLoading && <div>Searching...</div>}
+      {data && <div>Found {data.users.length} users</div>}
+    </div>
+  );
+}
+
+// Direct Mutation Example (Recommended for event handlers)
+const CREATE_USER = `
+  mutation CreateUser($input: CreateUserInput!) {
+    createUser(input: $input) {
+      id
+      name
+      email
+    }
+  }
+`;
+
+function CreateUserForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (formData) => {
+    setIsSubmitting(true);
+    
+    try {
+      const result = await executeMutation(CREATE_USER, {
+        variables: { input: formData },
+        optimisticResponse: {
+          createUser: {
+            id: 'temp-id',
+            ...formData,
+          },
+        },
+        refetchQueries: [{ query: GET_USERS, variables: { limit: 10 } }],
+        onCompleted: (data) => {
+          console.log('User created:', data.createUser);
+        },
+        onError: (error) => {
+          console.error('Failed to create user:', error);
+        }
+      });
+      
+      // Handle success
+      alert('User created successfully!');
+    } catch (error) {
+      // Error already handled in onError
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Creating...' : 'Create User'}
+      </button>
+    </form>
+  );
+}
+
+// Mutation Hook Example (For stateful mutations)
+function CreateUserFormWithHook() {
+  const [createUser, { isLoading, error, data }] = useMutation(CREATE_USER, {
+    onCompleted: (data) => {
+      console.log('User created:', data.createUser);
+    },
+  });
+
+  const handleSubmit = async (formData) => {
+    try {
+      await createUser({
+        variables: { input: formData },
+        refetchQueries: [{ query: GET_USERS, variables: { limit: 10 } }],
+      });
+    } catch (err) {
+      // Error is already set in the hook state
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <button type="submit" disabled={isLoading}>
+        {isLoading ? 'Creating...' : 'Create User'}
+      </button>
+      {error && <div>Error: {error.message}</div>}
+      {data && <div>Success! Created user: {data.createUser.name}</div>}
+    </form>
+  );
+}
+
+// Subscription Example
+const USER_CREATED_SUBSCRIPTION = `
+  subscription {
+    userCreated {
+      id
+      name
+      email
+    }
+  }
+`;
+
+function LiveUsersComponent() {
+  const { data, isLoading, error } = useSubscription(USER_CREATED_SUBSCRIPTION, {
+    onSubscriptionData: ({ subscriptionData }) => {
+      console.log('New user:', subscriptionData.data.userCreated);
+    },
+  });
+
+  return (
+    <div>
+      {isLoading && <div>Listening for new users...</div>}
+      {error && <div>Subscription error: {error.message}</div>}
+      {data && (
+        <div>
+          New user created: {data.userCreated.name}
+        </div>
+      )}
+    </div>
+  );
+}
+*/

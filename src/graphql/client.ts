@@ -1,9 +1,11 @@
-import { createClient, Client, ClientOptions, RequestParams } from 'graphql-http';
+import { createClient, Client, ClientOptions } from 'graphql-http';
 import { createClient as createWSClient } from 'graphql-ws';
 import { ExecutionResult } from 'graphql';
 
 import { GraphQLCache } from './GraphQLCache';
 import { constants } from '../constants';
+
+import { MutationOptions } from './types';
 
 const cache = new GraphQLCache();
 
@@ -162,6 +164,65 @@ export const invalidateCache = (pattern?: string) => {
 export const updateCache = (query: string, variables: any, updater: (data: any) => any) => {
 	cache.updateCache(query, variables, updater);
 };
+
+// Direct mutation function for use in event handlers
+export async function executeMutation<T = any>(
+	mutation: string,
+	options: {
+		variables?: Record<string, any>;
+		optimisticResponse?: any;
+	} & MutationOptions<T> = {},
+): Promise<T> {
+	const {
+		variables = {},
+		optimisticResponse,
+		onCompleted,
+		onError,
+		refetchQueries,
+		awaitRefetchQueries,
+	} = options;
+
+	try {
+		let result: T;
+
+		if (optimisticResponse) {
+			// Use optimistic mutation
+			result = await executeOptimisticMutation<T>(
+				mutation,
+				variables,
+				optimisticResponse,
+				{
+					updateQueries: [], // You can extend this based on your needs
+					invalidatePatterns: [],
+				},
+			);
+		} else {
+			// Regular mutation
+			result = await executeQuery<T>(mutation, variables, 5000, { cache: false });
+		}
+
+		onCompleted?.(result);
+
+		// Handle refetch queries
+		if (refetchQueries) {
+			const refetchPromises = refetchQueries.map(({ query, variables: refetchVars }) =>
+				executeQuery(query, refetchVars),
+			);
+
+			if (awaitRefetchQueries) {
+				await Promise.all(refetchPromises);
+			} else {
+				Promise.all(refetchPromises).catch(console.error);
+			}
+		}
+
+		return result;
+	} catch (err) {
+		const errorObj = err instanceof Error ? err : new Error('Mutation failed');
+		onError?.(errorObj);
+		throw errorObj;
+	}
+}
 
 // === OPTIMISTIC MUTATIONS ===
 export const executeOptimisticMutation = async <T = any>(
