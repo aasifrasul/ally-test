@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { useEventListener } from '../../../hooks/EventListeners/useEventListener';
+import { useEventListener } from '../../../hooks';
 
 import './ScrollToTopButton.css';
 

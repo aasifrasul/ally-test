@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { renderHook } from '@testing-library/react-hooks';
-import { useEventListener, useClickOutside } from '../EventListeners/';
+import { useEventListener, useClickOutside } from '..';
 
 // Mock useEventListener
 

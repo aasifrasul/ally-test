@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState, useEffect } from 'react';
 import { subscribeWithCallback, invalidateCache } from '../../graphql/client';
 import { useQuery, useMutation } from '../../graphql/hooks';
 import ScrollToTop from '../Common/ScrollToTopButton';
-import useEffectOnce from '../../hooks/useEffectOnce';
+import { useEffectOnce } from '../../hooks';
 import { getRandomId } from '../../utils/common';
 
 import { SearchUser } from './SearchUser';

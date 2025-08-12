@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 
-import { useEventListener } from '../../../hooks/EventListeners';
+import { useEventListener } from '../../../hooks';
 
 import * as styles from './Modal.module.css';
 

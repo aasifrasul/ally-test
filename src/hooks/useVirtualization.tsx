@@ -1,6 +1,6 @@
 import { JSX, useEffect, useState, useRef } from 'react';
 
-import { useEventListener } from './EventListeners';
+import { useEventListener } from '.';
 
 interface Item {
 	text: string;

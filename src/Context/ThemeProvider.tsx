@@ -1,6 +1,6 @@
 import { createContext, ReactNode } from 'react';
 
-import { useToggle } from '../hooks/useToggle';
+import { useToggle } from '../hooks';
 
 export interface ThemeContextType {
 	theme: string;

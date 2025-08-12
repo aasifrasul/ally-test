@@ -12,4 +12,6 @@ export interface EventMap extends WindowEventMap, DocumentEventMap, HTMLElementE
 	mouseup: MouseEvent;
 	touchstart: TouchEvent;
 	touchend: TouchEvent;
+	pointerdown: PointerEvent;
+	pointerup: PointerEvent;
 }

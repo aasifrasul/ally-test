@@ -20,7 +20,7 @@ RedisClient.getInstance()?.connect();
 // httpServer.on('request', () => logger.info('httpServer.request'));
 
 httpServer.listen(Number(port), host, () =>
-	logger.info(`node httpServer listening on port ${Number(port)}`),
+	logger.info(`Server running at http://${host}:${port} [${process.env.NODE_ENV}]`),
 );
 
 connectWSServer(httpServer);
@@ -81,6 +81,8 @@ async function gracefulShutdown(signal: string): Promise<void> {
 
 		const mongoDBInstance = MongoDBConnection.getInstance();
 		await mongoDBInstance?.cleanup();
+
+		await RedisClient.getInstance()?.cleanup();
 
 		// Then cleanup database instances
 		const dbInstance: DBInstance = await getDBInstance(constants.dbLayer.currentDB);

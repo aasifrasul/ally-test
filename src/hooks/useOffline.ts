@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useEventListener } from './EventListeners/';
+import { useEventListener } from '.';
 
 export function useOffline(): boolean {
 	const [isOffline, setIsOffline] = useState<boolean>(!navigator.onLine);
