@@ -1,4 +1,3 @@
-'use client';
 import { useEffect, useRef, useCallback } from 'react';
 import { createLogger, LogLevel, Logger } from '../../utils/Logger';
 import { ErrorHandlingOptions, Options, Target, EventMap } from './types';
@@ -11,7 +10,7 @@ const logger: Logger = createLogger('useEventListener', {
 // Generic hook that supports single or multiple event types
 export function useEventListener<K extends keyof EventMap>(
 	eventType: K | K[],
-	callback: (event: EventMap[K]) => void,
+	callback: ((event: EventMap[K]) => void) | (() => void),
 	element: Target,
 	options?: Options,
 	errorHandling?: ErrorHandlingOptions, // Removed default value
@@ -20,7 +19,7 @@ export function useEventListener<K extends keyof EventMap>(
 // Overload for mixed event types with broader signature
 export function useEventListener(
 	eventType: keyof EventMap | (keyof EventMap)[],
-	callback: (event: Event) => void,
+	callback: ((event: Event) => void) | (() => void),
 	element: Target,
 	options?: Options,
 	errorHandling?: ErrorHandlingOptions,
@@ -28,7 +27,7 @@ export function useEventListener(
 
 export function useEventListener<K extends keyof EventMap>(
 	eventType: K | K[],
-	callback: (event: EventMap[K]) => void,
+	callback: ((event: EventMap[K]) => void) | (() => void),
 	element: Target,
 	options?: Options,
 	errorHandling: ErrorHandlingOptions = {},

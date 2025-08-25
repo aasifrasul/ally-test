@@ -1,16 +1,25 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
 
-import { subscribeWithCallback, invalidateCache } from '../../graphql/client';
-import { useQuery, useMutation } from '../../graphql/hooks';
+import {
+	useQuery,
+	useMutation,
+	useSubscription,
+	useInvalidateCache,
+} from '../../graphql/hooks';
 import ScrollToTop from '../Common/ScrollToTopButton';
-import { useEffectOnce } from '../../hooks';
 import { getRandomId } from '../../utils/common';
 
 import { SearchUser } from './SearchUser';
 import { UserForm } from './UserForm';
 import { UsersList } from './UsersList';
 
-import { GET_USERS, CREATE_USER, UPDATE_USER, DELETE_USER, USER_CREATED_SUBS } from './query';
+import {
+	GET_USERS,
+	CREATE_USER,
+	UPDATE_USER,
+	DELETE_USER,
+	USER_CREATED_SUBSCRIPTION,
+} from './query';
 
 import { createLogger, LogLevel, Logger } from '../../utils/Logger';
 import { User } from './types';
@@ -24,11 +33,27 @@ export default function DisplayUsers() {
 	const [searchTerm, setSearchTerm] = useState<string>('');
 	const [editingUser, setEditingUser] = useState<User | null>(null);
 
+	const invalidateCache = useInvalidateCache();
+
 	const { data, isLoading, error } = useQuery(GET_USERS, {});
 
 	const [createUser] = useMutation(CREATE_USER);
 	const [updateUser] = useMutation(UPDATE_USER);
 	const [deleteUser] = useMutation(DELETE_USER);
+
+	useSubscription(USER_CREATED_SUBSCRIPTION, {
+		onSubscriptionData: ({ subscriptionData: { data: userCreated } }) => {
+			logger.info('New user created:', userCreated);
+			setUsers((prevUsers) => {
+				// Prevent duplicates
+				if (prevUsers.some((user) => user.id === userCreated.id)) {
+					return prevUsers;
+				}
+				return [userCreated, ...prevUsers];
+			});
+			invalidateCache('getUsers');
+		},
+	});
 
 	const filteredUsers = useMemo(() => {
 		if (!searchTerm.trim()) return users;
@@ -47,31 +72,6 @@ export default function DisplayUsers() {
 	useEffect(() => {
 		if (data?.getUsers?.length > 0) setUsers(data?.getUsers);
 	}, [data?.getUsers]);
-
-	useEffectOnce(() => {
-		const unsubscribe = subscribeWithCallback<{ userCreated: User }>(USER_CREATED_SUBS, {
-			onData: ({ userCreated }) => {
-				logger.info('New user created:', userCreated);
-				setUsers((prevUsers) => {
-					// Prevent duplicates
-					if (prevUsers.some((user) => user.id === userCreated.id)) {
-						return prevUsers;
-					}
-					return [userCreated, ...prevUsers];
-				});
-				invalidateCache('getUsers');
-			},
-			onError: (error) => {
-				logger.error('Subscription error:', error);
-			},
-		});
-
-		return () => {
-			if (unsubscribe) {
-				unsubscribe();
-			}
-		};
-	});
 
 	const handleAddUser = useCallback(
 		async (first_name: string, last_name: string, age: number) => {

@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, EffectCallback } from 'react';
 
-export const useEffectOnce = (effect: () => void | (() => void)) => {
+export const useEffectOnce = (effect: EffectCallback) => {
 	const hasRun = useRef(false);
 
 	useEffect(() => {

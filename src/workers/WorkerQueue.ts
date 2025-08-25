@@ -68,10 +68,11 @@ export class WorkerQueue {
 	): Promise<any> {
 		// Use requestKey for deduplication, fallback to random ID
 		const id = requestKey || getRandomId();
+		const existing = this.promiseFactory.get(id);
 
-		if (this.promiseFactory.has(id)) {
+		if (existing) {
 			logger.debug('Returning existing promise for request:', id);
-			return this.promiseFactory.get(id)?.promise;
+			return existing.promise;
 		}
 
 		// Create new promise and send message to worker

@@ -37,6 +37,7 @@ interface Constants {
 		};
 	};
 	currencyPairs: Array<{ key: string; value: number }>;
+	ExitCodes: Record<string, number>;
 }
 
 const currencyPairs: Array<{ key: string; value: number }> = [
@@ -51,6 +52,12 @@ const currencyPairs: Array<{ key: string; value: number }> = [
 	{ key: 'EURYEN', value: 3.567 },
 	{ key: 'YENEUR', value: 0.00987 },
 ];
+
+const ExitCodes = {
+	SUCCESS: 0,
+	ERROR: 1,
+	FORCED_TIMEOUT: 2,
+} as const;
 
 export const constants: Constants = {
 	cachingLayer: {
@@ -123,4 +130,5 @@ export const constants: Constants = {
 		},
 	},
 	currencyPairs,
+	ExitCodes,
 };

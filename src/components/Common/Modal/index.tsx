@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 
 import { useEventListener } from '../../../hooks';
 
+import { createLogger, LogLevel, Logger } from '../../../utils/Logger';
+
 import * as styles from './Modal.module.css';
 
 interface ModalProps {
@@ -19,6 +21,10 @@ interface ModalProps {
 	showCloseButton?: boolean;
 	portalTarget?: string;
 }
+
+const logger: Logger = createLogger('Modal', {
+	level: LogLevel.DEBUG,
+});
 
 const Modal = React.memo(
 	({
@@ -123,7 +129,7 @@ const Modal = React.memo(
 		// Get portal target element
 		const portalElement = document.getElementById(portalTarget);
 		if (!portalElement) {
-			console.warn(
+			logger.warn(
 				`Modal portal target '${portalTarget}' not found. Modal will not render.`,
 			);
 			return null;

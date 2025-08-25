@@ -2,12 +2,12 @@
 
 import http from 'http';
 
-import { port, host, isCurrentEnvProd } from './envConfigDetails';
+import { port, host } from './envConfigDetails';
 import { MongoDBConnection } from './dbClients/MongoDBConnection';
 import { RedisClient } from './cachingClients/redis';
 import { connectToIOServer, disconnectIOServer } from './socketConnection';
 import { connectWSServer, disconnectWSServer } from './webSocketConnection';
-import { getDBInstance, type DBInstance } from './dbClients/helper';
+import { getDBInstance } from './dbClients/helper';
 import { constants } from './constants';
 import { app } from './app';
 import { logger } from './Logger';
@@ -33,14 +33,12 @@ process.title = 'ally-test';
 process.on('unhandledRejection', (error: unknown) => {
 	const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
 	logger.error(`Unhandled Rejection: ${errorMsg}`);
-
-	if (isCurrentEnvProd) void gracefulShutdown('unhandledRejection');
+	void gracefulShutdown('unhandledRejection');
 });
 
 process.on('uncaughtException', (e) => {
 	logger.error(`uncaughtException: ${e.stack}`);
-	// Force exit on uncaught exceptions after logging
-	process.exit(1);
+	void gracefulShutdown('uncaughtException');
 });
 
 // Handle SIGINT (Ctrl+C)
@@ -73,28 +71,10 @@ async function gracefulShutdown(signal: string): Promise<void> {
 
 	const timeoutId = setTimeout(() => {
 		logger.error('Forced shutdown due to timeout');
-		process.exit(1);
+		process.exit(constants.ExitCodes.FORCED_TIMEOUT);
 	}, 15000);
 
 	try {
-		logger.info('Cleaning up active connections...');
-
-		const mongoDBInstance = MongoDBConnection.getInstance();
-		await mongoDBInstance?.cleanup();
-
-		await RedisClient.getInstance()?.cleanup();
-
-		// Then cleanup database instances
-		const dbInstance: DBInstance = await getDBInstance(constants.dbLayer.currentDB);
-		await dbInstance?.cleanup();
-
-		await disconnectIOServer().catch((err: Error) =>
-			logger.error('Error disconnecting IO server:', err),
-		);
-		await disconnectWSServer().catch((err: Error) =>
-			logger.error('Error disconnecting WS server:', err),
-		);
-
 		logger.info('Closing HTTP server...');
 		await new Promise<void>((resolve, reject) => {
 			httpServer.close((err: Error | undefined) => {
@@ -108,11 +88,22 @@ async function gracefulShutdown(signal: string): Promise<void> {
 			});
 		});
 
+		logger.info('Cleaning up active connections...');
+		await Promise.allSettled([
+			MongoDBConnection.getInstance()?.cleanup(),
+			RedisClient.getInstance()?.cleanup(),
+			(await getDBInstance(constants.dbLayer.currentDB))?.cleanup(),
+			disconnectIOServer(),
+			disconnectWSServer(),
+		]).catch((error) => {
+			logger.error(`failed to close active Connections ${error}`);
+		});
+
 		logger.info('Graceful shutdown completed');
-		process.exit(0);
+		process.exit(constants.ExitCodes.SUCCESS);
 	} catch (error) {
 		logger.error('Error during shutdown:', error);
-		process.exit(1);
+		process.exit(constants.ExitCodes.ERROR);
 	} finally {
 		clearTimeout(timeoutId);
 	}

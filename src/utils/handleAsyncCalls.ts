@@ -1,4 +1,3 @@
-'use client';
 // Types for our response handling
 type SuccessResult<T> = {
 	success: true;

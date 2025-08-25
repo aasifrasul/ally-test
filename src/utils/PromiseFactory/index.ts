@@ -37,11 +37,11 @@ export class PromiseFactory<T = any> {
 	constructor(options: Partial<PromiseFactoryOptions> = {}) {
 		this.promises = new Map<string, Deferred<T>>();
 		this.options = {
-			autoCleanup: options.autoCleanup ?? true,
-			cleanupDelay: options.cleanupDelay ?? 60000, // 1 minute default
-			maxPromises: options.maxPromises ?? 1000,
-			enableLogging: options.enableLogging ?? false,
-			...options,
+			autoCleanup: true,
+			cleanupDelay: 60000,
+			maxPromises: 1000,
+			enableLogging: false,
+			...options, // user-supplied overrides last
 		};
 
 		if (this.options.autoCleanup) {
@@ -127,8 +127,7 @@ export class PromiseFactory<T = any> {
 	 * @returns The Deferred promise if found, otherwise undefined.
 	 */
 	get(key: string): Deferred<T> | undefined {
-		this.validateKey(key);
-		return this.promises.get(key);
+		return this.has(key) ? this.promises.get(key) : undefined;
 	}
 
 	/**
@@ -452,6 +451,10 @@ export class PromiseFactory<T = any> {
 	dispose(): void {
 		this.stopAutoCleanup();
 		this.clear();
+		for (const timeout of this.scheduledCleanups.values()) {
+			clearTimeout(timeout);
+		}
+		this.scheduledCleanups.clear();
 	}
 }
 
