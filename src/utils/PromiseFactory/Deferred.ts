@@ -10,7 +10,7 @@ enum DeferredState {
 export class Deferred<T> {
 	private state: DeferredState = DeferredState.PENDING;
 	private value: T | null = null;
-	private error: any = null; // Consider a more specific error type if known
+	private error: unknown = null;
 	public createdAt: number = Date.now();
 	public promise: Promise<T>; // Publicly expose the promise
 	private timeoutId: NodeJS.Timeout | null = null;
@@ -70,7 +70,7 @@ export class Deferred<T> {
 	/**
 	 * Get the current value (if resolved) or error (if rejected)
 	 */
-	get result(): T | any | null {
+	get result(): T | unknown | null {
 		// Union type for value or error
 		return this.isResolved ? this.value : this.error;
 	}

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 
-import { useEventListener } from './EventListeners/';
+import { useEventListener } from './';
 
 type MoveFunction = (position: [number, number]) => void;
 

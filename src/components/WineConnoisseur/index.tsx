@@ -1,26 +1,25 @@
-import React from 'react';
+import { useEffect } from 'react';
 
 import WineConnoisseur from './WineConnoisseur';
 
-import { InitialState, Schema } from '../../constants/types';
-import useFetch, { FetchResult } from '../../hooks/useFetch';
+import { Schema } from '../../constants/types';
+import { useSchemaQuery } from '../../hooks/dataSelector';
 
 export default function WineConnoisseurContainer() {
-	const result: FetchResult<InitialState> = useFetch(Schema.WINE_CONNOISSUER);
-	const { cleanUpTopLevel, getList, fetchData, fetchNextPage } = result;
 	const {
 		headers,
 		pageData,
 		isLoading,
 		isError,
 		currentPage = 0,
-	} = getList(Schema.WINE_CONNOISSUER);
+		fetchData,
+		fetchNextPage,
+	} = useSchemaQuery(Schema.WINE_CONNOISSUER);
 
-	React.useEffect(() => {
+	useEffect(() => {
 		fetchData();
 		// window.requestIdleCallback(() => fetchNextPage(currentPage + 1))
-		return () => cleanUpTopLevel();
-	}, []);
+	}, [fetchData]);
 
 	return (
 		<WineConnoisseur

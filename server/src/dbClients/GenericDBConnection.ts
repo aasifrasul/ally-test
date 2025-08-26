@@ -31,6 +31,7 @@ export class GenericDBConnection {
 	}
 
 	private async createConnection(type: DBType): Promise<void> {
+		if (type === DBType.MONGODB) return;
 		switch (type) {
 			case DBType.ORACLE:
 				this.dbInstance = await OracleDBConnection.getInstance();

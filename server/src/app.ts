@@ -64,6 +64,16 @@ handleFileupload(app);
 app.all('/graphql', handleGraphql);
 
 setupProxy(app);
+
+function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
+	if (!req.timedout) {
+		next();
+	} else {
+		res.status(408).json({ error: 'Request timeout' });
+	}
+}
+
+// 1. Global middlewares first
 app.use(cookieParser());
 app.use(userAgentHandler);
 app.use(compression());
@@ -82,69 +92,56 @@ app.use(
 	}),
 );
 
-// Middleware for JSON
 app.use(express.json({ limit: '10kb' }));
-
-// Middleware for URL-encoded form data
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
-// Middleware for plain text
 app.use(bodyParser.text());
-
 app.use(timeout('5s'));
 app.use(haltOnTimedout);
 app.use(limiter);
 
-function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
-	if (!req.timedout) {
-		next();
-	} else {
-		res.status(408).json({ error: 'Request timeout' });
-	}
-}
-
-// Health check endpoint
-app.get('/health', async (req: Request, res: Response) => {
-	try {
-		// Check database connectivity, Redis, etc.
-		const health = {
-			status: 'OK',
-			timestamp: new Date().toISOString(),
-			uptime: process.uptime(),
-			// Add database/cache health checks
-		};
-		res.status(200).json(health);
-	} catch (error) {
-		res.status(503).json({ status: 'UNHEALTHY', error: (error as Error).message });
-	}
-});
-
+// 2. Request ID middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
 	req.id = uuidv4();
 	next();
 });
 
+// 3. Optional auth middleware (before routes that might need it)
+app.use(optionalAuth);
+
+// 4. Specific routes first (most specific to least specific)
+app.get('/health', async (req: Request, res: Response) => {
+	/* ... */
+});
+
 // Auth routes
 app.use('/auth', authRoutes);
 
-// Protected API routes example
+// API routes
+app.get('/api/fetchWineData/*', fetchWineData);
 app.get('/api/profile', authenticateToken, (req: Request, res: Response) => {
-	res.json({ message: 'This is a protected route', user: req.user });
+	/* ... */
 });
-
-// Admin only route example
 app.get('/api/admin', authenticateToken, authorizeRole('admin'), (req, res) => {
-	res.json({ message: 'This is an admin-only route' });
+	/* ... */
 });
 
-// Replace the simple login route with proper auth
+// GraphQL
+app.all('/graphql', handleGraphql);
+
+// Image serving
+app.get('/images/*', fetchImage);
+
+// Redirects
 app.use('/login', (_, res: Response) => {
 	res.redirect('/auth/login');
 });
 
-// middlewares
-app.get('/api/fetchWineData/*', fetchWineData);
-app.get('/images/*', fetchImage);
+// 5. Static files
+app.use(
+	serveStatic(pathRootDir, {
+		index: ['index.hbs', 'default.html', 'default.htm'],
+	}),
+);
 
 // Set hbs template config
 app.engine('.hbs', engine({ extname: '.hbs' }));
@@ -153,33 +150,24 @@ app.set('views', pathTemplate);
 
 const bundleConfig = ['en', 'vendor', 'app'].map((item) => `${pathPublic}/${item}.bundle.js`);
 
-app.use(
-	serveStatic(pathRootDir, {
-		index: ['index.hbs', 'default.html', 'default.htm'],
-	}),
-);
-
-// Add user context to templates
-app.use(optionalAuth);
-
-// handles all the valid routes
+// 6. Dynamic template routes (fix the next() issue)
 app.all(['/', '/:route'], (req: any, res: Response, next: NextFunction) => {
 	const { route } = req.params;
 	if (route && !constants.routes!.includes(route)) {
-		next();
+		return next(); // Add return here!
 	}
 
 	const data = {
 		js: bundleConfig,
 		...constructReqDataObject(req),
-		user: req.user, // Add user to template context
+		user: req.user,
 		dev: true,
 		layout: false,
 	};
 	res.send(compiledTemplate(data));
 });
 
-// 404 Handler
+// 7. 404 Handler last
 finalHandler(app);
 
 export { app };

@@ -1,6 +1,5 @@
 import { useCallback, useRef, RefObject } from 'react';
-import { useEventListener } from './';
-import { useToggle } from '../useToggle';
+import { useEventListener, useToggle } from '.';
 
 type EventType =
 	| 'mousedown'
@@ -25,7 +24,7 @@ type ElementRef =
 	| HTMLUListElement
 	| null;
 
-interface useClickOutside<T extends ElementRef> {
+interface UseClickOutside<T extends ElementRef> {
 	isOutsideClick: boolean;
 	outsideRef: RefObject<T | null>;
 }
@@ -38,7 +37,7 @@ export const useClickOutside = <T extends ElementRef = ElementRef>(
 	const outsideRef = useRef<T>(null);
 
 	const handleClickOutside = useCallback(
-		(event: Event): void => {
+		(event: MouseEvent | TouchEvent | PointerEvent): void => {
 			// No ref to check against, do nothing
 			if (!outsideRef.current) return;
 

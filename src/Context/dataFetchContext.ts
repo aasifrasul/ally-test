@@ -1,4 +1,3 @@
-import React from 'react';
 import storeFactory from '../store/storeFactory';
 import dataFetchReducer from '../reducers/dataFetchReducer';
 import { constants } from '../constants';

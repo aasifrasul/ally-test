@@ -328,4 +328,26 @@ export class RedisClient {
 		this.consecutiveFailures = 0;
 		logger.info('Redis reconnection attempts stopped.');
 	}
+
+	public async cleanup(): Promise<void> {
+		if (this.connected === false) return;
+		try {
+			if (this.client) {
+				await this.client.quit();
+				this.client = null;
+			}
+			if (this.subscriberClient) {
+				await this.subscriberClient.quit();
+				this.subscriberClient = null;
+			}
+			if (this.reconnectTimeout) {
+				clearTimeout(this.reconnectTimeout);
+				this.reconnectTimeout = null;
+			}
+			this.connected = false;
+			logger.info('Redis client disconnected successfully.');
+		} catch (err) {
+			logger.error('Error during Redis disconnect:', err);
+		}
+	}
 }

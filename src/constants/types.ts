@@ -31,6 +31,16 @@ export enum Schema {
 	SEARCH_FORM = 'searchForm',
 }
 
+// Map each Schema to its expected response payload type
+export type SchemaToResponse = {
+	[Schema.INFINITE_SCROLL]: IS_Item[];
+	[Schema.MOVIE_LIST]: Movie_Item[];
+	[Schema.NESTED_CATEGORIES]: unknown;
+	[Schema.WINE_CONNOISSUER]: unknown;
+	// For search form flows in this app, consumers expect InitialState-shaped data
+	[Schema.SEARCH_FORM]: InitialState;
+};
+
 export type APIDataTypes =
 	| Movie_Item[]
 	| IS_Item[]

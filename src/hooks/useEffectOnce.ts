@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, EffectCallback } from 'react';
 
-const useEffectOnce = (effect: () => void | (() => void)) => {
+export const useEffectOnce = (effect: EffectCallback) => {
 	const hasRun = useRef(false);
 
 	useEffect(() => {
@@ -9,5 +9,3 @@ const useEffectOnce = (effect: () => void | (() => void)) => {
 		return effect();
 	}, []);
 };
-
-export default useEffectOnce;

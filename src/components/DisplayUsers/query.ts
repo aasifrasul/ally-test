@@ -1,5 +1,5 @@
 export const GET_USERS = `{ getUsers { id, first_name, last_name, age } }`;
-export const USER_CREATED_SUBS =
+export const USER_CREATED_SUBSCRIPTION =
 	'subscription { userCreated { id, first_name, last_name, age } }';
 export const CREATE_USER = `
 mutation createUser($first_name: String!, $last_name: String!, $age: Int!) {

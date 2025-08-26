@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Modal from '../Common/Modal';
-import { useClickOutside } from '../../hooks/EventListeners';
+import { useClickOutside } from '../../hooks';
 import { formatTimeStamp, initialUsers, endpoint } from './helper';
 import * as styles from './styles.module.css';
 

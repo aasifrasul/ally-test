@@ -9,7 +9,7 @@ import {
 } from 'react';
 import Portal from '../Common/Portal';
 import { dbounce } from '../../utils/dbounce';
-import { useClickOutside } from '../../hooks/EventListeners';
+import { useClickOutside } from '../../hooks';
 import { useSearchParams } from '../../hooks/useSearchParams';
 
 const url: string = 'https://autocomplete.clearbit.com/v1/companies/suggest?query=';

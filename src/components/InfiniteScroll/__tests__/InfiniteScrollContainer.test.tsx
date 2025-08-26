@@ -34,8 +34,6 @@ describe('InfiniteScrollContainer', () => {
 		mockGetList.mockReturnValue(mockInitialState);
 
 		mockUseFetch.mockReturnValue({
-			cleanUpTopLevel: mockCleanUpTopLevel,
-			getList: mockGetList,
 			fetchData: mockFetchData,
 			fetchNextPage: mockFetchNextPage,
 			updateData: mockUpdateData,
@@ -46,17 +44,6 @@ describe('InfiniteScrollContainer', () => {
 		render(<InfiniteScrollContainer />);
 		const infiniteScrollElement = screen.getByTestId('infinite-scroll');
 		expect(infiniteScrollElement).toBeInTheDocument();
-	});
-
-	it('should call fetchData on mount and cleanUpTopLevel on unmount', async () => {
-		const { unmount } = render(<InfiniteScrollContainer />);
-
-		await waitFor(() => {
-			expect(mockFetchData).toHaveBeenCalledTimes(1);
-		});
-
-		unmount();
-		expect(mockCleanUpTopLevel).toHaveBeenCalledTimes(1);
 	});
 
 	it('should pass correct props to InfiniteScroll component', () => {

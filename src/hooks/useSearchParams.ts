@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useEventListener } from './EventListeners';
+import { useEventListener } from './';
 
 export function useSearchParams() {
 	const [isInitialized, setIsInitialized] = useState(false);

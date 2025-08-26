@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useEventListener } from '../../../hooks/EventListeners/useEventListener';
+import { useEventListener } from '../../../hooks';
 
 const ScrollToTop: React.FC = () => {
 	const [showTopBtn, setShowTopBtn] = useState<boolean>(false);

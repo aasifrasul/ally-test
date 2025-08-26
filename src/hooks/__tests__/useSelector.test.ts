@@ -1,6 +1,6 @@
 import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
-import { useSelector } from '../useSelector';
+import { useSelector } from '../dataSelector';
 import { useFetchStore } from '../../Context/dataFetchContext';
 import { GenericState } from '../../Context/types';
 
