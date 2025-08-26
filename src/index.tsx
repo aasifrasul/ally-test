@@ -10,6 +10,7 @@ import store from './store';
 import { client } from './ApolloClient';
 
 import App from './components/App';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import './index.css';
 
@@ -27,7 +28,9 @@ root.render(
 			<Provider store={store}>
 				<ApolloProvider client={client}>
 					<FetchStoreProvider>
-						<App />
+						<ErrorBoundary>
+							<App />
+						</ErrorBoundary>
 					</FetchStoreProvider>
 				</ApolloProvider>
 			</Provider>

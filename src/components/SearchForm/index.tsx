@@ -40,7 +40,7 @@ export default function SearchFormContainer() {
 		};
 
 		fetchInitialData();
-	}, []);
+	}, [fetchData]);
 
 	return <SearchForm data={data} addItem={addItem} />;
 }

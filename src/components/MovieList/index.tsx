@@ -1,7 +1,8 @@
 import { JSX, useEffect } from 'react';
 
-import useFetch, { FetchResult } from '../../hooks/useFetch';
-import { InitialState, Schema, APIDataTypes } from '../../constants/types';
+import { useSchemaQuery } from '../../hooks/dataSelector';
+
+import { Schema, APIDataTypes } from '../../constants/types';
 
 import { MovieList } from './MovieList';
 
@@ -11,17 +12,11 @@ interface ParentProps {
 }
 
 function MovieListContainer(props: ParentProps): JSX.Element {
-	const useFetchResult: FetchResult<InitialState, InitialState> = useFetch(
-		Schema.MOVIE_LIST,
-	);
-
-	const { cleanUpTopLevel, getList, fetchData, fetchNextPage } = useFetchResult;
-	const result: InitialState = getList(Schema.MOVIE_LIST);
+	const { fetchData, fetchNextPage, ...result } = useSchemaQuery(Schema.MOVIE_LIST);
 
 	useEffect(() => {
 		fetchData();
-		return () => cleanUpTopLevel();
-	}, []);
+	}, [fetchData]);
 
 	if (!result.data) return <div>Loading...</div>;
 

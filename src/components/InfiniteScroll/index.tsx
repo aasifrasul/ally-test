@@ -1,8 +1,8 @@
 import { useEffect, JSX } from 'react';
 import { InfiniteScroll } from './InfiniteScroll';
-import useFetch, { FetchResult } from '../../hooks/useFetch';
-import { InitialState, Schema } from '../../constants/types';
+import { Schema } from '../../constants/types';
 import { handleAsyncCalls } from '../../utils/common';
+import { useSchemaQuery } from '../../hooks/dataSelector';
 
 interface ParentProps {
 	className?: string;
@@ -10,25 +10,11 @@ interface ParentProps {
 }
 
 function InfiniteScrollContainer(props: ParentProps): JSX.Element {
-	const useFetchResult: FetchResult<InitialState, InitialState> = useFetch(
-		Schema.INFINITE_SCROLL,
-	);
-
-	const { cleanUpTopLevel, getList, fetchData, fetchNextPage } = useFetchResult;
-	const result: InitialState = getList(Schema.INFINITE_SCROLL);
+	const { fetchData, fetchNextPage, ...result } = useSchemaQuery(Schema.INFINITE_SCROLL);
 
 	useEffect(() => {
-		const fetchInitialData = async () => {
-			const result = await handleAsyncCalls(fetchData());
-
-			if (!result.success) {
-				console.error('Failed to fetch:', result.error);
-			}
-		};
-
-		fetchInitialData();
-		return () => cleanUpTopLevel();
-	}, []);
+		fetchData();
+	}, [fetchData]);
 
 	return (
 		<InfiniteScroll

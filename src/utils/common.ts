@@ -179,3 +179,19 @@ export function* createRangeIterator(
 export function cn(...inputs: ClassValue[]): string {
 	return twMerge(clsx(inputs));
 }
+
+export async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+	return new Promise((resolve, reject) => {
+		const id = setTimeout(() => reject(new Error('Timeout')), ms);
+		promise.then(
+			(val) => {
+				clearTimeout(id);
+				resolve(val);
+			},
+			(err) => {
+				clearTimeout(id);
+				reject(err);
+			},
+		);
+	});
+}

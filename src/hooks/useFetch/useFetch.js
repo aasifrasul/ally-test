@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { abortFetchRequest, fetchAPIData } from '../../workers/WorkerHelper';
-import { useSelector } from '../useSelector';
+import { useSelector } from '../dataSelector';
 import { createActionHooks } from '../createActionHooks';
 
 import { buildQueryParams } from '../../utils/common';

@@ -6,13 +6,34 @@ import { HTTPMethod } from '../types/api';
 
 const logger = createLogger('WorkerQueue');
 
+export type TelemetryEvent =
+	| { type: 'request:start'; key: string; endpoint: string; options?: APIOptions }
+	| { type: 'request:success'; key: string; endpoint: string; durationMs: number }
+	| {
+			type: 'request:error';
+			key: string;
+			endpoint: string;
+			error: string;
+			durationMs: number;
+	  }
+	| { type: 'request:complete'; key: string; endpoint: string };
+
 export class WorkerQueue {
 	private static instance: WorkerQueue | null = null;
-	private worker: Worker;
+	private worker?: Worker;
 	private promiseFactory: PromiseFactory;
+	private isWorkerEnvironment: boolean;
+	private requestKeyNormalizer?: (endpoint: string, options?: APIOptions) => string;
+	private telemetrySubscribers: Array<(e: TelemetryEvent) => void> = [];
 
 	private constructor() {
-		this.worker = new Worker(new URL('./MyWorker.worker.ts', import.meta.url));
+		this.isWorkerEnvironment =
+			typeof window !== 'undefined' && typeof Worker !== 'undefined';
+
+		// Initialize worker only in browser environments
+		if (this.isWorkerEnvironment) {
+			this.worker = new Worker(new URL('./MyWorker.worker.ts', import.meta.url));
+		}
 
 		this.promiseFactory = new PromiseFactory<string>({
 			autoCleanup: true,
@@ -20,8 +41,12 @@ export class WorkerQueue {
 			enableLogging: true,
 		});
 
-		this.worker.addEventListener('message', this.handleMessage.bind(this));
-		this.worker.addEventListener('error', this.handleError.bind(this));
+		if (this.worker) {
+			this.worker.addEventListener('message', this.handleMessage.bind(this));
+			this.worker.addEventListener('error', this.handleError.bind(this));
+		} else {
+			logger.warn('Web Worker not available. Falling back to main-thread execution.');
+		}
 	}
 
 	public static getInstance(): WorkerQueue {
@@ -29,6 +54,32 @@ export class WorkerQueue {
 			WorkerQueue.instance = new WorkerQueue();
 		}
 		return WorkerQueue.instance;
+	}
+
+	// Allow applications/tests to customize how dedupe keys are generated
+	public static setRequestKeyNormalizer(
+		normalizer: (endpoint: string, options?: APIOptions) => string,
+	): void {
+		const instance = WorkerQueue.getInstance();
+		instance.requestKeyNormalizer = normalizer;
+	}
+
+	public static subscribeTelemetry(subscriber: (e: TelemetryEvent) => void): () => void {
+		const instance = WorkerQueue.getInstance();
+		instance.telemetrySubscribers.push(subscriber);
+		return () => {
+			instance.telemetrySubscribers = instance.telemetrySubscribers.filter(
+				(s) => s !== subscriber,
+			);
+		};
+	}
+
+	private emit(event: TelemetryEvent): void {
+		try {
+			this.telemetrySubscribers.forEach((s) => s(event));
+		} catch (e) {
+			// ignore subscriber errors
+		}
 	}
 
 	private handleError(error: ErrorEvent): void {
@@ -52,12 +103,26 @@ export class WorkerQueue {
 
 	// Create deterministic key for request deduplication
 	private createRequestKey(endpoint: string, options: APIOptions = {}): string {
+		if (this.requestKeyNormalizer) {
+			return this.requestKeyNormalizer(endpoint, options);
+		}
+
+		// Default normalization: stable header order, ignore volatile headers by default
 		const method = options.method || HTTPMethod.GET;
-		const headers = JSON.stringify(options.headers || {});
-		// Include body in key for non-GET requests
+		const rawHeaders = (options.headers || {}) as Record<string, string>;
+		const IGNORE_HEADERS = ['authorization', 'cookie'];
+		const normalizedHeaders = Object.keys(rawHeaders)
+			.filter((k) => !IGNORE_HEADERS.includes(k.toLowerCase()))
+			.sort()
+			.reduce<Record<string, string>>((acc, key) => {
+				acc[key] = rawHeaders[key];
+				return acc;
+			}, {});
+
+		// Include body only for non-GET methods
 		const body = method === HTTPMethod.GET ? '' : JSON.stringify(options.body || '');
 
-		return `${method}:${endpoint}:${headers}:${body}`;
+		return `${method}:${endpoint}:${JSON.stringify(normalizedHeaders)}:${body}`;
 	}
 
 	private async sendMessage(
@@ -75,18 +140,97 @@ export class WorkerQueue {
 			return existing.promise;
 		}
 
-		// Create new promise and send message to worker
+		// Create new promise and send message to worker or execute inline if worker not available
 		const pending = this.promiseFactory.create(id, timeout);
 		const message: WorkerMessage = { id, type, data };
 
+		const endpoint = data?.endpoint ?? 'unknown';
+		const key = id;
+		const startedAt = Date.now();
+		this.emit({ type: 'request:start', key, endpoint, options: data?.options });
+
 		try {
-			this.worker.postMessage(message);
-			logger.debug('New request created and sent to worker:', id);
+			if (this.worker) {
+				this.worker.postMessage(message);
+				logger.debug('New request created and sent to worker:', id);
+				// Wrap promise to emit success/error/complete
+				pending.promise
+					.then(() => {
+						const durationMs = Date.now() - startedAt;
+						this.emit({ type: 'request:success', key, endpoint, durationMs });
+					})
+					.catch((err: any) => {
+						const durationMs = Date.now() - startedAt;
+						this.emit({
+							type: 'request:error',
+							key,
+							endpoint,
+							error: String(err?.message || err),
+							durationMs,
+						});
+					})
+					.finally(() => {
+						this.emit({ type: 'request:complete', key, endpoint });
+					});
+				return pending.promise;
+			}
+
+			// Fallback: execute on main thread
+			this.executeInMainThread(type, data)
+				.then((result) => {
+					this.clearRequest(id);
+					const durationMs = Date.now() - startedAt;
+					this.emit({ type: 'request:success', key, endpoint, durationMs });
+					pending.resolve(result);
+				})
+				.catch((err) => {
+					this.clearRequest(id);
+					const durationMs = Date.now() - startedAt;
+					this.emit({
+						type: 'request:error',
+						key,
+						endpoint,
+						error: String(err?.message || err),
+						durationMs,
+					});
+					pending.reject(err);
+				})
+				.finally(() => {
+					this.emit({ type: 'request:complete', key, endpoint });
+				});
+
 			return pending.promise;
 		} catch (error) {
-			pending.reject(error);
+			pending.reject(error as any);
 			this.promiseFactory.remove(id);
 			throw error;
+		}
+	}
+
+	// Execute worker message types directly on the main thread as a fallback
+	private async executeInMainThread(type: string, data: any): Promise<any> {
+		switch (type) {
+			case 'fetchAPIData': {
+				const { endpoint, options } = data as {
+					endpoint: string;
+					options?: APIOptions;
+				};
+				const response = await fetch(endpoint, options as RequestInit);
+				const contentType = response.headers.get('content-type') || '';
+				if (!response.ok) {
+					throw new Error(`HTTP ${response.status}`);
+				}
+				if (contentType.includes('application/json')) {
+					return response.json();
+				}
+				return response.text();
+			}
+			case 'abortFetchRequest': {
+				// Not supported in fallback since requests are not tracked with controllers here
+				return Promise.resolve();
+			}
+			default:
+				throw new Error(`Unsupported operation in fallback mode: ${type}`);
 		}
 	}
 
@@ -160,7 +304,9 @@ export class WorkerQueue {
 
 	terminate(): void {
 		this.promiseFactory.clear();
-		this.worker.terminate();
+		if (this.worker) {
+			this.worker.terminate();
+		}
 		WorkerQueue.instance = null;
 	}
 }

@@ -10,7 +10,7 @@ interface TestData {
 
 const workerManager = WorkerQueue.getInstance();
 
-jest.mock('../../hooks/useSelector', () => ({
+jest.mock('../../hooks/selector', () => ({
 	useSelector: jest.fn(),
 }));
 
@@ -91,8 +91,6 @@ describe('useFetch', () => {
 		expect(result.current).toHaveProperty('fetchData');
 		expect(result.current).toHaveProperty('fetchNextPage');
 		expect(result.current).toHaveProperty('updateData');
-		expect(result.current).toHaveProperty('cleanUpTopLevel');
-		expect(result.current).toHaveProperty('getList');
 	});
 
 	it('should fetch data successfully', async () => {
@@ -247,7 +245,6 @@ describe('useFetch', () => {
 
 		// Start a request and immediately clean up
 		const fetchPromise = result.current.fetchData();
-		result.current.cleanUpTopLevel();
 
 		await fetchPromise;
 
