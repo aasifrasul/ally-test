@@ -19,8 +19,22 @@ export const client: Client = createClient({
 	},
 } as ClientOptions);
 
+// Build websocket URL safely
+const buildWsUrl = (): string => {
+	try {
+		const base = new URL(String(constants.BASE_URL));
+		base.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:';
+		base.pathname = '/graphql/';
+		base.search = '';
+		base.hash = '';
+		return base.toString();
+	} catch {
+		return `${(constants.BASE_URL || '').replace(/^http/, 'ws')}/graphql/`;
+	}
+};
+
 const wsClient = createWSClient({
-	url: `${constants.BASE_URL!.replace('http', 'ws')}/graphql/`,
+	url: buildWsUrl(),
 	connectionParams: {},
 });
 
@@ -37,12 +51,13 @@ export const executeQuery = async <T = any>(
 	options: QueryOptions = {},
 ): Promise<T> => {
 	const { cache: useCache = true, cacheTTL } = options;
-	const cacheKey = `${query}${JSON.stringify(variables)}`;
+	const normalizedQuery = query.replace(/\s+/g, ' ').trim();
+	const cacheKey = `${normalizedQuery}${JSON.stringify(variables || {})}`;
 
 	// Check cache first (only for queries, not mutations)
-	const isMutation = query.trim().toLowerCase().startsWith('mutation');
+	const isMutation = normalizedQuery.toLowerCase().startsWith('mutation');
 	if (useCache && !isMutation) {
-		const cached = cache.get(query, variables);
+		const cached = cache.get(normalizedQuery, variables);
 		if (cached) {
 			return cached;
 		}
@@ -57,7 +72,7 @@ export const executeQuery = async <T = any>(
 		let timeoutId: NodeJS.Timeout | null = null;
 
 		const cancelSubscription = client.subscribe(
-			{ query, variables },
+			{ query: normalizedQuery, variables },
 			{
 				next: (data) => (result = data),
 				error: (error) => {
@@ -73,7 +88,7 @@ export const executeQuery = async <T = any>(
 					} else {
 						// Cache the result (only for queries)
 						if (useCache && !isMutation) {
-							cache.set(query, variables, data, cacheTTL);
+							cache.set(normalizedQuery, variables, data, cacheTTL);
 						}
 
 						resolve(data as T);
@@ -140,9 +155,11 @@ export interface SubscriptionEventHandler<T = any> {
 export const subscribeWithCallback = <T = any>(
 	query: string,
 	handlers: SubscriptionEventHandler<T>,
+	variables?: Record<string, any>,
 ): (() => void) => {
+	const normalizedQuery = query.replace(/\s+/g, ' ').trim();
 	const unsubscribe = wsClient.subscribe(
-		{ query },
+		{ query: normalizedQuery, variables },
 		{
 			next: ({ data, errors }: ExecutionResult<T>) => {
 				if (data) handlers.onData(data);

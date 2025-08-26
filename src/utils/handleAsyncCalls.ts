@@ -16,6 +16,7 @@ export interface ResponseLike {
 	headers?: Headers;
 	status?: number;
 	json(): Promise<any>;
+	text(): Promise<string>;
 }
 
 export class NetworkError extends Error {
@@ -82,5 +83,11 @@ export async function fetchAPIData<T>(url: string, options?: RequestInit): Promi
 
 	if (error) return { success: false, error };
 
-	return handleAsyncCalls(response.json());
+	const contentType = response.headers?.get('content-type') || '';
+
+	if (contentType.includes('application/json')) {
+		return handleAsyncCalls(response.json() as Promise<T>);
+	}
+
+	return handleAsyncCalls(response.text() as unknown as Promise<T>);
 }
