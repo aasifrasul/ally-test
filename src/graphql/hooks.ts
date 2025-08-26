@@ -81,10 +81,10 @@ export function useQuery<T = any>(query: string, options: QueryOptions = {}): Qu
 			return executeQueryInternal(newVariables);
 		},
 		[executeQueryInternal],
-	);
+	) as (variables?: Record<string, any>) => Promise<T | null>;
 
 	const startPolling = useCallback(
-		(interval: number) => {
+		(interval: number): void => {
 			if (pollIntervalRef.current) {
 				clearInterval(pollIntervalRef.current);
 			}
@@ -94,18 +94,18 @@ export function useQuery<T = any>(query: string, options: QueryOptions = {}): Qu
 			}, interval);
 		},
 		[executeQueryInternal],
-	);
+	) as (interval: number) => void;
 
-	const stopPolling = useCallback(() => {
+	const stopPolling = useCallback((): void => {
 		if (pollIntervalRef.current) {
 			clearInterval(pollIntervalRef.current);
 			pollIntervalRef.current = null;
 		}
-	}, []);
+	}, []) as () => void;
 
-	const updateQuery = useCallback((updater: (prev: T | null) => T | null) => {
+	const updateQuery = useCallback((updater: (prev: T | null) => T | null): void => {
 		setData((prev) => updater(prev));
-	}, []);
+	}, []) as (updater: (prev: T | null) => T | null) => void;
 
 	// Initial query execution
 	useEffect(() => {
@@ -181,7 +181,7 @@ export function useLazyQuery<T = any>(
 			}
 		},
 		[query, options],
-	);
+	) as LazyQueryExecute<T>;
 
 	return [execute, { data, isLoading, error, called }];
 }
@@ -231,13 +231,13 @@ export function useMutation<T = any>(
 			}
 		},
 		[mutation, options],
-	);
+	) as MutationExecute<T>;
 
-	const reset = useCallback(() => {
+	const reset = useCallback((): void => {
 		setData(null);
 		setIsLoading(false);
 		setError(null);
-	}, []);
+	}, []) as () => void;
 
 	return [execute, { data, isLoading, error, reset }];
 }
@@ -260,30 +260,37 @@ export function useSubscription<T = any>(
 	const [isLoading, setIsLoading] = useState(!skip);
 	const [error, setError] = useState<Error | null>(null);
 
-	const handleData = useCallback(
-		(newData: T) => {
-			setData(newData);
-			setIsLoading(false);
-			setError(null);
-			onSubscriptionData?.({ subscriptionData: { data: newData } });
-		},
-		[onSubscriptionData],
+	// Keep latest handlers in refs to avoid effect re-subscribing on each render
+	const onDataRef = useRef<typeof onSubscriptionData | undefined>(onSubscriptionData);
+	const onErrorRef = useRef<typeof onError | undefined>(onError);
+	const onCompleteRef = useRef<typeof onSubscriptionComplete | undefined>(
+		onSubscriptionComplete,
 	);
 
-	const handleError = useCallback(
-		(err: any) => {
-			const errorObj = err instanceof Error ? err : new Error('Subscription failed');
-			setError(errorObj);
-			setIsLoading(false);
-			onError?.(errorObj);
-		},
-		[onError],
-	);
+	useEffect(() => {
+		onDataRef.current = onSubscriptionData;
+		onErrorRef.current = onError;
+		onCompleteRef.current = onSubscriptionComplete;
+	}, [onSubscriptionData, onError, onSubscriptionComplete]);
+
+	const handleData = useCallback((newData: T) => {
+		setData(newData);
+		setIsLoading(false);
+		setError(null);
+		onDataRef.current?.({ subscriptionData: { data: newData } });
+	}, []);
+
+	const handleError = useCallback((err: any) => {
+		const errorObj = err instanceof Error ? err : new Error('Subscription failed');
+		setError(errorObj);
+		setIsLoading(false);
+		onErrorRef.current?.(errorObj);
+	}, []);
 
 	const handleComplete = useCallback(() => {
 		setIsLoading(false);
-		onSubscriptionComplete?.();
-	}, [onSubscriptionComplete]);
+		onCompleteRef.current?.();
+	}, []);
 
 	useEffect(() => {
 		if (skip) {
@@ -295,13 +302,15 @@ export function useSubscription<T = any>(
 		setError(null);
 		setData(null);
 
-		// For now, we'll use the subscription without variables
-		// You might want to extend your subscribeWithCallback to support variables
-		const unsubscribe = subscribeWithCallback<T>(subscription, {
-			onData: handleData,
-			onError: handleError,
-			onComplete: handleComplete,
-		} as SubscriptionEventHandler<T>);
+		const unsubscribe = subscribeWithCallback<T>(
+			subscription,
+			{
+				onData: handleData,
+				onError: handleError,
+				onComplete: handleComplete,
+			} as SubscriptionEventHandler<T>,
+			variables,
+		);
 
 		return () => {
 			unsubscribe();

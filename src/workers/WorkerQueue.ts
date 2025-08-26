@@ -3,6 +3,7 @@ import { createLogger } from '../utils/Logger';
 import { getRandomId } from '../utils/common';
 import { PromiseFactory } from '../utils/PromiseFactory';
 import { HTTPMethod } from '../types/api';
+import { APIService } from '../services/APIService';
 
 const logger = createLogger('WorkerQueue');
 
@@ -215,15 +216,9 @@ export class WorkerQueue {
 					endpoint: string;
 					options?: APIOptions;
 				};
-				const response = await fetch(endpoint, options as RequestInit);
-				const contentType = response.headers.get('content-type') || '';
-				if (!response.ok) {
-					throw new Error(`HTTP ${response.status}`);
-				}
-				if (contentType.includes('application/json')) {
-					return response.json();
-				}
-				return response.text();
+
+				const response = await APIService.getInstance().fetch(endpoint, options);
+				return response;
 			}
 			case 'abortFetchRequest': {
 				// Not supported in fallback since requests are not tracked with controllers here

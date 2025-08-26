@@ -22,7 +22,7 @@ import {
 } from './query';
 
 import { createLogger, LogLevel, Logger } from '../../utils/Logger';
-import { User } from './types';
+import { User, AddUser, UpdateUser, DeleteUser, EditUser } from './types';
 
 const logger: Logger = createLogger('DisplayUsers', {
 	level: LogLevel.DEBUG,
@@ -35,14 +35,16 @@ export default function DisplayUsers() {
 
 	const invalidateCache = useInvalidateCache();
 
-	const { data, isLoading, error } = useQuery(GET_USERS, {});
+	const { data, isLoading, error } = useQuery<{ getUsers: User[] }>(GET_USERS, {});
 
 	const [createUser] = useMutation(CREATE_USER);
 	const [updateUser] = useMutation(UPDATE_USER);
 	const [deleteUser] = useMutation(DELETE_USER);
 
 	useSubscription(USER_CREATED_SUBSCRIPTION, {
-		onSubscriptionData: ({ subscriptionData: { data: userCreated } }) => {
+		onSubscriptionData: ({ subscriptionData: { data } }) => {
+			const userCreated = (data as any)?.userCreated;
+			if (!userCreated) return;
 			logger.info('New user created:', userCreated);
 			setUsers((prevUsers) => {
 				// Prevent duplicates
@@ -70,7 +72,7 @@ export default function DisplayUsers() {
 	}, [users, searchTerm]);
 
 	useEffect(() => {
-		if (data?.getUsers?.length > 0) setUsers(data?.getUsers);
+		if (Array.isArray(data?.getUsers)) setUsers(data.getUsers);
 	}, [data?.getUsers]);
 
 	const handleAddUser = useCallback(
@@ -109,7 +111,7 @@ export default function DisplayUsers() {
 			}
 		},
 		[createUser], // Remove 'users' from dependencies
-	);
+	) as AddUser;
 
 	const handleUpdateUser = useCallback(
 		async (id: string, first_name: string, last_name: string, age: number) => {
@@ -161,7 +163,7 @@ export default function DisplayUsers() {
 			}
 		},
 		[updateUser],
-	);
+	) as UpdateUser;
 
 	const handleDeleteUser = useCallback(
 		async (id: string) => {
@@ -211,7 +213,7 @@ export default function DisplayUsers() {
 			}
 		},
 		[deleteUser],
-	);
+	) as DeleteUser;
 
 	const handleEditUser = useCallback(
 		(id: string) => {
@@ -219,14 +221,14 @@ export default function DisplayUsers() {
 			user && setEditingUser(user);
 		},
 		[filteredUsers],
-	);
+	) as EditUser;
 
 	if (isLoading) {
 		return <div>Loading...</div>;
 	}
 
 	if (error) {
-		return <div>Error: {error as any}</div>;
+		return <div>Error: {error.message}</div>;
 	}
 
 	return (

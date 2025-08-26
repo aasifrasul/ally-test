@@ -31,7 +31,7 @@ export interface QueryOptions {
 	onError?: (error: Error) => void;
 }
 
-type ReFetchFunc<T> = (variables?: Record<string, any> | undefined) => Promise<T>;
+type ReFetchFunc<T> = (variables?: Record<string, any> | undefined) => Promise<T | null>;
 
 export interface QueryResult<T> extends BaseResult {
 	data: T | null;
