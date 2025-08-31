@@ -1,4 +1,4 @@
-import type { APIOptions, WorkerMessage } from '../types/api';
+import type { WorkerMessage } from '../types/api';
 import { createLogger } from '../utils/Logger';
 import { getRandomId } from '../utils/common';
 import { PromiseFactory } from '../utils/PromiseFactory';
@@ -8,7 +8,7 @@ import { APIService } from '../services/APIService';
 const logger = createLogger('WorkerQueue');
 
 export type TelemetryEvent =
-	| { type: 'request:start'; key: string; endpoint: string; options?: APIOptions }
+	| { type: 'request:start'; key: string; endpoint: string; options?: RequestInit }
 	| { type: 'request:success'; key: string; endpoint: string; durationMs: number }
 	| {
 			type: 'request:error';
@@ -24,7 +24,7 @@ export class WorkerQueue {
 	private worker?: Worker;
 	private promiseFactory: PromiseFactory;
 	private isWorkerEnvironment: boolean;
-	private requestKeyNormalizer?: (endpoint: string, options?: APIOptions) => string;
+	private requestKeyNormalizer?: (endpoint: string, options?: RequestInit) => string;
 	private telemetrySubscribers: Array<(e: TelemetryEvent) => void> = [];
 
 	private constructor() {
@@ -59,7 +59,7 @@ export class WorkerQueue {
 
 	// Allow applications/tests to customize how dedupe keys are generated
 	public static setRequestKeyNormalizer(
-		normalizer: (endpoint: string, options?: APIOptions) => string,
+		normalizer: (endpoint: string, options?: RequestInit) => string,
 	): void {
 		const instance = WorkerQueue.getInstance();
 		instance.requestKeyNormalizer = normalizer;
@@ -103,7 +103,7 @@ export class WorkerQueue {
 	}
 
 	// Create deterministic key for request deduplication
-	private createRequestKey(endpoint: string, options: APIOptions = {}): string {
+	private createRequestKey(endpoint: string, options: RequestInit = {}): string {
 		if (this.requestKeyNormalizer) {
 			return this.requestKeyNormalizer(endpoint, options);
 		}
@@ -214,7 +214,7 @@ export class WorkerQueue {
 			case 'fetchAPIData': {
 				const { endpoint, options } = data as {
 					endpoint: string;
-					options?: APIOptions;
+					options?: RequestInit;
 				};
 
 				const response = await APIService.getInstance().fetch(endpoint, options);
@@ -229,13 +229,13 @@ export class WorkerQueue {
 		}
 	}
 
-	isAPIAlreadyRunning(endpoint: string, options?: APIOptions) {
+	isAPIAlreadyRunning(endpoint: string, options?: RequestInit) {
 		const requestKey = this.createRequestKey(endpoint, options);
 		return this.promiseFactory.has(requestKey);
 	}
 
 	// Public API methods
-	async fetchAPIData<T = unknown>(endpoint: string, options?: APIOptions): Promise<T> {
+	async fetchAPIData<T = unknown>(endpoint: string, options?: RequestInit): Promise<T> {
 		// Create deterministic key for request deduplication
 		const requestKey = this.createRequestKey(endpoint, options);
 
@@ -270,7 +270,7 @@ export class WorkerQueue {
 	}
 
 	// Method to abort specific deduplicated requests
-	abortRequest(endpoint: string, options?: APIOptions): void {
+	abortRequest(endpoint: string, options?: RequestInit): void {
 		const requestKey = this.createRequestKey(endpoint, options);
 		const pending = this.promiseFactory.get(requestKey);
 

@@ -12,13 +12,6 @@ export interface WorkerMessage {
 	error?: string;
 }
 
-export interface APIOptions extends RequestInit {
-	method?: HTTPMethod;
-	cache?: RequestCache;
-	retry?: boolean;
-	retryAttempts?: number;
-}
-
 export interface WorkerResponse {
 	id: number;
 	type: string;

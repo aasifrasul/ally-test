@@ -3,7 +3,7 @@ import React from 'react';
 import { constants } from '../../constants';
 
 import SearchForm from './SearchForm';
-import useFetch, { FetchResult } from '../../hooks/useFetch';
+import { useFetch, FetchResult } from '../../hooks/useFetch';
 import { InitialState, Schema } from '../../constants/types';
 
 const { PRODUCT_LIST, ADD_ITEM_URL } = constants.dataSources!.searchForm;

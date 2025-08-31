@@ -81,17 +81,18 @@ System Design (Instagram)
             less demanding real-time requirements.
 
     - API Design:
-        - GET /api/feed/{id} - Get user's feed
-        - GET /api/users/{id}/followers - Get user's followers
-        - GET /api/users/{id}/following - Get user's following
-        - GET /api/posts/{id} - Get post details
-        - GET /api/search?q={query} - Search for users/posts
+        - GET /api/feed?page=2&limit=20 - Get user's feed
+        - GET /api/users/123/followers - Get user's followers
+        - GET /api/users/123/following - Get user's following
+        - GET /api/posts/123 - Get post details
+        - GET /api/search?q=xyz - Search for users/posts
 
         - POST /api/posts - Upload new post
             `{
                 "userId": "123",
                 "media": "image.jpg",
                 "caption": "Hello World!"
+                "descritptiom": "Hello World"
             }`
         - POST /api/user/profile/
             {
@@ -147,6 +148,9 @@ System Design (Instagram)
 
 4. Deep dive into frontend-specific concerns (10-15 minutes):
     Performance Optimizations:
+        - Code Splitting (to avoid giant JS bundles).
+        - CDN for JS/CSS delivery.
+        - Skeleton screens & prefetching to improve perceived performance.
         - Image lazy loading and progressive loading
         - Virtual scrolling for feed
         - Client-side caching strategies
@@ -157,6 +161,10 @@ System Design (Instagram)
         - User Action → React Component → Redux Action → API Call → Update Store → Re-render
 
 5. Identify and address potential bottlenecks (5 minutes):
+    - Large JS bundles → long TTI (time to interactive).
+    - Memory leaks in infinite scroll.
+    - Race conditions in concurrent requests.
+    - Offline-first complexity.
     - Image optimization and compression
     - Cache invalidation
     - Feed generation performance
@@ -167,12 +175,33 @@ System Design (Instagram)
 
 
 6. Maintenance: 
-    - Tests (Unit/E2E):
-        - jest/React Testing Library, cypress/selenium
-        - Component testing
-        - Custom hooks testing
-        - Redux/State management tests
-        - API client tests
+    - Linting + Prettier
+    - Testing Pyramid in Frontend
+        1. Unit Tests 🧩 (base of pyramid, most tests)
+            Scope: Smallest pieces of logic → functions, reducers, hooks, or tiny components.
+            Examples:
+            Reducer updates state correctly.
+            Utility function formats dates.
+            <Button /> renders with correct text.
+            Tools: Jest, React Testing Library (for small components).
+            Goal: Fast, isolated, catch logic bugs early.
+        2. Component / Integration Tests 🖼️ (middle layer)
+            Scope: A React component or a few components working together.
+            Examples:
+            <Feed /> fetches posts and renders them.
+            Clicking “Like” updates the UI and dispatches Redux action.
+            Modal opens/closes correctly when triggered.
+            Tools: React Testing Library, Enzyme.
+            Goal: Verify user interactions + state flow (not just output).
+            Note: Sometimes called “Integration tests” if multiple components + store involved.
+        3. E2E (End-to-End Tests) 🌍 (top of pyramid, fewest tests)
+            Scope: Full application flow with backend (or mock API).
+            Examples:
+            User logs in → opens feed → likes a post → sees update.
+            Uploading a photo actually creates a post.
+            Tools: Cypress, Playwright, Selenium.
+            Goal: Ensure critical user journeys work as expected.
+            Tradeoff: Slow & fragile → only use for high-value flows.
     - Logging:
         - Client-side error tracking (Sentry)
         - Server-side error logging (ELK stack)
@@ -197,7 +226,6 @@ System Design (Instagram)
             - Scroll depth
             - Feature usage
             - Drop-off points
-
         // Performance Monitoring
         - Core Web Vitals:
             - LCP (Largest Contentful Paint)

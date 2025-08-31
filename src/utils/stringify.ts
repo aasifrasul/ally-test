@@ -1,8 +1,16 @@
-const typeCheck = (data) => Object.prototype.toString.call(data).slice(8, -1).toLowerCase();
+type ReplacerFunction = (key: string | symbol, value: any) => any;
 
-const isSymbol = (data) => typeCheck(data) === 'symbol';
+const typeCheck = (data: any): string =>
+	Object.prototype.toString.call(data).slice(8, -1).toLowerCase();
 
-function stringify(value, replacer, space, seen = new WeakSet()) {
+const isSymbol = (data: any): boolean => typeCheck(data) === 'symbol';
+
+function stringify(
+	value: any,
+	replacer?: ReplacerFunction,
+	space?: number,
+	seen: WeakSet<any> = new WeakSet(),
+): string {
 	if (value === null) return String(value);
 
 	if (typeof value === 'string') return '"' + value + '"';
@@ -23,7 +31,7 @@ function stringify(value, replacer, space, seen = new WeakSet()) {
 	}
 
 	if (typeof value === 'object') {
-		const result = [];
+		const result: string[] = [];
 		Reflect.ownKeys(value).forEach((key) => {
 			const stringifiedKey = isSymbol(key) ? key.toString() : stringify(key);
 			if (replacer) {
@@ -45,8 +53,11 @@ function stringify(value, replacer, space, seen = new WeakSet()) {
 			return '{' + result.join(',') + '}';
 		}
 	}
+
+	return '';
 }
 
+// Example usage
 const value = {
 	a: 1,
 	b: 'string',
@@ -60,7 +71,7 @@ const value = {
 			a3: {
 				time: new Date(),
 			},
-			[Symbol.toPrimitive]: (hint) => alert('Hi'),
+			[Symbol.toPrimitive]: (hint: string) => alert('Hi'),
 		},
 	},
 	e: undefined,
@@ -69,3 +80,5 @@ const value = {
 };
 
 stringify(value);
+
+export { stringify, typeCheck, isSymbol, type ReplacerFunction };

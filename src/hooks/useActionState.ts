@@ -51,14 +51,20 @@ export function useActionState<T, FormData extends Record<string, any>>(
 		[serverAction, initialState, startTransition],
 	);
 
-	return [
-		{
-			...state,
-			isPending,
-			isLoading: state.status === ActionState.LOADING || isPending,
-			isSuccess: state.status === ActionState.SUCCESS,
-			isError: state.status === ActionState.ERROR,
-		},
-		formAction,
-	] as const;
+	return {
+		// Core state
+		data: state.data,
+		error: state.error,
+		status: state.status,
+		formData: state.formData,
+
+		// Computed flags
+		isPending,
+		isLoading: state.status === ActionState.LOADING || isPending,
+		isSuccess: state.status === ActionState.SUCCESS,
+		isError: state.status === ActionState.ERROR,
+
+		// Action
+		execute: formAction,
+	} as const;
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 
-import { useEventListener } from '../../hooks';
+import { useWindowEventListener } from '../../hooks';
 import { AsyncQueue } from '../../utils/AsyncQueue';
 
 type Article = {
@@ -58,7 +58,11 @@ const ArticleList: React.FC = () => {
 
 	const handleLoadMore = () => setNextStartId(articles.length + 1);
 
-	const handleScroll = useCallback((): void => {
+	useEffect(() => {
+		void fetchArticles();
+	}, []);
+
+	useWindowEventListener('scroll', (_: WindowEventMap['scroll']): void => {
 		const scrolledToBottom =
 			window.innerHeight + document.documentElement.scrollTop >=
 			document.documentElement.offsetHeight - SCROLL_THRESHOLD;
@@ -66,13 +70,7 @@ const ArticleList: React.FC = () => {
 		if (scrolledToBottom && !loading) {
 			handleLoadMore();
 		}
-	}, [handleLoadMore, loading]);
-
-	useEffect(() => {
-		void fetchArticles();
-	}, []);
-
-	useEventListener('scroll', handleScroll, window);
+	});
 
 	return (
 		<div className="article-list">

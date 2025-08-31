@@ -1,7 +1,7 @@
 import { useFetchStore } from '../../Context/dataFetchContext';
 import { GenericState, InitialState } from '../../constants/types';
 import { Schema } from '../../constants/types';
-import useFetch from '../useFetch';
+import { useFetch } from '../useFetch';
 
 type SelectorCallback<T extends GenericState, R> = (state: T) => R;
 

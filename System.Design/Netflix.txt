@@ -1,0 +1,58 @@
+System Design: Netflix (Frontend Engineer Perspective)
+1. . Scope & Requirements Gathering (2–3 min)
+    Platforms: Web, Mobile Web, Smart TVs.
+    Core features:
+    Video Player (adaptive streaming, subtitles, controls)
+    Discovery/Feed UI (browsing, search, recommendations)
+    User Profiles (watchlist, preferences, multiple accounts)
+    Cross-device Sync (resume watching, state sync)
+    Constraints: Low latency, offline support (mobile), accessibility compliance, scale to millions.
+2. High-Level Frontend Architecture
+    Framework choice: React (SPA + micro-frontends for modularity).
+    State Management: Redux/RTK Query or Recoil — for user data (profiles, watchlists, playback state).
+    Data Layer: GraphQL/REST API clients with caching (Apollo/React Query).
+    Delivery: CDN for assets & metadata, edge nodes for prefetching posters/thumbnails, video segments.
+    Rendering: Hybrid CSR + SSR (server-side rendering for SEO & initial load).
+3. Deep Dive: Video Streaming Frontend
+    Foundation: <video> element + Media Source Extensions (MSE) for adaptive streaming.
+    Adaptive Bitrate Streaming (ABR):
+    Maintain multiple quality levels (240p → 4K).
+    Monitor network + buffer → seamless switching at segment boundaries.
+    Buffering Strategy:
+    Critical buffer (5–10s) → no stalls.
+    Target buffer (30–60s) → smooth playback.
+    Intelligent prefetch → preload next episode segments.
+    Controls & UI:
+    Custom controls: scrubber with thumbnails, subtitles toggle, quality override, PiP.
+    Accessibility: WCAG compliance, screen reader support, captions styling.
+    Error Handling: graceful fallbacks → lower quality, retry segments, multi-CDN failover.
+    Cross-Platform: Touch-friendly UI, TV remote support, mobile data-saver modes.
+4. Performance Optimization
+    Code Splitting: Separate bundles for player, browsing, profiles.
+    Lazy Loading: Thumbnails, player scripts only when needed.
+    Virtualization: Infinite scroll for carousels (react-window).
+    Caching:
+    Metadata (IndexedDB / localStorage).
+    Service Worker → offline watchlists, resume playback.
+    Monitoring: RUM (Real User Monitoring) for startup latency, buffering rates, error tracking.
+5. State Management at Scale
+    Global Store: user session, preferences, watchlist.
+    Ephemeral State: current playback time, buffering, UI overlays.
+    Cross-Device Sync: WebSockets / SSE → real-time watch progress.
+    Offline → Online Sync: reconcile local changes when network restores.
+6. Mobile & Cross-Platform Considerations
+    Responsive UI: Adaptive layouts for phone → tablet → TV.
+    Battery/Data Saver: Lower default quality on mobile, option to download offline.
+    PWAs: Home screen install, offline metadata, push notifications.
+    Smart TVs: Larger hit targets, minimal text, remote navigation.
+7. Trade-offs & Design Decisions
+    SSR vs CSR: SSR for discovery pages, CSR for player.
+    Monolith vs Micro-frontend: Micro-frontends allow independent deploys of player, search, profiles.
+    Client vs Server State: Recommendations server-driven; playback state client-heavy.
+    Caching Levels: CDN edge caching vs local browser caching.
+8. Testing & Evolution
+    Unit & Component Tests: React Testing Library/Jest.
+    E2E: Playwright/Cypress for critical flows (playback, profile switching).
+    Performance Testing: Lighthouse, WebPageTest for bundle size and startup latency.
+    A/B Testing: Experiment with UI layouts & buffering strategies.
+    Scalability: Add new codecs (AV1, HEVC), features (interactive episodes), devices (VR/AR)
