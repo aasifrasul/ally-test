@@ -1,4 +1,5 @@
-// === GraphQL Cache IMPLEMENTATION ===
+import { createKey } from '../utils/keyGeneration';
+
 interface CacheEntry {
 	data: any;
 	ttl: number;
@@ -10,7 +11,7 @@ export class GraphQLCache {
 	private maxSize = 100;
 
 	private generateKey(query: string, variables?: any): string {
-		return `${query}${variables ? JSON.stringify(variables) : ''}`;
+		return `${query}${variables ? createKey(variables) : ''}`;
 	}
 
 	private isExpired(entry: CacheEntry): boolean {
@@ -33,6 +34,10 @@ export class GraphQLCache {
 			return null;
 		}
 
+		// Move to end for true LRU behavior
+		this.cache.delete(key);
+		this.cache.set(key, entry);
+
 		return entry.data;
 	}
 
@@ -52,8 +57,10 @@ export class GraphQLCache {
 			return;
 		}
 
+		// Could support regex patterns or more sophisticated matching
+		const regex = new RegExp(pattern);
 		for (const [key] of this.cache) {
-			if (key.includes(pattern)) {
+			if (regex.test(key)) {
 				this.cache.delete(key);
 			}
 		}
