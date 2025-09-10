@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { handleAsyncCalls } from '../../utils/handleAsyncCalls';
 
 interface AsyncState<T> {
 	data: T | null;
@@ -49,25 +50,28 @@ export function useAsyncState<T>(
 			setIsLoading(true);
 			setError(null);
 
-			try {
-				const result = await operation();
-				setData(result);
+			const result = await handleAsyncCalls(operation());
+
+			if (result.success) {
+				setData(result.data);
 				setIsLoading(false);
-				options?.onSuccess?.(result);
-				return result;
-			} catch (err) {
+				options?.onSuccess?.(result.data);
+				return result.data;
+			} else {
 				const errorObj =
-					err instanceof Error ? err : new Error('Async operation failed');
+					result.error instanceof Error
+						? result.error
+						: new Error('Async operation failed');
 				setError(errorObj);
 				setIsLoading(false);
 				options?.onFailure?.(errorObj);
-				throw errorObj;
+				return errorObj as T;
 			}
 		},
 		[],
 	);
 
-	const actions: AsyncStateActions<T> = {
+	const actions = {
 		setData,
 		setIsLoading,
 		setError,

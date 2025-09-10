@@ -19,6 +19,11 @@ export function useSubscription<T = any>(
 	} = options;
 	const [state, actions] = useAsyncState<T>(!skip);
 
+	// Store the actions in a ref to avoid recreating callbacks
+	const actionsRef = useRef(actions);
+	//actionsRef.current = actions;
+
+	// Store callback refs
 	const onDataRef = useRef(onSubscriptionData);
 	const onErrorRef = useRef(onError);
 	const onCompleteRef = useRef(onSubscriptionComplete);
@@ -29,40 +34,40 @@ export function useSubscription<T = any>(
 		onCompleteRef.current = onSubscriptionComplete;
 	}, [onSubscriptionData, onError, onSubscriptionComplete]);
 
-	const handleData = useCallback(
-		(data: T) => {
-			actions.setData(data);
-			actions.setIsLoading(false);
-			actions.setError(null);
-			onDataRef.current?.({ subscriptionData: { data } });
-		},
-		[actions],
-	);
+	// Create stable callbacks that don't change on every render
+	const handleData = useCallback((data: T) => {
+		const currentActions = actionsRef.current;
+		currentActions.setData(data);
+		currentActions.setIsLoading(false);
+		currentActions.setError(null);
+		onDataRef.current?.({ subscriptionData: { data } });
+	}, []); // Empty dependency array - stable callback
 
-	const handleError = useCallback(
-		(error: any) => {
-			const errorObj = error instanceof Error ? error : new Error('Subscription failed');
-			actions.setError(errorObj);
-			actions.setIsLoading(false);
-			onErrorRef.current?.(errorObj);
-		},
-		[actions],
-	);
+	const handleError = useCallback((error: any) => {
+		const errorObj = error instanceof Error ? error : new Error('Subscription failed');
+		const currentActions = actionsRef.current;
+		currentActions.setError(errorObj);
+		currentActions.setIsLoading(false);
+		onErrorRef.current?.(errorObj);
+	}, []); // Empty dependency array - stable callback
 
 	const handleComplete = useCallback(() => {
-		actions.setIsLoading(false);
+		const currentActions = actionsRef.current;
+		currentActions.setIsLoading(false);
 		onCompleteRef.current?.();
-	}, [actions]);
+	}, []); // Empty dependency array - stable callback
 
 	useEffect(() => {
+		const currentActions = actionsRef.current;
+
 		if (skip) {
-			actions.setIsLoading(false);
+			currentActions.setIsLoading(false);
 			return;
 		}
 
-		actions.setIsLoading(true);
-		actions.setError(null);
-		actions.setData(null);
+		currentActions.setIsLoading(true);
+		currentActions.setError(null);
+		currentActions.setData(null);
 
 		const unsubscribe = subscribeWithCallback<T>(
 			subscription,
@@ -77,7 +82,7 @@ export function useSubscription<T = any>(
 		return () => {
 			unsubscribe();
 		};
-	}, [subscription, variables, skip, handleData, handleError, handleComplete, actions]);
+	}, [subscription, variables, skip, handleData, handleError, handleComplete]);
 
 	return state;
 }

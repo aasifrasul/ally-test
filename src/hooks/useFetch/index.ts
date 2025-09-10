@@ -7,9 +7,15 @@ import { getList } from '../dataSelector';
 
 import { buildQueryParams, Result, withTimeout } from '../../utils/common';
 import { constants } from '../../constants';
-import { DataSource, QueryParams, Schema, SchemaToResponse } from '../../constants/types';
-import { HTTPMethod } from '../../types/api';
-import { type FetchNextPage } from '../../types';
+import { DataSource, Schema, SchemaToResponse } from '../../constants/types';
+import {
+	FetchNextPage,
+	FetchOptions,
+	FetchResult,
+	CustomFetchOptions,
+	ModifyOptions,
+	HTTPMethod,
+} from '../../types/api';
 
 // Stable module-level defaults to avoid changing dependencies per render
 const DEFAULT_TRANSFORM = (data: any) => data;
@@ -21,54 +27,6 @@ const DEFAULT_TIMEOUT = 2000;
 // Keep lightweight per-schema metadata for SWR behaviors
 const schemaMeta = new Map<Schema, { lastFetchedAt?: number }>();
 const workerManager = WorkerQueue.getInstance();
-
-interface CustomFetchOptions extends RequestInit {
-	nextPage?: number;
-	url?: string;
-	force?: boolean;
-}
-
-export interface FetchOptions<T, U = T> {
-	timeout?: number;
-	transformResponse?: (data: any) => T;
-	transformUpdateResponse?: (data: any) => U;
-	onSuccess?: (data: T) => void;
-	onError?: (error: Error) => void;
-	onUpdateSuccess?: (data: U) => void;
-	onUpdateError?: (error: Error) => void;
-	// SWR-like options
-	staleTime?: number; // ms; 0 means always stale
-	refetchOnWindowFocus?: boolean;
-	refetchInterval?: number; // ms; 0/undefined disables
-	retry?: number; // number of retries for network errors
-	retryDelay?: (attempt: number) => number; // backoff function in ms
-	// Dependency injection for testing/overrides
-	worker?: WorkerQueue;
-	transport?: (
-		url: string,
-		options: RequestInit & { method: HTTPMethod; body?: any },
-	) => Promise<any>;
-	dataSourceOverride?: DataSource;
-	// Local cache update on mutations
-	updateCache?: (oldData: T, mutationResult: U) => T;
-}
-
-export interface ModifyOptions {
-	url?: string;
-	method?: HTTPMethod;
-	headers?: Record<string, string>;
-	queryParams?: QueryParams;
-	body?: string;
-	skipCacheUpdate?: boolean;
-}
-
-export interface FetchResult<T, U = T> {
-	fetchData: (options?: CustomFetchOptions) => Promise<void>;
-	fetchNextPage: FetchNextPage;
-	updateData: (config?: ModifyOptions) => Promise<U | null>;
-	refetch: () => Promise<void>;
-	isStale: () => boolean;
-}
 
 function handleError(error: Error, fail: () => void, cb?: (err: Error) => void) {
 	if (error.name !== 'AbortError') {
@@ -387,5 +345,5 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 		updateData: updateDataRef.current,
 		refetch,
 		isStale: isStaleRef.current,
-	};
+	} as FetchResult<T, U>;
 }
