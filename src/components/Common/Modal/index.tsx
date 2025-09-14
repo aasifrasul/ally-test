@@ -1,11 +1,11 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 
 import { useDocumentEventListener } from '../../../hooks';
 
 import { createLogger, LogLevel, Logger } from '../../../utils/Logger';
 
-import * as styles from './Modal.module.css';
+import styles from './Modal.module.css';
 
 interface ModalProps {
 	children: React.ReactNode;

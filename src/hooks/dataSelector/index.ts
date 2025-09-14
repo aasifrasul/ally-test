@@ -17,7 +17,7 @@ export function getList(schema: Schema): InitialState {
 }
 
 export function useSchemaQuery(schema: Schema) {
-	const { fetchData, fetchNextPage } = useFetch(schema);
+	const { fetchData, fetchNextPage, updateData } = useFetch(schema);
 	const { data, pageData, headers, currentPage, isLoading, isError } = getList(schema);
 
 	return {
@@ -29,5 +29,6 @@ export function useSchemaQuery(schema: Schema) {
 		isError,
 		fetchData,
 		fetchNextPage,
+		updateData,
 	};
 }

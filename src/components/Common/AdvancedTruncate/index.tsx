@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Tooltip } from '../Tooltip';
-import * as styles from './AdvancedTruncate.module.css';
+import styles from './AdvancedTruncate.module.css';
 
 interface Props {
 	text: string;

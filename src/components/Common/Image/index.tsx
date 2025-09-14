@@ -1,7 +1,7 @@
 import React from 'react';
 import { clsx } from 'clsx';
 
-import * as imageStyles from './styles.module.css';
+import imageStyles from './styles.module.css';
 
 interface ImageProps {
 	src: string;

@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import InfiniteScrollContainer from '..';
-import useFetch from '../../../hooks/useFetch';
+import { useFetch } from '../../../hooks/useFetch';
 import { Schema } from '../../../constants/types';
 import type { InitialState } from '../../../constants/types';
 

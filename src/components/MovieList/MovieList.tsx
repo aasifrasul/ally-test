@@ -9,7 +9,7 @@ import { InputText } from '../Common/InputText';
 import ScrollToTop from '../Common/ScrollToTopButton';
 import { Movie } from './Movie';
 
-import * as styles from './MovieList.module.css';
+import styles from './MovieList.module.css';
 
 type Props = Omit<InitialState, 'data'> & MovieListProps;
 
