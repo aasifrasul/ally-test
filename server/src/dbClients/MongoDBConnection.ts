@@ -55,7 +55,8 @@ export class MongoDBConnection {
 			// Check if MongoDB is available before attempting to connect
 			const isAvailable = await this.checkMongoDBAvailability(uri);
 			if (!isAvailable) {
-				throw new Error('MongoDB server is not available');
+				logger.error('MongoDB server is not available');
+				return;
 			}
 
 			await mongoose.connect(uri, rest);

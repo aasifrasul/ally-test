@@ -1,5 +1,7 @@
 import { executeQuery } from './client';
 
+const isDevEnv = true;
+
 interface QueryLog {
 	id: string;
 	query: string;
@@ -13,13 +15,11 @@ interface QueryLog {
 
 class GraphQLDevTools {
 	private logs: QueryLog[] = [];
-	private isEnabled: boolean = false;
 
 	constructor() {
 		// Enable in development
-		this.isEnabled = process.env.NODE_ENV === 'development';
 
-		if (this.isEnabled && typeof window !== 'undefined') {
+		if (isDevEnv && typeof window !== 'undefined') {
 			// Expose to window for browser debugging
 			(window as any).__GRAPHQL_DEVTOOLS__ = this;
 			console.log('GraphQL DevTools enabled. Access via window.__GRAPHQL_DEVTOOLS__');
@@ -27,7 +27,7 @@ class GraphQLDevTools {
 	}
 
 	logQuery(query: string, variables?: any, cached: boolean = false): string {
-		if (!this.isEnabled) return '';
+		if (!isDevEnv) return '';
 
 		const id = `query_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 		const log: QueryLog = {
@@ -49,7 +49,7 @@ class GraphQLDevTools {
 	}
 
 	logResult(id: string, result?: any, error?: string, duration?: number): void {
-		if (!this.isEnabled) return;
+		if (!isDevEnv) return;
 
 		const log = this.logs.find((l) => l.id === id);
 		if (log) {
@@ -140,7 +140,7 @@ export function GraphQLDevPanel() {
 	const [showPanel, setShowPanel] = useState(false);
 
 	useEffect(() => {
-		if (process.env.NODE_ENV === 'development') {
+		if (isDevEnv) {
 			const interval = setInterval(() => {
 				setLogs(devTools.getLogs());
 			}, 1000);
@@ -149,12 +149,12 @@ export function GraphQLDevPanel() {
 		}
 	}, []);
 
-	if (process.env.NODE_ENV !== 'development' || !showPanel) {
+	if (!isDevEnv || !showPanel) {
 		return (
 			<button
 				onClick={() => setShowPanel(true)}
 				className="fixed bottom-4 right-4 bg-blue-500 text-white p-2 rounded shadow-lg z-50"
-				style={{ display: process.env.NODE_ENV === 'development' ? 'block' : 'none' }}
+				style={{ display: isDevEnv ? 'block' : 'none' }}
 			>
 				📊 GraphQL
 			</button>

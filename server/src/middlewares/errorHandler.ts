@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { isCurrentEnvProd } from './envConfigDetails';
+import { isCurrentEnvProd } from '../envConfigDetails';
 
 interface Error {
 	stack?: string;

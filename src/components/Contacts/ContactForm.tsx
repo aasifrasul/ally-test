@@ -1,25 +1,29 @@
-import React from 'react';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Card } from '@/components/ui/card';
 import Button from '../Common/Button';
 import { InputText } from '../Common/InputText';
-import { FormField, FormItem, FormLabel } from '@/components/ui/form';
 
-import { ChangeEvent, FormData } from './types';
+import { FormData } from './types';
 import { addContact } from './ActionCreators';
 
 function ContactForm() {
-	const [formData, setFormData] = React.useState({
+	const [formData, setFormData] = useState({
 		name: '',
 		email: '',
 	});
 	const dispatch = useDispatch();
 
-	const handleChange = (e: ChangeEvent) => {
-		const { name, value } = e.target;
+	const handleNameChange = (name: string) => {
 		setFormData((prev: FormData) => ({
 			...prev,
-			[name]: value,
+			name,
+		}));
+	};
+
+	const handleEmailChange = (email: string) => {
+		setFormData((prev: FormData) => ({
+			...prev,
+			email,
 		}));
 	};
 
@@ -38,44 +42,36 @@ function ContactForm() {
 	};
 
 	return (
-		<Card className="p-6">
-			<form onSubmit={handleSubmit} className="space-y-4">
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<FormField>
-						<FormItem>
-							<FormLabel>Name</FormLabel>
-							<InputText
-								name="name"
-								placeholder="Enter Name"
-								value={formData.name}
-								onChange={handleChange}
-								required
-								className="w-full"
-							/>
-						</FormItem>
-					</FormField>
+		<form onSubmit={handleSubmit} className="space-y-4">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<InputText
+					name="name"
+					placeholder="Enter Name"
+					label="Name"
+					initialValue={formData.name}
+					debounceMs={250}
+					onChange={handleNameChange}
+					required
+					className="w-full"
+				/>
 
-					<FormField>
-						<FormItem>
-							<FormLabel>Email</FormLabel>
-							<InputText
-								name="email"
-								type="email"
-								placeholder="Enter Email"
-								value={formData.email}
-								onChange={handleChange}
-								required
-								className="w-full"
-							/>
-						</FormItem>
-					</FormField>
+				<InputText
+					name="email"
+					type="email"
+					label="Email"
+					placeholder="Enter Email"
+					initialValue={formData.email}
+					debounceMs={250}
+					onChange={handleEmailChange}
+					required
+					className="w-full"
+				/>
 
-					<Button type="submit" className="w-full h-10 mt-8">
-						New Contact
-					</Button>
-				</div>
-			</form>
-		</Card>
+				<Button type="submit" className="w-full h-10 mt-8">
+					New Contact
+				</Button>
+			</div>
+		</form>
 	);
 }
 

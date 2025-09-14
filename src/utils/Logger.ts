@@ -26,7 +26,7 @@ export class Logger {
 
 	constructor(name: string, options: LoggerOptions = {}) {
 		this.level = options.level || LogLevel.INFO;
-		this.enabled = options.enabled ?? process.env.NODE_ENV !== 'production';
+		this.enabled = options.enabled ?? true;
 		this.prefix = options.prefix || name;
 	}
 

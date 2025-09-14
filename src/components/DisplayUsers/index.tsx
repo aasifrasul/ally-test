@@ -45,7 +45,6 @@ export default function DisplayUsers() {
 		onSubscriptionData: ({ subscriptionData: { data } }) => {
 			const userCreated = (data as any)?.userCreated;
 			if (!userCreated) return;
-			logger.info('New user created:', userCreated);
 			setUsers((prevUsers) => {
 				// Prevent duplicates
 				if (prevUsers.some((user) => user.id === userCreated.id)) {
