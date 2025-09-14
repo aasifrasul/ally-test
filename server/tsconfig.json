@@ -3,15 +3,14 @@
 		"moduleResolution": "nodenext",
 		"module": "nodenext",
 		"esModuleInterop": true,
-		"types": ["jest"],
 		"target": "es2018",
 		"strict": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
 		"outDir": "./dist",
 		"rootDir": "./server",
-		"typeRoots": ["./node_modules/@types", "./types"]
+		"typeRoots": ["./node_modules/@types", "src/types"]
 	},
-	"include": ["./server/src/**/*", "types/**/*.d.ts"],
+	"include": ["./server/src/**/*", "src/types/**/*.d.ts"],
 	"exclude": ["./node_modules"]
 }

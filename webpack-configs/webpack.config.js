@@ -1,24 +1,18 @@
 const path = require('path');
-const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin');
 const paths = require('./paths');
-const webpackCommonConfig = require('../webpack/webpack.common');
+const { getMinimizers, getNodeEnv } = require('../webpack/webpack.common');
 const fs = require('fs');
 const LOADERS = require('../webpack/loaders');
 const PLUGINS = require('../webpack/plugins');
-const vendorlibs = require('./vendor.js');
 const isProduction = process.env.NODE_ENV === 'production';
 const { APP_NAME, publicPath } = require('../webpack/constants');
 
 const makeConfig = () => {
-	return {
+	const baseConfig = {
 		context: path.join(__dirname, '..', 'src'),
-		mode: webpackCommonConfig.getNodeEnv(),
+		mode: getNodeEnv(),
 		target: ['web'],
-		plugins: ['web'],
-		recordsPath: path.join(__dirname, '..', 'records.json'),
-		parallelism: 1,
-		profile: true,
+		devtool: isProduction ? 'hidden-source-map' : 'eval-cheap-module-source-map',
 		entry: {
 			...(fs.existsSync(paths.langEn(__dirname)) && {
 				en: paths.langEn(__dirname),
@@ -29,15 +23,10 @@ const makeConfig = () => {
 		output: {
 			path: isProduction ? path.join(paths.appBuild, APP_NAME) : paths.appBuildDev,
 			filename: isProduction ? '[name].[chunkhash].js' : '[name].bundle.js',
-			// publicPath: isProduction ? publicPath : '/public/',
 			publicPath,
 			pathinfo: !isProduction,
 			chunkFilename: isProduction ? '[name].[chunkhash].js' : '[name].bundle.js',
 			chunkLoadingGlobal: 'webpackJsonp',
-		},
-		devServer: {
-			hot: true,
-			client: { overlay: false, logging: 'warn' },
 		},
 		resolve: {
 			extensions: ['.ts', '.tsx', '.js', '.jsx', '.css'],
@@ -59,54 +48,32 @@ const makeConfig = () => {
 			maxAssetSize: 100000,
 		},
 		optimization: {
-			minimizer: [
-				new TerserPlugin({
-					terserOptions: {
-						parse: {
-							ecma: 8,
-						},
-						compress: {
-							ecma: 5,
-							warnings: false,
-							comparisons: false,
-							inline: 2,
-						},
-						mangle: {
-							safari10: true,
-						},
-						output: {
-							ecma: 5,
-							comments: false,
-							ascii_only: true,
-						},
-					},
-					parallel: true,
-				}),
-				new CssMinimizerPlugin(),
-			],
-			moduleIds: 'named',
-			splitChunks: {
-				cacheGroups: {
-					default: false,
-					defaultVendors: false,
-					vendor: {
-						name: 'vendor',
-						test: new RegExp(
-							`[\\/]node_modules[\\/](${vendorlibs.join('|')})[\\/]`,
-						),
-						enforce: true,
-						minChunks: 1,
-						priority: 1,
-					},
-					common: {
+			minimize: isProduction,
+			minimizer: isProduction ? getMinimizers() : [],
+			splitChunks: isProduction
+				? {
 						chunks: 'all',
-						name: 'common',
-						minChunks: 2,
-						priority: 2,
-					},
-				},
-			},
+						cacheGroups: {
+							vendor: {
+								test: /[\\/]node_modules[\\/]/,
+								name: 'vendor',
+								chunks: 'all',
+								enforce: true,
+								priority: 1,
+							},
+							common: {
+								name: 'common',
+								chunks: 'all',
+								minChunks: 2,
+								priority: 2,
+								enforce: true,
+							},
+						},
+					}
+				: false,
+			moduleIds: isProduction ? 'deterministic' : 'named',
 		},
+
 		stats: {
 			colors: true,
 			version: true,
@@ -115,10 +82,34 @@ const makeConfig = () => {
 			rules: LOADERS,
 		},
 		plugins: PLUGINS,
-		devtool: isProduction ? 'hidden-source-map' : 'eval-source-map',
 	};
-};
 
-// PROD && (CONFIG.devtool = 'hidden-source-map');
+	// For development, configure HMR without starting a dev server
+	if (!isProduction) {
+		// Add webpack-hot-middleware client entry point to all entries
+		Object.keys(baseConfig.entry).forEach((entryName) => {
+			if (Array.isArray(baseConfig.entry[entryName])) {
+				baseConfig.entry[entryName].unshift(
+					'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=false&quiet=false&noInfo=false',
+				);
+			} else {
+				baseConfig.entry[entryName] = [
+					'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000&reload=false&quiet=false&noInfo=false',
+					baseConfig.entry[entryName],
+				];
+			}
+		});
+
+		// Configure output for HMR
+		//baseConfig.output.hotUpdateChunkFilename = '[id].[fullhash].hot-update.js';
+		//baseConfig.output.hotUpdateMainFilename = '[fullhash].hot-update.json';
+
+		// Ensure HMR is enabled
+		baseConfig.optimization.moduleIds = 'named';
+		baseConfig.optimization.chunkIds = 'named';
+	}
+
+	return baseConfig;
+};
 
 module.exports = makeConfig();

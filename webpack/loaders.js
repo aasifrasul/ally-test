@@ -1,9 +1,8 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const babelConfig = require('./babel.config');
-const postCSSConfig = require('./postcss.config');
 var PROD = process.env.NODE_ENV === 'production';
-// const getDefaultLocalIdent = require('css-loader/lib/getLocalIdent.js');
+const DEV = !PROD;
 const appName = process.env.APP_NAME;
 
 var loaders = [
@@ -13,7 +12,12 @@ var loaders = [
 		use: [
 			{
 				loader: 'ts-loader',
-				options: {},
+				options: {
+					// Enable faster builds in development
+					transpileOnly: DEV,
+					// Enable HMR for TypeScript
+					experimentalWatchApi: DEV,
+				},
 			},
 		],
 	},
@@ -21,7 +25,11 @@ var loaders = [
 		test: /\.(js|jsx)$/,
 		use: {
 			loader: 'babel-loader',
-			options: babelConfig,
+			options: {
+				...babelConfig,
+				// Enable caching for faster HMR
+				cacheDirectory: DEV,
+			},
 		},
 		exclude: /node_modules/,
 	},
@@ -31,7 +39,11 @@ var loaders = [
 		use: [
 			{
 				loader: 'file-loader',
-				options: {},
+				options: {
+					// Use consistent naming for HMR
+					name: DEV ? '[name].[ext]' : '[name].[contenthash].[ext]',
+					outputPath: 'images/',
+				},
 			},
 		],
 		type: 'javascript/auto',
@@ -43,7 +55,7 @@ var loaders = [
 			{
 				loader: 'file-loader',
 				options: {
-					name: 'fonts/[name].[ext]',
+					name: DEV ? 'fonts/[name].[ext]' : 'fonts/[name].[contenthash].[ext]',
 					publicPath: PROD ? '/www/linchpin/' + appName : '/public',
 				},
 			},
@@ -51,30 +63,48 @@ var loaders = [
 	},
 ];
 
-loaders.push({
-	test: /\.css$/,
-	use: [
-		MiniCssExtractPlugin.loader,
-		{
-			loader: 'css-loader',
-			options: {
-				modules: {
-					mode: 'local',
-					localIdentName: '[hash:base64:6]',
-					exportLocalsConvention: 'camelCase', // This is important
+// Enhanced CSS loader configuration for HMR
+loaders.push(
+	{
+		test: /\.module\.css$/, // Explicitly target .module.css files
+		use: [
+			DEV ? 'style-loader' : MiniCssExtractPlugin.loader,
+			{
+				loader: 'css-loader',
+				options: {
+					modules: {
+						mode: 'local',
+						localIdentName: DEV
+							? '[name]__[local]--[hash:base64:5]'
+							: '[hash:base64:6]',
+						exportLocalsConvention: 'camelCase',
+						// Add this to ensure proper export
+						namedExport: false,
+					},
+					importLoaders: 1,
+					sourceMap: DEV,
 				},
-				importLoaders: 1,
 			},
-		},
-		{
-			loader: 'postcss-loader',
-			options: {
-				postcssOptions: {
-					config: path.resolve(__dirname, 'postcss.config.js'),
+			{
+				loader: 'postcss-loader',
+				options: {
+					postcssOptions: {
+						config: path.resolve(__dirname, 'postcss.config.js'),
+					},
+					sourceMap: DEV,
 				},
 			},
-		},
-	],
-});
+		],
+	},
+	{
+		test: /\.css$/,
+		exclude: /\.module\.css$/, // Regular CSS files without modules
+		use: [
+			DEV ? 'style-loader' : MiniCssExtractPlugin.loader,
+			'css-loader',
+			'postcss-loader',
+		],
+	},
+);
 
 module.exports = loaders;

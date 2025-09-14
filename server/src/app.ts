@@ -1,18 +1,15 @@
 import cors from 'cors';
-import express, {
-	Application,
-	Request as ExpressRequest,
-	Response,
-	NextFunction,
-} from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import { engine } from 'express-handlebars';
 import cookieParser from 'cookie-parser';
-import serveStatic from 'serve-static';
 import bodyParser from 'body-parser';
 import { rateLimit } from 'express-rate-limit';
 import compression from 'compression';
 import { v4 as uuidv4 } from 'uuid';
+import webpack from 'webpack';
+import webpackDevMiddleware from 'webpack-dev-middleware';
+import webpackHotMiddleware from 'webpack-hot-middleware';
 
 const timeout = require('connect-timeout');
 
@@ -27,7 +24,7 @@ import {
 import { handleFileupload } from './fileUploads';
 import { setupProxy } from './setupProxy';
 import { constructReqDataObject, generateBuildTime } from './helper';
-import { pathPublic, pathTemplate, pathRootDir } from './paths';
+import { pathTemplate, pathRootDir, pathDist } from './paths';
 import { finalHandler } from './globalErrorHandler';
 import { constants } from '../../src/constants';
 
@@ -35,18 +32,14 @@ import { constants } from '../../src/constants';
 import { authRoutes } from './routes/authRoutes';
 import { authenticateToken, optionalAuth, authorizeRole } from './middlewares/authMiddleware';
 
-interface CustomError extends Error {
-	status?: number;
+import { logger } from './Logger';
+
+interface RequestWithId extends Request {
+	id?: string;
 }
 
-interface Request extends ExpressRequest {
+interface RequestWithTimedout extends Request {
 	timedout?: boolean;
-	id?: string;
-	user?: {
-		id: string;
-		email: string;
-		role?: string;
-	};
 }
 
 const app: Application = express();
@@ -58,14 +51,11 @@ const limiter = rateLimit({
 	max: 100, // limit each IP to 100 requests per windowMs
 });
 
-// setupGlobalAsyncErrorHandling(app);
+// Setup file upload and proxy early
 handleFileupload(app);
-
-app.all('/graphql', handleGraphql);
-
 setupProxy(app);
 
-function haltOnTimedout(req: Request, res: Response, next: NextFunction) {
+function haltOnTimedout(req: RequestWithTimedout, res: Response, next: NextFunction): void {
 	if (!req.timedout) {
 		next();
 	} else {
@@ -96,11 +86,11 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(bodyParser.text());
 app.use(timeout('5s'));
-app.use(haltOnTimedout);
+app.use(haltOnTimedout as express.RequestHandler);
 app.use(limiter);
 
 // 2. Request ID middleware
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req: RequestWithId, res: Response, next: NextFunction) => {
 	req.id = uuidv4();
 	next();
 });
@@ -108,9 +98,47 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // 3. Optional auth middleware (before routes that might need it)
 app.use(optionalAuth);
 
-// 4. Specific routes first (most specific to least specific)
+// 4. WEBPACK DEV MIDDLEWARE SETUP (BEFORE OTHER STATIC ROUTES)
+if (!isCurrentEnvProd) {
+	// Import your webpack configuration
+	const webpackConfig = require('../../webpack-configs/webpack.config');
+
+	// Create webpack compiler
+	const compiler = webpack(webpackConfig) as any;
+
+	// Add webpack-dev-middleware FIRST
+	app.use(
+		webpackDevMiddleware(compiler, {
+			publicPath: webpackConfig.output.publicPath, // This should be '/public/'
+			stats: {
+				colors: true,
+				hash: false,
+				timings: true,
+				chunks: false,
+				chunkModules: false,
+				modules: false,
+			},
+			writeToDisk: false,
+			// Ensure it handles all requests under /public/
+			index: false, // Don't serve index files
+		}),
+	);
+
+	// Add webpack-hot-middleware for HMR
+	app.use(
+		webpackHotMiddleware(compiler, {
+			log: console.log,
+			path: '/__webpack_hmr',
+			heartbeat: 10 * 1000,
+		}),
+	);
+
+	logger.info('🔥 Hot Module Replacement enabled');
+}
+
+// 5. Specific API routes (before static files)
 app.get('/health', async (req: Request, res: Response) => {
-	/* ... */
+	res.status(200).json({ status: 'healthy' });
 });
 
 // Auth routes
@@ -119,13 +147,15 @@ app.use('/auth', authRoutes);
 // API routes
 app.get('/api/fetchWineData/*', fetchWineData);
 app.get('/api/profile', authenticateToken, (req: Request, res: Response) => {
-	/* ... */
+	// Profile logic here
+	res.json({ message: 'Profile data' });
 });
 app.get('/api/admin', authenticateToken, authorizeRole('admin'), (req, res) => {
-	/* ... */
+	// Admin logic here
+	res.json({ message: 'Admin data' });
 });
 
-// GraphQL
+// GraphQL (only once!)
 app.all('/graphql', handleGraphql);
 
 // Image serving
@@ -136,38 +166,58 @@ app.use('/login', (_, res: Response) => {
 	res.redirect('/auth/login');
 });
 
-// 5. Static files
-app.use(
-	serveStatic(pathRootDir, {
-		index: ['index.hbs', 'default.html', 'default.htm'],
-	}),
-);
+// 6. STATIC FILE SERVING (after webpack middleware)
+if (isCurrentEnvProd) {
+	// Production: serve built files
+	app.use('/public', express.static(pathDist));
+	// Serve other static assets from root
+	app.use(express.static(pathRootDir, { index: false }));
+} else {
+	// Development:
+	// Webpack-dev-middleware already handles /public/ paths
+	// Only serve non-webpack static assets from root
+	app.use(
+		express.static(pathRootDir, {
+			index: false,
+			// Exclude paths that webpack handles
+			setHeaders: (res, path) => {
+				if (path.includes('/public/')) {
+					// Let webpack-dev-middleware handle these
+					return false;
+				}
+			},
+		}),
+	);
+}
 
 // Set hbs template config
 app.engine('.hbs', engine({ extname: '.hbs' }));
 app.set('view engine', 'handlebars');
 app.set('views', pathTemplate);
 
-const bundleConfig = ['en', 'vendor', 'app'].map((item) => `${pathPublic}/${item}.bundle.js`);
+// Bundle config for templates
+const bundleConfig = isCurrentEnvProd
+	? ['en', 'vendor', 'app'].map((item) => `/public/${item}.[chunkhash].js`) // Production uses chunkhash
+	: ['en', 'vendor', 'app'].map((item) => `/public/${item}.bundle.js`); // Dev uses .bundle.js
 
-// 6. Dynamic template routes (fix the next() issue)
+// 7. Dynamic template routes
 app.all(['/', '/:route'], (req: any, res: Response, next: NextFunction) => {
 	const { route } = req.params;
 	if (route && !constants.routes!.includes(route)) {
-		return next(); // Add return here!
+		return next();
 	}
 
 	const data = {
 		js: bundleConfig,
 		...constructReqDataObject(req),
 		user: req.user,
-		dev: true,
+		dev: !isCurrentEnvProd,
 		layout: false,
 	};
 	res.send(compiledTemplate(data));
 });
 
-// 7. 404 Handler last
+// 8. 404 Handler last
 finalHandler(app);
 
 export { app };
