@@ -1,9 +1,8 @@
-import type { APIOptions } from '../types/api';
 import { HTTPMethod } from '../types/api';
 import { createLogger, LogLevel, Logger } from '../utils/Logger';
 import { fetchAPIData, Result } from '../utils/common';
 
-export interface SaveDataOptions extends APIOptions {
+export interface SaveDataOptions extends RequestInit {
 	body: BodyInit;
 	signal?: AbortSignal;
 }
@@ -36,7 +35,7 @@ export class APIService {
 	}
 
 	// ✅ Improved cache key that considers more factors
-	private createCacheKey(endpoint: string, options: APIOptions): string {
+	private createCacheKey(endpoint: string, options: RequestInit): string {
 		const method = options.method || HTTPMethod.GET;
 		const headers = JSON.stringify(options.headers || {});
 		// Only include body for cache key if it's a GET request (shouldn't have body anyway)
@@ -48,7 +47,7 @@ export class APIService {
 		return !method || method.toUpperCase() === HTTPMethod.GET;
 	}
 
-	async fetch<T>(endpoint: string, options: APIOptions = {}): Promise<Result<T>> {
+	async fetch<T>(endpoint: string, options: RequestInit = {}): Promise<Result<T>> {
 		const cacheKey = this.createCacheKey(endpoint, options);
 
 		// Check cache first
@@ -71,7 +70,7 @@ export class APIService {
 
 	private async executeRequest<T>(
 		endpoint: string,
-		options: APIOptions,
+		options: RequestInit,
 		cacheKey: string,
 	): Promise<Result<T>> {
 		const abortController = new AbortController();

@@ -1,10 +1,10 @@
 /**
  * Creates a robust serialization key for memoization
- * @param {*} value - The value to serialize
- * @param {Set} [seen=new Set()] - Set of already seen objects to handle circular references
- * @returns {string} A string key representation
+ * @param value - The value to serialize
+ * @param seen - Set of already seen objects to handle circular references
+ * @returns A string key representation
  */
-export function createKey(value, seen = new WeakSet()) {
+export function createKey(value: any, seen: WeakSet<object> = new WeakSet()): string {
 	// Handle primitive types
 	if (value === null) return 'null';
 	// if (value === undefined) return 'undefined';
@@ -13,7 +13,7 @@ export function createKey(value, seen = new WeakSet()) {
 
 	// Handle circular references
 	if (seen.has(value)) return 'circular';
-	seen.set(value, true);
+	seen.add(value);
 
 	// Handle arrays - sort for commutative operations like sum(1,2) === sum(2,1)
 	if (Array.isArray(value)) {
@@ -58,7 +58,7 @@ export function createKey(value, seen = new WeakSet()) {
 		.join(',')}}`;
 }
 
-const value = {
+const value: any = {
 	a: 1,
 	b: 'string',
 	c: [true, { m: 1 }, { n: [1, , null, 4] }, { 0: 7 }],
@@ -71,7 +71,7 @@ const value = {
 			a3: {
 				time: new Date(),
 			},
-			[Symbol.toPrimitive]: (hint) => alert('Hi'),
+			[Symbol.toPrimitive]: (hint: string) => alert('Hi'),
 		},
 	},
 	e: undefined,

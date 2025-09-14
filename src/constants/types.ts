@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { IS_Item } from '../types/infiniteScroll';
 import { Movie_Item } from '../types/movieList';
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 
-import { useEventListener } from '../../../hooks';
+import { useDocumentEventListener } from '../../../hooks';
 
 import { createLogger, LogLevel, Logger } from '../../../utils/Logger';
 
@@ -44,27 +44,18 @@ const Modal = React.memo(
 		const modalRef = useRef<HTMLDivElement>(null);
 		const previousActiveElement = useRef<HTMLElement | null>(null);
 
-		// Handle escape key press
-		const handleEscape = useCallback(
-			(e: KeyboardEvent) => {
-				if (e.key === 'Escape' && closeOnEscape && onClose) {
-					onClose();
-				}
-			},
-			[closeOnEscape, onClose],
-		);
-
-		useEventListener('keydown', handleEscape, document);
+		useDocumentEventListener('keydown', (e: WindowEventMap['keydown']): void => {
+			if (e.key === 'Escape' && closeOnEscape && onClose) {
+				onClose();
+			}
+		});
 
 		// Handle backdrop click
-		const handleBackdropClick = useCallback(
-			(e: React.MouseEvent) => {
-				if (e.target === e.currentTarget && closeOnBackdropClick && onClose) {
-					onClose();
-				}
-			},
-			[closeOnBackdropClick, onClose],
-		);
+		const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>): void => {
+			if (e.target === e.currentTarget && closeOnBackdropClick && onClose) {
+				onClose();
+			}
+		};
 
 		// Focus management
 		useEffect(() => {
@@ -94,10 +85,10 @@ const Modal = React.memo(
 					}
 				};
 			}
-		}, [isOpen, handleEscape, preventBodyScroll]);
+		}, [isOpen, preventBodyScroll]);
 
 		// Focus trap
-		const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+		const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>): void => {
 			if (e.key === 'Tab' && modalRef.current) {
 				const focusableElements = modalRef.current.querySelectorAll(
 					'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
@@ -122,7 +113,7 @@ const Modal = React.memo(
 					}
 				}
 			}
-		}, []);
+		};
 
 		if (!isOpen) return null;
 
