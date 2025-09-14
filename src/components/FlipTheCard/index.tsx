@@ -3,7 +3,7 @@ import { useTimer } from '../../hooks/useTimer';
 import { safelyExecuteFunction } from '../../utils/typeChecking';
 import { shuffle } from '../../utils/ArrayUtils';
 import { MOCK, blankCard } from './mock';
-import * as styles from './styles.module.css';
+import styles from './styles.module.css';
 
 export interface Card {
 	name: string;

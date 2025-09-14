@@ -1,5 +1,5 @@
 import { JSX, useState, useEffect, useCallback } from 'react';
-import * as styles from './OSStatistics.module.css';
+import styles from './OSStatistics.module.css';
 import { useSocket } from '../../../Context/SocketProvider';
 
 interface Times {

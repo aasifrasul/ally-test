@@ -4,13 +4,13 @@ import { useSearchParams } from 'react-router-dom';
 import ProductList from './ProudctList';
 
 import Pagination from '../Common/Pagination';
-import FormGenerator, { FormWithElements } from '../Common/FormGenerator';
+import FormGenerator from '../Common/FormGenerator';
 import { constants } from '../../constants';
 import { Spinner } from '../Common/Spinner';
 
 import { sortMixedArray, searchTextOnData } from '../../utils/common';
 
-import * as styles from './styles.module.css';
+import styles from './styles.module.css';
 
 interface SearchFormProps {
 	data: any;

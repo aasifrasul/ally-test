@@ -1,14 +1,14 @@
 import { FC, useState, useMemo, useCallback } from 'react';
 
 import { useApi } from '../../utils/api-client/hooks/useApi';
-import useEffectOnce from '../../hooks/useEffectOnce';
+import { useEffectOnce } from '../../hooks/useEffectOnce';
 import Spacer from '../Common/Spacer';
 import ScrollToTop from '../Common/ScrollToTopButton';
 import { alphabets } from '../../utils/ArrayUtils';
 import { buildNestedStructure } from './helpers';
 
 import { Category, NestedCategoriesProps, SelectChangeEvent } from './types';
-import * as styles from './NestedCategories.module.css';
+import styles from './NestedCategories.module.css';
 
 export const NestedCategories: FC<NestedCategoriesProps> = ({
 	data: initialData,

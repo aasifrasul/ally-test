@@ -2,7 +2,7 @@ import { useRef, FC, RefObject } from 'react';
 import DataGrid from '../Common/DataGrid/DataGrid';
 import ScrollToTop from '../Common/ScrollToTopButton';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
-import * as styles from './WineConnoisseur.module.css';
+import styles from './WineConnoisseur.module.css';
 
 interface WineConnoisseurProps {
 	headers: any[];

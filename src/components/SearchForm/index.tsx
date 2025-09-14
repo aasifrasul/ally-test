@@ -1,24 +1,14 @@
-import React from 'react';
+import { useEffect } from 'react';
 
 import { constants } from '../../constants';
 
 import SearchForm from './SearchForm';
-import { useFetch, FetchResult } from '../../hooks/useFetch';
-import { InitialState, Schema } from '../../constants/types';
+import { useSchemaQuery } from '../../hooks/dataSelector';
+import { Schema } from '../../constants/types';
 
 const { PRODUCT_LIST, ADD_ITEM_URL } = constants.dataSources!.searchForm;
 
 export default function SearchFormContainer() {
-	const [data, setData] = React.useState([]);
-	const { fetchData, updateData }: FetchResult<InitialState, InitialState> = useFetch(
-		Schema.SEARCH_FORM,
-		{ onSuccess },
-	);
-
-	function onSuccess({ message }: { message: unknown[] }) {
-		setData(message as unknown as any);
-	}
-
 	const addItem = async (data: any) => {
 		if (ADD_ITEM_URL) {
 			updateData({
@@ -30,16 +20,10 @@ export default function SearchFormContainer() {
 		}
 	};
 
-	React.useEffect(() => {
-		const fetchInitialData = async () => {
-			if (PRODUCT_LIST) {
-				fetchData({ url: PRODUCT_LIST });
-			} else {
-				console.error('PRODUCT_LIST is undefined');
-			}
-		};
+	const { data, fetchData, updateData } = useSchemaQuery(Schema.SEARCH_FORM);
 
-		fetchInitialData();
+	useEffect(() => {
+		fetchData({ url: PRODUCT_LIST });
 	}, [fetchData]);
 
 	return <SearchForm data={data} addItem={addItem} />;

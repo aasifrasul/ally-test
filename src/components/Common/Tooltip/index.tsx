@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import * as styles from './styles.module.css';
+import styles from './styles.module.css';
 
 interface TooltipProps {
 	children: React.ReactNode;

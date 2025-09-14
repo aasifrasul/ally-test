@@ -72,14 +72,16 @@ loaders.push(
 			{
 				loader: 'css-loader',
 				options: {
+					// Enable ES modules at the css-loader level
+					esModule: true,
 					modules: {
 						mode: 'local',
 						localIdentName: DEV
 							? '[name]__[local]--[hash:base64:5]'
 							: '[hash:base64:6]',
 						exportLocalsConvention: 'camelCase',
-						// Add this to ensure proper export
-						namedExport: false,
+						// Enable named exports
+						namedExport: true,
 					},
 					importLoaders: 1,
 					sourceMap: DEV,
