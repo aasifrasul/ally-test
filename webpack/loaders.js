@@ -1,11 +1,11 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const babelConfig = require('./babel.config');
-var PROD = process.env.NODE_ENV === 'production';
+const PROD = process.env.NODE_ENV === 'production';
 const DEV = !PROD;
 const appName = process.env.APP_NAME;
 
-var loaders = [
+const loaders = [
 	{
 		test: /\.(ts|tsx)$/,
 		exclude: /node_modules/,
@@ -80,8 +80,7 @@ loaders.push(
 							? '[name]__[local]--[hash:base64:5]'
 							: '[hash:base64:6]',
 						exportLocalsConvention: 'camelCase',
-						// Enable named exports
-						namedExport: true,
+						namedExport: false,
 					},
 					importLoaders: 1,
 					sourceMap: DEV,

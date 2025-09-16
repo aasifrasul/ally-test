@@ -1,6 +1,6 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useMemo } from 'react';
 
-import { useAsyncState } from './/useAsyncState';
+import { useAsyncState } from './useAsyncState';
 
 import { subscribeWithCallback } from '../client';
 
@@ -19,9 +19,12 @@ export function useSubscription<T = any>(
 	} = options;
 	const [state, actions] = useAsyncState<T>(!skip);
 
-	// Store the actions in a ref to avoid recreating callbacks
+	// Store the actions in a ref and update it
 	const actionsRef = useRef(actions);
-	//actionsRef.current = actions;
+	actionsRef.current = actions; // This should NOT be commented out
+
+	// Memoize variables to prevent unnecessary re-renders
+	const memoizedVariables = useMemo(() => variables, [JSON.stringify(variables)]);
 
 	// Store callback refs
 	const onDataRef = useRef(onSubscriptionData);
@@ -76,13 +79,13 @@ export function useSubscription<T = any>(
 				onError: handleError,
 				onComplete: handleComplete,
 			} as SubscriptionEventHandler,
-			variables,
+			memoizedVariables,
 		);
 
 		return () => {
 			unsubscribe();
 		};
-	}, [subscription, variables, skip, handleData, handleError, handleComplete]);
+	}, [subscription, memoizedVariables, skip, handleData, handleError, handleComplete]);
 
 	return state;
 }
