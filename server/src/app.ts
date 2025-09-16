@@ -39,7 +39,7 @@ interface RequestWithId extends Request {
 }
 
 interface RequestWithTimedout extends Request {
-	timedout?: boolean;
+	timedout: boolean;
 }
 
 const app: Application = express();
@@ -54,6 +54,7 @@ const limiter = rateLimit({
 // Setup file upload and proxy early
 handleFileupload(app);
 setupProxy(app);
+app.all('/graphql', handleGraphql);
 
 function haltOnTimedout(req: RequestWithTimedout, res: Response, next: NextFunction): void {
 	if (!req.timedout) {
@@ -82,10 +83,10 @@ app.use(
 	}),
 );
 
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use(bodyParser.text());
-app.use(timeout('5s'));
+app.use(timeout('10s'));
 app.use(haltOnTimedout as express.RequestHandler);
 app.use(limiter);
 
@@ -137,7 +138,7 @@ if (!isCurrentEnvProd) {
 }
 
 // 5. Specific API routes (before static files)
-app.get('/health', async (req: Request, res: Response) => {
+app.get('/health', async (_, res: Response) => {
 	res.status(200).json({ status: 'healthy' });
 });
 
@@ -146,17 +147,14 @@ app.use('/auth', authRoutes);
 
 // API routes
 app.get('/api/fetchWineData/*', fetchWineData);
-app.get('/api/profile', authenticateToken, (req: Request, res: Response) => {
+app.get('/api/profile', authenticateToken, (_, res: Response) => {
 	// Profile logic here
 	res.json({ message: 'Profile data' });
 });
-app.get('/api/admin', authenticateToken, authorizeRole('admin'), (req, res) => {
+app.get('/api/admin', authenticateToken, authorizeRole('admin'), (_, res: Response) => {
 	// Admin logic here
 	res.json({ message: 'Admin data' });
 });
-
-// GraphQL (only once!)
-app.all('/graphql', handleGraphql);
 
 // Image serving
 app.get('/images/*', fetchImage);

@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useMemo } from 'react';
 
 import { useAsyncState } from './useAsyncState';
 
@@ -12,7 +12,7 @@ export function useQuery<T = any>(query: string, options: QueryOptions = {}): Qu
 		skip = false,
 		cache = true,
 		cacheTTL,
-		timeout = 5000,
+		timeout = 10000,
 		pollInterval,
 		onCompleted,
 		onError,
@@ -22,18 +22,33 @@ export function useQuery<T = any>(query: string, options: QueryOptions = {}): Qu
 	const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 	const mountedRef = useRef(true);
 
+	// Memoize variables to prevent unnecessary re-renders
+	const memoizedVariables = useMemo(() => variables, [JSON.stringify(variables)]);
+
+	// Stable reference to callbacks
+	const onCompletedRef = useRef(onCompleted);
+	const onErrorRef = useRef(onError);
+
+	useEffect(() => {
+		onCompletedRef.current = onCompleted;
+		onErrorRef.current = onError;
+	}, [onCompleted, onError]);
+
 	const executeQueryInternal = useCallback(
 		(vars?: Record<string, any>) => {
 			return actions.handleAsyncOperation(
 				() =>
-					executeQuery<T>(query, vars || variables, timeout, {
+					executeQuery<T>(query, vars || memoizedVariables, timeout, {
 						cache,
 						cacheTTL,
 					}),
-				{ onSuccess: onCompleted, onFailure: onError },
+				{
+					onSuccess: onCompletedRef.current,
+					onFailure: onErrorRef.current,
+				},
 			);
 		},
-		[query, variables, timeout, cache, cacheTTL, onCompleted, onError, actions],
+		[query, memoizedVariables, timeout, cache, cacheTTL, actions],
 	);
 
 	const refetch = useCallback(

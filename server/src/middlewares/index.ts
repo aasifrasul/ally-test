@@ -6,13 +6,11 @@ import { PubSub } from 'graphql-subscriptions';
 import { isMobileApp, nocache, getParsedUserAgentData, getFileContents } from '../helper';
 import { schema } from '../schema';
 import { parse } from '../UaParser';
-import { fetchCSVasJSON } from '../fetchCSVasJSON';
 import { pathAssets, pathTemplate } from '../paths';
-import { streamCSVService } from '../utility/streamCSVService';
-
-const { headers, result } = fetchCSVasJSON(path.join(pathAssets, 'winemag-data-130k-v2.csv'));
+import { StreamCSVService } from '../utility/streamCSVService';
 
 const pubsub = new PubSub();
+const streamCSVService = new StreamCSVService();
 
 handlebars.registerHelper({
 	if_eq: (a: any, b: any, opts: any) => a === b && opts.fn({}),
@@ -59,7 +57,7 @@ export const userAgentHandler = (req: any, res: any, next: Function) => {
 
 export const fetchWineData = async (req: any, res: any) => {
 	try {
-		const filePath = path.join(process.cwd(), 'assets', 'winemag-data-130k-v2.csv');
+		const filePath = path.join(pathAssets, 'winemag-data-130k-v2.csv');
 		const pageNum = parseInt(req.query.page || '0', 10);
 		const pageSize = parseInt(req.query.pageSize || '10', 10);
 

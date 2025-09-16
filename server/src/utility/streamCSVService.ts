@@ -5,7 +5,7 @@ interface CsvRow {
 	[key: string]: string;
 }
 
-class StreamCSVService {
+export class StreamCSVService {
 	private headersCache = new Map<string, Array<{ key: string; name: string }>>();
 
 	async getHeaders(filePath: string): Promise<Array<{ key: string; name: string }>> {
@@ -99,5 +99,3 @@ class StreamCSVService {
 		return s.split('|');
 	}
 }
-
-export const streamCSVService = new StreamCSVService();

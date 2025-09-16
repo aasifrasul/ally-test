@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 
 import { useAsyncState } from './useAsyncState';
 
@@ -12,6 +12,17 @@ export function useMutation<T = any>(
 ): [MutationExecute<T>, MutationResult<T>] {
 	const [state, actions] = useAsyncState<T>(false);
 
+	const { onCompleted, onError } = options;
+
+	// Stable reference to callbacks
+	const onCompletedRef = useRef(onCompleted);
+	const onErrorRef = useRef(onError);
+
+	useEffect(() => {
+		onCompletedRef.current = onCompleted;
+		onErrorRef.current = onError;
+	}, [onCompleted, onError]);
+
 	const execute = useCallback(
 		(execOptions?: {
 			variables?: Record<string, any>;
@@ -23,10 +34,10 @@ export function useMutation<T = any>(
 					executeMutation<T>(mutation, {
 						...execOptions,
 					}),
-				{ onSuccess: options.onCompleted, onFailure: options.onError },
+				{ onSuccess: onCompletedRef.current, onFailure: onErrorRef.current },
 			);
 		},
-		[mutation, options, actions],
+		[mutation, actions],
 	) as MutationExecute<T>;
 
 	return [execute, { ...state, reset: actions.reset }];

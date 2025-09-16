@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { handleAsyncCalls } from '../../utils/handleAsyncCalls';
 
 interface AsyncState<T> {
@@ -65,20 +65,24 @@ export function useAsyncState<T>(
 				setError(errorObj);
 				setIsLoading(false);
 				options?.onFailure?.(errorObj);
-				return errorObj as T;
+				throw errorObj; // Throw instead of return for proper error handling
 			}
 		},
 		[],
 	);
 
-	const actions = {
-		setData,
-		setIsLoading,
-		setError,
-		reset,
-		updateData,
-		handleAsyncOperation,
-	} as AsyncStateActions<T>;
+	// Memoize actions to prevent re-renders
+	const actions = useMemo(
+		() => ({
+			setData,
+			setIsLoading,
+			setError,
+			reset,
+			updateData,
+			handleAsyncOperation,
+		}),
+		[reset, updateData, handleAsyncOperation],
+	);
 
-	return [{ data, isLoading, error }, actions];
+	return [{ data, isLoading, error }, actions as AsyncStateActions<T>];
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 
 import { useAsyncState } from './useAsyncState';
 
@@ -13,6 +13,20 @@ export function useLazyQuery<T = any>(
 	const [state, actions] = useAsyncState<T>(false);
 	const [called, setCalled] = useState(false);
 
+	const { variables, onCompleted, onError, timeout, cache, cacheTTL } = options;
+
+	// Memoize variables to prevent unnecessary re-renders
+	const memoizedVariables = useMemo(() => variables, [JSON.stringify(variables)]);
+
+	// Stable reference to callbacks
+	const onCompletedRef = useRef(onCompleted);
+	const onErrorRef = useRef(onError);
+
+	useEffect(() => {
+		onCompletedRef.current = onCompleted;
+		onErrorRef.current = onError;
+	}, [onCompleted, onError]);
+
 	const execute = useCallback(
 		(execOptions?: { variables?: Record<string, any> }) => {
 			setCalled(true);
@@ -21,14 +35,14 @@ export function useLazyQuery<T = any>(
 				() =>
 					executeQuery<T>(
 						query,
-						execOptions?.variables || options.variables,
-						options.timeout || 5000,
-						{ cache: options.cache, cacheTTL: options.cacheTTL },
+						execOptions?.variables || memoizedVariables,
+						timeout || 10000,
+						{ cache, cacheTTL },
 					),
-				{ onSuccess: options.onCompleted, onFailure: options.onError },
+				{ onSuccess: onCompletedRef.current, onFailure: onErrorRef.current },
 			);
 		},
-		[query, options, actions],
+		[query, memoizedVariables, timeout, cache, cacheTTL, actions],
 	) as LazyQueryExecute<T>;
 
 	return [execute, { ...state, called }];
