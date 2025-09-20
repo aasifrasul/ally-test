@@ -91,7 +91,7 @@ app.use(haltOnTimedout as express.RequestHandler);
 app.use(limiter);
 
 // 2. Request ID middleware
-app.use((req: RequestWithId, res: Response, next: NextFunction) => {
+app.use((req: RequestWithId, _, next: NextFunction) => {
 	req.id = uuidv4();
 	next();
 });
