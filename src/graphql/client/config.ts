@@ -1,0 +1,25 @@
+export const CONFIG = {
+	// Timeouts
+	DEFAULT_TIMEOUT: 30000,
+	HEALTH_CHECK_TIMEOUT: 5000,
+
+	// Retry configuration
+	MAX_RETRIES: 2,
+	MAX_WS_RETRIES: 3,
+
+	// Retry delays
+	RETRY_DELAYS: {
+		INITIAL: 1000,
+		MAX: 10000,
+		EXPONENTIAL_BASE: 2,
+		WS_MAX: 10000,
+		MIN_RETRY_INTERVAL: 5000,
+	},
+
+	// Cache
+	DEFAULT_CACHE_ENABLED: true,
+
+	// WebSocket
+	WS_CONNECTION_PARAMS: {},
+	MAX_SUBSCRIPTION_RETRIES: 3,
+} as const;

@@ -27,6 +27,7 @@ export interface QueryOptions {
 	cacheTTL?: number;
 	timeout?: number;
 	pollInterval?: number;
+	retries?: number;
 	onCompleted?: (data: any) => void;
 	onError?: (error: Error) => void;
 }
