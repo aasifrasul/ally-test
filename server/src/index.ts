@@ -17,8 +17,6 @@ const httpServer: http.Server = http.createServer(app);
 MongoDBConnection.initialize();
 RedisClient.getInstance()?.connect();
 
-// httpServer.on('request', () => logger.info('httpServer.request'));
-
 httpServer.listen(Number(port), host, () =>
 	logger.info(`Server running at http://${host}:${port} [${process.env.NODE_ENV}]`),
 );
@@ -27,13 +25,19 @@ connectWSServer(httpServer);
 connectToIOServer(httpServer);
 
 let isShuttingDown = false;
+let healthStatus = 'healthy';
 
 process.title = 'ally-test';
 
 process.on('unhandledRejection', (error: unknown) => {
+	healthStatus = 'unhealthy';
 	const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
 	logger.error(`Unhandled Rejection: ${errorMsg}`);
-	void gracefulShutdown('unhandledRejection');
+
+	// Give load balancer time to detect unhealthy state
+	setTimeout(() => {
+		void gracefulShutdown('unhandledRejection');
+	}, 5000);
 });
 
 process.on('uncaughtException', (e) => {

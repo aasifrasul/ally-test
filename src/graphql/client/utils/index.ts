@@ -1,4 +1,5 @@
 import { CONFIG } from '../config';
+import { createKey } from '../../../utils/keyGeneration';
 
 // URL building utilities
 export const buildWsUrl = (baseUrl: string): string => {
@@ -22,7 +23,7 @@ export const normalizeQuery = (query: string): string => {
 // Cache key generation
 export const generateCacheKey = (query: string, variables?: any): string => {
 	const normalizedQuery = normalizeQuery(query);
-	return `${normalizedQuery}${JSON.stringify(variables || {})}`;
+	return `${normalizedQuery}${createKey(variables || {})}`;
 };
 
 // Query type detection

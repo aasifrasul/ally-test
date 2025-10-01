@@ -30,7 +30,11 @@ import { constants } from '../../src/constants';
 
 // Import auth components
 import { authRoutes } from './routes/authRoutes';
-import { authenticateToken, optionalAuth, authorizeRole } from './middlewares/authMiddleware';
+import {
+	authenticateToken,
+	optionalAuth,
+	createProtectedRoute,
+} from './middlewares/authMiddleware';
 
 import { logger } from './Logger';
 
@@ -147,14 +151,6 @@ app.use('/auth', authRoutes);
 
 // API routes
 app.get('/api/fetchWineData/*', fetchWineData);
-app.get('/api/profile', authenticateToken, (_, res: Response) => {
-	// Profile logic here
-	res.json({ message: 'Profile data' });
-});
-app.get('/api/admin', authenticateToken, authorizeRole('admin'), (_, res: Response) => {
-	// Admin logic here
-	res.json({ message: 'Admin data' });
-});
 
 // Image serving
 app.get('/images/*', fetchImage);
