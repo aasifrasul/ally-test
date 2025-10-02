@@ -2,6 +2,9 @@
 
 import http from 'http';
 import fs from 'fs-extra';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import axios from 'axios';
 import path from 'path';
 import bodyParser from 'body-parser';
 import csv from 'csv-parser';
@@ -33,6 +36,279 @@ app.get('/health', (req: Request, res: Response, next: NextFunction) => {
 	res.status(200).send({ result: 'Running', timeStamp: Date.now() });
 });
 
+async function authenticateUser(username: string, password: string) {
+	// Replace with your actual authentication logic
+	// This is just a placeholder
+	const users = [
+		{
+			id: 1,
+			username: 'john',
+			password: 'hashed_password',
+			name: 'John Doe',
+			email: 'john@example.com',
+			roles: ['user'],
+		},
+	];
+
+	const user = users.find((u) => u.username === username);
+	if (user && (await bcrypt.compare(password, user.password))) {
+		return user;
+	}
+	return null;
+}
+
+async function createOrUpdateUser(userData: string) {
+	// Database logic to create or update user
+	// This is a placeholder
+	return userData;
+}
+
+// Exchange authorization code for access token
+app.post('/api/oauth/token', async (req: Request, res: Response) => {
+	const { code } = req.body;
+
+	try {
+		const tokenResponse = await axios.post(
+			'https://github.com/login/oauth/access_token',
+			{
+				client_id: process.env.GITHUB_CLIENT_ID,
+				client_secret: process.env.GITHUB_CLIENT_SECRET,
+				code: code,
+				redirect_uri: 'http://localhost:3000/callback',
+			},
+			{
+				headers: {
+					Accept: 'application/json',
+				},
+			},
+		);
+
+		const { access_token, refresh_token, token_type } = tokenResponse.data;
+
+		// Optionally fetch user info
+		const userResponse = await axios.get('https://api.github.com/user', {
+			headers: {
+				Authorization: `${token_type} ${access_token}`,
+				'User-Agent': 'MyApp/1.0',
+			},
+		});
+
+		// Store user session (use proper session management in production)
+		const { id, login, email, avatar_url } = userResponse.data;
+
+		res.json({
+			access_token,
+			refresh_token,
+			user: { id, login, email, avatar_url },
+		});
+	} catch (error: Error) {
+		console.error('OAuth error:', error.response?.data || error.message);
+		res.status(400).json({ error: 'OAuth authorization failed' });
+	}
+});
+
+// Protected API endpoint using OAuth token
+app.get('/api/user/repos', async (req: Request, res: Response): Promise<any> => {
+	const token = req.headers.authorization?.replace('Bearer ', '');
+
+	if (!token) {
+		return res.status(401).json({ error: 'No token provided' });
+	}
+
+	try {
+		const response = await axios.get('https://api.github.com/user/repos', {
+			headers: {
+				Authorization: `Bearer ${token}`,
+				'User-Agent': 'MyApp/1.0',
+			},
+		});
+
+		res.json(response.data);
+	} catch (error) {
+		res.status(401).json({ error: 'Invalid or expired token' });
+	}
+});
+
+// =============================================================================
+// 3. JWT-based SSO Implementation
+// =============================================================================
+
+// SSO Login endpoint
+app.post('/sso/login', async (req: Request, res: Response): Promise<any> => {
+	const { username, password } = req.body;
+
+	// Validate credentials (replace with your auth logic)
+	const user = await authenticateUser(username, password);
+
+	if (!user) {
+		return res.status(401).json({ error: 'Invalid credentials' });
+	}
+
+	// Create JWT token with user info
+	const payload = {
+		sub: user.id,
+		name: user.name,
+		email: user.email,
+		roles: user.roles,
+		iat: Math.floor(Date.now() / 1000),
+		exp: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
+		iss: 'your-sso-provider.com',
+		aud: 'your-applications',
+	};
+
+	const token = jwt.sign(payload, process.env.JWT_SECRET, {
+		algorithm: 'HS256',
+	});
+
+	// Set secure httpOnly cookie
+	res.cookie('sso_token', token, {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === 'production',
+		sameSite: 'strict',
+		maxAge: 3600000, // 1 hour
+	});
+
+	res.json({
+		success: true,
+		user: { id: user.id, name: user.name, email: user.email },
+	});
+});
+
+// SSO validation middleware for other applications
+function validateSSOToken(req: Request, res: Response, next: NextFunction) {
+	const token = req.cookies.sso_token || req.headers.authorization?.replace('Bearer ', '');
+
+	if (!token) {
+		return res.status(401).json({ error: 'No SSO token provided' });
+	}
+
+	try {
+		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+		req.user = decoded;
+		next();
+	} catch (error) {
+		return res.status(401).json({ error: 'Invalid SSO token' });
+	}
+}
+
+// Protected endpoint using SSO
+app.get('/api/protected', validateSSOToken, (req: Request, res: Response) => {
+	res.json({
+		message: 'Access granted via SSO',
+		user: req.user,
+	});
+});
+
+// =============================================================================
+// 4. SAML SSO Implementation (using passport-saml)
+// =============================================================================
+
+const passport = require('passport');
+const SamlStrategy = require('passport-saml').Strategy;
+
+passport.use(
+	new SamlStrategy(
+		{
+			path: '/login/callback',
+			entryPoint: 'https://your-idp.com/sso/saml',
+			issuer: 'your-app-entity-id',
+			cert: process.env.SAML_CERT, // IdP certificate
+			privateKey: process.env.SAML_PRIVATE_KEY,
+			signatureAlgorithm: 'sha256',
+		},
+		async (
+			profile: Record<string, string>,
+			done: (error: Error | null, data: Record<string, string>) => {},
+		) => {
+			try {
+				// Extract user info from SAML assertion
+				const user = {
+					id: profile.nameID,
+					email: profile[
+						'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+					],
+					name: profile[
+						'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'
+					],
+					roles: profile[
+						'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+					],
+				};
+
+				// Create or update user in your database
+				const dbUser = await createOrUpdateUser(user);
+				return done(null, dbUser);
+			} catch (error) {
+				return done(error as Error, null);
+			}
+		},
+	),
+);
+
+// SAML SSO routes
+app.get(
+	'/login',
+	passport.authenticate('saml', {
+		failureRedirect: '/login/error',
+	}),
+);
+
+app.post(
+	'/login/callback',
+	passport.authenticate('saml', {
+		failureRedirect: '/login/error',
+		successRedirect: '/dashboard',
+	}),
+);
+
+// =============================================================================
+// 5. OpenID Connect (OIDC) Implementation
+// =============================================================================
+
+const { Issuer, Strategy } = require('openid-client');
+
+async function setupOIDC() {
+	const googleIssuer = await Issuer.discover('https://accounts.google.com');
+
+	const client = new googleIssuer.Client({
+		client_id: process.env.GOOGLE_CLIENT_ID,
+		client_secret: process.env.GOOGLE_CLIENT_SECRET,
+		redirect_uris: ['http://localhost:3000/auth/callback'],
+		response_types: ['code'],
+	});
+
+	passport.use(
+		'oidc',
+		new Strategy(
+			{ client },
+			(
+				tokenSet: string,
+				userinfo: Record<string, string>,
+				done: (isDone: null, data: Record<string, string>) => {},
+			) => {
+				return done(null, {
+					id: userinfo.sub,
+					email: userinfo.email,
+					name: userinfo.name,
+					picture: userinfo.picture,
+					tokens: tokenSet,
+				});
+			},
+		),
+	);
+}
+
+// OIDC routes
+app.get('/auth/google', passport.authenticate('oidc'));
+
+app.get(
+	'/auth/callback',
+	passport.authenticate('oidc', {
+		successRedirect: '/dashboard',
+		failureRedirect: '/login',
+	}),
+);
+
 app.get('/getFileContents', (req: Request, res: Response, next: NextFunction) => {
 	const data = fs.readFileSync(path.join(pathRootDir, 'combined.log'), 'utf8');
 
@@ -58,7 +334,7 @@ app.post('/userDetails', (req: Request, res: Response, next: NextFunction) => {
 	res.status(200).send({ result: 'Running', data: JSON.stringify(body) });
 });
 
-app.post('/upload', (req, res) => {
+app.post('/upload', (req: Request, res: Response) => {
 	const filename = 'uploaded_file.dat'; // Or generate a unique name
 	const writeStream = fs.createWriteStream(path.join(__dirname, 'uploads', filename));
 
@@ -84,7 +360,7 @@ app.post('/upload', (req, res) => {
 	});
 });
 
-app.get('/db-setup', async (req, res) => {
+app.get('/db-setup', async (req: Request, res: Response) => {
 	try {
 		await executeQuery('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
 		await executeQuery(`CREATE TABLE IF NOT EXISTS "TEST_USERS" (
@@ -111,7 +387,7 @@ app.get('/db-setup', async (req, res) => {
 	}
 });
 
-app.get('/process-csv', (req, res) => {
+app.get('/process-csv', (req: Request, res: Response) => {
 	res.setHeader('Content-Type', 'application/json');
 	res.setHeader('Transfer-Encoding', 'chunked');
 

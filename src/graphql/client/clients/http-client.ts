@@ -60,9 +60,7 @@ export class HttpGraphQLClient {
 		const isQueryMutation = isMutation(normalizedQuery);
 		if (useCache && !isQueryMutation) {
 			const cached = this.cache.get(normalizedQuery, variables);
-			if (cached) {
-				return cached;
-			}
+			if (cached) return cached;
 		}
 
 		// Check for pending identical requests

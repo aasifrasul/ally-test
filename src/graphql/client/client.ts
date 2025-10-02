@@ -12,7 +12,6 @@ import type {
 	SubscriptionResult,
 	OptimisticMutationOptions,
 	ConnectionStatus,
-	RefetchQuery,
 	GraphQLClientOptions,
 } from './types';
 

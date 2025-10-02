@@ -1,5 +1,4 @@
-// graphql/types.ts
-import { ExecutionResult } from 'graphql';
+export type { ExecutionResult } from 'graphql';
 
 export interface QueryOptions {
 	cache?: boolean;
@@ -62,6 +61,3 @@ export interface RefetchQuery {
 	query: string;
 	variables?: any;
 }
-
-// Re-export from graphql for convenience
-export type { ExecutionResult } from 'graphql';

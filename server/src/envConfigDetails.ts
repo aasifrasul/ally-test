@@ -14,6 +14,7 @@ const {
 	ALLOWED_ORIGINS,
 	JWT_SECRET = 'your-secret-key',
 	JWT_EXPIRES_IN = '24h',
+	REFRESH_TOKEN_SECRET = 'my-secret',
 } = process.env;
 
 export {
@@ -26,6 +27,7 @@ export {
 	ALLOWED_ORIGINS,
 	JWT_SECRET,
 	JWT_EXPIRES_IN,
+	REFRESH_TOKEN_SECRET,
 };
 
 export const isCurrentEnvProd: boolean = process.env.NODE_ENV === 'production';
