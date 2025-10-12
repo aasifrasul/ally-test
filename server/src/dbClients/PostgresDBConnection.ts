@@ -129,8 +129,8 @@ export class PostgresDBConnection {
 		await this.executeQuery(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
 		await this.executeQuery(`CREATE TABLE IF NOT EXISTS TEST_USERS (
 			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-			"first_name" VARCHAR(255) NOT NULL,
-			"last_name" VARCHAR(255) NOT NULL,
+			"name" VARCHAR(255) NOT NULL,
+			"email" VARCHAR(255) NOT NULL,
 			age INTEGER
 		);`);
 		await this.executeQuery(`CREATE TABLE IF NOT EXISTS TEST_PRODUCTS (

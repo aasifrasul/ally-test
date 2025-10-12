@@ -53,7 +53,7 @@ describe('infiniteScrollReducer', () => {
 	});
 
 	describe('FILTER_BY_TEXT action', () => {
-		it('should filter data by first name', () => {
+		it('should filter data by name', () => {
 			const existingState: InitialState = {
 				...initialState,
 				data: mockUserData,
@@ -74,7 +74,7 @@ describe('infiniteScrollReducer', () => {
 			});
 		});
 
-		it('should filter data by last name', () => {
+		it('should filter data by Email', () => {
 			const existingState: InitialState = {
 				...initialState,
 				data: mockUserData,

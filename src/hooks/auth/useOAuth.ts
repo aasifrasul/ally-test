@@ -82,8 +82,8 @@ export function useAuth() {
 				setUser(data.user);
 
 				// Store token if returned (mobile clients)
-				if (data.accessToken) {
-					localStorage.setItem('access_token', data.accessToken);
+				if (data.authToken) {
+					localStorage.setItem('access_token', data.authToken);
 				}
 
 				return true;

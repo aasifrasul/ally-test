@@ -30,11 +30,7 @@ import { constants } from '../../src/constants';
 
 // Import auth components
 import { authRoutes } from './routes/authRoutes';
-import {
-	authenticateToken,
-	optionalAuth,
-	createProtectedRoute,
-} from './middlewares/authMiddleware';
+import { optionalAuth } from './middlewares/authMiddleware';
 
 import { logger } from './Logger';
 

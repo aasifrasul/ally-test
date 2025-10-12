@@ -195,3 +195,15 @@ export async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T
 		);
 	});
 }
+
+export function isMobileDevice() {
+	// Check user agent
+	const userAgent = navigator.userAgent.toLowerCase();
+	const mobileKeywords = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+
+	// Check touch support and screen size
+	const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+	const isSmallScreen = window.innerWidth <= 768;
+
+	return mobileKeywords.test(userAgent) || (hasTouch && isSmallScreen);
+}

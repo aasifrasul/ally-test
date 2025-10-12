@@ -5,12 +5,8 @@ import { BASE_URL, WS_URL } from './base';
 import { Constants } from './types';
 
 const routes = [
-	'AccordionDemo',
 	'AsyncArticles',
 	'BookStore',
-	'ChatBot',
-	'Comments',
-	'Contacts',
 	'CurrencyStream',
 	'DisplayUsers',
 	'FlipTheCard',
@@ -18,9 +14,9 @@ const routes = [
 	'Home',
 	'InfiniteScroll',
 	'KeyBoardShortcutPage',
+	'Login',
 	'MovieList',
 	'NestedCategories',
-	'ReactQuery',
 	'SearchForm',
 	'TabsComponent',
 	'TodoGroups',

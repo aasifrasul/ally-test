@@ -54,6 +54,13 @@ export async function handleAsyncCalls<T>(promise: Promise<T>): Promise<Result<T
 			data,
 		};
 	} catch (error) {
+		// Distinguish network errors from other errors
+		if (error instanceof TypeError && error.message.includes('fetch')) {
+			return {
+				success: false,
+				error: new NetworkError(error.message),
+			};
+		}
 		return {
 			success: false,
 			error: error instanceof Error ? error : new Error(String(error)),
@@ -62,26 +69,36 @@ export async function handleAsyncCalls<T>(promise: Promise<T>): Promise<Result<T
 }
 
 export async function fetchAPIData<T>(url: string, options?: RequestInit): Promise<Result<T>> {
-	const result = await handleAsyncCalls(fetch(url, options));
+	const newOptions = {
+		...options,
+		headers: {
+			'Content-Type': 'application/json',
+			...options?.headers,
+		},
+	};
+
+	const result = await handleAsyncCalls(fetch(url, newOptions));
 
 	if (!result.success) {
 		return result;
 	}
 
 	const response = result.data;
-	let error: Error | null = null;
 
-	// Check if response has the required interface
 	if (!isResponseLike(response)) {
-		error = new Error('Expected Response-like object');
+		return {
+			success: false,
+			error: new Error('Expected Response-like object'),
+		};
 	}
 
 	if (!response.ok) {
 		const errorText = await response.text().catch(() => 'Unknown error');
-		error = new Error(`HTTP Error ${response.status}: ${errorText}`);
+		return {
+			success: false,
+			error: new HTTPError(response.status, errorText),
+		};
 	}
-
-	if (error) return { success: false, error };
 
 	const contentType = response.headers?.get('content-type') || '';
 
@@ -89,5 +106,5 @@ export async function fetchAPIData<T>(url: string, options?: RequestInit): Promi
 		return handleAsyncCalls(response.json() as Promise<T>);
 	}
 
-	return handleAsyncCalls(response.text() as unknown as Promise<T>);
+	return handleAsyncCalls(response.text() as Promise<T>);
 }

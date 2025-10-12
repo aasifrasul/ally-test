@@ -8,11 +8,14 @@ import axios from 'axios';
 import path from 'path';
 import bodyParser from 'body-parser';
 import csv from 'csv-parser';
-import express, { Application, Request, Response, NextFunction } from 'express';
+import express from 'express';
+import type { Application, Request, Response, NextFunction } from 'express';
 
 import { logger } from './src/Logger';
 import { pathRootDir, pathAssets } from './src/paths';
 import { executeQuery } from './src/dbClients/helper';
+import { verifyToken } from './src/services/jwtService';
+import { isCurrentEnvProd, JWT_SECRET } from './src/envConfigDetails';
 
 const port = 3000;
 const host = '127.0.0.1';
@@ -101,7 +104,7 @@ app.post('/api/oauth/token', async (req: Request, res: Response) => {
 			refresh_token,
 			user: { id, login, email, avatar_url },
 		});
-	} catch (error: Error) {
+	} catch (error: any) {
 		console.error('OAuth error:', error.response?.data || error.message);
 		res.status(400).json({ error: 'OAuth authorization failed' });
 	}
@@ -156,14 +159,14 @@ app.post('/sso/login', async (req: Request, res: Response): Promise<any> => {
 		aud: 'your-applications',
 	};
 
-	const token = jwt.sign(payload, process.env.JWT_SECRET, {
+	const token = jwt.sign(payload, JWT_SECRET, {
 		algorithm: 'HS256',
 	});
 
 	// Set secure httpOnly cookie
 	res.cookie('sso_token', token, {
 		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production',
+		secure: isCurrentEnvProd,
 		sameSite: 'strict',
 		maxAge: 3600000, // 1 hour
 	});
@@ -183,7 +186,7 @@ function validateSSOToken(req: Request, res: Response, next: NextFunction) {
 	}
 
 	try {
-		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+		const decoded = verifyToken(token, 'access');
 		req.user = decoded;
 		next();
 	} catch (error) {
@@ -365,8 +368,8 @@ app.get('/db-setup', async (req: Request, res: Response) => {
 		await executeQuery('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
 		await executeQuery(`CREATE TABLE IF NOT EXISTS "TEST_USERS" (
 			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-			first_name VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
-			last_name VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
+			name VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
+			email VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
 			age INTEGER               -- INTEGER is the correct type
 		);`);
 		await executeQuery(`CREATE TABLE IF NOT EXISTS "TEST_PRODUCTS" (

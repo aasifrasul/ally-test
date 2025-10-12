@@ -1,12 +1,12 @@
 {
-	"verbose": true,
-	"ignore": [
-		"*.test.ts",
-		"**/fixtures/**",
-		"**/node_modules/**",
-		"**/dist/**",
-		"**/public/**"
-	],
-	"ext": "js,ts,tsx,jsx",
-	"exec": "node customNodemonHandler.js"
+	"watch": ["server/src"],
+	"ext": "ts,json",
+	"ignore": ["**/*.test.ts", "**/*.spec.ts", "node_modules", "**/*.log"],
+	"exec": "ts-node server/src/index.ts",
+	"env": {
+		"NODE_ENV": "development"
+	},
+	"delay": "1500",
+	"signal": "SIGTERM",
+	"verbose": true
 }

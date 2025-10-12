@@ -11,37 +11,37 @@ interface UserFormProps {
 }
 
 interface FormData {
-	firstName: string;
-	lastName: string;
-	age: string;
+	name: string;
+	email: string;
+	age?: string;
 }
 
 const initialFormData: FormData = {
-	firstName: '',
-	lastName: '',
+	name: '',
+	email: '',
 	age: '',
 };
 
 export const UserForm = ({ editingUser, handleAddUser, handleUpdateUser }: UserFormProps) => {
 	const [formData, setFormData] = useState<FormData>(initialFormData);
-	const firstNameRef = useRef<HTMLInputElement | null>(null);
+	const nameRef = useRef<HTMLInputElement | null>(null);
 
 	// Update form when editingUser changes
 	useEffect(() => {
 		if (editingUser) {
 			setFormData({
-				firstName: editingUser.first_name || '',
-				lastName: editingUser.last_name || '',
+				name: editingUser.name || '',
+				email: editingUser.email || '',
 				age: editingUser.age?.toString() || '',
 			});
-			firstNameRef.current?.focus();
+			nameRef.current?.focus();
 		} else {
 			setFormData(initialFormData);
 		}
 	}, [editingUser]);
 
 	useEffect(() => {
-		firstNameRef.current?.focus();
+		nameRef.current?.focus();
 	}, []);
 
 	const handleInputChange = (field: keyof FormData) => (value: string) => {
@@ -49,11 +49,11 @@ export const UserForm = ({ editingUser, handleAddUser, handleUpdateUser }: UserF
 	};
 
 	const isFormValid = () => {
-		return formData.firstName.trim() && formData.lastName.trim() && formData.age.trim();
+		return formData.name.trim() && formData.email.trim();
 	};
 
 	const hasFormData = () => {
-		return formData.firstName || formData.lastName || formData.age;
+		return formData.name || formData.email || formData.age;
 	};
 
 	const handleSubmit = () => {
@@ -62,13 +62,13 @@ export const UserForm = ({ editingUser, handleAddUser, handleUpdateUser }: UserF
 			return;
 		}
 
-		const { firstName, lastName, age } = formData;
+		const { name, email, age } = formData;
 		const ageNumber = Number(age);
 
 		if (editingUser?.id) {
-			handleUpdateUser(editingUser.id, firstName, lastName, ageNumber);
+			handleUpdateUser(editingUser.id, name, email, ageNumber);
 		} else {
-			handleAddUser(firstName, lastName, ageNumber);
+			handleAddUser(name, email, ageNumber);
 		}
 
 		setFormData(initialFormData);
@@ -88,29 +88,29 @@ export const UserForm = ({ editingUser, handleAddUser, handleUpdateUser }: UserF
 			<div className="space-y-4">
 				<div>
 					<label className="block text-sm font-medium text-gray-700 mb-2">
-						First Name
+						Name
 					</label>
 					<InputText
-						ref={firstNameRef}
-						id="firstName"
-						name="firstName"
-						placeholder="First Name"
-						initialValue={formData.firstName}
-						onChange={handleInputChange('firstName')}
+						ref={nameRef}
+						id="name"
+						name="name"
+						placeholder="Name"
+						initialValue={formData.name}
+						onChange={handleInputChange('name')}
 						hideWrapper
 						clearable
 					/>
 				</div>
 				<div>
 					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Last Name
+						Email
 					</label>
 					<InputText
-						id="lastName"
-						name="lastName"
-						placeholder="Last Name"
-						initialValue={formData.lastName}
-						onChange={handleInputChange('lastName')}
+						id="email"
+						name="email"
+						placeholder="Email"
+						initialValue={formData.email}
+						onChange={handleInputChange('email')}
 						hideWrapper
 						clearable
 					/>

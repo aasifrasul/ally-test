@@ -5,8 +5,8 @@ const GET_USERS = gql`
 	query users {
 		getUsers {
 			id
-			first_name
-			last_name
+			name
+			email
 			age
 		}
 	}
@@ -14,9 +14,9 @@ const GET_USERS = gql`
 
 interface User {
 	id: string;
-	first_name: string;
-	last_name: string;
-	age: number;
+	name: string;
+	email: string;
+	age?: number;
 }
 
 export default function UsersGraphql() {
@@ -30,9 +30,9 @@ export default function UsersGraphql() {
 
 	return (
 		<ul>
-			{data?.getUsers?.map(({ id, first_name, last_name, age }: User) => (
+			{data?.getUsers?.map(({ id, name, email, age }: User) => (
 				<li key={id}>
-					{id}, {first_name} {last_name}, {age}
+					{id}, {name} {email}, {age}
 				</li>
 			))}
 		</ul>

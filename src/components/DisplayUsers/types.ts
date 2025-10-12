@@ -1,16 +1,17 @@
 export interface User {
 	id: string;
-	first_name: string;
-	last_name: string;
-	age: number;
+	name: string;
+	email: string;
+	age?: number;
+	passwword?: string;
 }
 
-export type AddUser = (first_name: string, last_name: string, age: number) => Promise<void>;
+export type AddUser = (name: string, email: string, age?: number) => Promise<void>;
 export type EditUser = (id: string) => void;
 export type DeleteUser = (id: string) => Promise<void>;
 export type UpdateUser = (
 	id: string,
-	first_name: string,
-	last_name: string,
-	age: number,
+	name: string,
+	email: string,
+	age?: number,
 ) => Promise<void>;

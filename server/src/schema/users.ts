@@ -1,30 +1,12 @@
 import { PubSub } from 'graphql-subscriptions';
-import { DBType, IUser } from '../types';
+import { DBType, IUser, UserResult, DeleteResult } from '../types';
 import { User } from '../models';
 import { RedisClient } from '../cachingClients/redis';
 import { getLimitCond, executeQuery } from '../dbClients/helper';
 import { constants } from '../constants';
 import { logger } from '../Logger';
 
-interface UserInput {
-	first_name: string;
-	last_name: string;
-	age: number;
-}
-
-type UserResult = {
-	success: Boolean;
-	message?: String;
-	user?: IUser | null;
-};
-
-type DeleteResult = {
-	success: Boolean;
-	message?: String;
-	id: String;
-};
-
-interface UserArgs extends Partial<UserInput> {
+interface UserArgs extends Partial<IUser> {
 	id?: string;
 }
 
@@ -57,7 +39,7 @@ const getUser = async (parent: any, args: { id: string }): Promise<IUser | null>
 		}
 	} else {
 		const whereClause = id ? `WHERE id = $1` : getLimitCond(currentDB, 1);
-		const query = `SELECT id, first_name, last_name, age FROM ${table} ${whereClause}`;
+		const query = `SELECT id, name, email, age FROM ${table} ${whereClause}`;
 
 		try {
 			const rows = await executeQuery<any>(query, [id]);
@@ -91,7 +73,7 @@ const getUsers = async (parent: any, args: UserArgs = {}): Promise<IUser[]> => {
 				'WHERE ' +
 				keys.map((key) => `"${key}" = '${args[key as keyof UserArgs]}'`).join(' AND ');
 		}
-		const query: string = `SELECT id, first_name, last_name, "age" FROM ${table} ${whereClause}`;
+		const query: string = `SELECT id, name, email, "age" FROM ${table} ${whereClause}`;
 		try {
 			const result: IUser[] = await executeQuery(query);
 			return result;
@@ -102,12 +84,12 @@ const getUsers = async (parent: any, args: UserArgs = {}): Promise<IUser[]> => {
 	}
 };
 
-const createUser = async (parent: any, args: UserInput): Promise<UserResult> => {
-	const { first_name, last_name, age } = args;
+const createUser = async (parent: any, args: IUser): Promise<UserResult> => {
+	const { name, email, age, password } = args;
 
 	if (currentDB === DBType.MONGODB) {
 		try {
-			const user = new User({ first_name, last_name, age });
+			const user = new User({ name, email, age, password });
 			await user.save();
 
 			pubsub.publish('USER_CREATED', { userCreated: user });
@@ -119,8 +101,8 @@ const createUser = async (parent: any, args: UserInput): Promise<UserResult> => 
 			return { success: false };
 		}
 	} else {
-		const query = `INSERT INTO ${table} (first_name, last_name, age) VALUES ($1, $2, $3) RETURNING *`;
-		const params = [first_name, last_name, age];
+		const query = `INSERT INTO ${table} (name, email, age, password) VALUES ($1, $2, $3, $4) RETURNING *`;
+		const params = [name, email, age, password];
 
 		try {
 			const rows = await executeQuery<any>(query, params);
@@ -138,15 +120,11 @@ const updateUser = async (
 	parent: any,
 	args: UserArgs & { id: string },
 ): Promise<UserResult> => {
-	const { id, first_name, last_name, age } = args;
+	const { id, name, email, age } = args;
 
 	if (currentDB === DBType.MONGODB) {
 		try {
-			const user = await User.findByIdAndUpdate(
-				id,
-				{ first_name, last_name, age },
-				{ new: true },
-			);
+			const user = await User.findByIdAndUpdate(id, { name, email, age }, { new: true });
 			if (user) {
 				await redisClient.cacheData(id, user);
 			}
@@ -156,8 +134,8 @@ const updateUser = async (
 			return { success: false };
 		}
 	} else {
-		const query = `UPDATE ${table} SET first_name = $1, last_name = $2, age = $3 WHERE id = $4 RETURNING *`;
-		const params = [first_name, last_name, age, id];
+		const query = `UPDATE ${table} SET name = $1, email = $2, age = $3, WHERE id = $4 RETURNING *`;
+		const params = [name, email, age, id];
 
 		try {
 			const rows = await executeQuery<any>(query, params);
@@ -208,45 +186,47 @@ export { getUser, getUsers, createUser, updateUser, deleteUser, userCreated };
 
 /**
  * Oracle
- * create table TEST_USERS ( "id" number generated always as identity, "first_name" varchar2(4000), "last_name" varchar2(4000), "age" number, primary key ("id"));
+ * create table TEST_USERS ( "id" number generated always as identity, "name" varchar2(4000), "email" varchar2(4000), "age" number, primary key ("id"));
  * 
  * PGSQL
  * 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE "TEST_USERS" (
 	id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-	first_name VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
-	last_name VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
-	age INTEGER               -- INTEGER is the correct type
+	name VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
+	email VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
+	age INTEGER,               -- INTEGER is the correct type
+	password VARCHAR(4000)
 );
  * 
  * {
-	"query": "mutation createUser($first_name: String!, $last_name: String!, $age: Int!) { createUser(first_name: $first_name, last_name: $last_name, age: $age) { success message user { id first_name last_name age } } }",
+	"query": "mutation createUser($name: String!, $email: String!, $age: Int!, $password: String!) { createUser(name: $name, email: $email, age: $age) { success message user { id name email age } } }",
 	"variables": {
-		"first_name": "Aasif",
-		"last_name": "Rasul",
-		"age": 40
+		"name": "Aasif",
+		"email": "Rasul",
+		"age": 40,
+		"password": "sgdfhdfjfgj"
 	},
 	"operationName": "createUser"
 }
  * 
  * 
  * {
-	"query": "{ getUser(id: \"86d9a167-d37d-4cc6-badd-06c21daa0d72\") {id, first_name, last_name, age} }"
+	"query": "{ getUser(id: \"86d9a167-d37d-4cc6-badd-06c21daa0d72\") {id, name, email, age} }"
 }
  * 
  * 
  * {
-	"query": "{ getUsers {id, first_name, last_name, age} }"
+	"query": "{ getUsers {id, name, email, age} }"
 }
  * 
  * 
  * {
- "query": "mutation updateUser($id: ID!, $first_name: String!, $last_name: String!, $age: Int!) { updateUser(id: $id, first_name: $first_name, last_name: $last_name, age: $age) { success message user { id first_name last_name age } } }",
+ "query": "mutation updateUser($id: ID!, $name: String!, $email: String!, $age: Int!) { updateUser(id: $id, name: $name, email: $email, age: $age) { success message user { id name email age } } }",
  "variables": {
 	 "id": "86d9a167-d37d-4cc6-badd-06c21daa0d72",
-	 "first_name": "John",
-	 "last_name": "Doe",
+	 "name": "John",
+	 "email": "Doe",
 	 "age": 30
  }
 }
