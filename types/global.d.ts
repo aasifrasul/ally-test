@@ -1,11 +1,14 @@
 declare module '*.module.css';
 declare module '*.module.scss';
 
-// types/global.d.ts or src/types/global.d.ts
-
 declare global {
 	interface Window {
-		__WEBPACK_HMR_UPDATE__?: (id: string) => void;
+		__DEV_HMR_STATUS__?: () => void;
+	}
+
+	declare module '*.png' {
+		const value: string;
+		export default value;
 	}
 
 	namespace NodeJS {

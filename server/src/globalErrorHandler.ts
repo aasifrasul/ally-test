@@ -1,6 +1,6 @@
 // Create a new file called globalErrorHandler.ts
 
-import { Application, Request, Response, NextFunction, RequestHandler } from 'express';
+import type { Application, Request, Response, NextFunction, RequestHandler } from 'express';
 
 import { isCurrentEnvProd } from './envConfigDetails';
 import { logger } from './Logger';

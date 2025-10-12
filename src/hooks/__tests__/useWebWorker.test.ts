@@ -1,5 +1,4 @@
-import React from 'react';
-import useWebWorker from '.';
+import useWebWorker from '../useWebWorker';
 /**
  * @jest-environment jsdom
  */

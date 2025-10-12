@@ -4,6 +4,7 @@ System Design: Netflix (Frontend Engineer Perspective)
     Core features:
     Video Player (adaptive streaming, subtitles, controls)
     Discovery/Feed UI (browsing, search, recommendations)
+    Search
     User Profiles (watchlist, preferences, multiple accounts)
     Cross-device Sync (resume watching, state sync)
     Constraints: Low latency, offline support (mobile), accessibility compliance, scale to millions.

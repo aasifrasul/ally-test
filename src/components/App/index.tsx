@@ -18,7 +18,12 @@ const App: FC = () => {
 	const router = createBrowserRouter(routes);
 
 	return (
-		<ErrorBoundary FallbackComponent={ErrorPage}>
+		<ErrorBoundary
+			FallbackComponent={ErrorPage}
+			onError={(error) => {
+				console.error('Top-level error:', error);
+			}}
+		>
 			<Suspense fallback={<Spinner />}>
 				<RouterProvider router={router} />
 			</Suspense>

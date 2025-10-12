@@ -1,20 +1,20 @@
-export const GET_USERS = `{ getUsers { id, first_name, last_name, age } }`;
+export const GET_USERS = `{ getUsers { id, name, email, age } }`;
 export const USER_CREATED_SUBSCRIPTION =
-	'subscription { userCreated { id, first_name, last_name, age } }';
+	'subscription { userCreated { id, name, email, age } }';
 export const CREATE_USER = `
-mutation createUser($first_name: String!, $last_name: String!, $age: Int!) {
-	createUser(first_name: $first_name, last_name: $last_name, age: $age) {
+mutation createUser($name: String!, $email: String!, $age: Int!, password: $String!) {
+	createUser(name: $name, email: $email, age: $age, password: $password) {
 		success 
 		message 
-		user { id first_name last_name age }
+		user { id name email age }
 	}
 }`;
 export const UPDATE_USER = `
-mutation updateUser($id: ID!, $first_name: String!, $last_name: String!, $age: Int!) { 
-	updateUser(id: $id, first_name: $first_name, last_name: $last_name, age: $age) { 
+mutation updateUser($id: ID!, $name: String!, $email: String!, $age: Int!) { 
+	updateUser(id: $id, name: $name, email: $email, age: $age) { 
 		success 
 		message 
-		user { id first_name last_name age } 
+		user { id name email age } 
 	} 
 }`;
 export const DELETE_USER = `

@@ -9,8 +9,8 @@ export const typeDefs = `
 	}
 
 	type Mutation {
-		createUser(first_name: String!, last_name: String!, age: Int!): UserResult
-		updateUser(id: ID!, first_name: String!, last_name: String!, age: Int!): UserResult
+		createUser(name: String!, email: String!, age: Int, password: String!): UserResult
+		updateUser(id: ID!, name: String!, email: String!, age: Int, password: String): UserResult
 		deleteUser(id: ID!): DeleteResult
 
 		createProduct(name: String!, category: String!): ProductResult
@@ -29,9 +29,10 @@ export const typeDefs = `
 
 	type User {
 		id: ID!
-		first_name: String!
-		last_name: String!
-		age: Int!
+		name: String!
+		email: String!
+		age: Int
+		password: String!
 	}
 
 	type Product {

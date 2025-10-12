@@ -1,4 +1,4 @@
-import { Request, Response, Application } from 'express';
+import type { Request, Application } from 'express';
 import multer from 'multer';
 import { pathFileUpload } from './paths';
 

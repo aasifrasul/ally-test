@@ -1,14 +1,16 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import bcrypt from 'bcrypt';
+import { Router } from 'express';
+import type { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+
 import {
-	generateTokens,
-	authenticateToken,
 	authRateLimit,
-	AuthenticatedRequest,
-	getClientType,
-	setTokensResponse,
 	createProtectedRoute,
+	authenticateToken,
 } from '../middlewares/authMiddleware';
+import { logout, register, refreshToken, login } from '../controllers/authController';
+import { getClientType } from '../services/jwtService';
+
+import { JWT_SECRET } from '../envConfigDetails';
 
 const router = Router();
 
@@ -24,199 +26,131 @@ export const asyncHandler = (
 // Mock user store (replace with your database)
 const users: Array<{
 	id: string;
+	name: string;
 	email: string;
 	password: string;
 	role: string;
 	permissions?: string[];
 }> = [];
 
+async function storeOAuthTokens(userId: string, tokens: Record<string, string>) {
+	// Store in database/redis - NEVER expose these to client
+	// This is server-side only
+	console.log(`Storing OAuth tokens for user ${userId}`);
+	// await db.oauthTokens.create({ userId, ...tokens });
+}
+
 // Register endpoint
-router.post(
-	'/register',
-	authRateLimit,
-	asyncHandler(async (req: Request, res: Response) => {
-		const { email, password, role = 'user' } = req.body;
-
-		// Validation
-		if (!email || !password) {
-			res.status(400).json({ error: 'Email and password are required' });
-			return;
-		}
-
-		// Email validation
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(email)) {
-			res.status(400).json({ error: 'Invalid email format' });
-			return;
-		}
-
-		// Password strength validation
-		if (password.length < 8) {
-			res.status(400).json({ error: 'Password must be at least 8 characters' });
-			return;
-		}
-
-		// Check existing user
-		const existingUser = users.find((u) => u.email === email);
-		if (existingUser) {
-			res.status(409).json({ error: 'User already exists' });
-			return;
-		}
-
-		// Hash password
-		const saltRounds = 10;
-		const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-		// Create user
-		const newUser = {
-			id: Date.now().toString(),
-			email,
-			password: hashedPassword,
-			role,
-			permissions: ['read:profile'],
-		};
-		users.push(newUser);
-
-		// Generate tokens
-		const { accessToken, refreshToken } = generateTokens({
-			id: newUser.id,
-			email: newUser.email,
-			role: newUser.role,
-			permissions: newUser.permissions,
-		});
-
-		// Determine client type and set tokens
-		const clientType = getClientType(req);
-		const responseData = setTokensResponse(res, { accessToken, refreshToken }, clientType);
-
-		// Add user info to response
-		responseData.message = 'User created successfully';
-		responseData.user = {
-			id: newUser.id,
-			email: newUser.email,
-			role: newUser.role,
-		};
-
-		res.status(201).json(responseData);
-	}),
-);
+router.post('/register', authRateLimit, asyncHandler(register));
 
 // Login endpoint
-router.post(
-	'/login',
-	authRateLimit,
-	asyncHandler(async (req: Request, res: Response) => {
-		const { email, password } = req.body;
-
-		// Validation
-		if (!email || !password) {
-			res.status(400).json({ error: 'Email and password are required' });
-			return;
-		}
-
-		// Find user
-		const user = users.find((u) => u.email === email);
-		if (!user) {
-			res.status(401).json({ error: 'Invalid credentials' });
-			return;
-		}
-
-		// Verify password
-		const isValidPassword = await bcrypt.compare(password, user.password);
-		if (!isValidPassword) {
-			res.status(401).json({ error: 'Invalid credentials' });
-			return;
-		}
-
-		// Generate tokens
-		const { accessToken, refreshToken } = generateTokens({
-			id: user.id,
-			email: user.email,
-			role: user.role,
-			permissions: user.permissions,
-		});
-
-		// Determine client type and set tokens
-		const clientType = getClientType(req);
-		const responseData = setTokensResponse(res, { accessToken, refreshToken }, clientType);
-
-		// Add user info to response
-		responseData.message = 'Login successful';
-		responseData.user = {
-			id: user.id,
-			email: user.email,
-			role: user.role,
-		};
-
-		res.json(responseData);
-	}),
-);
+router.post('/login', authRateLimit, asyncHandler(login));
 
 // Refresh token endpoint
-router.post(
-	'/refresh',
-	asyncHandler(async (req: Request, res: Response) => {
-		// Try to get refresh token from both sources
-		const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+router.post('/refresh', authRateLimit, asyncHandler(refreshToken));
 
-		if (!refreshToken) {
-			res.status(401).json({ error: 'Refresh token required' });
-			return;
-		}
+// Logout endpoint
+router.post('/logout', authRateLimit, authenticateToken, asyncHandler(logout));
+
+// OAuth token exchange with proper storage strategy
+router.post(
+	'/oauth/token',
+	asyncHandler(async (req: Request, res: Response) => {
+		const { code } = req.body;
+		const clientType = getClientType(req);
 
 		try {
-			// Verify refresh token (you'll need to import verifyToken from authMiddleware)
-			// For now, using a simplified approach
-			const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-				generateTokens({
-					id: 'user-id', // Get from decoded token
-					email: 'user@example.com', // Get from decoded token
-					role: 'user',
+			// Exchange code with OAuth provider
+			const result = await fetch('https://github.com/login/oauth/access_token', {
+				method: 'POST',
+				body: JSON.stringify({
+					client_id: process.env.GITHUB_CLIENT_ID,
+					client_secret: process.env.GITHUB_CLIENT_SECRET,
+					code: code,
+					redirect_uri: 'http://localhost:3000/callback',
+				}),
+				headers: { Accept: 'application/json' },
+			});
+
+			const tokenResponse = await result.json();
+
+			const { access_token, refresh_token, token_type } = tokenResponse.data;
+
+			// Fetch user info from OAuth provider
+			const userResponse = await fetch('https://api.github.com/user', {
+				headers: {
+					Authorization: `${token_type} ${access_token}`,
+					'User-Agent': 'MyApp/1.0',
+				},
+			});
+
+			const { data: user } = await userResponse.json();
+
+			// Create YOUR application's session token (this is different from OAuth tokens)
+			const sessionPayload = {
+				id: user.id,
+				email: user.email,
+				name: user.name,
+				provider: 'github',
+				providerId: user.id,
+				iat: Math.floor(Date.now() / 1000),
+			};
+
+			const sessionToken = jwt.sign(sessionPayload, JWT_SECRET, {
+				expiresIn: '1h',
+				issuer: 'ally-test',
+				audience: 'ally-test-users',
+			});
+
+			// Store OAuth tokens securely on server (database/redis)
+			await storeOAuthTokens(user.id, {
+				authToken: access_token,
+				refreshToken: refresh_token,
+				provider: 'github',
+			});
+
+			// Respond based on client type
+			if (clientType === 'web') {
+				// Web clients: Use secure httpOnly cookies
+				res.cookie('session_token', sessionToken, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'strict',
+					maxAge: 3600000, // 1 hour
 				});
 
-			const clientType = getClientType(req);
-			const responseData = setTokensResponse(
-				res,
-				{ accessToken: newAccessToken, refreshToken: newRefreshToken },
-				clientType,
-			);
-
-			res.json(responseData);
-		} catch (error) {
-			res.status(401).json({ error: 'Invalid refresh token' });
+				// DON'T expose OAuth tokens to browser
+				res.json({
+					success: true,
+					user: {
+						id: user.id,
+						login: user.login,
+						email: user.email,
+						avatar_url: user.avatar_url,
+					},
+				});
+			} else {
+				// Mobile/API clients: Return session token (NOT OAuth tokens)
+				res.json({
+					success: true,
+					authToken: sessionToken, // Your app's session token, not OAuth token
+					user: {
+						id: user.id,
+						login: user.login,
+						email: user.email,
+						avatar_url: user.avatar_url,
+					},
+				});
+			}
+		} catch (error: any) {
+			console.error('OAuth error:', error.response?.data || error.message);
+			res.status(400).json({ error: 'OAuth authorization failed' });
 		}
 	}),
 );
 
-// Logout endpoint
-router.post('/logout', authenticateToken, (req: Request, res: Response): void => {
-	// Clear cookies regardless of storage strategy
-	res.clearCookie('authToken');
-	res.clearCookie('refreshToken', { path: '/auth' });
-
-	res.json({
-		success: true,
-		message: 'Logout successful',
-	});
-});
-
-// Get current user
-router.get('/me', authenticateToken, (req: Request, res: Response): void => {
-	const authReq = req as AuthenticatedRequest;
-
-	if (!authReq.user) {
-		res.status(401).json({ error: 'Not authenticated' });
-		return;
-	}
-
-	res.json({
-		success: true,
-		user: authReq.user,
-	});
-});
-
 // Verify token endpoint (useful for clients to check if token is still valid)
-router.get('/verify', authenticateToken, (req: Request, res: Response): void => {
+router.get('/verify', authenticateToken, (_: Request, res: Response): void => {
 	res.json({
 		success: true,
 		valid: true,

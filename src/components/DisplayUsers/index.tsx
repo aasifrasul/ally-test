@@ -34,11 +34,11 @@ export default function DisplayUsers() {
 
 		return users.filter((user: User) => {
 			const searchFields = [
-				user.first_name.trim().toLowerCase(),
-				user.last_name.trim().toLowerCase(),
-				user.age.toString(),
+				user.name.trim().toLowerCase(),
+				user.email.trim().toLowerCase(),
+				user.age?.toString(),
 			];
-			return searchFields.some((field) => field.includes(searchText));
+			return searchFields.some((field) => field?.includes(searchText));
 		});
 	}, [users, searchTerm]);
 
@@ -85,65 +85,62 @@ export default function DisplayUsers() {
 		loadUsers(true);
 	}, [loadUsers]);
 
-	const handleAddUser = useCallback(
-		async (first_name: string, last_name: string, age: number) => {
-			const tempId = `temp-${getRandomId()}`;
-			const optimisticUser = {
-				id: tempId,
-				first_name,
-				last_name,
-				age,
-			};
+	const handleAddUser = useCallback(async (name: string, email: string, age: number) => {
+		const tempId = `temp-${getRandomId()}`;
+		const optimisticUser = {
+			id: tempId,
+			name,
+			email,
+			age,
+		};
 
-			// Add optimistic user
-			setUsers((prevUsers) => [optimisticUser, ...prevUsers]);
+		// Add optimistic user
+		setUsers((prevUsers) => [optimisticUser, ...prevUsers]);
 
-			try {
-				logger.info('Creating user:', { first_name, last_name, age });
+		try {
+			logger.info('Creating user:', { name, email, age });
 
-				const result = await executeMutation<{
-					createUser: { success: boolean; user: User; error?: string };
-				}>(CREATE_USER, {
-					variables: { first_name, last_name, age },
-					timeout: 30000,
-				});
+			const result = await executeMutation<{
+				createUser: { success: boolean; user: User; error?: string };
+			}>(CREATE_USER, {
+				variables: { name, email, age },
+				timeout: 30000,
+			});
 
-				if (!mountedRef.current) return;
+			if (!mountedRef.current) return;
 
-				if (result.createUser.success) {
-					// Replace the temp user with the real one
-					setUsers((prevUsers) =>
-						prevUsers.map((user) =>
-							user.id === tempId ? result.createUser.user : user,
-						),
-					);
-					setEditingUser(null);
-					invalidateCache('getUsers');
-					setIsOnline(true);
-					logger.info('User created successfully:', result.createUser.user);
-				} else {
-					// Remove the optimistic user on failure
-					setUsers((prevUsers) => prevUsers.filter((user) => user.id !== tempId));
-					logger.error('Create user failed:', result.createUser.error);
-				}
-			} catch (error) {
-				if (!mountedRef.current) return;
-
-				// Remove the optimistic user on error
+			if (result.createUser.success) {
+				// Replace the temp user with the real one
+				setUsers((prevUsers) =>
+					prevUsers.map((user) =>
+						user.id === tempId ? result.createUser.user : user,
+					),
+				);
+				setEditingUser(null);
+				invalidateCache('getUsers');
+				setIsOnline(true);
+				logger.info('User created successfully:', result.createUser.user);
+			} else {
+				// Remove the optimistic user on failure
 				setUsers((prevUsers) => prevUsers.filter((user) => user.id !== tempId));
-				logger.error('Error creating user:', error);
-
-				if (error instanceof Error && error.message.includes('timeout')) {
-					setIsOnline(false);
-				}
+				logger.error('Create user failed:', result.createUser.error);
 			}
-		},
-		[],
-	) as AddUser;
+		} catch (error) {
+			if (!mountedRef.current) return;
+
+			// Remove the optimistic user on error
+			setUsers((prevUsers) => prevUsers.filter((user) => user.id !== tempId));
+			logger.error('Error creating user:', error);
+
+			if (error instanceof Error && error.message.includes('timeout')) {
+				setIsOnline(false);
+			}
+		}
+	}, []) as AddUser;
 
 	const handleUpdateUser = useCallback(
-		async (id: string, first_name: string, last_name: string, age: number) => {
-			const updatedUser = { id, first_name, last_name, age };
+		async (id: string, name: string, email: string, age: number) => {
+			const updatedUser = { id, name, email, age };
 			let originalUserSnapshot: User | null = null;
 
 			// Optimistic update with snapshot capture

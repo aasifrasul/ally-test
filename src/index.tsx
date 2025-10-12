@@ -5,6 +5,7 @@ import { ApolloProvider } from '@apollo/client';
 
 import { FetchStoreProvider } from './Context/dataFetchContext';
 import { ThemeProvider } from './Context/ThemeProvider';
+import { AuthProvider } from './Context/AuthProvider';
 
 import store from './store';
 import { client } from './ApolloClient';
@@ -30,9 +31,15 @@ const renderApp = (AppComponent: FC) => {
 				<Provider store={store}>
 					<ApolloProvider client={client}>
 						<FetchStoreProvider>
-							<ErrorBoundary>
-								<AppComponent />
-							</ErrorBoundary>
+							<AuthProvider>
+								<ErrorBoundary
+									fallback={
+										<div>Critical error. Please refresh the page.</div>
+									}
+								>
+									<AppComponent />
+								</ErrorBoundary>
+							</AuthProvider>
 						</FetchStoreProvider>
 					</ApolloProvider>
 				</Provider>
@@ -131,3 +138,15 @@ if (module.hot) {
 } else {
 	console.warn('⚠️ HMR not available');
 }
+
+// catches synchronous errors
+window.addEventListener('error', (event) => {
+	console.error('Uncaught error:', event.error);
+	event.preventDefault();
+});
+
+// catches async/promise errors
+window.addEventListener('unhandledrejection', (event) => {
+	console.error('Unhandled rejection:', event.reason);
+	event.preventDefault();
+});

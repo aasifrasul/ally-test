@@ -1,9 +1,11 @@
 import { Document } from 'mongoose';
 
 export interface IUser extends Document {
-	first_name: string;
-	last_name: string;
-	age: number;
+	id?: string;
+	name: string;
+	email: string;
+	age?: number;
+	password?: string;
 }
 
 export interface IProduct extends Document {
@@ -70,4 +72,38 @@ export interface OracleConfig {
 	poolMax: number;
 	poolIncrement: number;
 	poolTimeout: number;
+}
+
+export type AuthenticatedRequest = Request & {
+	user?: {
+		id: string;
+		email: string;
+		role?: string;
+		permissions?: string[];
+		sessionId?: string;
+		iat?: number;
+		exp?: number;
+	};
+	cookies?: Record<string, string>;
+};
+
+export type UserResult = {
+	success: Boolean;
+	message?: String;
+	user?: IUser | null;
+};
+
+export type DeleteResult = UserResult & {
+	id: String;
+};
+
+export interface TokenPayload {
+	id: string;
+	email: string;
+	role?: string;
+	permissions?: string[];
+	sessionId?: string;
+	type: 'access' | 'refresh';
+	iat?: number;
+	exp?: number;
 }
