@@ -1,5 +1,11 @@
 import React from 'react';
 
+import { createLogger, LogLevel, Logger } from '../utils/Logger';
+
+const logger: Logger = createLogger('storeFactory', {
+	level: LogLevel.DEBUG,
+});
+
 type ErrorBoundaryProps = {
 	children: React.ReactNode;
 	fallback?: React.ReactNode;
@@ -21,8 +27,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 	}
 
 	componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-		// eslint-disable-next-line no-console
-		console.error('ErrorBoundary caught an error', error, errorInfo);
+		logger.error('ErrorBoundary caught an error', error, errorInfo);
 	}
 
 	render(): React.ReactNode {

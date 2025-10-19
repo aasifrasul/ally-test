@@ -35,9 +35,14 @@ export const fetchUserByEmail = async (email: string) => {
 export const addUser = async (user: IUser): Promise<UserResult> => {
 	const { name, email, age, password } = user;
 	if (constants.dbLayer.currentDB === DBType.MONGODB) {
-		const newUser = new User({ name, email, age, password });
-		await newUser.save();
-		return { success: true, user: newUser };
+		try {
+			const newUser = new User({ name, email, age, password });
+			await newUser.save();
+			return { success: true, user: newUser };
+		} catch (error) {
+			logger.error(`Failed to create user: ${error}`);
+			return { success: false };
+		}
 	} else if (constants.dbLayer.currentDB === DBType.POSTGRES) {
 		const query = `INSERT INTO users (name, email, age, password) VALUES ($1, $2, $3, $4) RETURNING *`;
 		const params = [name, email, age, password];

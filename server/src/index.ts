@@ -7,7 +7,7 @@ import { MongoDBConnection } from './dbClients/MongoDBConnection';
 import { RedisClient } from './cachingClients/redis';
 import { connectToIOServer, disconnectIOServer } from './socketConnection';
 import { connectWSServer, disconnectWSServer } from './webSocketConnection';
-import { getDBInstance } from './dbClients/helper';
+import { disconnectDBs } from './dbClients/helper';
 import { constants } from './constants';
 import { app } from './app';
 import { logger } from './Logger';
@@ -94,9 +94,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
 
 		logger.info('Cleaning up active connections...');
 		await Promise.allSettled([
-			MongoDBConnection.getInstance()?.cleanup(),
-			RedisClient.getInstance()?.cleanup(),
-			(await getDBInstance(constants.dbLayer.currentDB))?.cleanup(),
+			disconnectDBs(),
 			disconnectIOServer(),
 			disconnectWSServer(),
 		]).catch((error) => {

@@ -146,10 +146,10 @@ app.get('/health', async (_, res: Response) => {
 app.use('/auth', authRoutes);
 
 // API routes
-app.get('/api/fetchWineData/*', fetchWineData);
+app.get('/api/fetchWineData/', fetchWineData);
 
 // Image serving
-app.get('/images/*', fetchImage);
+app.get('/images/', fetchImage);
 
 // Redirects
 app.use('/login', (_, res: Response) => {
