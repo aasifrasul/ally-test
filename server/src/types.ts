@@ -88,13 +88,13 @@ export type AuthenticatedRequest = Request & {
 };
 
 export type UserResult = {
-	success: Boolean;
-	message?: String;
+	success: boolean;
+	message?: string;
 	user?: IUser | null;
 };
 
 export type DeleteResult = UserResult & {
-	id: String;
+	id: string;
 };
 
 export interface TokenPayload {

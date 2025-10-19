@@ -8,7 +8,7 @@ import { shallowEqual } from '../ArrayUtils';
  * @param dependencies An array of dependencies. The function will be re-memoized if any dependency changes.
  * @returns A memoized function.
  */
-function useCallback<T extends (...args: any[]) => any>(fn: T, dependencies: any[]): T {
+export function useCallback<T extends (...args: any[]) => any>(fn: T, dependencies: any[]): T {
 	if (!Array.isArray(dependencies)) {
 		throw new Error('dependencies must be an array');
 	}
@@ -19,7 +19,7 @@ function useCallback<T extends (...args: any[]) => any>(fn: T, dependencies: any
 	let memoizedFn: T | null = null;
 	let previousDependencies: any[] | null = null;
 
-	return function (...args: Parameters<T>): ReturnType<T> {
+	return function (this: any, ...args: Parameters<T>): ReturnType<T> {
 		if (
 			previousDependencies === null ||
 			!shallowEqual(dependencies, previousDependencies)

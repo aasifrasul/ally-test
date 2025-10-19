@@ -6,6 +6,9 @@ import {
 	type DBInstance,
 	type ExecuteQueryType,
 } from './GenericDBConnection';
+import { MongoDBConnection } from './MongoDBConnection';
+import { RedisClient } from '../cachingClients/redis';
+import { constants } from '../constants';
 
 export const getLimitCond = (currentDB: DBType, count: number): string => {
 	switch (currentDB) {
@@ -48,6 +51,14 @@ export async function executeQuery<T extends QueryResultRow>(
 		logger.error(error);
 		throw error;
 	}
+}
+
+export async function disconnectDBs() {
+	return Promise.allSettled([
+		MongoDBConnection.getInstance()?.cleanup(),
+		RedisClient.getInstance()?.cleanup(),
+		(await getDBInstance(constants.dbLayer.currentDB))?.cleanup(),
+	]);
 }
 
 export { type DBInstance, type ExecuteQueryType };

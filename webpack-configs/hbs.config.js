@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+ 
 const path = require('path');
 const loaders = require('../webpack/loaders');
 const { publicPath } = require('../webpack/constants');

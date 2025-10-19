@@ -50,7 +50,7 @@ export function setupGlobalAsyncErrorHandling(app: Application): void {
 
 export function finalHandler(app: Application): void {
 	// 404 handler for routes that don't exist
-	app.all('*', (req: Request, res: Response, next: NextFunction) => {
+	app.use((req: Request, res: Response, next: NextFunction) => {
 		res.status(404);
 		logger.warn(`Route not found: ${req.originalUrl}`);
 		const message = 'Oops! Page not found.';

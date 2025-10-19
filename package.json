@@ -6,6 +6,7 @@
 	"scripts": {
 		"lint:css": "stylelint 'src/**/*.css'",
 		"lint:js": "eslint . --ext **/*.js,**/*.jsx,**/*.ts,**/*.tsx,**/*.hbs",
+		"lint:fix": "eslint --fix",
 		"prettier": "npx prettier --write './**/*.{js,json,jsx,ts,tsx,css}'",
 		"build:client": "yarn build:make",
 		"build-prod": "yarn build:make",
@@ -23,8 +24,7 @@
 		"prod:build:client": "cross-env NODE_ENV=production webpack --config webpack-configs/webpack.config.js",
 		"test": "jest",
 		"cy:open": "cypress open",
-		"coverage": "jest --coverage",
-		"pre-commit": "yarn lint-staged"
+		"coverage": "jest --coverage"
 	},
 	"browser": {
 		"fs": false,
@@ -44,8 +44,15 @@
 		]
 	},
 	"lint-staged": {
-		"**/*.+(js|jsx|ts|tsx|json|yml|yaml|css|less|scss|md|mdx)": [
-			"yarn prettier"
+		"**/*.{jsx,ts,tsx,hbs}": [
+			"prettier --write"
+		],
+		"src/**/*.css": [
+			"stylelint --fix",
+			"prettier --write"
+		],
+		"**/*.{json,yml,yaml,md,mdx}": [
+			"prettier --write"
 		]
 	},
 	"dependencies": {
@@ -67,7 +74,7 @@
 		"cors": "2.8.5",
 		"csv-parser": "^3.2.0",
 		"dotenv": "16.1.4",
-		"express": "4.21.2",
+		"express": "^5.1.0",
 		"express-handlebars": "8.0.1",
 		"express-rate-limit": "7.5.0",
 		"fs-extra": "11.1.1",
@@ -128,6 +135,7 @@
 		"@babel/preset-react": "7.22.5",
 		"@babel/preset-typescript": "7.25.7",
 		"@babel/runtime": "^7.27.6",
+		"@eslint/js": "^9.38.0",
 		"@graphql-codegen/cli": "^5.0.5",
 		"@graphql-codegen/typescript": "^4.1.5",
 		"@graphql-codegen/typescript-operations": "^4.5.1",
@@ -158,8 +166,8 @@
 		"@types/uuid": "10.0.0",
 		"@types/webpack-hot-middleware": "^2.25.10",
 		"@types/ws": "^8.18.1",
-		"@typescript-eslint/eslint-plugin": "^8.28.0",
-		"@typescript-eslint/parser": "^8.28.0",
+		"@typescript-eslint/eslint-plugin": "^8.46.1",
+		"@typescript-eslint/parser": "^8.46.1",
 		"@wojtekmaj/enzyme-adapter-react-17": "0.8.0",
 		"autoprefixer": "10.4.20",
 		"babel-jest": "29.5.0",
@@ -179,9 +187,10 @@
 		"eslint-plugin-flowtype": "^8.0.3",
 		"eslint-plugin-import": "2.27.5",
 		"eslint-plugin-jest": "^28.11.0",
+		"eslint-plugin-jsdoc": "^61.1.4",
 		"eslint-plugin-jsx-a11y": "6.7.1",
-		"eslint-plugin-react": "7.32.2",
-		"eslint-plugin-react-hooks": "^5.2.0",
+		"eslint-plugin-react": "^7.37.5",
+		"eslint-plugin-react-hooks": "^7.0.0",
 		"file-loader": "6.2.0",
 		"handlebars-loader": "1.7.3",
 		"html-minifier": "4.0.0",

@@ -3,7 +3,7 @@ import { MockWorker } from './MockWorker';
 import { WorkerMessage, HTTPMethod } from '../../types/api';
 
 // Mock URL
-(global as any).URL = class {
+(globalThis as any).URL = class {
 	constructor() {
 		return {};
 	}

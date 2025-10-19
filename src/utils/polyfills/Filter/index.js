@@ -28,7 +28,7 @@ function myFilter(fn, thisArg) {
 			const element = O[i];
 			const shouldInclude = fn.call(thisArg, element, i, O);
 			// 7. Proper boolean coercion
-			if (Boolean(shouldInclude)) {
+			if (shouldInclude) {
 				resultArr.push(element);
 			}
 		}
