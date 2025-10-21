@@ -1,226 +1,121 @@
 import type { Request, Response } from 'express';
 
 import { addUser, fetchUserByEmail, validateUserCredentials } from '../services/UserService';
-import {
-	generateToken,
-	TOKEN_STORAGE_STRATEGIES,
-	getClientType,
-	setTokensResponse,
-	verifyToken,
-} from '../services/jwtService';
+import { generateUserTokens, verifyToken } from '../services/tokenService';
+import { hashPassword } from '../services/hashService';
+import { setTokensResponse, clearAuthCookies } from '../transport/tokenTransport';
+import { isValidEmail } from '../utils/validationUtils';
 
-import { isCurrentEnvProd } from '../envConfigDetails';
-import { AuthError } from '../Errors';
+import { AuthError } from '../Error';
 import { logger } from '../Logger';
 import { IUser } from '../types';
-import { hashPassword } from '../services/hashService';
 
 // Register new user
 export const register = async (req: Request, res: Response) => {
 	try {
 		const { name, email, age, password } = req.body;
+		if (!email || !password)
+			return res.status(400).json({ error: 'Email and password are required' });
 
-		// Validation
-		if (!email || !password) {
-			res.status(400).json({ error: 'Email and password are required' });
-			return;
-		}
+		if (!isValidEmail(email))
+			return res.status(400).json({ error: 'Invalid email format' });
 
-		// Email validation
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		if (!emailRegex.test(email)) {
-			res.status(400).json({ error: 'Invalid email format' });
-			return;
-		}
+		if (password.length < 8)
+			return res.status(400).json({ error: 'Password must be at least 8 characters' });
 
-		// Password strength validation
-		if (password.length < 8) {
-			res.status(400).json({ error: 'Password must be at least 8 characters' });
-			return;
-		}
-
-		// Check existing user
-		const existingUser = await fetchUserByEmail(email);
-		if (existingUser) {
-			res.status(409).json({ error: 'User already exists' });
-			return;
-		}
+		const existing = await fetchUserByEmail(email);
+		if (existing.success && existing.user)
+			return res.status(409).json({ error: 'User already exists' });
 
 		const hashedPassword = await hashPassword(password);
-
-		// Create user
-		const newUser = {
+		const response = await addUser({
 			name,
 			email,
 			age,
 			password: hashedPassword,
-		} as IUser;
+		} as IUser);
 
-		const { user, success, message } = await addUser(newUser);
+		if (!response.success || !response.user?.id)
+			return res.status(500).json({ error: response.message });
 
-		if (!success || !user) {
-			res.status(500).json({ error: message });
-			return;
-		}
+		const { authToken, refreshToken } = generateUserTokens(response.user);
+		const responseData = setTokensResponse(req, res, { authToken, refreshToken });
 
-		const payload = {
-			id: user.id as string,
-			email,
-		};
-
-		// Generate tokens
-		const authToken = generateToken({
-			type: 'access',
-			...payload,
+		return res.status(201).json({
+			...responseData,
+			message: 'User created successfully',
+			user: { id: response.user.id, email },
 		});
-		const refreshToken = generateToken({
-			type: 'refresh',
-			...payload,
-		});
-
-		// Determine client type and set tokens
-		const clientType = getClientType(req);
-		const responseData = setTokensResponse(res, { authToken, refreshToken }, clientType);
-
-		// Add user info to response
-		responseData.message = 'User created successfully';
-		responseData.user = {
-			id: newUser.id,
-			email: newUser.email,
-		};
-
-		res.status(201).json(responseData);
 	} catch (err) {
-		// Handle errors gracefully
-		res.status(500).json({ error: (err as unknown as Error).message });
-	}
-};
-
-export const logout = async (req: Request, res: Response) => {
-	try {
-		// Clear cookies regardless of storage strategy (defensive approach)
-		res.clearCookie('authToken');
-		res.clearCookie('refreshToken', { path: '/auth' });
-
-		res.json({
-			success: true,
-			message: 'Logged out successfully',
-		});
-	} catch (error) {
-		logger.error('Logout error:', error);
-		res.status(500).json({
-			error: 'Logout failed',
-			code: 'LOGOUT_ERROR',
-		});
+		logger.error('Registration error:', err);
+		return res.status(500).json({ error: 'User registration failed' });
 	}
 };
 
 export const login = async (req: Request, res: Response) => {
 	try {
-		// Your login validation logic here
 		const { email, password } = req.body;
+		const response = await validateUserCredentials(email, password);
 
-		// Validate user credentials (placeholder)
-		const user = await validateUserCredentials(email, password);
-		if (!user) {
+		if (!response.success || !response.user)
 			throw new AuthError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
-			return;
-		}
 
-		// Generate tokens
-		const authToken = generateToken({
-			type: 'access',
-			id: user.id,
-			email: user.email,
+		const { authToken, refreshToken } = generateUserTokens(response.user);
+		const responseData = setTokensResponse(req, res, { authToken, refreshToken });
+
+		return res.json({
+			...responseData,
+			user: { id: response.user.id, email: response.user.email },
 		});
-		const refreshToken = generateToken({
-			type: 'refresh',
-			id: user.id,
-			email: user.email,
-		});
-
-		// Determine client type and set tokens accordingly
-		const clientType = getClientType(req);
-		const responseData = setTokensResponse(res, { authToken, refreshToken }, clientType);
-
-		// Add user info to response
-		responseData.user = {
-			id: user.id,
-			email: user.email,
-		};
-
-		// Add storage strategy info for client debugging
-		if (!isCurrentEnvProd) {
-			responseData.storageStrategy = TOKEN_STORAGE_STRATEGIES[clientType];
-		}
-
-		res.json(responseData);
 	} catch (error) {
-		if (error instanceof AuthError) {
-			res.status(error.statusCode).json({
-				error: error.message,
-				code: error.code,
-			});
-		}
+		if (error instanceof AuthError)
+			return res
+				.status(error.statusCode!)
+				.json({ error: error.message, code: error.code });
 
 		logger.error('Login error:', error);
-		res.status(500).json({
-			error: 'Internal server error',
-			code: 'LOGIN_INTERNAL_ERROR',
-		});
+		return res
+			.status(500)
+			.json({ error: 'Internal server error', code: 'LOGIN_INTERNAL_ERROR' });
 	}
 };
 
 export const refreshToken = async (req: Request, res: Response) => {
 	try {
-		// Try to get refresh token from both sources
-		const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
-
-		if (!refreshToken) {
+		const oldRefreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+		if (!oldRefreshToken)
 			throw new AuthError('Refresh token required', 401, 'NO_REFRESH_TOKEN');
-		}
 
-		const decoded = verifyToken(refreshToken, 'refresh');
+		const decoded = verifyToken(oldRefreshToken, 'refresh');
+		if (!decoded?.id)
+			throw new AuthError('Invalid refresh token', 401, 'INVALID_REFRESH_TOKEN');
 
-		// Generate new tokens
-		const payload = {
+		const { authToken, refreshToken } = generateUserTokens({
 			id: decoded.id,
 			email: decoded.email,
-			role: decoded.role,
-			permissions: decoded.permissions,
-		};
+		} as IUser);
 
-		// Generate tokens
-		const authToken = generateToken({
-			type: 'access',
-			...payload,
-		});
-		const newRefreshToken = generateToken({
-			type: 'refresh',
-			...payload,
-		});
-
-		// Determine storage strategy
-		const clientType = getClientType(req);
-		const responseData = setTokensResponse(
-			res,
-			{ authToken, refreshToken: newRefreshToken },
-			clientType,
-		);
-
-		res.json(responseData);
+		const responseData = setTokensResponse(req, res, { authToken, refreshToken });
+		return res.json(responseData);
 	} catch (error) {
-		if (error instanceof AuthError) {
-			res.status(error.statusCode).json({
-				error: error.message,
-				code: error.code,
-			});
-		}
+		if (error instanceof AuthError)
+			return res
+				.status(error.statusCode!)
+				.json({ error: error.message, code: error.code });
 
 		logger.error('Token refresh error:', error);
-		res.status(500).json({
-			error: 'Internal server error',
-			code: 'REFRESH_INTERNAL_ERROR',
-		});
+		return res
+			.status(500)
+			.json({ error: 'Internal server error', code: 'REFRESH_INTERNAL_ERROR' });
+	}
+};
+
+export const logout = async (_req: Request, res: Response) => {
+	try {
+		clearAuthCookies(res);
+		return res.json({ success: true, message: 'Logged out successfully' });
+	} catch (error) {
+		logger.error('Logout error:', error);
+		return res.status(500).json({ error: 'Logout failed', code: 'LOGOUT_ERROR' });
 	}
 };

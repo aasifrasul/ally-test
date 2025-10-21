@@ -12,7 +12,7 @@ export class RedisClient {
 	private initializing: boolean = false;
 	private subscriberClient: RedisClientType | null = null;
 	private consecutiveFailures: number = 0;
-	private readonly MAX_CONSECUTIVE_FAILURES = 3;
+	private readonly MAX_CONSECUTIVE_FAILURES = 2;
 	private redisUnavailable: boolean = false;
 
 	private constructor() {}
@@ -88,7 +88,6 @@ export class RedisClient {
 	private handleConnectionError(err: Error): void {
 		this.consecutiveFailures++;
 
-		// Check for specific error types that indicate Redis is unavailable
 		const errorMessage = err.message.toLowerCase();
 		const unavailableErrors = [
 			'econnrefused',
@@ -99,38 +98,42 @@ export class RedisClient {
 			'network unreachable',
 		];
 
-		const isUnavailableError = unavailableErrors.some((errorType) =>
-			errorMessage.includes(errorType),
+		const isUnavailableError = unavailableErrors.some((type) =>
+			errorMessage.includes(type),
 		);
 
 		if (isUnavailableError && this.consecutiveFailures >= this.MAX_CONSECUTIVE_FAILURES) {
 			logger.error(
-				`Redis appears to be unavailable after ${this.consecutiveFailures} consecutive failures. ` +
-					`Stopping reconnection attempts. Error: ${err.message}`,
+				`Redis appears unavailable after ${this.consecutiveFailures} failures. ` +
+					`Pausing retries until next reset.`,
 			);
 			this.redisUnavailable = true;
 		}
 	}
 
+	/**
+	 * Simplified reconnect strategy — only a few quick retries.
+	 * Docker Compose handles full restart/recovery.
+	 */
 	private reconnectStrategy = (retries: number): number | false | Error => {
-		const maxReconnectAttempts = MAX_RETRIES ?? 5;
+		const maxReconnectAttempts = Math.min(MAX_RETRIES ?? 2, 2);
+		const baseDelay = RETRY_DELAY ?? 1000;
 
-		// Stop retrying if Redis is deemed unavailable
+		// Stop retrying if Redis marked unavailable
 		if (this.redisUnavailable) {
-			logger.error('Redis is unavailable. Stopping reconnection attempts.');
+			logger.error('Redis unavailable — stopping retry loop.');
 			return new Error('Redis server is unavailable');
 		}
 
 		if (retries >= maxReconnectAttempts) {
-			logger.error(`Redis connection failed after ${maxReconnectAttempts} attempts`);
-			return new Error('Max reconnection attempts reached');
+			logger.error(`Redis reconnect failed after ${maxReconnectAttempts} attempts.`);
+			return new Error('Max reconnect attempts reached');
 		}
 
-		const delay = Math.min(Math.pow(2, retries) * (RETRY_DELAY ?? 1000), 30000);
+		// small exponential backoff (1s → 2s → 4s max)
+		const delay = Math.min(Math.pow(2, retries) * baseDelay, 4000);
 		logger.info(
-			`Redis reconnect strategy delay: ${delay}ms, attempt: ${
-				retries + 1
-			}/${maxReconnectAttempts}`,
+			`Redis reconnect delay: ${delay}ms (attempt ${retries + 1}/${maxReconnectAttempts})`,
 		);
 		return delay;
 	};

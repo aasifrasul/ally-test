@@ -1,27 +1,66 @@
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
+import { BaseError } from '../Error/BaseError';
+import { logger } from '../Logger';
 
-import { isCurrentEnvProd } from '../envConfigDetails';
+export function errorHandler(err: unknown, req: Request, res: Response) {
+	// Handle our custom errors
+	if (err instanceof BaseError) {
+		logger.error({
+			name: err.name,
+			message: err.message,
+			code: err.code,
+			statusCode: err.statusCode,
+			path: req.path,
+			method: req.method,
+			context: err.context,
+			cause:
+				err.cause instanceof Error
+					? { name: err.cause.name, message: err.cause.message }
+					: err.cause,
+		});
 
-interface Error {
-	stack?: string;
-	message?: string;
-}
+		return res.status(err.statusCode ?? 500).json({
+			error: {
+				name: err.name,
+				message: err.message,
+				code: err.code,
+				statusCode: err.statusCode ?? 500,
+			},
+		});
+	}
 
-interface RequestWithCorrelationId extends Request {
-	correlationId?: string;
-}
+	// Handle generic or unexpected errors
+	if (err instanceof Error) {
+		logger.error({
+			name: err.name,
+			message: err.message,
+			stack: err.stack,
+			path: req.path,
+			method: req.method,
+		});
 
-export const errorHandler = (
-	err: Error,
-	req: RequestWithCorrelationId,
-	res: Response,
-	next: NextFunction,
-): void => {
-	console.error(err.stack);
-	res.status(500).json({
+		return res.status(500).json({
+			error: {
+				name: err.name,
+				message: 'Internal server error',
+				code: 'INTERNAL_ERROR',
+			},
+		});
+	}
+
+	// Handle non-error values (rare)
+	logger.error({
+		message: 'Unknown error type',
+		error: err,
+		path: req.path,
+		method: req.method,
+	});
+
+	return res.status(500).json({
 		error: {
-			message: isCurrentEnvProd ? 'Internal Server Error' : err.message,
-			correlationId: req.correlationId,
+			name: 'UnknownError',
+			message: 'An unknown error occurred',
+			code: 'UNKNOWN_ERROR',
 		},
 	});
-};
+}

@@ -87,11 +87,16 @@ export type AuthenticatedRequest = Request & {
 	cookies?: Record<string, string>;
 };
 
-export type UserResult = {
-	success: boolean;
-	message?: string;
-	user?: IUser | null;
-};
+export type UserResult =
+	| {
+			success: true;
+			message?: string;
+			user: IUser;
+	  }
+	| {
+			success: false;
+			message?: string;
+	  };
 
 export type DeleteResult = UserResult & {
 	id: string;

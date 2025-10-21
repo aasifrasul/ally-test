@@ -1,59 +1,184 @@
-import { constants } from '../constants';
-import { executeQuery } from '../dbClients/helper';
-import { User } from '../models';
-
-import { DBType, IUser, UserResult } from '../types';
+import { comparePassword, hashPassword } from './hashService';
+import { IUser, UserResult } from '../types';
+import { repo } from '../DAL/UserRepository';
+import { DatabaseConflictError } from '../Error';
 import { logger } from '../Logger';
-import { comparePassword } from './hashService';
+import { isValidEmail, stripPassword, validateUserInput } from '../utils/validationUtils';
 
-// Placeholder for user validation (implement according to your auth system)
-export async function validateUserCredentials(email: string, password: string) {
-	const user = await fetchUserByEmail(email);
-	const isPasswordMatch = comparePassword(password, user.password);
-	if (!isPasswordMatch) {
-		logger.error('Password do not match');
-		return false;
-	}
+// -------------------------------
+// Constants & Types
+// -------------------------------
+const DEFAULT_PAGE_LIMIT = 10;
+const DEFAULT_PAGE_OFFSET = 0;
+const ALLOWED_UPDATE_FIELDS = new Set(['name', 'email', 'age']);
 
-	delete user.password;
+// Define a clearer type for generic operation results
+export type OperationResult = { success: boolean; message?: string };
 
-	return user;
+// -------------------------------
+// Service Methods
+// -------------------------------
+
+export async function validateUserCredentials(
+	email: string,
+	password: string,
+): Promise<UserResult> {
+	if (!email || !password)
+		return { success: false, message: 'Email and password are required' };
+
+	const user = await repo.findByEmail(email);
+	if (!user || !user.password) return { success: false, message: 'Invalid credentials' };
+
+	const match = await comparePassword(password, user.password);
+	if (!match) return { success: false, message: 'Invalid credentials' };
+
+	return { success: true, user: stripPassword(user) as IUser };
 }
 
-export const fetchUserByEmail = async (email: string) => {
-	if (constants.dbLayer.currentDB === DBType.MONGODB) {
-		const user = await User.findOne({ email });
-		logger.info('User found', JSON.stringify(user));
-		return user;
-	} else if (constants.dbLayer.currentDB === DBType.POSTGRES) {
-		const query = 'SELECT * FROM users WHERE email = $1';
-		const rows = await executeQuery<any>(query, [email]);
-		return rows[0] || null;
+export async function fetchUserByEmail(email: string): Promise<UserResult> {
+	if (!isValidEmail(email)) return { success: false, message: 'Invalid email' };
+
+	try {
+		const user = await repo.findByEmail(email);
+		if (!user) return { success: false, message: 'User not found' };
+		// Strip password before returning, even for internal use if possible
+		return { success: true, user: stripPassword(user) as IUser };
+	} catch (err) {
+		logger.error(`Fetch user by email failed: ${err}`);
+		return { success: false, message: 'Database error' };
 	}
+}
+
+export async function fetchUserById(id: string): Promise<UserResult> {
+	if (!id) return { success: false, message: 'User ID is required' };
+
+	try {
+		const user = await repo.findById(id);
+		if (!user) return { success: false, message: 'User not found' };
+		// Strip password before returning
+		return { success: true, user: stripPassword(user) as IUser };
+	} catch (err) {
+		logger.error(`Fetch user by ID failed: ${err}`);
+		return { success: false, message: 'Database error' };
+	}
+}
+
+export async function addUser(user: IUser): Promise<UserResult> {
+	const validation = validateUserInput(user);
+	if (!validation.valid) return { success: false, message: validation.error };
+
+	if (!user.name || !user.email || !user.password)
+		return { success: false, message: 'Name, email, and password are required' };
+
+	// Note: The repository handles checking for existing email via unique constraint/error
+	const hashedPassword = await hashPassword(user.password);
+
+	try {
+		const created = await repo.create({ ...user, password: hashedPassword } as IUser);
+		return { success: true, user: stripPassword(created) as IUser };
+	} catch (err) {
+		logger.error(`Add user failed: ${err}`);
+		// Catch the generic custom error thrown by the repository
+		if (err instanceof DatabaseConflictError) {
+			return { success: false, message: 'User with this email already exists' };
+		}
+		return { success: false, message: 'Database error' };
+	}
+}
+
+export async function updateUser(id: string, updates: Partial<IUser>): Promise<UserResult> {
+	if (!id) return { success: false, message: 'User ID is required' };
+
+	// Input Sanitization and Filtering
+	const filtered: Partial<IUser> = {};
+	for (const [key, val] of Object.entries(updates)) {
+		if (ALLOWED_UPDATE_FIELDS.has(key)) filtered[key as keyof IUser] = val;
+	}
+	if (Object.keys(filtered).length === 0)
+		return { success: false, message: 'No valid fields to update' };
+
+	const validation = validateUserInput(filtered);
+	if (!validation.valid) return { success: false, message: validation.error };
+
+	try {
+		const updated = await repo.updateById(id, filtered);
+		if (!updated) return { success: false, message: 'User not found' };
+		return { success: true, user: stripPassword(updated) as IUser };
+	} catch (err) {
+		logger.error(`Update user failed: ${err}`);
+		return { success: false, message: 'Database error' };
+	}
+}
+
+export async function deleteUser(id: string): Promise<OperationResult> {
+	if (!id) return { success: false, message: 'User ID is required' };
+
+	try {
+		const deleted = await repo.deleteById(id);
+		if (!deleted) return { success: false, message: 'User not found' };
+		return { success: true, message: 'User deleted successfully' };
+	} catch (err) {
+		logger.error(`Delete user failed: ${err}`);
+		return { success: false, message: 'Database error' };
+	}
+}
+
+export async function updateUserPassword(
+	id: string,
+	newPassword: string,
+): Promise<UserResult> {
+	if (!id) return { success: false, message: 'User ID is required' };
+	if (!newPassword || newPassword.length < 8)
+		return { success: false, message: 'Password must be at least 8 characters' };
+
+	const hashed = await hashPassword(newPassword);
+
+	try {
+		const updated = await repo.updatePassword(id, hashed);
+		if (!updated) return { success: false, message: 'User not found' };
+		return {
+			success: true,
+			user: stripPassword(updated) as IUser,
+			message: 'Password updated successfully',
+		};
+	} catch (err) {
+		logger.error(`Update password failed: ${err}`);
+		return { success: false, message: 'Database error' };
+	}
+}
+
+// Adjusted return type to be clearer and align with typical service responses
+type FetchAllUsersResult = {
+	success: boolean;
+	message?: string;
+	users?: Omit<IUser, 'password'>[];
 };
 
-export const addUser = async (user: IUser): Promise<UserResult> => {
-	const { name, email, age, password } = user;
-	if (constants.dbLayer.currentDB === DBType.MONGODB) {
-		try {
-			const newUser = new User({ name, email, age, password });
-			await newUser.save();
-			return { success: true, user: newUser };
-		} catch (error) {
-			logger.error(`Failed to create user: ${error}`);
-			return { success: false };
-		}
-	} else if (constants.dbLayer.currentDB === DBType.POSTGRES) {
-		const query = `INSERT INTO users (name, email, age, password) VALUES ($1, $2, $3, $4) RETURNING *`;
-		const params = [name, email, age, password];
+export async function fetchAllUsers(
+	limit = DEFAULT_PAGE_LIMIT,
+	offset = DEFAULT_PAGE_OFFSET,
+): Promise<FetchAllUsersResult> {
+	if (limit < 1 || limit > 100)
+		return { success: false, message: 'Limit must be between 1 and 100' };
+	if (offset < 0) return { success: false, message: 'Offset must be non-negative' };
 
-		try {
-			const rows = await executeQuery<any>(query, params);
-			return { success: true, user: rows[0] || null };
-		} catch (error) {
-			logger.error(`Failed to create user: ${query} - ${error}`);
-			return { success: false };
-		}
+	try {
+		const users = await repo.findAll(limit, offset);
+		// Passwords are already excluded in the repository's findAll methods
+		return { success: true, users };
+	} catch (err) {
+		logger.error(`Fetch all users failed: ${err}`);
+		return { success: false, message: 'Database error' };
 	}
-	return { success: false, message: 'Unknown database' };
-};
+}
+
+export async function userExists(email: string): Promise<OperationResult> {
+	if (!isValidEmail(email)) return { success: false, message: 'Invalid email' };
+	try {
+		const user = await repo.findByEmail(email);
+		return { success: !!user, message: user ? 'User exists' : 'User does not exist' };
+	} catch (err) {
+		logger.error(`User exists check failed: ${err}`);
+		return { success: false, message: 'Database error' };
+	}
+}
