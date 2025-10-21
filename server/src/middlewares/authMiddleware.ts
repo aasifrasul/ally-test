@@ -1,9 +1,10 @@
 import type { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 
-import { fetchToken, verifyToken } from '../services/jwtService';
+import { verifyToken } from '../services/tokenService';
+import { fetchToken } from '../transport/tokenTransport';
 
-import { AuthError, InvalidTokenError, TokenExpiredError } from '../Errors';
+import { AuthError, InvalidTokenError, TokenExpiredError } from '../Error';
 import { logger } from '../Logger';
 import { isCurrentEnvProd } from '../envConfigDetails';
 
@@ -109,7 +110,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 		next();
 	} catch (error) {
 		if (error instanceof AuthError) {
-			res.status(error.statusCode).json({
+			res.status(error.statusCode!).json({
 				error: error.message,
 				code: error.code,
 			});

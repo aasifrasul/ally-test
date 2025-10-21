@@ -7,7 +7,7 @@ import { isMobileApp, nocache, getParsedUserAgentData, getFileContents } from '.
 import { schema } from '../schema';
 import { parse } from '../UaParser';
 import { pathAssets, pathTemplate } from '../paths';
-import { StreamCSVService } from '../utility/streamCSVService';
+import { StreamCSVService } from '../utils/streamCSVService';
 
 const pubsub = new PubSub();
 const streamCSVService = new StreamCSVService();

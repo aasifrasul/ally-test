@@ -125,6 +125,7 @@ const updateUser = async (
 	if (currentDB === DBType.MONGODB) {
 		try {
 			const user = await User.findByIdAndUpdate(id, { name, email, age }, { new: true });
+			if (!user) return { success: false };
 			if (user) {
 				await redisClient.cacheData(id, user);
 			}
@@ -147,12 +148,16 @@ const updateUser = async (
 	}
 };
 
-const deleteUser = async (parent: any, args: { id: string }): Promise<DeleteResult> => {
+const deleteUser = async (
+	parent: any,
+	args: { id: string },
+): Promise<Partial<DeleteResult>> => {
 	const { id } = args;
 
 	if (currentDB === DBType.MONGODB) {
 		try {
 			const result = await User.findByIdAndDelete(id);
+			if (!result) return { success: false };
 			if (result) {
 				await redisClient.deleteCachedData(id);
 			}

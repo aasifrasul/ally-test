@@ -9,7 +9,7 @@ const sessionId: string = uuidv4();
 const languageCode: string = 'en-US';
 
 const sessionClient: SessionsClient = new SessionsClient({
-	keyFilename: 'server/src/utility/dialogFlow/index.ts', // Replace with the path to your service account key
+	keyFilename: 'server/src/utils/dialogFlow/index.ts', // Replace with the path to your service account key
 });
 logger.info(
 	`DialogFlow client initialized with sessionClient: ${JSON.stringify(sessionClient)}`,

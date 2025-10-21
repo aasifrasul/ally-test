@@ -8,7 +8,7 @@ import {
 	authenticateToken,
 } from '../middlewares/authMiddleware';
 import { logout, register, refreshToken, login } from '../controllers/authController';
-import { getClientType } from '../services/jwtService';
+import { getClientType } from '../utils/tokenUtils';
 
 import { JWT_SECRET } from '../envConfigDetails';
 
