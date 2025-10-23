@@ -1,8 +1,12 @@
-import type { Request, Response } from 'express';
+import type { ErrorRequestHandler, Request, Response } from 'express';
 import { BaseError } from '../Error/BaseError';
 import { logger } from '../Logger';
 
-export function errorHandler(err: unknown, req: Request, res: Response) {
+export const errorHandler: ErrorRequestHandler = (
+	err: unknown,
+	req: Request,
+	res: Response,
+): void => {
 	// Handle our custom errors
 	if (err instanceof BaseError) {
 		logger.error({
@@ -19,7 +23,7 @@ export function errorHandler(err: unknown, req: Request, res: Response) {
 					: err.cause,
 		});
 
-		return res.status(err.statusCode ?? 500).json({
+		res.status(err.statusCode ?? 500).json({
 			error: {
 				name: err.name,
 				message: err.message,
@@ -27,6 +31,7 @@ export function errorHandler(err: unknown, req: Request, res: Response) {
 				statusCode: err.statusCode ?? 500,
 			},
 		});
+		return;
 	}
 
 	// Handle generic or unexpected errors
@@ -39,13 +44,14 @@ export function errorHandler(err: unknown, req: Request, res: Response) {
 			method: req.method,
 		});
 
-		return res.status(500).json({
+		res.status(500).json({
 			error: {
 				name: err.name,
 				message: 'Internal server error',
 				code: 'INTERNAL_ERROR',
 			},
 		});
+		return;
 	}
 
 	// Handle non-error values (rare)
@@ -56,11 +62,12 @@ export function errorHandler(err: unknown, req: Request, res: Response) {
 		method: req.method,
 	});
 
-	return res.status(500).json({
+	res.status(500).json({
 		error: {
 			name: 'UnknownError',
 			message: 'An unknown error occurred',
 			code: 'UNKNOWN_ERROR',
 		},
 	});
-}
+	return;
+};

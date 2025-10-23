@@ -1,5 +1,4 @@
-import { Request } from 'express';
-import { generateSessionId } from '../services/hashService';
+import type { Request } from 'express';
 
 export const convertExpiryToSeconds = (expiry: string): number => {
 	const match = expiry.match(/^(\d+)([smhd])$/);
@@ -16,8 +15,6 @@ export const convertExpiryToSeconds = (expiry: string): number => {
 
 	return value * (multipliers[unit] || 60);
 };
-
-export const createSessionId = (): string => generateSessionId();
 
 export const getClientType = (req: Request): 'web' | 'mobile' | 'api' => {
 	const userAgent = req.headers['user-agent']?.toLowerCase() || '';

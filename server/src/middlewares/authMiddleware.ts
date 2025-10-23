@@ -6,14 +6,14 @@ import { fetchToken } from '../transport/tokenTransport';
 
 import { AuthError, InvalidTokenError, TokenExpiredError } from '../Error';
 import { logger } from '../Logger';
-import { isCurrentEnvProd } from '../envConfigDetails';
+import { isProdEnv } from '../envConfigDetails';
 
 // Rate limiting for auth endpoints
 export const authRateLimit = rateLimit({
-	windowMs: 15 * 60 * 1000, // 15 minutes
+	windowMs: 5 * 60 * 1000, // 5 minutes
 	max: 5, // 5 attempts per window
 	message: {
-		error: 'Too many authentication attempts, please try again later.',
+		error: 'Too many authentication attempts. Please try again after 15 minutes.',
 	},
 	standardHeaders: true,
 	legacyHeaders: false,
@@ -48,7 +48,7 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
 	res.setHeader('X-XSS-Protection', '1; mode=block');
 	res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-	if (isCurrentEnvProd) {
+	if (isProdEnv) {
 		res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 	}
 

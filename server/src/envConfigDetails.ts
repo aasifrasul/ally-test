@@ -30,4 +30,4 @@ export {
 	REFRESH_TOKEN_SECRET,
 };
 
-export const isCurrentEnvProd: boolean = process.env.NODE_ENV === 'production';
+export const isProdEnv: boolean = process.env.NODE_ENV === 'production';

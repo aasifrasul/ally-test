@@ -1,8 +1,6 @@
-// Create a new file called globalErrorHandler.ts
-
 import type { Application, Request, Response, NextFunction, RequestHandler } from 'express';
 
-import { isCurrentEnvProd } from './envConfigDetails';
+import { isProdEnv } from './envConfigDetails';
 import { logger } from './Logger';
 
 /**
@@ -43,7 +41,7 @@ export function setupGlobalAsyncErrorHandling(app: Application): void {
 
 		res.status(statusCode).json({
 			message: err.message,
-			stack: isCurrentEnvProd ? '🥞' : err.stack,
+			stack: isProdEnv ? '🥞' : err.stack,
 		});
 	});
 }
