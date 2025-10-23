@@ -1,14 +1,16 @@
 import jwt from 'jsonwebtoken';
+
+import { convertExpiryToSeconds } from '../utils/commonUtils';
+import { generateSessionId } from '../services/hashService';
 import { JWT_SECRET, REFRESH_TOKEN_SECRET, JWT_EXPIRES_IN } from '../envConfigDetails';
 import { InvalidTokenError, TokenExpiredError } from '../Error';
 import { IUser, TokenPayload } from '../types';
-import { convertExpiryToSeconds, createSessionId } from '../utils/tokenUtils';
 
 export type TokenType = 'access' | 'refresh';
 
 export const generateToken = (payload: TokenPayload, type: TokenType = 'access') => {
 	const now = Math.floor(Date.now() / 1000);
-	const sessionId = createSessionId();
+	const sessionId = generateSessionId();
 
 	const tokenPayload = {
 		...payload,

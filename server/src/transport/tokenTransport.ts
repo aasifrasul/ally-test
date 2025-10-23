@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { isCurrentEnvProd } from '../envConfigDetails';
-import { getClientType } from '../utils/tokenUtils';
+import { isProdEnv } from '../envConfigDetails';
+import { getClientType } from '../utils/commonUtils';
 
 interface TokenStorageConfig {
 	authToken: 'cookie' | 'response' | 'both';
@@ -31,7 +31,7 @@ export const setTokensResponse = (
 	if (strategy.authToken === 'cookie' || strategy.authToken === 'both') {
 		res.cookie('authToken', tokens.authToken, {
 			httpOnly: true,
-			secure: isCurrentEnvProd,
+			secure: isProdEnv,
 			sameSite: 'strict',
 			maxAge: 15 * 60 * 1000, // 15 minutes
 		});
@@ -43,7 +43,7 @@ export const setTokensResponse = (
 	if (strategy.refreshToken === 'cookie' || strategy.refreshToken === 'both') {
 		res.cookie('refreshToken', tokens.refreshToken, {
 			httpOnly: true,
-			secure: isCurrentEnvProd,
+			secure: isProdEnv,
 			sameSite: 'strict',
 			maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 			path: '/auth',

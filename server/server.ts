@@ -15,7 +15,7 @@ import { logger } from './src/Logger';
 import { pathRootDir, pathAssets } from './src/paths';
 import { executeQuery } from './src/dbClients/helper';
 import { verifyToken } from './src/services/jwtService';
-import { isCurrentEnvProd, JWT_SECRET } from './src/envConfigDetails';
+import { isProdEnv, JWT_SECRET } from './src/envConfigDetails';
 
 const port = 3000;
 const host = '127.0.0.1';
@@ -166,7 +166,7 @@ app.post('/sso/login', async (req: Request, res: Response): Promise<any> => {
 	// Set secure httpOnly cookie
 	res.cookie('sso_token', token, {
 		httpOnly: true,
-		secure: isCurrentEnvProd,
+		secure: isProdEnv,
 		sameSite: 'strict',
 		maxAge: 3600000, // 1 hour
 	});

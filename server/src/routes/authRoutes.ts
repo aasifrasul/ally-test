@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 import {
@@ -8,20 +8,12 @@ import {
 	authenticateToken,
 } from '../middlewares/authMiddleware';
 import { logout, register, refreshToken, login } from '../controllers/authController';
-import { getClientType } from '../utils/tokenUtils';
+import { getClientType } from '../utils/commonUtils';
 
 import { JWT_SECRET } from '../envConfigDetails';
+import { asyncHandler } from '../utils/routeUtils';
 
 const router = Router();
-
-// Enhanced async handler with proper TypeScript typing
-export const asyncHandler = (
-	fn: (req: Request, res: Response, next: NextFunction) => Promise<any>,
-) => {
-	return (req: Request, res: Response, next: NextFunction): void => {
-		Promise.resolve(fn(req, res, next)).catch(next);
-	};
-};
 
 // Mock user store (replace with your database)
 const users: Array<{
@@ -40,16 +32,9 @@ async function storeOAuthTokens(userId: string, tokens: Record<string, string>) 
 	// await db.oauthTokens.create({ userId, ...tokens });
 }
 
-// Register endpoint
 router.post('/register', authRateLimit, asyncHandler(register));
-
-// Login endpoint
 router.post('/login', authRateLimit, asyncHandler(login));
-
-// Refresh token endpoint
 router.post('/refresh', authRateLimit, asyncHandler(refreshToken));
-
-// Logout endpoint
 router.post('/logout', authRateLimit, authenticateToken, asyncHandler(logout));
 
 // OAuth token exchange with proper storage strategy

@@ -13,7 +13,7 @@ import webpackHotMiddleware from 'webpack-hot-middleware';
 
 const timeout = require('connect-timeout');
 
-import { host, port, isCurrentEnvProd, ALLOWED_ORIGINS } from './envConfigDetails';
+import { host, port, isProdEnv, ALLOWED_ORIGINS } from './envConfigDetails';
 import {
 	userAgentHandler,
 	fetchWineData,
@@ -33,6 +33,7 @@ import { authRoutes } from './routes/authRoutes';
 import { optionalAuth } from './middlewares/authMiddleware';
 
 import { logger } from './Logger';
+import { errorHandler } from './middlewares/errorHandler';
 
 interface RequestWithId extends Request {
 	id?: string;
@@ -46,10 +47,14 @@ const app: Application = express();
 
 generateBuildTime();
 
-const limiter = rateLimit({
+// Global rate limiter
+const globalLimiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minutes
-	max: 100, // limit each IP to 100 requests per windowMs
+	max: 100, // max 100 requests per window per IP
+	standardHeaders: true,
+	legacyHeaders: false,
 });
+app.use(globalLimiter);
 
 // Setup file upload and proxy early
 handleFileupload(app);
@@ -70,7 +75,7 @@ app.use(userAgentHandler);
 app.use(compression());
 app.use(
 	cors({
-		origin: isCurrentEnvProd ? ALLOWED_ORIGINS?.split(',') : `http://${host}:${port}`,
+		origin: isProdEnv ? ALLOWED_ORIGINS?.split(',') : `http://${host}:${port}`,
 		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Authorization'],
 		credentials: true,
@@ -79,7 +84,7 @@ app.use(
 
 app.use(
 	helmet({
-		contentSecurityPolicy: isCurrentEnvProd ? undefined : false,
+		contentSecurityPolicy: isProdEnv ? undefined : false,
 	}),
 );
 
@@ -88,7 +93,6 @@ app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use(bodyParser.text());
 app.use(timeout('10s'));
 app.use(haltOnTimedout as express.RequestHandler);
-app.use(limiter);
 
 // 2. Request ID middleware
 app.use((req: RequestWithId, _, next: NextFunction) => {
@@ -100,7 +104,7 @@ app.use((req: RequestWithId, _, next: NextFunction) => {
 app.use(optionalAuth);
 
 // 4. WEBPACK DEV MIDDLEWARE SETUP (BEFORE OTHER STATIC ROUTES)
-if (!isCurrentEnvProd) {
+if (!isProdEnv) {
 	// Import your webpack configuration
 	const webpackConfig = require('../../webpack-configs/webpack.config');
 
@@ -157,7 +161,7 @@ app.use('/login', (_, res: Response) => {
 });
 
 // 6. STATIC FILE SERVING (after webpack middleware)
-if (isCurrentEnvProd) {
+if (isProdEnv) {
 	// Production: serve built files
 	app.use('/public', express.static(pathDist));
 	// Serve other static assets from root
@@ -186,7 +190,7 @@ app.set('view engine', 'handlebars');
 app.set('views', pathTemplate);
 
 // Bundle config for templates
-const bundleConfig = isCurrentEnvProd
+const bundleConfig = isProdEnv
 	? ['en', 'vendor', 'app'].map((item) => `/public/${item}.[chunkhash].js`) // Production uses chunkhash
 	: ['en', 'vendor', 'app'].map((item) => `/public/${item}.bundle.js`); // Dev uses .bundle.js
 
@@ -201,7 +205,7 @@ app.all(['/', '/:route'], (req: any, res: Response, next: NextFunction) => {
 		js: bundleConfig,
 		...constructReqDataObject(req),
 		user: req.user,
-		dev: !isCurrentEnvProd,
+		dev: !isProdEnv,
 		layout: false,
 	};
 	res.send(compiledTemplate(data));
@@ -209,5 +213,5 @@ app.all(['/', '/:route'], (req: any, res: Response, next: NextFunction) => {
 
 // 8. 404 Handler last
 finalHandler(app);
-
+app.use(errorHandler);
 export { app };
