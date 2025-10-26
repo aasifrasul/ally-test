@@ -28,6 +28,9 @@ export class PostgresDBConnection {
 	private static instance: PostgresDBConnection;
 	private pool: Pool;
 	private isShuttingDown: boolean = false;
+	private lastHealthCheck: Date | null = null;
+	private isHealthy: boolean = false;
+	private readonly HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 
 	private constructor(config: PostgresDBConnectionConfig) {
 		this.pool = new Pool({
@@ -69,8 +72,8 @@ export class PostgresDBConnection {
 		try {
 			const instance = new PostgresDBConnection(config);
 			await instance.testConnection();
-			return instance;
 			logger.info('PostgresDBConnection instantiated');
+			return instance;
 		} catch (err) {
 			throw new DatabaseConnectionError(
 				`Failed to connect to database: ${(err as Error).message}`,
@@ -138,6 +141,48 @@ export class PostgresDBConnection {
 			name VARCHAR(255) NOT NULL,
 			category VARCHAR(255) NOT NULL
 		);`);
+	}
+
+	public async checkHealth(): Promise<boolean> {
+		const now = new Date();
+
+		// Return cached result if recent
+		if (
+			this.lastHealthCheck &&
+			now.getTime() - this.lastHealthCheck.getTime() < this.HEALTH_CHECK_INTERVAL
+		) {
+			return this.isHealthy;
+		}
+
+		if (this.isShuttingDown || !this.pool) {
+			this.isHealthy = false;
+			return false;
+		}
+
+		let client: PoolClient | null = null;
+		try {
+			client = await this.pool.connect();
+			await client.query('SELECT 1');
+			this.isHealthy = true;
+			this.lastHealthCheck = now;
+			return true;
+		} catch (err) {
+			logger.error(`Health check failed: ${(err as Error).message}`);
+			this.isHealthy = false;
+			return false;
+		} finally {
+			if (client) client.release();
+		}
+	}
+
+	public isAvailable(): boolean {
+		// Synchronous check for quick access
+		return this.isHealthy && !this.isShuttingDown;
+	}
+
+	public static async isConnected(): Promise<boolean> {
+		if (!PostgresDBConnection.instance) return false;
+		return await PostgresDBConnection.instance.checkHealth();
 	}
 
 	public async cleanup(): Promise<void> {

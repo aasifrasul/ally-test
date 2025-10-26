@@ -9,6 +9,7 @@ interface HomeProps {
 const Home: React.FC<HomeProps> = (props) => {
 	return (
 		<div>
+			<h1>My Personal Project</h1>
 			<Spacer size={16} />
 			<RootNavigation pages={props.pages} />
 			<Spacer size={16} />

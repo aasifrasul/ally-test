@@ -34,6 +34,9 @@ import { optionalAuth } from './middlewares/authMiddleware';
 
 import { logger } from './Logger';
 import { errorHandler } from './middlewares/errorHandler';
+import { PostgresDBConnection } from './dbClients/PostgresDBConnection';
+import { MongoDBConnection } from './dbClients/MongoDBConnection';
+import { RedisClient } from './cachingClients/redis';
 
 interface RequestWithId extends Request {
 	id?: string;
@@ -142,8 +145,18 @@ if (!isProdEnv) {
 }
 
 // 5. Specific API routes (before static files)
-app.get('/health', async (_, res: Response) => {
-	res.status(200).json({ status: 'healthy' });
+
+app.get('/health', async (_, res) => {
+	const mongoHealthy = await MongoDBConnection.isAvailable();
+	const postgresHealthy = await PostgresDBConnection.isConnected();
+	const redisHealthy = RedisClient.getInstance().isAvailable();
+	const status = postgresHealthy && mongoHealthy && redisHealthy ? 'healthy' : 'unhealthy';
+	res.status(status === 'healthy' ? 200 : 503).json({
+		status,
+		postgresHealthy,
+		mongoHealthy,
+		redisHealthy,
+	});
 });
 
 // Auth routes

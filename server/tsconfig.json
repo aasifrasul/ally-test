@@ -11,6 +11,6 @@
 		"rootDir": "./server",
 		"typeRoots": ["./node_modules/@types", "./types"]
 	},
-	"include": ["./server/src/**/*", "./types/*.d.ts"],
-	"exclude": ["../node_modules", "../src/**/*", "../dist", "../public"]
+	"typeRoots": ["./node_modules/@types", "./server/types"],
+	"include": ["./server/src/**/*", "./types/**/*.d.ts"]
 }
