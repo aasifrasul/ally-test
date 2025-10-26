@@ -247,7 +247,7 @@ export class RedisClient {
 		await this.checkHealth();
 	}
 
-	public async cacheData(
+	public async set(
 		key: string,
 		value: any,
 		expirationSeconds: number = 3600,
@@ -272,7 +272,7 @@ export class RedisClient {
 		}
 	}
 
-	public async getCachedData<T>(key: string): Promise<T | null> {
+	public async get<T>(key: string): Promise<T | null> {
 		if (!this.isAvailable()) {
 			logger.warn('Redis is unavailable. Cache retrieval skipped.');
 			return null;
@@ -288,6 +288,23 @@ export class RedisClient {
 			this.handleConnectionError(err as Error);
 			return null;
 		}
+	}
+
+	async delete(key: string): Promise<boolean> {
+		if (!this.isAvailable()) return false;
+		const deleted = await this.client!.del(key);
+		return deleted > 0;
+	}
+
+	async exists(key: string): Promise<boolean> {
+		if (!this.isAvailable()) return false;
+		const exists = await this.client!.exists(key);
+		return exists === 1;
+	}
+
+	async clear(): Promise<void> {
+		if (!this.isAvailable()) return;
+		await this.client!.flushAll();
 	}
 
 	async subscribeToChannel(channel: string) {

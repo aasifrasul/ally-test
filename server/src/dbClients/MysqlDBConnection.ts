@@ -1,10 +1,14 @@
 import mysql, { Pool, PoolConnection, RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import { constants } from '../constants';
 import { logger } from '../Logger';
+import { IDBConnection } from './Adapters';
 
-class MysqlDBConnection {
+class MysqlDBConnection implements IDBConnection {
 	private static instance: MysqlDBConnection;
 	private pool: Pool;
+	private lastHealthCheck: Date | null = null;
+	private isHealthy: boolean = false;
+	private readonly HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 
 	private constructor() {
 		this.pool = mysql.createPool(constants.dbLayer.mysql);
@@ -32,9 +36,11 @@ class MysqlDBConnection {
 		);
 	}
 
-	public async executeQuery<
-		T extends RowDataPacket[][] | RowDataPacket[] | ResultSetHeader | ResultSetHeader[],
-	>(query: string, params?: any[]): Promise<T> {
+	public async executeQuery<T = any>(
+		query: string,
+		params?: any[], // Add params parameter even if not used
+	): Promise<T[]> {
+		// Always return T[], not T[] | boolean
 		logger.info(`Executing query: ${query}`);
 		logger.info(`Query parameters: ${JSON.stringify(params)}`);
 
@@ -42,10 +48,10 @@ class MysqlDBConnection {
 
 		try {
 			connection = await this.pool.getConnection();
-			const [result] = await connection.execute(query, params);
+			const result = await connection.execute(query, params);
 			logger.info(`Query executed successfully`);
 			logger.info(`Query result: ${JSON.stringify(result)}`);
-			return result as T;
+			return result[0] as T[]; // Ensure array return
 		} catch (error) {
 			logger.error(`Failed to execute query: ${(error as Error).message}`);
 			logger.info(`Error stack: ${(error as Error).stack}`);
@@ -73,6 +79,48 @@ class MysqlDBConnection {
 		} finally {
 			connection.release();
 		}
+	}
+
+	public async checkHealth(): Promise<boolean> {
+		const now = new Date();
+
+		// Return cached result if recent
+		if (
+			this.lastHealthCheck &&
+			now.getTime() - this.lastHealthCheck.getTime() < this.HEALTH_CHECK_INTERVAL
+		) {
+			return this.isHealthy;
+		}
+
+		if (!this.pool) {
+			this.isHealthy = false;
+			return false;
+		}
+
+		let client: PoolConnection | null = null;
+		try {
+			client = await this.pool.getConnection();
+			await client.query('SELECT 1');
+			this.isHealthy = true;
+			this.lastHealthCheck = now;
+			return true;
+		} catch (err) {
+			logger.error(`Health check failed: ${(err as Error).message}`);
+			this.isHealthy = false;
+			return false;
+		} finally {
+			if (client) client.release();
+		}
+	}
+
+	public isAvailable(): boolean {
+		// Synchronous check for quick access
+		return this.isHealthy;
+	}
+
+	public static async isConnected(): Promise<boolean> {
+		if (!MysqlDBConnection.instance) return false;
+		return await MysqlDBConnection.instance.checkHealth();
 	}
 
 	public async cleanup(): Promise<void> {

@@ -16,7 +16,7 @@ const table = 'book_store';
 const getBook = async (parent: any, args: { id: string }): Promise<IBook | null> => {
 	const { id } = args;
 
-	let result = await redisClient.getCachedData(id);
+	let result = await redisClient.get(id);
 
 	if (result) {
 		return result as IBook;
@@ -26,7 +26,7 @@ const getBook = async (parent: any, args: { id: string }): Promise<IBook | null>
 		try {
 			const book = await Book.findById(id);
 			if (book) {
-				await redisClient.cacheData(id, book);
+				await redisClient.set(id, book);
 			}
 			return book;
 		} catch (error) {
@@ -94,7 +94,7 @@ const addBook = async (parent: any, args: IBook): Promise<BookMutationResponse> 
 
 			pubsub.publish('BOOK_CREATED', { bookCreated: book });
 
-			await redisClient.cacheData(book.id, book);
+			await redisClient.set(book.id, book);
 			return {
 				success: true,
 				message: 'Book created successfully',
@@ -150,7 +150,7 @@ const updateBook = async (
 				{ new: true },
 			);
 			if (book) {
-				await redisClient.cacheData(book.id, book);
+				await redisClient.set(book.id, book);
 			}
 			return {
 				success: true,

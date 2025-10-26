@@ -2,6 +2,7 @@ import { Pool, PoolConfig, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { constants } from '../constants';
 import { DBType } from '../types';
 import { logger } from '../Logger';
+import { IDBConnection } from './Adapters';
 
 export interface PostgresDBConnectionConfig extends PoolConfig {
 	maxConnections?: number;
@@ -24,7 +25,7 @@ export class QueryExecutionError extends Error {
 	}
 }
 
-export class PostgresDBConnection {
+export class PostgresDBConnection implements IDBConnection {
 	private static instance: PostgresDBConnection;
 	private pool: Pool;
 	private isShuttingDown: boolean = false;
@@ -100,10 +101,7 @@ export class PostgresDBConnection {
 		}
 	}
 
-	public async executeQuery<T extends QueryResultRow = QueryResultRow>(
-		query: string,
-		params?: any[],
-	): Promise<T[]> {
+	public async executeQuery<T = any>(query: string, params?: any[]): Promise<T[]> {
 		if (this.isShuttingDown) {
 			throw new Error('Database connection is shutting down, no new queries allowed');
 		}
@@ -114,7 +112,7 @@ export class PostgresDBConnection {
 		let client: PoolClient | null = null;
 		try {
 			client = await this.pool.connect();
-			const result: QueryResult<T> = await client.query(query, params);
+			const result: QueryResult = await client.query(query, params);
 			logger.debug(`Query returned ${result.rowCount} rows`);
 			return result.rows;
 		} catch (err) {

@@ -150,7 +150,7 @@ app.get('/health', async (_, res) => {
 	const mongoHealthy = await MongoDBConnection.isAvailable();
 	const postgresHealthy = await PostgresDBConnection.isConnected();
 	const redisHealthy = RedisClient.getInstance().isAvailable();
-	const status = postgresHealthy && mongoHealthy && redisHealthy ? 'healthy' : 'unhealthy';
+	const status = postgresHealthy || mongoHealthy || redisHealthy ? 'healthy' : 'unhealthy';
 	res.status(status === 'healthy' ? 200 : 503).json({
 		status,
 		postgresHealthy,
