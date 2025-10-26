@@ -20,7 +20,7 @@ const table = `"TEST_USERS"`;
 const getUser = async (parent: any, args: { id: string }): Promise<IUser | null> => {
 	const { id } = args;
 
-	let result = await redisClient.getCachedData(id);
+	let result = await redisClient.get(id);
 
 	if (result) {
 		return result as IUser;
@@ -30,7 +30,7 @@ const getUser = async (parent: any, args: { id: string }): Promise<IUser | null>
 		try {
 			const user = await User.findById(id);
 			if (user) {
-				await redisClient.cacheData(id, user);
+				await redisClient.set(id, user);
 			}
 			return user;
 		} catch (error) {
@@ -94,7 +94,7 @@ const createUser = async (parent: any, args: IUser): Promise<UserResult> => {
 
 			pubsub.publish('USER_CREATED', { userCreated: user });
 
-			await redisClient.cacheData(user.id, user);
+			await redisClient.set(user.id, user);
 			return { success: true, user };
 		} catch (error) {
 			logger.error(`Failed to create user in MongoDB: ${error}`);
@@ -127,7 +127,7 @@ const updateUser = async (
 			const user = await User.findByIdAndUpdate(id, { name, email, age }, { new: true });
 			if (!user) return { success: false };
 			if (user) {
-				await redisClient.cacheData(id, user);
+				await redisClient.set(id, user);
 			}
 			return { success: true, user };
 		} catch (error) {

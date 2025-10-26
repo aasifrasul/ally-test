@@ -31,7 +31,7 @@ const table = '"TEST_PRODUCTS"';
 const getProduct = async (parent: any, args: { id: string }): Promise<ProductArgs | null> => {
 	const { id } = args;
 
-	let product: ProductArgs | null = await redisClient.getCachedData(id);
+	let product: ProductArgs | null = await redisClient.get(id);
 
 	if (product) {
 		return product;
@@ -40,7 +40,7 @@ const getProduct = async (parent: any, args: { id: string }): Promise<ProductArg
 	if (currentDB === DBType.MONGODB) {
 		try {
 			product = await Product.findById(id);
-			redisClient.cacheData(id, product);
+			redisClient.set(id, product);
 			return product;
 		} catch (error) {
 			logger.error(`Failed to create product in MongoDB: ${error}`);
@@ -81,7 +81,7 @@ const createProduct = async (parent: any, args: ProductArgs): Promise<ProductRes
 	if (currentDB === DBType.MONGODB) {
 		try {
 			const product = await new Product({ name, category }).save();
-			redisClient.cacheData(product.id, product);
+			redisClient.set(product.id, product);
 			return { success: true, product };
 		} catch (error) {
 			logger.error(`Failed to create product in MongoDB: ${error}`);
@@ -114,7 +114,7 @@ const updateProduct = async (
 				{ name, category },
 				{ new: true },
 			);
-			redisClient.cacheData(id, product);
+			redisClient.set(id, product);
 			return { success: true, product };
 		} catch (error) {
 			logger.error(`Failed to create product in MongoDB: ${error}`);

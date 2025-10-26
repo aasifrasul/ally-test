@@ -80,7 +80,6 @@ sftp-config.json
 *.iml
 *.ipr
 *.iws
-.idea
 *.swp
 .project
 .idea
@@ -89,3 +88,5 @@ records.json
 
 templates/*
 public/*
+test-results/
+playwright-report/

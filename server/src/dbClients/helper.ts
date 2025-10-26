@@ -1,3 +1,4 @@
+import { Server } from 'http';
 import { PostgresDBConnection, QueryResultRow } from './PostgresDBConnection';
 import { logger } from '../Logger';
 import { DBType } from '../types';
@@ -9,6 +10,8 @@ import {
 import { MongoDBConnection } from './MongoDBConnection';
 import { RedisClient } from '../cachingClients/redis';
 import { constants } from '../constants';
+import { connectWSServer, disconnectWSServer } from '../webSocketConnection';
+import { connectToIOServer, disconnectIOServer } from '../socketConnection';
 
 export const getLimitCond = (currentDB: DBType, count: number): string => {
 	switch (currentDB) {
@@ -23,9 +26,7 @@ export const getLimitCond = (currentDB: DBType, count: number): string => {
 	}
 };
 
-export const getGenericDBInstance = async (
-	currentDB: DBType,
-): Promise<GenericDBConnection> => {
+export const getDBInstance = async (currentDB: DBType): Promise<GenericDBConnection> => {
 	const genericInstance = await GenericDBConnection.getInstance(currentDB);
 
 	if (!genericInstance) {
@@ -33,11 +34,6 @@ export const getGenericDBInstance = async (
 	}
 
 	return genericInstance;
-};
-
-export const getDBInstance = async (currentDB: DBType): Promise<DBInstance | null> => {
-	const genericInstance = await getGenericDBInstance(currentDB);
-	return genericInstance.getDBInstance();
 };
 
 export async function executeQuery<T extends QueryResultRow>(
@@ -53,11 +49,23 @@ export async function executeQuery<T extends QueryResultRow>(
 	}
 }
 
-export async function disconnectDBs() {
+export async function initializeConnections(httpServer: Server) {
+	return await Promise.allSettled([
+		await getDBInstance(constants.dbLayer.currentDB),
+		MongoDBConnection.initialize(),
+		RedisClient.getInstance()?.connect(),
+		connectWSServer(httpServer),
+		connectToIOServer(httpServer),
+	]);
+}
+
+export async function closeActiveConnections() {
 	return Promise.allSettled([
+		(await getDBInstance(constants.dbLayer.currentDB))?.cleanup(),
 		MongoDBConnection.getInstance()?.cleanup(),
 		RedisClient.getInstance()?.cleanup(),
-		(await getDBInstance(constants.dbLayer.currentDB))?.cleanup(),
+		disconnectIOServer(),
+		disconnectWSServer(),
 	]);
 }
 

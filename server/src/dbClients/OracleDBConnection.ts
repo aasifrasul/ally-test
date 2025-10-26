@@ -1,6 +1,7 @@
 import oracledb, { Pool, Connection } from 'oracledb';
 import { constants } from '../constants';
 import { logger } from '../Logger';
+import { IDBConnection } from './Adapters';
 
 interface ResultSet<T = any> {
 	getRows(): Promise<T[]>;
@@ -13,9 +14,13 @@ interface ExecuteResult<T = any> {
 	rowsAffected?: number;
 	resultSet?: ResultSet<T>;
 }
-class OracleDBConnection {
+
+export class OracleDBConnection implements IDBConnection {
 	private static instance: OracleDBConnection;
 	private pool!: Pool;
+	private lastHealthCheck: Date | null = null;
+	private isHealthy: boolean = false;
+	private readonly HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 
 	private constructor() {}
 
@@ -38,7 +43,12 @@ class OracleDBConnection {
 		}
 	}
 
-	public async executeQuery<T = any>(query: string): Promise<T[] | boolean> {
+	public async executeQuery<T = any>(
+		query: string,
+		params?: any[], // Add params parameter
+	): Promise<T[]> {
+		// Change from Promise<T[] | boolean> to Promise<T[]>
+
 		logger.info(`Executing query: ${query}`);
 		let connection: Connection | undefined;
 
@@ -53,11 +63,11 @@ class OracleDBConnection {
 				const rows: T[] = await result.resultSet.getRows();
 				await result.resultSet.close();
 				logger.info(`Rows retrieved: ${rows.length}`);
-				return rows;
+				return rows as T[];
 			} else {
 				await connection.commit();
 				logger.info(`Rows affected: ${result.rowsAffected}`);
-				return result.rowsAffected !== undefined && result.rowsAffected > 0;
+				return [] as T[];
 			}
 		} catch (err) {
 			logger.error(`Query execution error: ${(err as Error).stack}`);
@@ -118,6 +128,48 @@ class OracleDBConnection {
 		}
 	}
 
+	public async checkHealth<T = any>(): Promise<boolean> {
+		const now = new Date();
+
+		// Return cached result if recent
+		if (
+			this.lastHealthCheck &&
+			now.getTime() - this.lastHealthCheck.getTime() < this.HEALTH_CHECK_INTERVAL
+		) {
+			return this.isHealthy;
+		}
+
+		if (!this.pool) {
+			this.isHealthy = false;
+			return false;
+		}
+
+		let connection: Connection | undefined;
+		try {
+			connection = await this.pool.getConnection();
+			await connection.execute<T>('SELECT 1');
+			this.isHealthy = true;
+			this.lastHealthCheck = now;
+			return true;
+		} catch (err) {
+			logger.error(`Health check failed: ${(err as Error).message}`);
+			this.isHealthy = false;
+			return false;
+		} finally {
+			if (connection) connection.release();
+		}
+	}
+
+	public isAvailable(): boolean {
+		// Synchronous check for quick access
+		return this.isHealthy;
+	}
+
+	public static async isConnected(): Promise<boolean> {
+		if (!OracleDBConnection.instance) return false;
+		return await OracleDBConnection.instance.checkHealth();
+	}
+
 	public async cleanup(): Promise<void> {
 		if (this.pool) {
 			try {
@@ -130,5 +182,3 @@ class OracleDBConnection {
 		}
 	}
 }
-
-export default OracleDBConnection;

@@ -2,6 +2,7 @@ import { Pool, PoolConfig, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { constants } from '../constants';
 import { DBType } from '../types';
 import { logger } from '../Logger';
+import { IDBConnection } from './Adapters';
 
 export interface PostgresDBConnectionConfig extends PoolConfig {
 	maxConnections?: number;
@@ -24,10 +25,13 @@ export class QueryExecutionError extends Error {
 	}
 }
 
-export class PostgresDBConnection {
+export class PostgresDBConnection implements IDBConnection {
 	private static instance: PostgresDBConnection;
 	private pool: Pool;
 	private isShuttingDown: boolean = false;
+	private lastHealthCheck: Date | null = null;
+	private isHealthy: boolean = false;
+	private readonly HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 
 	private constructor(config: PostgresDBConnectionConfig) {
 		this.pool = new Pool({
@@ -69,8 +73,8 @@ export class PostgresDBConnection {
 		try {
 			const instance = new PostgresDBConnection(config);
 			await instance.testConnection();
-			return instance;
 			logger.info('PostgresDBConnection instantiated');
+			return instance;
 		} catch (err) {
 			throw new DatabaseConnectionError(
 				`Failed to connect to database: ${(err as Error).message}`,
@@ -97,10 +101,7 @@ export class PostgresDBConnection {
 		}
 	}
 
-	public async executeQuery<T extends QueryResultRow = QueryResultRow>(
-		query: string,
-		params?: any[],
-	): Promise<T[]> {
+	public async executeQuery<T = any>(query: string, params?: any[]): Promise<T[]> {
 		if (this.isShuttingDown) {
 			throw new Error('Database connection is shutting down, no new queries allowed');
 		}
@@ -111,7 +112,7 @@ export class PostgresDBConnection {
 		let client: PoolClient | null = null;
 		try {
 			client = await this.pool.connect();
-			const result: QueryResult<T> = await client.query(query, params);
+			const result: QueryResult = await client.query(query, params);
 			logger.debug(`Query returned ${result.rowCount} rows`);
 			return result.rows;
 		} catch (err) {
@@ -138,6 +139,48 @@ export class PostgresDBConnection {
 			name VARCHAR(255) NOT NULL,
 			category VARCHAR(255) NOT NULL
 		);`);
+	}
+
+	public async checkHealth(): Promise<boolean> {
+		const now = new Date();
+
+		// Return cached result if recent
+		if (
+			this.lastHealthCheck &&
+			now.getTime() - this.lastHealthCheck.getTime() < this.HEALTH_CHECK_INTERVAL
+		) {
+			return this.isHealthy;
+		}
+
+		if (this.isShuttingDown || !this.pool) {
+			this.isHealthy = false;
+			return false;
+		}
+
+		let client: PoolClient | null = null;
+		try {
+			client = await this.pool.connect();
+			await client.query('SELECT 1');
+			this.isHealthy = true;
+			this.lastHealthCheck = now;
+			return true;
+		} catch (err) {
+			logger.error(`Health check failed: ${(err as Error).message}`);
+			this.isHealthy = false;
+			return false;
+		} finally {
+			if (client) client.release();
+		}
+	}
+
+	public isAvailable(): boolean {
+		// Synchronous check for quick access
+		return this.isHealthy && !this.isShuttingDown;
+	}
+
+	public static async isConnected(): Promise<boolean> {
+		if (!PostgresDBConnection.instance) return false;
+		return await PostgresDBConnection.instance.checkHealth();
 	}
 
 	public async cleanup(): Promise<void> {

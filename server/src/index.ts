@@ -3,26 +3,18 @@
 import http from 'http';
 
 import { port, host } from './envConfigDetails';
-import { MongoDBConnection } from './dbClients/MongoDBConnection';
-import { RedisClient } from './cachingClients/redis';
-import { connectToIOServer, disconnectIOServer } from './socketConnection';
-import { connectWSServer, disconnectWSServer } from './webSocketConnection';
-import { disconnectDBs } from './dbClients/helper';
+import { closeActiveConnections, initializeConnections } from './dbClients/helper';
 import { constants } from './constants';
 import { app } from './app';
 import { logger } from './Logger';
 
 const httpServer: http.Server = http.createServer(app);
 
-MongoDBConnection.initialize();
-RedisClient.getInstance()?.connect();
-
 httpServer.listen(Number(port), host, () =>
 	logger.info(`Server running at http://${host}:${port} [${process.env.NODE_ENV}]`),
 );
 
-connectWSServer(httpServer);
-connectToIOServer(httpServer);
+initializeConnections(httpServer);
 
 let isShuttingDown = false;
 let healthStatus = 'healthy';
@@ -93,11 +85,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
 		});
 
 		logger.info('Cleaning up active connections...');
-		await Promise.allSettled([
-			disconnectDBs(),
-			disconnectIOServer(),
-			disconnectWSServer(),
-		]).catch((error) => {
+		await closeActiveConnections().catch((error) => {
 			logger.error(`failed to close active Connections ${error}`);
 		});
 

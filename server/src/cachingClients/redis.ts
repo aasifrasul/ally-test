@@ -7,13 +7,14 @@ const { url, MAX_RETRIES, RETRY_DELAY } = constants.cachingLayer.redisConfig;
 export class RedisClient {
 	private static instance: RedisClient;
 	private client: RedisClientType | null = null;
-	private connected: boolean = false;
 	private reconnectTimeout: NodeJS.Timeout | null = null;
 	private initializing: boolean = false;
 	private subscriberClient: RedisClientType | null = null;
 	private consecutiveFailures: number = 0;
 	private readonly MAX_CONSECUTIVE_FAILURES = 2;
-	private redisUnavailable: boolean = false;
+	private lastHealthCheck: Date | null = null;
+	private isHealthy: boolean = false;
+	private readonly HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
 
 	private constructor() {}
 
@@ -26,7 +27,7 @@ export class RedisClient {
 	}
 
 	public async connect(): Promise<void> {
-		if (this.connected || this.initializing) {
+		if (this.isHealthy || this.initializing) {
 			return; // Already connected or initializing, nothing to do
 		}
 
@@ -50,43 +51,44 @@ export class RedisClient {
 
 			this.client.on('error', (err: Error) => {
 				logger.error('Redis Client Error', err);
-				this.connected = false;
+				this.isHealthy = false;
 				this.handleConnectionError(err);
 			});
 
 			this.client.on('connect', () => {
 				logger.info('Redis client establishing connection...');
 				this.consecutiveFailures = 0; // Reset on successful connection
-				this.redisUnavailable = false;
+				this.isHealthy = true;
 			});
 
 			this.client.on('ready', () => {
 				logger.info('Redis client ready for commands');
-				this.connected = true;
+				this.isHealthy = true;
 				this.consecutiveFailures = 0;
-				this.redisUnavailable = false;
 			});
 
 			this.client.on('reconnecting', () => {
 				logger.info('Redis client attempting to reconnect...');
+				this.isHealthy = false;
 			});
 
 			this.client.on('end', () => {
 				logger.info('Redis client connection closed');
-				this.connected = false;
+				this.isHealthy = false;
 			});
 
 			await this.client.connect();
-			this.connected = true;
+			this.isHealthy = true;
 		} catch (err) {
 			logger.error('Redis connection attempt failed:', err);
-			this.connected = false;
+			this.isHealthy = false;
 			this.handleConnectionError(err as Error);
 		}
 	}
 
 	private handleConnectionError(err: Error): void {
 		this.consecutiveFailures++;
+		this.isHealthy = false;
 
 		const errorMessage = err.message.toLowerCase();
 		const unavailableErrors = [
@@ -102,12 +104,11 @@ export class RedisClient {
 			errorMessage.includes(type),
 		);
 
-		if (isUnavailableError && this.consecutiveFailures >= this.MAX_CONSECUTIVE_FAILURES) {
+		if (isUnavailableError && !this.isAvailable()) {
 			logger.error(
 				`Redis appears unavailable after ${this.consecutiveFailures} failures. ` +
 					`Pausing retries until next reset.`,
 			);
-			this.redisUnavailable = true;
 		}
 	}
 
@@ -120,7 +121,7 @@ export class RedisClient {
 		const baseDelay = RETRY_DELAY ?? 1000;
 
 		// Stop retrying if Redis marked unavailable
-		if (this.redisUnavailable) {
+		if (!this.isAvailable()) {
 			logger.error('Redis unavailable — stopping retry loop.');
 			return new Error('Redis server is unavailable');
 		}
@@ -138,32 +139,121 @@ export class RedisClient {
 		return delay;
 	};
 
-	public isReady(): boolean {
-		if (!this.connected || this.client == null || this.redisUnavailable) {
+	/**
+	 * Performs a health check by executing a PING command
+	 * Results are cached for HEALTH_CHECK_INTERVAL milliseconds
+	 */
+	public async checkHealth(): Promise<boolean> {
+		const now = new Date();
+
+		// Return cached result if recent
+		if (
+			this.lastHealthCheck &&
+			now.getTime() - this.lastHealthCheck.getTime() < this.HEALTH_CHECK_INTERVAL
+		) {
+			return this.isHealthy;
+		}
+
+		// Check basic state first
+		if (!this.isAvailable()) {
+			this.isHealthy = false;
 			return false;
 		}
-		return true;
+
+		try {
+			// Perform actual PING to verify connection is responsive
+			const response = await this.client?.ping();
+			this.isHealthy = response === 'PONG';
+			this.lastHealthCheck = now;
+
+			if (this.isHealthy) {
+				logger.debug('Redis health check passed');
+			} else {
+				logger.warn('Redis PING did not return PONG');
+			}
+
+			return this.isHealthy;
+		} catch (error) {
+			logger.error('Redis health check failed:', error);
+			this.isHealthy = false;
+			this.handleConnectionError(error as Error);
+			return false;
+		}
 	}
 
-	public isRedisAvailable(): boolean {
-		return !this.redisUnavailable;
+	/**
+	 * Quick synchronous check - does not perform actual PING
+	 * @deprecated Use isAvailable() instead for better semantics
+	 */
+	public isReady(): boolean {
+		return this.isAvailable();
+	}
+
+	/**
+	 * Synchronous check of connection availability
+	 * Returns true if connected and healthy, false otherwise
+	 */
+	public isAvailable(): boolean {
+		return (
+			this.isHealthy &&
+			this.client !== null &&
+			this.consecutiveFailures < this.MAX_CONSECUTIVE_FAILURES
+		);
+	}
+
+	/**
+	 * Get detailed connection status
+	 */
+	public getConnectionStatus(): {
+		connected: boolean;
+		healthy: boolean;
+		unavailable: boolean;
+		consecutiveFailures: number;
+		lastHealthCheck: Date | null;
+		initializing: boolean;
+	} {
+		return {
+			connected: this.isHealthy,
+			healthy: this.isHealthy,
+			unavailable: !this.isAvailable(),
+			consecutiveFailures: this.consecutiveFailures,
+			lastHealthCheck: this.lastHealthCheck,
+			initializing: this.initializing,
+		};
+	}
+
+	/**
+	 * Static method to check if Redis instance exists and is available
+	 */
+	public static isConnected(): boolean {
+		return !!RedisClient.instance && RedisClient.instance.isAvailable();
+	}
+
+	/**
+	 * Static async method to verify connection health with PING
+	 */
+	public static async isHealthy(): Promise<boolean> {
+		if (!RedisClient.instance) return false;
+		return await RedisClient.instance.checkHealth();
 	}
 
 	public async resetAvailabilityStatus(): Promise<void> {
-		this.redisUnavailable = false;
 		this.consecutiveFailures = 0;
+		this.isHealthy = false;
+		this.lastHealthCheck = null;
 		logger.info('Redis availability status reset. Reconnection attempts can resume.');
+
+		// Optionally perform immediate health check
+		await this.checkHealth();
 	}
 
-	public async cacheData(
+	public async set(
 		key: string,
 		value: any,
 		expirationSeconds: number = 3600,
 	): Promise<boolean> {
-		if (!this.isReady()) {
-			if (this.redisUnavailable) {
-				logger.warn('Redis is unavailable. Caching operation skipped.');
-			}
+		if (!this.isAvailable()) {
+			logger.warn('Redis is unavailable. Caching operation skipped.');
 			return false;
 		}
 
@@ -182,11 +272,9 @@ export class RedisClient {
 		}
 	}
 
-	public async getCachedData<T>(key: string): Promise<T | null> {
-		if (!this.isReady()) {
-			if (this.redisUnavailable) {
-				logger.warn('Redis is unavailable. Cache retrieval skipped.');
-			}
+	public async get<T>(key: string): Promise<T | null> {
+		if (!this.isAvailable()) {
+			logger.warn('Redis is unavailable. Cache retrieval skipped.');
 			return null;
 		}
 
@@ -202,8 +290,25 @@ export class RedisClient {
 		}
 	}
 
+	async delete(key: string): Promise<boolean> {
+		if (!this.isAvailable()) return false;
+		const deleted = await this.client!.del(key);
+		return deleted > 0;
+	}
+
+	async exists(key: string): Promise<boolean> {
+		if (!this.isAvailable()) return false;
+		const exists = await this.client!.exists(key);
+		return exists === 1;
+	}
+
+	async clear(): Promise<void> {
+		if (!this.isAvailable()) return;
+		await this.client!.flushAll();
+	}
+
 	async subscribeToChannel(channel: string) {
-		if (this.redisUnavailable) {
+		if (!this.isAvailable()) {
 			logger.warn('Redis is unavailable. Subscription skipped.');
 			return false;
 		}
@@ -228,10 +333,8 @@ export class RedisClient {
 	}
 
 	async publishMessage(channel: string, message: string) {
-		if (!this.isReady()) {
-			if (this.redisUnavailable) {
-				logger.warn('Redis is unavailable. Message publishing skipped.');
-			}
+		if (!this.isAvailable()) {
+			logger.warn('Redis is unavailable. Message publishing skipped.');
 			return false;
 		}
 
@@ -255,10 +358,8 @@ export class RedisClient {
 	}
 
 	async addJob(job: string) {
-		if (!this.isReady()) {
-			if (this.redisUnavailable) {
-				logger.warn('Redis is unavailable. Job addition skipped.');
-			}
+		if (!this.isAvailable()) {
+			logger.warn('Redis is unavailable. Job addition skipped.');
 			return false;
 		}
 
@@ -273,10 +374,8 @@ export class RedisClient {
 	}
 
 	async processJobs() {
-		if (!this.isReady()) {
-			if (this.redisUnavailable) {
-				logger.warn('Redis is unavailable. Job processing skipped.');
-			}
+		if (!this.isAvailable()) {
+			logger.warn('Redis is unavailable. Job processing skipped.');
 			return false;
 		}
 
@@ -299,10 +398,8 @@ export class RedisClient {
 	}
 
 	public async deleteCachedData(key: string): Promise<boolean> {
-		if (!this.isReady()) {
-			if (this.redisUnavailable) {
-				logger.warn('Redis is unavailable. Cache deletion skipped.');
-			}
+		if (!this.isAvailable()) {
+			logger.warn('Redis is unavailable. Cache deletion skipped.');
 			return false;
 		}
 
@@ -327,13 +424,13 @@ export class RedisClient {
 			clearTimeout(this.reconnectTimeout);
 			this.reconnectTimeout = null;
 		}
-		this.redisUnavailable = false;
 		this.consecutiveFailures = 0;
+		this.isHealthy = false;
 		logger.info('Redis reconnection attempts stopped.');
 	}
 
 	public async cleanup(): Promise<void> {
-		if (this.connected === false) return;
+		if (this.isHealthy === false) return;
 		try {
 			if (this.client) {
 				await this.client.quit();
@@ -347,7 +444,8 @@ export class RedisClient {
 				clearTimeout(this.reconnectTimeout);
 				this.reconnectTimeout = null;
 			}
-			this.connected = false;
+			this.isHealthy = false;
+			this.lastHealthCheck = null;
 			logger.info('Redis client disconnected successfully.');
 		} catch (err) {
 			logger.error('Error during Redis disconnect:', err);
