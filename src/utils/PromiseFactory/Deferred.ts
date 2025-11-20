@@ -18,13 +18,15 @@ export class Deferred<T> {
 	// Public methods to resolve/reject the Deferred
 	public resolve!: (value: T | PromiseLike<T>) => void;
 	public reject!: (reason?: any) => void;
+	public settledAt: number = 0;
 
 	constructor() {
 		this.promise = new Promise<T>((resolve, reject) => {
-			this.resolve = (value) => {
+			this.resolve = async (value) => {
 				if (this.isSettled) return;
 				this.state = DeferredState.RESOLVED;
-				this.value = value as T; // Type assertion
+				this.value = await Promise.resolve(value); // Handles PromiseLike
+				this.settledAt = Date.now();
 				this.cleanUp();
 				resolve(value);
 			};
@@ -75,26 +77,27 @@ export class Deferred<T> {
 		return this.isResolved ? this.value : this.error;
 	}
 
-	get getCreatedAt(): number {
-		return this.createdAt;
-	}
-
 	/**
 	 * Timeout the promise after specified milliseconds
 	 */
 	timeout(ms: number, message: string = 'Promise timed out'): this {
 		this.timeoutId = setTimeout(() => {
-			this.cleanUp();
-			if (this.isPending) {
-				this.reject(new Error(message));
-			}
+			if (this.isPending) this.reject(new Error(message));
 		}, ms);
 		return this;
 	}
 
-	cleanUp() {
+	private cleanUp() {
 		if (this.timeoutId) {
 			clearTimeout(this.timeoutId);
 		}
+	}
+
+	reset(): void {
+		if (!this.isSettled) {
+			throw new Error('Cannot reset pending promise');
+		}
+		this.cleanUp();
+		// Reset state...
 	}
 }

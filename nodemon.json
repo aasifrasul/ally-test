@@ -1,12 +1,30 @@
 {
 	"watch": ["server/src"],
 	"ext": "ts,json",
-	"ignore": ["**/*.test.ts", "**/*.spec.ts", "node_modules", "**/*.log"],
-	"exec": "ts-node server/src/index.ts",
+	"ignore": [
+		"**/*.test.ts",
+		"**/*.spec.ts",
+		"**/node_modules/**",
+		"**/*.log",
+		"**/dist/**",
+		"**/build/**",
+		"**/.git/**"
+	],
+	"exec": "ts-node --transpile-only server/src/index.ts",
 	"env": {
-		"NODE_ENV": "development"
+		"NODE_ENV": "development",
+		"TS_NODE_TRANSPILE_ONLY": "true"
 	},
-	"delay": "1500",
+	"delay": "1000",
 	"signal": "SIGTERM",
-	"verbose": true
+	"verbose": true,
+	"legacyWatch": false,
+	"pollingInterval": 100,
+	"restartable": "rs",
+	"colours": true,
+	"events": {
+		"restart": "echo '🔄 Server restarting...'",
+		"crash": "echo '💥 Server crashed - waiting for changes...'",
+		"start": "echo '✅ Server started successfully'"
+	}
 }

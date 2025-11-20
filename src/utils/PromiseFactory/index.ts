@@ -23,8 +23,6 @@ export interface PromiseFactoryStats {
 	newest: string | null;
 }
 
-const logger = createLogger('PromiseFactory');
-
 /**
  * Enhanced promise factory with better error handling, cleanup, and debugging
  */
@@ -33,6 +31,7 @@ export class PromiseFactory<T = any> {
 	private options: Required<PromiseFactoryOptions>;
 	private cleanupInterval: NodeJS.Timeout | null = null;
 	private scheduledCleanups: Map<string, NodeJS.Timeout> = new Map(); // Track individual cleanups
+	private logger = createLogger('PromiseFactory');
 
 	constructor(options: Partial<PromiseFactoryOptions> = {}) {
 		this.promises = new Map<string, Deferred<T>>();
@@ -69,7 +68,11 @@ export class PromiseFactory<T = any> {
 	 */
 	private log(action: string, key: string, extra: Record<string, any> = {}): void {
 		if (this.options.enableLogging) {
-			logger.debug(`[PromiseFactory] ${action}:`, { key, ...extra, total: this.size });
+			this.logger.debug(`[PromiseFactory] ${action}:`, {
+				key,
+				...extra,
+				total: this.size,
+			});
 		}
 	}
 
@@ -79,9 +82,12 @@ export class PromiseFactory<T = any> {
 	 */
 	private checkMaxPromises(): void {
 		if (this.promises.size >= this.options.maxPromises) {
-			throw new Error(
-				`Maximum number of promises (${this.options.maxPromises}) exceeded`,
-			);
+			for (const [key, d] of this.promises) {
+				if (d.isSettled) {
+					this.remove(key);
+					break;
+				}
+			}
 		}
 	}
 
@@ -176,7 +182,7 @@ export class PromiseFactory<T = any> {
 		}
 
 		if (!deferred.isPending) {
-			logger.warn(`Promise "${key}" is already settled`);
+			this.logger.warn(`Promise "${key}" is already settled`);
 			return false;
 		}
 
@@ -206,7 +212,7 @@ export class PromiseFactory<T = any> {
 		}
 
 		if (!deferred.isPending) {
-			logger.warn(`Promise "${key}" is already settled`);
+			this.logger.warn(`Promise "${key}" is already settled`);
 			return false;
 		}
 
@@ -230,7 +236,8 @@ export class PromiseFactory<T = any> {
 		this.validateKey(key);
 
 		if (!this.has(key)) {
-			throw new Error(`No promise found with key "${key}"`);
+			this.log('REMOVE_SKIPPED', key);
+			return false;
 		}
 
 		// Clear any scheduled cleanup
@@ -279,7 +286,7 @@ export class PromiseFactory<T = any> {
 	 * Gets statistics about the current promises.
 	 * @returns An object containing statistics about the promises.
 	 */
-	getStats(): PromiseFactoryStats {
+	getStats(includeSettled = true): PromiseFactoryStats {
 		const stats: PromiseFactoryStats = {
 			total: this.promises.size,
 			pending: 0,
@@ -293,8 +300,9 @@ export class PromiseFactory<T = any> {
 		let newestTime = 0;
 
 		for (const [key, deferred] of this.promises) {
-			if (deferred.isPending) stats.pending++;
-			else if (deferred.isResolved) stats.resolved++;
+			if (deferred.isPending) {
+				if (includeSettled === false) stats.pending++;
+			} else if (deferred.isResolved) stats.resolved++;
 			else if (deferred.isRejected) stats.rejected++;
 
 			if (deferred.createdAt < oldestTime) {
@@ -339,6 +347,18 @@ export class PromiseFactory<T = any> {
 		}
 
 		return Promise.all(promises);
+	}
+
+	async runWithKey(key: string, fn: () => Promise<T>, timeoutMs?: number): Promise<T> {
+		const deferred = this.create(key, timeoutMs);
+		try {
+			const result = await fn();
+			deferred.resolve(result);
+			return result;
+		} catch (err) {
+			deferred.reject(err);
+			throw err;
+		}
 	}
 
 	/**

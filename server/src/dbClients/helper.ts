@@ -7,7 +7,6 @@ import {
 	type DBInstance,
 	type ExecuteQueryType,
 } from './GenericDBConnection';
-import { MongoDBConnection } from './MongoDBConnection';
 import { RedisClient } from '../cachingClients/redis';
 import { constants } from '../constants';
 import { connectWSServer, disconnectWSServer } from '../webSocketConnection';
@@ -51,9 +50,8 @@ export async function executeQuery<T extends QueryResultRow>(
 
 export async function initializeConnections(httpServer: Server) {
 	return await Promise.allSettled([
-		await getDBInstance(constants.dbLayer.currentDB),
-		MongoDBConnection.initialize(),
-		RedisClient.getInstance()?.connect(),
+		getDBInstance(constants.dbLayer.currentDB),
+		RedisClient.getInstance().connect(),
 		connectWSServer(httpServer),
 		connectToIOServer(httpServer),
 	]);
@@ -62,8 +60,7 @@ export async function initializeConnections(httpServer: Server) {
 export async function closeActiveConnections() {
 	return Promise.allSettled([
 		(await getDBInstance(constants.dbLayer.currentDB))?.cleanup(),
-		MongoDBConnection.getInstance()?.cleanup(),
-		RedisClient.getInstance()?.cleanup(),
+		RedisClient.getInstance().cleanup(),
 		disconnectIOServer(),
 		disconnectWSServer(),
 	]);

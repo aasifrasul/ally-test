@@ -17,6 +17,22 @@ export class APIService {
 	private cache: Map<string, any>;
 	private pendingRequests: Map<string, Promise<Result<any>>>;
 	private logger: Logger;
+	private cacheTTL: Map<string, number> = new Map();
+
+	private setCache(key: string, value: any, ttlMs = 60_000): void {
+		this.cache.set(key, value);
+		this.cacheTTL.set(key, Date.now() + ttlMs);
+	}
+
+	private getCache(key: string): any | undefined {
+		const expiresAt = this.cacheTTL.get(key);
+		if (expiresAt && Date.now() > expiresAt) {
+			this.cache.delete(key);
+			this.cacheTTL.delete(key);
+			return undefined;
+		}
+		return this.cache.get(key);
+	}
 
 	private constructor() {
 		this.abortControllers = new Map();
@@ -39,7 +55,18 @@ export class APIService {
 		const method = options.method || HTTPMethod.GET;
 		const headers = JSON.stringify(options.headers || {});
 		// Only include body for cache key if it's a GET request (shouldn't have body anyway)
-		const body = method === HTTPMethod.GET ? '' : JSON.stringify(options.body || '');
+		let body = '';
+		if (method !== HTTPMethod.GET && options.body) {
+			try {
+				body =
+					typeof options.body === 'string'
+						? options.body
+						: JSON.stringify(options.body);
+			} catch {
+				body = '[unserializable-body]';
+			}
+		}
+
 		return `${method}:${endpoint}:${headers}:${body}`;
 	}
 
@@ -51,9 +78,9 @@ export class APIService {
 		const cacheKey = this.createCacheKey(endpoint, options);
 
 		// Check cache first
-		if (this.shouldCache(options.method) && this.cache.has(cacheKey)) {
-			this.logger.debug('Returning cached data for:', endpoint);
-			return { success: true, data: this.cache.get(cacheKey) };
+		const cached = this.getCache(cacheKey);
+		if (this.shouldCache(options.method) && cached !== undefined) {
+			return { success: true, data: cached };
 		}
 
 		// Check pending requests
@@ -88,7 +115,7 @@ export class APIService {
 
 		// Cache successful GET results only
 		if (result.success && this.shouldCache(options.method)) {
-			this.cache.set(cacheKey, result.data);
+			this.setCache(cacheKey, result.data);
 			this.logger.debug('Cached result for:', endpoint);
 		}
 
@@ -97,12 +124,18 @@ export class APIService {
 
 		return result;
 	}
-	// ✅ Improved abort - can abort specific requests or all to an endpoint
+
+	async save<T extends SaveDataResponse>(
+		endpoint: string,
+		options: SaveDataOptions,
+	): Promise<Result<T>> {
+		return this.fetch<T>(endpoint, { ...options, method: HTTPMethod.POST });
+	}
 
 	abort(endpoint: string): void {
 		let aborted = 0;
 		this.abortControllers.forEach((controller, key) => {
-			if (key.startsWith(endpoint)) {
+			if (key.includes(`:${endpoint}:`)) {
 				controller.abort();
 				this.abortControllers.delete(key);
 				aborted++;

@@ -43,10 +43,12 @@ const NotImplementedRepo: IUserRepository = {
 // --- MONGODB Implementation ---
 const MongoRepo: IUserRepository = {
 	async findByEmail(email: string) {
-		return (await User.findOne({ email }).lean<IUser>().exec()) || undefined;
+		const user = await User.findOne({ email }).exec();
+		return user ? (user.toObject() as IUser) : undefined;
 	},
 	async findById(id: string) {
-		return (await User.findById(id).lean<IUser>().exec()) || undefined;
+		const user = await User.findById(id).exec();
+		return user ? (user.toObject() as IUser) : undefined;
 	},
 	async findAll(limit: number, offset: number) {
 		return await User.find()

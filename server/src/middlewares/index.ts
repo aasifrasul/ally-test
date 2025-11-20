@@ -1,7 +1,7 @@
 import path from 'path';
 import handlebars from 'handlebars';
 import { createHandler } from 'graphql-http/lib/use/http';
-import { PubSub } from 'graphql-subscriptions';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
 
 import { isMobileApp, nocache, getParsedUserAgentData, getFileContents } from '../helper';
 import { schema } from '../schema';
@@ -9,7 +9,7 @@ import { parse } from '../UaParser';
 import { pathAssets, pathTemplate } from '../paths';
 import { StreamCSVService } from '../utils/streamCSVService';
 
-const pubsub = new PubSub();
+const pubsub = new RedisPubSub();
 const streamCSVService = new StreamCSVService();
 
 handlebars.registerHelper({

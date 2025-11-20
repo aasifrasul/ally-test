@@ -14,8 +14,10 @@ import type { Application, Request, Response, NextFunction } from 'express';
 import { logger } from './src/Logger';
 import { pathRootDir, pathAssets } from './src/paths';
 import { executeQuery } from './src/dbClients/helper';
-import { verifyToken } from './src/services/jwtService';
+import { verifyToken } from './src/services/tokenService';
 import { isProdEnv, JWT_SECRET } from './src/envConfigDetails';
+import { finalHandler } from './src/globalErrorHandler';
+import { errorHandler } from './src/middlewares/errorHandler';
 
 const port = 3000;
 const host = '127.0.0.1';
@@ -177,6 +179,7 @@ app.post('/sso/login', async (req: Request, res: Response): Promise<any> => {
 	});
 });
 
+/*
 // SSO validation middleware for other applications
 function validateSSOToken(req: Request, res: Response, next: NextFunction) {
 	const token = req.cookies.sso_token || req.headers.authorization?.replace('Bearer ', '');
@@ -194,59 +197,12 @@ function validateSSOToken(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
-// Protected endpoint using SSO
-app.get('/api/protected', validateSSOToken, (req: Request, res: Response) => {
-	res.json({
-		message: 'Access granted via SSO',
-		user: req.user,
-	});
-});
-
 // =============================================================================
 // 4. SAML SSO Implementation (using passport-saml)
 // =============================================================================
 
 const passport = require('passport');
 const SamlStrategy = require('passport-saml').Strategy;
-
-passport.use(
-	new SamlStrategy(
-		{
-			path: '/login/callback',
-			entryPoint: 'https://your-idp.com/sso/saml',
-			issuer: 'your-app-entity-id',
-			cert: process.env.SAML_CERT, // IdP certificate
-			privateKey: process.env.SAML_PRIVATE_KEY,
-			signatureAlgorithm: 'sha256',
-		},
-		async (
-			profile: Record<string, string>,
-			done: (error: Error | null, data: Record<string, string>) => {},
-		) => {
-			try {
-				// Extract user info from SAML assertion
-				const user = {
-					id: profile.nameID,
-					email: profile[
-						'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
-					],
-					name: profile[
-						'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'
-					],
-					roles: profile[
-						'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
-					],
-				};
-
-				// Create or update user in your database
-				const dbUser = await createOrUpdateUser(user);
-				return done(null, dbUser);
-			} catch (error) {
-				return done(error as Error, null);
-			}
-		},
-	),
-);
 
 // SAML SSO routes
 app.get(
@@ -311,7 +267,7 @@ app.get(
 		failureRedirect: '/login',
 	}),
 );
-
+*/
 app.get('/getFileContents', (req: Request, res: Response, next: NextFunction) => {
 	const data = fs.readFileSync(path.join(pathRootDir, 'combined.log'), 'utf8');
 
@@ -366,21 +322,22 @@ app.post('/upload', (req: Request, res: Response) => {
 app.get('/db-setup', async (req: Request, res: Response) => {
 	try {
 		await executeQuery('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";');
-		await executeQuery(`CREATE TABLE IF NOT EXISTS "TEST_USERS" (
+		await executeQuery(`CREATE TABLE IF NOT EXISTS "users" (
 			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-			name VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
-			email VARCHAR(4000),  -- VARCHAR is the correct type, and length is specified in parentheses
-			age INTEGER               -- INTEGER is the correct type
+			"password" VARCHAR(255) NOT NULL,
+			"name" VARCHAR(255) NOT NULL,
+			"email" VARCHAR(255) NOT NULL,
+			"age" INTEGER
 		);`);
-		await executeQuery(`CREATE TABLE IF NOT EXISTS "TEST_PRODUCTS" (
+		await executeQuery(`CREATE TABLE IF NOT EXISTS "products" (
 			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-			name VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
-			category VARCHAR(4000)  -- VARCHAR is the correct type, and length is specified in parentheses
+			name VARCHAR(255) NOT NULL,
+			category VARCHAR(255) NOT NULL
 		);`);
 		await executeQuery(`CREATE TABLE IF NOT EXISTS "book_store" (
 			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-			title VARCHAR(4000),
-			author VARCHAR(4000),
+			title VARCHAR(255),
+			author VARCHAR(255),
 			issued BOOLEAN NOT NULL DEFAULT TRUE
 		);`);
 		res.send('Postgres Db setup successfully!');
@@ -422,23 +379,5 @@ app.get('/process-csv', (req: Request, res: Response) => {
 		});
 });
 
-app.all('*', (req: Request, res: Response, next: NextFunction) => {
-	res.status(404);
-	const message = 'Oops! Page not found.';
-
-	if (req.accepts('html')) {
-		res.send(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Error</title>
-            </head>
-            <body>
-                <h1>${message}</h1>
-            </body>
-            </html>
-        `);
-	} else {
-		res.json({ message });
-	}
-});
+finalHandler(app);
+app.use(errorHandler);

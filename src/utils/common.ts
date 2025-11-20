@@ -4,7 +4,7 @@ import { twMerge } from 'tailwind-merge';
 import { QueryParams } from '../constants/types';
 import { isNumber } from './typeChecking';
 export { deepCopy } from './deepCopy';
-export { handleAsyncCalls, fetchAPIData, type Result } from './handleAsyncCalls';
+export { handleAsyncCalls, fetchAPIData, type Result } from './AsyncUtil';
 
 export const getRandomInt = (min = 1000 * 1000, max = 2000 * 1000): number => {
 	min = Math.ceil(min);
@@ -196,14 +196,42 @@ export async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T
 	});
 }
 
-export function isMobileDevice() {
-	// Check user agent
-	const userAgent = navigator.userAgent.toLowerCase();
-	const mobileKeywords = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+function detectDevice() {
+	return {
+		isMobile: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
+		isTablet: /iPad|Android/i.test(navigator.userAgent) && globalThis.innerWidth >= 768,
+		hasTouch: 'ontouchstart' in globalThis,
+		isSmallScreen: globalThis.innerWidth <= 768,
+		// Comprehensive check
+		isMobileDevice: function () {
+			return this.isMobile || (this.hasTouch && this.isSmallScreen);
+		},
+	};
+}
 
-	// Check touch support and screen size
-	const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-	const isSmallScreen = window.innerWidth <= 768;
+export const device = detectDevice();
 
-	return mobileKeywords.test(userAgent) || (hasTouch && isSmallScreen);
+export function isValidSSN(value: string): boolean {
+	if (!value) return false;
+
+	// Remove all non-digit characters
+	const normalized = value.trim().replace(/\D/g, '');
+
+	// Must be exactly 9 digits
+	if (normalized.length !== 9) return false;
+
+	const area = Number(normalized.substring(0, 3));
+	const group = Number(normalized.substring(3, 5));
+	const serial = Number(normalized.substring(5, 9));
+
+	// Area number invalid conditions
+	if (area === 0 || area === 666 || area >= 900) return false;
+
+	// Group number cannot be 00
+	if (group === 0) return false;
+
+	// Serial number cannot be 0000
+	if (serial === 0) return false;
+
+	return true;
 }

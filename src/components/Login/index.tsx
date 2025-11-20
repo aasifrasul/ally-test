@@ -1,7 +1,7 @@
 import { ChangeEvent, MouseEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail, User, AlertCircle } from 'lucide-react';
-import { fetchAPIData } from '../../utils/handleAsyncCalls';
+import { fetchAPIData } from '../../utils/AsyncUtil';
 import { HTTPMethod } from '../../types/api';
 import { useAuth } from '../../Context/AuthProvider';
 

@@ -242,4 +242,13 @@ export class MongoDBConnection {
 		const instance = MongoDBConnection.getInstance();
 		await instance?.connect();
 	}
+
+	public getDB(): mongoose.mongo.Db | null {
+		const db = mongoose.connection.db;
+		if (!db) {
+			logger.error('No MongoDB database instance available');
+			return null;
+		}
+		return db;
+	}
 }

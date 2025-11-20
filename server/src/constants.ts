@@ -63,9 +63,7 @@ export const constants: Constants = {
 	cachingLayer: {
 		enabled: true,
 		redisConfig: {
-			url: REDIS_URL || 'redis://localhost:6379',
-			host: 'localhost',
-			port: 6379,
+			url: REDIS_URL,
 			MAX_RETRIES: Number(REDIS_MAX_RETRIES),
 			RETRY_DELAY: Number(REDIS_RETRY_DELAY),
 		},
@@ -85,7 +83,7 @@ export const constants: Constants = {
 		},
 	},
 	dbLayer: {
-		currentDB: DBType.MONGODB,
+		currentDB: DBType.POSTGRES,
 		MAX_RETRIES: 3,
 		mongodb: {
 			uri: 'mongodb://test:test@localhost:27017/test?authSource=admin',
@@ -99,7 +97,7 @@ export const constants: Constants = {
 		postgres: {
 			user: 'test',
 			host: 'localhost',
-			database: 'postgres',
+			database: 'test',
 			password: 'test',
 			port: 5432,
 			maxConnections: 20,

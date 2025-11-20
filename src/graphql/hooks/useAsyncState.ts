@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { handleAsyncCalls } from '../../utils/handleAsyncCalls';
+import { handleAsyncCalls } from '../../utils/AsyncUtil';
 
 interface AsyncState<T> {
 	data: T | null;

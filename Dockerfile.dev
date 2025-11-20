@@ -10,11 +10,8 @@ RUN corepack enable
 # Copy package.json and yarn.lock first for caching
 COPY package.json yarn.lock* ./
 
-# Install dependencies using the updated immutable flag
-RUN yarn install --immutable
-
-# Copy remaining application code
-COPY . .
+# Install dependencies (this layer is cached unless package files change)
+RUN yarn install --frozen-lockfile
 
 # Expose port
 EXPOSE 3100
