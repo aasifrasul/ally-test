@@ -16,17 +16,10 @@ const isValidWorkerMessage = (message: any): message is WorkerMessage =>
 
 ctx.addEventListener('message', async (event: MessageEvent) => {
 	const message = event.data;
-
-	if (!isValidWorkerMessage(message)) {
-		ctx.postMessage({
-			id: 0,
-			type: 'error',
-			error: 'Invalid message format',
-		});
-		return;
-	}
-
 	const { id, type, data } = message;
+	const error = 'Invalid message format';
+
+	if (!isValidWorkerMessage(message)) return ctx.postMessage({ id, type, error });
 
 	try {
 		switch (type) {

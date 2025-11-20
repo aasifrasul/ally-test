@@ -13,7 +13,7 @@ export type Result<T> = SuccessResult<T> | ErrorResult;
 
 export interface ResponseLike {
 	ok: boolean;
-	headers?: Headers;
+	headers?: Headers | null;
 	status?: number;
 	json(): Promise<any>;
 	text(): Promise<string>;
@@ -54,13 +54,20 @@ export async function handleAsyncCalls<T>(promise: Promise<T>): Promise<Result<T
 			data,
 		};
 	} catch (error) {
-		// Distinguish network errors from other errors
-		if (error instanceof TypeError && error.message.includes('fetch')) {
+		if (error instanceof DOMException && error.name === 'AbortError') {
+			return {
+				success: false,
+				error: new NetworkError('Request aborted'),
+			};
+		}
+
+		if (error instanceof TypeError) {
 			return {
 				success: false,
 				error: new NetworkError(error.message),
 			};
 		}
+
 		return {
 			success: false,
 			error: error instanceof Error ? error : new Error(String(error)),
@@ -79,9 +86,7 @@ export async function fetchAPIData<T>(url: string, options?: RequestInit): Promi
 
 	const result = await handleAsyncCalls(fetch(url, newOptions));
 
-	if (!result.success) {
-		return result;
-	}
+	if (!result.success) return result;
 
 	const response = result.data;
 

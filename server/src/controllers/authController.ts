@@ -58,7 +58,7 @@ export const login = async (req: Request, res: Response) => {
 		const response = await validateUserCredentials(email, password);
 
 		if (!response.success || !response.user)
-			throw new AuthError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
+			throw new AuthError(response.message || 'some error', 401, 'INVALID_CREDENTIALS');
 
 		const { authToken, refreshToken } = generateUserTokens(response.user);
 		const responseData = setTokensResponse(req, res, { authToken, refreshToken });

@@ -1,4 +1,4 @@
-import { PubSub } from 'graphql-subscriptions';
+import { RedisPubSub } from 'graphql-redis-subscriptions';
 import { DBType } from '../types';
 import { Book, IBook, BookArgs, BookMutationResponse, UpdatebookArgs } from '../models';
 import { RedisClient } from '../cachingClients/redis';
@@ -8,7 +8,7 @@ import { logger } from '../Logger';
 
 const { currentDB } = constants.dbLayer;
 
-const pubsub = new PubSub();
+const pubsub = new RedisPubSub();
 
 const redisClient = RedisClient.getInstance();
 const table = 'book_store';
@@ -193,7 +193,7 @@ const deleteBook = async (parent: any, args: { id: string }): Promise<boolean> =
 		try {
 			const result = await Book.findByIdAndDelete(id);
 			if (result) {
-				await redisClient.deleteCachedData(id);
+				await redisClient.delete(id);
 			}
 			return !!result;
 		} catch (error) {

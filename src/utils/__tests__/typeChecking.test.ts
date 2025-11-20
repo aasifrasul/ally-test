@@ -21,7 +21,7 @@ import {
 	isString,
 	isUndefined,
 	safelyExecuteFunction,
-	safeExecute,
+	safeAsyncExecute,
 } from '../typeChecking';
 
 describe('Type checking functions', () => {
@@ -189,25 +189,25 @@ describe('safelyExecuteFunction', () => {
 	});
 });
 
-describe('safeExecute', () => {
+describe('safeAsyncExecute', () => {
 	test('executes synchronous function and returns promise', async () => {
 		const testFunc = (a: number, b: number) => a + b;
-		await expect(safeExecute(testFunc, 1, 2)).resolves.toBe(3);
+		await expect(safeAsyncExecute(testFunc, 1, 2)).resolves.toBe(3);
 	});
 
 	test('executes asynchronous function and returns promise', async () => {
 		const testFunc = async (a: number, b: number) => a + b;
-		await expect(safeExecute(testFunc, 1, 2)).resolves.toBe(3);
+		await expect(safeAsyncExecute(testFunc, 1, 2)).resolves.toBe(3);
 	});
 
 	test('handles function that returns a promise', async () => {
 		const testFunc = () => Promise.resolve('test');
-		await expect(safeExecute(testFunc)).resolves.toBe('test');
+		await expect(safeAsyncExecute(testFunc)).resolves.toBe('test');
 	});
 
 	test('handles function with no return value', async () => {
 		const testFunc = jest.fn();
-		await expect(safeExecute(testFunc)).resolves.toBeUndefined();
+		await expect(safeAsyncExecute(testFunc)).resolves.toBeUndefined();
 		expect(testFunc).toHaveBeenCalled();
 	});
 
@@ -215,7 +215,7 @@ describe('safeExecute', () => {
 		const testFunc = () => {
 			throw new Error('Test error');
 		};
-		await expect(safeExecute(testFunc)).rejects.toThrow('Test error');
+		await expect(safeAsyncExecute(testFunc)).rejects.toThrow('Test error');
 	});
 
 	test('rejects with error for rejecting asynchronous function', async () => {
@@ -225,7 +225,7 @@ describe('safeExecute', () => {
 		const testFunc = async () => {
 			throw new Error('Async error');
 		};
-		await expect(safeExecute(testFunc)).rejects.toThrow('Async error');
+		await expect(safeAsyncExecute(testFunc)).rejects.toThrow('Async error');
 
 		expect(console.error).toHaveBeenCalledWith('An error occurred:', expect.any(Error));
 
@@ -241,7 +241,7 @@ describe('safeExecute', () => {
 		};
 
 		try {
-			await safeExecute(testFunc);
+			await safeAsyncExecute(testFunc);
 		} catch (e) {
 			// Expected to throw, so we catch it to prevent the test from failing
 		}
@@ -257,7 +257,7 @@ describe('safeExecute', () => {
 		const originalConsoleWarn = console.warn;
 		console.warn = jest.fn();
 
-		await expect(safeExecute(null as unknown as () => void)).resolves.toBeNull();
+		await expect(safeAsyncExecute(null as unknown as () => void)).resolves.toBeNull();
 		expect(console.warn).toHaveBeenCalledWith('Please pass a valid function!');
 
 		console.warn = originalConsoleWarn;

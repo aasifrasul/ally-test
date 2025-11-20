@@ -1,7 +1,7 @@
 import express from 'express';
 import type { Request, Response } from 'express';
 
-import { asyncHandler } from './authRoutes';
+import { asyncHandler } from '../utils/routeUtils';
 
 import { addBook, updateBook, deleteBook, getBooks, getBook } from '../schema/bookStore';
 

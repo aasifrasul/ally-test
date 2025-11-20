@@ -128,13 +128,14 @@ export class PostgresDBConnection implements IDBConnection {
 
 	public async setupTables(): Promise<void> {
 		await this.executeQuery(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`);
-		await this.executeQuery(`CREATE TABLE IF NOT EXISTS TEST_USERS (
+		await this.executeQuery(`CREATE TABLE IF NOT EXISTS users (
 			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+			"password" VARCHAR(255) NOT NULL,
 			"name" VARCHAR(255) NOT NULL,
 			"email" VARCHAR(255) NOT NULL,
 			age INTEGER
 		);`);
-		await this.executeQuery(`CREATE TABLE IF NOT EXISTS TEST_PRODUCTS (
+		await this.executeQuery(`CREATE TABLE IF NOT EXISTS products (
 			id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
 			name VARCHAR(255) NOT NULL,
 			category VARCHAR(255) NOT NULL

@@ -1,6 +1,6 @@
 import { createContext, FC, ReactNode, useState, useContext } from 'react';
 
-import { fetchAPIData } from '../utils/handleAsyncCalls';
+import { fetchAPIData } from '../utils/AsyncUtil';
 import { HTTPMethod } from '../types/api';
 import { IUser } from '../../server/src/types';
 

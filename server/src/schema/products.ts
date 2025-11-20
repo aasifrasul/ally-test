@@ -26,7 +26,7 @@ type DeleteResult = {
 const { currentDB } = constants.dbLayer;
 
 const redisClient = RedisClient.getInstance();
-const table = '"TEST_PRODUCTS"';
+const table = '"products"';
 
 const getProduct = async (parent: any, args: { id: string }): Promise<ProductArgs | null> => {
 	const { id } = args;
@@ -140,7 +140,7 @@ const deleteProduct = async (parent: any, args: { id: string }): Promise<DeleteR
 	if (currentDB === 'mongodb') {
 		try {
 			await Product.findByIdAndDelete(id, { new: true });
-			redisClient.deleteCachedData(id);
+			redisClient.delete(id);
 			return { success: false, id };
 		} catch (error) {
 			logger.error(`Failed to create product in MongoDB: ${error}`);
@@ -163,12 +163,12 @@ export { getProduct, getProducts, createProduct, updateProduct, deleteProduct };
 
 /**
  * Oracle
- * create table TEST_PRODUCTS ( id number generated always as identity, "name" varchar2(4000), "category" varchar2(4000), primary key (id));
+ * create table products ( id number generated always as identity, "name" varchar2(4000), "category" varchar2(4000), primary key (id));
  * 
  * PGSQL
  * 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE TABLE "TEST_PRODUCTS" (
+CREATE TABLE "products" (
 	id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
 	name VARCHAR(4000), -- VARCHAR is the correct type, and length is specified in parentheses
 	category VARCHAR(4000)  -- VARCHAR is the correct type, and length is specified in parentheses

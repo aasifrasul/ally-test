@@ -1,7 +1,7 @@
 import { Document } from 'mongoose';
 
 export interface IUser extends Document {
-	id?: string;
+	id: string;
 	name: string;
 	email: string;
 	age?: number;
@@ -22,9 +22,7 @@ export enum DBType {
 }
 
 export interface RedisConfig {
-	url?: string;
-	host: string;
-	port: number;
+	url: string;
 	MAX_RETRIES?: number;
 	RETRY_DELAY?: number;
 }
