@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { InputText } from '../Common/InputText';
+import { fetchAPIData, Result } from '../../utils/AsyncUtil';
 
 // Custom Send Icon Component
 const SendIcon: React.FC<{ size?: number }> = ({ size = 24 }) => (
@@ -26,7 +28,8 @@ const ChatBot: React.FC = () => {
 	const [messages, setMessages] = useState<Message[]>([
 		{ text: 'How Can I help you?', sender: 'bot' },
 	]);
-	const [input, setInput] = useState<string>('');
+
+	const chatTextRef = useRef<HTMLInputElement>(null);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
 	const scrollToBottom = () => {
@@ -35,39 +38,27 @@ const ChatBot: React.FC = () => {
 
 	useEffect(scrollToBottom, [messages]);
 
-	const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
+	const sendMessage = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
 		e.preventDefault();
-		if (input.trim() === '') return;
+		const cleanedText = chatTextRef.current?.value?.trim() || '';
+		if (cleanedText === '') return;
 
-		const newMessage: Message = { text: input, sender: 'user' };
+		const newMessage: Message = { text: cleanedText, sender: 'user' };
 		setMessages((prevMessages) => [...prevMessages, newMessage]);
-		setInput('');
 
-		fetch('/api/chat', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({ message: input }),
-		})
-			.then((response) => {
-				// Check if the response is OK
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
-				}
-				// Parse the response as JSON
-				return response.json();
-			})
-			.then((data) => {
-				// Handle the parsed data
-				setMessages((prevMessages) => [
-					...prevMessages,
-					{ text: data.message, sender: 'bot' },
-				]);
-			})
-			.catch((error) =>
-				console.error('There was a problem with the fetch operation:', error),
-			);
+		const response: Result<any> = await fetchAPIData(`/api/chat`, {
+			body: JSON.stringify({ message: cleanedText }),
+		});
+
+		if (!response.success) {
+			console.error('There was a problem with the fetch operation:', response.error);
+			return;
+		}
+
+		setMessages((prevMessages) => [
+			...prevMessages,
+			{ text: response.data?.message, sender: 'bot' },
+		]);
 	};
 
 	return (
@@ -93,10 +84,10 @@ const ChatBot: React.FC = () => {
 			</div>
 			<form onSubmit={sendMessage} className="p-4 border-t">
 				<div className="flex items-center">
-					<input
-						type="text"
-						value={input}
-						onChange={(e) => setInput(e.target.value)}
+					<InputText
+						name="chatText"
+						ref={chatTextRef}
+						initialValue={''}
 						className="flex-1 border rounded-l-lg p-2"
 						placeholder="Type a message..."
 					/>

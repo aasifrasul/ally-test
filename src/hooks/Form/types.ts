@@ -4,7 +4,7 @@ export type ValidationResult = {
 };
 
 export type ValidatorFn = (value: string) => ValidationResult;
-export type CallbackFn = (value: string, id: string) => void;
+export type CallbackFn = (value: string, id: string, isValid?: boolean) => void;
 export type Validator = ValidatorFn | RegExp;
 
 export interface FormFieldState {

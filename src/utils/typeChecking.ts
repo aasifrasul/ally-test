@@ -66,10 +66,44 @@ export const isEmpty = (data: unknown): boolean =>
 	isEmptyArray(data) ||
 	isEmptyObject(data);
 
-export const isAsyncFunction = (data: unknown): data is (...args: any[]) => Promise<unknown> =>
-	isFunction(data) && data.constructor.name === 'AsyncFunction';
-export const isGeneratorFunction = (data: unknown): data is GeneratorFunction =>
-	isFunction(data) && data.constructor.name === 'GeneratorFunction';
+export const isAsyncFunction = (
+	data: unknown,
+): data is (...args: any[]) => Promise<unknown> => {
+	if (!isFunction(data)) return false;
+
+	// 1. Native async function detection
+	if (data.constructor.name === 'AsyncFunction') return true;
+
+	// 2. Check if function returns a Promise by testing with no arguments
+	// We need to handle functions that might throw or require arguments
+	try {
+		// Only test if function has no required parameters
+		if (data.length === 0) {
+			const result = (data as any)();
+			const isPromiseResult = result instanceof Promise;
+			// Clean up the promise to avoid unhandled rejection warnings
+			if (isPromiseResult) {
+				result.catch(() => {});
+			}
+			return isPromiseResult;
+		}
+	} catch {
+		// If calling fails, it's not a zero-arg promise-returning function
+	}
+
+	return false;
+};
+
+export const isGeneratorFunction = (data: unknown): data is GeneratorFunction => {
+	if (!isFunction(data)) return false;
+
+	// Native name check
+	if (data.constructor.name === 'GeneratorFunction') return true;
+
+	// Check if the function's prototype has the GeneratorFunction constructor
+	const proto = Object.getPrototypeOf(data);
+	return proto && proto.constructor && proto.constructor.name === 'GeneratorFunction';
+};
 
 export const safelyExecuteFunction = <T>(
 	func: (...args: any[]) => T,
@@ -92,11 +126,15 @@ export const safeAsyncExecute = async <T>(
 	fn: (...args: any[]) => T | Promise<T>,
 	...args: any[]
 ): Promise<T | null> => {
-	if (!isFunction(fn)) return null;
+	if (!isFunction(fn)) {
+		console.warn('Please pass a valid function!');
+		return null;
+	}
+
 	try {
 		return await fn(...args);
 	} catch (error) {
-		console.error('Error executing function:', error);
-		return null;
+		console.error('An error occurred:', error);
+		throw error;
 	}
 };

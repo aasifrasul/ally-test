@@ -1,16 +1,12 @@
-import {
-	useState,
-	useRef,
-	useCallback,
-	useEffect,
-	useMemo,
-	RefObject,
-	ChangeEvent,
-} from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+
 import Portal from '../Common/Portal';
-import { dbounce } from '../../utils/dbounce';
 import { useClickOutside } from '../../hooks';
 import { useSearchParams } from '../../hooks/useSearchParams';
+import { useDebouncedCallback } from '../../hooks/useDebouncedCallback';
+import { fetchAPIData } from '../../utils/common';
+import { useEventListener } from '../../hooks';
+import { InputText } from '../Common/InputText';
 
 const url: string = 'https://autocomplete.clearbit.com/v1/companies/suggest?query=';
 
@@ -23,7 +19,6 @@ interface Item {
 }
 
 export default function AutoComplete() {
-	const [text, setText] = useState<string>('');
 	const [items, setItems] = useState<Item[]>([]);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -31,19 +26,25 @@ export default function AutoComplete() {
 
 	const modalContainerRef = useRef<HTMLDivElement>(null);
 	const searchCacheRef = useRef<Record<string, Item[]>>({});
-	const timoeutId = useRef<NodeJS.Timeout>(null);
+	const searchTextRef = useRef<HTMLInputElement>(null);
 
 	const { searchParams, updateParams } = useSearchParams();
+
+	const handlePageReload = (e: any) => {
+		console.log('page reloaded on event', e);
+	};
+
+	useEventListener('beforeunload', handlePageReload, window);
 
 	const { isOutsideClick, outsideRef } = useClickOutside<HTMLUListElement | HTMLDivElement>(
 		false,
 		'mousedown',
 	);
 
-	const fetchData = useCallback(async (searchText: string) => {
-		if (searchText.length === 0) return;
+	const fetchData = useCallback(
+		async (searchText: string): Promise<void> => {
+			if (searchText.length === 0) return;
 
-		try {
 			setIsLoading(true);
 
 			if (searchText in searchCacheRef.current) {
@@ -56,44 +57,37 @@ export default function AutoComplete() {
 
 			updateParams({ searchText });
 
-			const result = await fetch(`${url}${searchText}`);
-			const data: Item[] = await result.json();
-			searchCacheRef.current[searchText] = data;
-			setItems(data);
-		} catch (err) {
-			console.log(err);
-		} finally {
-			setIsLoading(false);
-		}
-	}, []);
-
-	//const debouncedFetchData = useMemo(() => dbounce(fetchData, delay), [fetchData]);
-	const debouncedFetchData = useCallback(
-		(searchText: string) => {
-			if (timoeutId.current) {
-				clearTimeout(timoeutId.current);
-				timoeutId.current = null;
+			const result = await fetchAPIData(`${url}${searchText}`);
+			if (!result.success) {
+				console.log(result.error);
+				return;
 			}
 
-			timoeutId.current = setTimeout(() => fetchData(searchText), 300);
+			const data = result.data as Item[];
+			searchCacheRef.current[searchText] = data;
+			setItems(data);
+			setIsLoading(false);
 		},
-		[fetchData],
+		[updateParams],
+	);
+
+	const { debouncedCallback: debouncedFetchData, cancel } = useDebouncedCallback(
+		fetchData,
+		delay,
 	);
 
 	const handleChange = useCallback(
-		(e: ChangeEvent<HTMLInputElement>) => {
-			const searchText = e.target.value || '';
-			setText(searchText);
-
+		(searchText: string) => {
 			if (searchText?.length > 0) {
 				debouncedFetchData(searchText.toLowerCase());
 			} else {
+				cancel(); // Cancel pending requests when clearing
 				updateParams({ searchText: '' });
 				setItems([]);
 				closeModal();
 			}
 		},
-		[debouncedFetchData],
+		[debouncedFetchData, cancel, updateParams],
 	);
 
 	const handleClick = (index: number) => {
@@ -102,7 +96,7 @@ export default function AutoComplete() {
 	};
 
 	const handleClear = () => {
-		setText('');
+		searchTextRef.current = null;
 		setItems([]);
 		closeModal();
 		updateParams({ searchText: '' });
@@ -116,7 +110,7 @@ export default function AutoComplete() {
 
 	useEffect(() => {
 		const searchText = searchParams.get('searchText') || '';
-		setText(searchText);
+		searchTextRef.current = null;
 		debouncedFetchData(searchText);
 	}, []);
 
@@ -129,21 +123,18 @@ export default function AutoComplete() {
 		}
 	}, [isOutsideClick]);
 
-	const handlePageReload = (e: any) => {
-		console.log('page reloaded on event', e);
-	};
-
-	useEffect(() => {
-		window.addEventListener('beforeunload', handlePageReload);
-		return () => {
-			window.removeEventListener('beforeunload', handlePageReload);
-		};
-	});
-
 	return (
 		<>
 			<div>
-				<input type="text" value={text} onChange={handleChange} />{' '}
+				<InputText
+					name="autoComplete"
+					id="autoComplete"
+					label="AutoComplete"
+					ref={searchTextRef}
+					size="md"
+					clearable
+					onChange={handleChange}
+				/>
 				<button
 					onClick={handleClear}
 					//className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400"
@@ -160,7 +151,7 @@ export default function AutoComplete() {
 									{name} <img src={logo} alt={name} />
 								</li>
 							))
-						) : text.length > 0 ? (
+						) : searchTextRef.current ? (
 							<li className="no-results">No results found</li>
 						) : null}
 					</ul>

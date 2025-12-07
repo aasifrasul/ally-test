@@ -6,7 +6,9 @@ import { Constants } from './types';
 
 const routes = [
 	'AsyncArticles',
+	'AutoComplete',
 	'BookStore',
+	'ChatBot',
 	'CurrencyStream',
 	'DisplayUsers',
 	'FlipTheCard',

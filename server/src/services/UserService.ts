@@ -31,10 +31,12 @@ export async function validateUserCredentials(
 		return { success: false, message: 'Email and password are required' };
 
 	const result = await fetchUserByEmail(email, true);
+
 	if (!result.success || !result.user?.password)
 		return { success: false, message: 'Invalid credentials' };
 
 	const match = await comparePassword(password, result.user.password);
+
 	if (!match) return { success: false, message: 'Passwords do not match' };
 
 	return { success: true, user: stripPassword(result.user) as IUser };
@@ -42,7 +44,7 @@ export async function validateUserCredentials(
 
 export async function fetchUserByEmail(
 	email: string,
-	doNotStrip: boolean = false,
+	doNotStripPassword: boolean = false,
 ): Promise<UserResult> {
 	if (!isValidEmail(email)) return { success: false, message: 'Invalid email' };
 
@@ -50,8 +52,8 @@ export async function fetchUserByEmail(
 		const dbInstance = await getDBInstance(currentDB);
 		const user: IUser | null = await dbInstance.findOne('users', { email });
 		if (!user) return { success: false, message: 'User not found' };
-		// Strip password before returning, even for internal use if possible
-		return { success: true, user: doNotStrip ? user : (stripPassword(user) as IUser) };
+		const cleanedUser = doNotStripPassword ? user : (stripPassword(user) as IUser);
+		return { success: true, user: cleanedUser };
 	} catch (err) {
 		logger.error(`Fetch user by email failed: ${err}`);
 		return { success: false, message: 'Database error' };
@@ -80,7 +82,6 @@ export async function addUser(user: IUser): Promise<UserResult> {
 	if (!user.name || !user.email || !user.password)
 		return { success: false, message: 'Name, email, and password are required' };
 
-	// Note: The repository handles checking for existing email via unique constraint/error
 	const hashedPassword = await hashPassword(user.password);
 	const dbInstance = await getDBInstance(currentDB);
 
@@ -89,11 +90,12 @@ export async function addUser(user: IUser): Promise<UserResult> {
 			...user,
 			password: hashedPassword,
 		} as IUser);
+
 		if (!newUser) return { success: false, message: 'Failed to create User' };
+
 		return { success: true, user: stripPassword(newUser) };
 	} catch (err) {
 		logger.error(`Add user failed: ${err}`);
-		// Catch the generic custom error thrown by the repository
 		if (err instanceof DatabaseConflictError) {
 			return { success: false, message: 'User with this email already exists' };
 		}

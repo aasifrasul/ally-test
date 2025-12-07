@@ -56,6 +56,7 @@ export type TextFieldProps = BaseFieldProps & {
 	clearable?: boolean;
 	autoComplete?: string;
 	autoFocus?: boolean;
+	wrapperClassName?: string;
 };
 
 // Union type of all possible field props

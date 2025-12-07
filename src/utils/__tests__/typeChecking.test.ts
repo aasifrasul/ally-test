@@ -1,3 +1,4 @@
+import { describe, test, expect, vi } from 'vitest';
 import {
 	arraySize,
 	isEmptyString,
@@ -141,13 +142,13 @@ describe('Utility functions', () => {
 	test('isEmptyArray', () => {
 		expect(isEmptyArray([])).toBe(true);
 		expect(isEmptyArray([1, 2, 3])).toBe(false);
-		expect(isEmptyArray({} as unknown[])).toBe(false); // Fixed: Cast empty object to unknown[]
+		expect(isEmptyArray({} as unknown[])).toBe(false);
 	});
 
 	test('isEmptyObject', () => {
 		expect(isEmptyObject({})).toBe(true);
 		expect(isEmptyObject({ a: 1 })).toBe(false);
-		expect(isEmptyObject([] as unknown as object)).toBe(false); // Fixed: Cast empty array to object
+		expect(isEmptyObject([] as unknown as object)).toBe(false);
 	});
 
 	test('isEmpty', () => {
@@ -177,13 +178,16 @@ describe('safelyExecuteFunction', () => {
 	});
 
 	test('returns undefined for non-function input', () => {
-		console.log = jest.fn();
-		expect(safelyExecuteFunction(null as unknown as () => void, null)).toBeUndefined();
-		expect(console.warn).toHaveBeenCalledWith('Please pass a valid function!');
+		const warnMock = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+		expect(safelyExecuteFunction(null as any, null)).toBeUndefined();
+		expect(warnMock).toHaveBeenCalledWith('Please pass a valid function!');
+
+		warnMock.mockRestore();
 	});
 
 	test('handles functions with no return value', () => {
-		const testFunc = jest.fn();
+		const testFunc = vi.fn();
 		expect(safelyExecuteFunction(testFunc, null)).toBeUndefined();
 		expect(testFunc).toHaveBeenCalled();
 	});
@@ -206,7 +210,7 @@ describe('safeAsyncExecute', () => {
 	});
 
 	test('handles function with no return value', async () => {
-		const testFunc = jest.fn();
+		const testFunc = vi.fn();
 		await expect(safeAsyncExecute(testFunc)).resolves.toBeUndefined();
 		expect(testFunc).toHaveBeenCalled();
 	});
@@ -218,48 +222,40 @@ describe('safeAsyncExecute', () => {
 		await expect(safeAsyncExecute(testFunc)).rejects.toThrow('Test error');
 	});
 
-	test('rejects with error for rejecting asynchronous function', async () => {
-		const originalConsoleError = console.error;
-		console.error = jest.fn();
+	test('rejects with error for rejecting async function', async () => {
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
 		const testFunc = async () => {
 			throw new Error('Async error');
 		};
+
 		await expect(safeAsyncExecute(testFunc)).rejects.toThrow('Async error');
 
-		expect(console.error).toHaveBeenCalledWith('An error occurred:', expect.any(Error));
+		expect(errorSpy).toHaveBeenCalledWith('An error occurred:', expect.any(Error));
 
-		console.error = originalConsoleError;
+		errorSpy.mockRestore();
 	});
 
 	test('logs error to console when function throws', async () => {
-		// Mock console.error
-		const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
+		const consoleErrorMock = vi.spyOn(console, 'error').mockImplementation(() => {});
 
 		const testFunc = () => {
 			throw new Error('Console log test');
 		};
 
-		try {
-			await safeAsyncExecute(testFunc);
-		} catch (e) {
-			// Expected to throw, so we catch it to prevent the test from failing
-		}
+		await expect(safeAsyncExecute(testFunc)).rejects.toThrow();
 
-		// Verify console.error was called with the expected message
 		expect(consoleErrorMock).toHaveBeenCalledWith('An error occurred:', expect.any(Error));
 
-		// Restore the original console.error
 		consoleErrorMock.mockRestore();
 	});
 
 	test('handles non-function input', async () => {
-		const originalConsoleWarn = console.warn;
-		console.warn = jest.fn();
+		const warnMock = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-		await expect(safeAsyncExecute(null as unknown as () => void)).resolves.toBeNull();
-		expect(console.warn).toHaveBeenCalledWith('Please pass a valid function!');
+		await expect(safeAsyncExecute(null as any)).resolves.toBeNull();
+		expect(warnMock).toHaveBeenCalledWith('Please pass a valid function!');
 
-		console.warn = originalConsoleWarn;
+		warnMock.mockRestore();
 	});
 });

@@ -48,8 +48,8 @@ export async function executeQuery<T extends QueryResultRow>(
 	}
 }
 
-export async function initializeConnections(httpServer: Server) {
-	return await Promise.allSettled([
+export async function initializeConnections(httpServer: Server): Promise<any> {
+	return Promise.allSettled([
 		getDBInstance(constants.dbLayer.currentDB),
 		RedisClient.getInstance().connect(),
 		connectWSServer(httpServer),
@@ -57,7 +57,7 @@ export async function initializeConnections(httpServer: Server) {
 	]);
 }
 
-export async function closeActiveConnections() {
+export async function closeActiveConnections(): Promise<any> {
 	return Promise.allSettled([
 		(await getDBInstance(constants.dbLayer.currentDB))?.cleanup(),
 		RedisClient.getInstance().cleanup(),

@@ -31,6 +31,7 @@ import { constants } from '../../src/constants';
 // Import auth components
 import { authRoutes } from './routes/authRoutes';
 import { optionalAuth } from './middlewares/authMiddleware';
+import { chatRoute } from './routes/chat';
 
 import { logger } from './Logger';
 import { errorHandler } from './middlewares/errorHandler';
@@ -164,6 +165,7 @@ app.use('/auth', authRoutes);
 
 // API routes
 app.get('/api/fetchWineData/', fetchWineData);
+app.use('/api/chat', chatRoute);
 
 // Image serving
 app.get('/images/', fetchImage);

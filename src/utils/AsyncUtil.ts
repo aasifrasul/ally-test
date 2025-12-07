@@ -1,3 +1,5 @@
+import { HTTPMethod } from '../types/api';
+
 // Types for our response handling
 type SuccessResult<T> = {
 	success: true;
@@ -77,6 +79,7 @@ export async function handleAsyncCalls<T>(promise: Promise<T>): Promise<Result<T
 
 export async function fetchAPIData<T>(url: string, options?: RequestInit): Promise<Result<T>> {
 	const newOptions = {
+		method: HTTPMethod.GET,
 		...options,
 		headers: {
 			'Content-Type': 'application/json',
