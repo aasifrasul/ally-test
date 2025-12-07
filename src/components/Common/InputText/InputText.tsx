@@ -10,12 +10,11 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 	const {
 		name,
 		label,
-		initialValue,
+		initialValue = '',
 		validate,
 		placeholder,
 		disabled = false,
 		required = false,
-		hideWrapper = false,
 		className,
 		size = 'md',
 		debounceMs,
@@ -24,10 +23,11 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 		onChange,
 		autoComplete,
 		autoFocus = false,
+		wrapperClassName,
 	} = props;
 
 	const id = props.id || `id-${name}`;
-	const { value, error, touched, isValid, handleChange } = useFormField({
+	const { value, error, touched, isValid, handleChange, reset, handleBlur } = useFormField({
 		id,
 		initialValue,
 		validate,
@@ -36,11 +36,8 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 	});
 
 	const handleClear = useCallback(() => {
-		const event = {
-			target: { value: '' },
-		} as React.ChangeEvent<HTMLInputElement>;
-		handleChange(event);
-	}, [handleChange]);
+		reset();
+	}, [reset]);
 
 	const showClearButton = clearable && value?.length > 0 && !disabled;
 
@@ -85,6 +82,7 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 					placeholder={placeholder}
 					autoComplete={autoComplete}
 					autoFocus={autoFocus}
+					onBlur={handleBlur}
 					className={cn(
 						inputBaseStyles,
 						inputSizeStyles[size],
@@ -136,7 +134,7 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 		</>
 	);
 
-	return hideWrapper ? component : <div className="space-y-1">{component}</div>;
+	return <div className={cn('space-y-1', wrapperClassName)}>{component}</div>;
 });
 
 InputText.displayName = 'InputText';

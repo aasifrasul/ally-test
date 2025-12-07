@@ -2,7 +2,6 @@ import type { Request, Response } from 'express';
 
 import { addUser, fetchUserByEmail, validateUserCredentials } from '../services/UserService';
 import { generateUserTokens, verifyToken } from '../services/tokenService';
-import { hashPassword } from '../services/hashService';
 import { setTokensResponse, clearAuthCookies } from '../transport/tokenTransport';
 import { isValidEmail } from '../utils/validationUtils';
 
@@ -27,12 +26,11 @@ export const register = async (req: Request, res: Response) => {
 		if (existing.success && existing.user)
 			return res.status(409).json({ error: 'User already exists' });
 
-		const hashedPassword = await hashPassword(password);
 		const response = await addUser({
 			name,
 			email,
 			age,
-			password: hashedPassword,
+			password,
 		} as IUser);
 
 		if (!response.success || !response.user?.id)

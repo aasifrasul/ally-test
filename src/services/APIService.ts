@@ -50,7 +50,6 @@ export class APIService {
 		return APIService.instance;
 	}
 
-	// ✅ Improved cache key that considers more factors
 	private createCacheKey(endpoint: string, options: RequestInit): string {
 		const method = options.method || HTTPMethod.GET;
 		const headers = JSON.stringify(options.headers || {});
@@ -106,10 +105,6 @@ export class APIService {
 		const result = await fetchAPIData<T>(endpoint, {
 			...options,
 			signal: abortController.signal,
-			headers: {
-				'Content-Type': 'application/json',
-				...options.headers,
-			},
 			body: options.body as BodyInit | undefined,
 		});
 

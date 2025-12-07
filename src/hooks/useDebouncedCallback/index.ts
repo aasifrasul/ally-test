@@ -1,39 +1,25 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
+
+import { useCallbackRef } from '../useCallbackRef';
+import { useTimeout } from '../useTimeout';
 
 export function useDebouncedCallback<A extends any[]>(
 	callback: (...args: A) => void,
-	wait: number,
+	wait: number = 0,
 ) {
-	const callbackRef = useRef(callback);
-	const argsRef = useRef<A>(null);
-	const timeout = useRef<NodeJS.Timeout>(undefined);
-
-	// Keep callback ref updated
-	useEffect(() => {
-		callbackRef.current = callback;
-	}, [callback]);
-
-	// Cleanup on unmount
-	useEffect(() => {
-		return cancel;
-	}, []);
-
-	const cancel = useCallback(() => {
-		if (timeout.current) {
-			clearTimeout(timeout.current);
-			timeout.current = undefined;
-		}
-	}, []);
+	const callbackRef = useCallbackRef(callback);
+	const { set, cancel } = useTimeout();
 
 	const debouncedCallback = useCallback(
-		(...args: A) => {
-			argsRef.current = args;
+		(...args: A): void => {
 			cancel();
-			timeout.current = setTimeout(() => {
-				callbackRef.current(...argsRef.current!);
-			}, wait);
+			if (wait <= 0) {
+				callbackRef.current(...args);
+			} else {
+				set(() => callbackRef.current(...args), wait);
+			}
 		},
-		[wait, cancel],
+		[wait, cancel, set, callbackRef],
 	);
 
 	return { debouncedCallback, cancel };
@@ -44,9 +30,7 @@ export function useDebouncedCallback<A extends any[]>(
 function MyComponent() {
 	const [value, setValue] = useState('');
 
-	const { debouncedCallback: handleChange } = useDebouncedCallback((newValue: string) => {
-		// This will only run after 500ms of no changes
-		console.log('Debounced value:', newValue);
+	const { debouncedCallback: debouncedAPI } = useDebouncedCallback((newValue: string) => {
 		makeAPICall(newValue);
 	}, 500);
 
@@ -54,10 +38,17 @@ function MyComponent() {
 		<input
 			value={value}
 			onChange={(e) => {
-				setValue(e.target.value);
-				handleChange(e.target.value);
+				const newValue = e.target.value;
+				setValue(newValue);        // Instant UI update
+				debouncedAPI(newValue);    // Debounced API call
 			}}
 		/>
 	);
 }
+
+The alternative would be using useMemo with a library's debounce:
+const debouncedAPI = useMemo(
+	() => debounce((val: string) => makeAPICall(val), 500),
+	[]
+);
 */

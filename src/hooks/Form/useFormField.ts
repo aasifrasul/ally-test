@@ -21,9 +21,13 @@ export function useFormField({
 	// Track the previous initialValue to detect actual changes
 	const prevInitialValueRef = useRef(initialValue);
 
+	useEffect(() => {
+		validation(initialValue);
+	}, []);
+
 	// validation and onChange handler
 	const validation = useCallback(
-		(value: string) => {
+		(value: string): void => {
 			let validationResult: ValidationResult = { isValid: true };
 
 			if (validate) {
@@ -43,8 +47,8 @@ export function useFormField({
 				isValid: validationResult.isValid,
 			}));
 
-			if (validationResult.isValid && onChange) {
-				onChange(value, id);
+			if (onChange) {
+				onChange(value, id, validationResult.isValid);
 			}
 		},
 		[validate, onChange, id, customErrorMessage],
@@ -71,7 +75,7 @@ export function useFormField({
 	}, [initialValue, debouncedValidation]);
 
 	const handleChange = useCallback(
-		(event: ChangeEvent<HTMLInputElement>) => {
+		(event: ChangeEvent<HTMLInputElement>): void => {
 			const newValue = event.target.value;
 
 			setState((prev) => ({
@@ -86,7 +90,7 @@ export function useFormField({
 		[debouncedValidation],
 	);
 
-	const reset = useCallback(() => {
+	const reset = useCallback((): void => {
 		setState({
 			value: initialValue,
 			touched: false,
@@ -98,7 +102,7 @@ export function useFormField({
 	}, [initialValue]);
 
 	const setValue = useCallback(
-		(newValue: string, markAsDirty = true) => {
+		(newValue: string, markAsDirty = true): void => {
 			setState((prev) => ({
 				...prev,
 				value: newValue,
@@ -109,7 +113,7 @@ export function useFormField({
 		[debouncedValidation],
 	);
 
-	const setTouched = useCallback((touched: boolean = true) => {
+	const setTouched = useCallback((touched: boolean = true): void => {
 		setState((prevState): FormFieldState => {
 			if (touched === prevState.touched) return prevState;
 			return {
@@ -118,6 +122,10 @@ export function useFormField({
 			};
 		});
 	}, []);
+
+	const handleBlur = useCallback((): void => {
+		setTouched(true);
+	}, [setTouched]);
 
 	return {
 		value: state.value,
@@ -129,5 +137,6 @@ export function useFormField({
 		reset,
 		setValue,
 		setTouched,
+		handleBlur,
 	};
 }

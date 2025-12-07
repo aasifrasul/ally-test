@@ -15,6 +15,7 @@ const {
 	JWT_SECRET = 'your-secret-key',
 	JWT_EXPIRES_IN = '24h',
 	REFRESH_TOKEN_SECRET = 'my-secret',
+	OPENAI_API_KEY,
 } = process.env;
 
 export {
@@ -28,6 +29,7 @@ export {
 	JWT_SECRET,
 	JWT_EXPIRES_IN,
 	REFRESH_TOKEN_SECRET,
+	OPENAI_API_KEY,
 };
 
 export const isProdEnv: boolean = process.env.NODE_ENV === 'production';
