@@ -1,7 +1,9 @@
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+
 import { generatePagination } from './helper';
+import { useSearchParams } from '../../../hooks/useSearchParams';
 
 export default function Pagination({
 	totalRowCount,
@@ -10,14 +12,12 @@ export default function Pagination({
 	totalRowCount: number;
 	pageSize: number;
 }) {
-	const { pathname } = useLocation();
-	const [searchParams, setSearchParams] = useSearchParams();
-	const currentPage = Number(searchParams.get('page')) || 1;
+	const { getPageURL, getParamByKey, updateParams } = useSearchParams();
+	const currentPage = Number(getParamByKey('page')) || 1;
 
 	const createPageURL = (pageNumber: number | string): string => {
-		const params = new URLSearchParams(searchParams);
-		params.set('page', pageNumber.toString());
-		return `${pathname}?${params.toString()}`;
+		updateParams({ page: pageNumber.toString() });
+		return getPageURL();
 	};
 
 	const totalPages = Math.ceil(totalRowCount / pageSize);

@@ -28,7 +28,7 @@ export default function AutoComplete() {
 	const searchCacheRef = useRef<Record<string, Item[]>>({});
 	const searchTextRef = useRef<HTMLInputElement>(null);
 
-	const { searchParams, updateParams } = useSearchParams();
+	const { getParamByKey, updateParams } = useSearchParams();
 
 	const handlePageReload = (e: any) => {
 		console.log('page reloaded on event', e);
@@ -36,10 +36,12 @@ export default function AutoComplete() {
 
 	useEventListener('beforeunload', handlePageReload, window);
 
-	const { isOutsideClick, outsideRef } = useClickOutside<HTMLUListElement | HTMLDivElement>(
-		false,
-		'mousedown',
-	);
+	// Separate refs for dropdown and modal
+	const { isOutsideClick: isDropdownOutsideClick, outsideRef: dropdownRef } =
+		useClickOutside<HTMLUListElement>(false, 'mousedown');
+
+	const { isOutsideClick: isModalOutsideClick, outsideRef: modalRef } =
+		useClickOutside<HTMLDivElement>(false, 'mousedown');
 
 	const fetchData = useCallback(
 		async (searchText: string): Promise<void> => {
@@ -81,7 +83,7 @@ export default function AutoComplete() {
 			if (searchText?.length > 0) {
 				debouncedFetchData(searchText.toLowerCase());
 			} else {
-				cancel(); // Cancel pending requests when clearing
+				cancel();
 				updateParams({ searchText: '' });
 				setItems([]);
 				closeModal();
@@ -102,26 +104,30 @@ export default function AutoComplete() {
 		updateParams({ searchText: '' });
 	};
 
-	// Close modal handler
 	const closeModal = () => {
 		setIsModalOpen(false);
 		setCurrentItem(null);
 	};
 
 	useEffect(() => {
-		const searchText = searchParams.get('searchText') || '';
+		const searchText = getParamByKey('searchText');
 		searchTextRef.current = null;
 		debouncedFetchData(searchText);
 	}, []);
 
+	// Handle outside clicks for dropdown
 	useEffect(() => {
-		if (isOutsideClick) {
-			if (!isModalOpen) {
-				setItems([]);
-			}
+		if (isDropdownOutsideClick && !isModalOpen) {
+			setItems([]);
+		}
+	}, [isDropdownOutsideClick, isModalOpen]);
+
+	// Handle outside clicks for modal
+	useEffect(() => {
+		if (isModalOutsideClick) {
 			closeModal();
 		}
-	}, [isOutsideClick]);
+	}, [isModalOutsideClick]);
 
 	return (
 		<>
@@ -131,20 +137,18 @@ export default function AutoComplete() {
 					id="autoComplete"
 					label="AutoComplete"
 					ref={searchTextRef}
-					size="md"
 					clearable
 					onChange={handleChange}
 				/>
 				<button
 					onClick={handleClear}
-					//className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400"
 					className="h-[48px] bg-blue-300 w-[70px] grow items-center justify-center gap-2 rounded-md p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:flex-none md:justify-start md:p-2 md:px-3"
 				>
 					<span className="sr-only text-black">Clear</span>
 				</button>
 				{isLoading && <div className="loading-indicator">Loading...</div>}
 				{!isLoading && !isModalOpen ? (
-					<ul ref={outsideRef}>
+					<ul ref={dropdownRef}>
 						{items?.length > 0 ? (
 							items?.map(({ name, logo }, index) => (
 								<li key={index} onClick={() => handleClick(index)}>
@@ -158,7 +162,7 @@ export default function AutoComplete() {
 				) : null}
 				{isModalOpen && modalContainerRef.current ? (
 					<Portal container={modalContainerRef.current}>
-						<div className="modal-content" ref={outsideRef}>
+						<div className="modal-content" ref={modalRef}>
 							<button onClick={closeModal} className="close-button">
 								X
 							</button>
