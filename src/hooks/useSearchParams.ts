@@ -2,58 +2,51 @@ import { useState, useEffect, useCallback } from 'react';
 import { useEventListener } from './';
 
 export function useSearchParams() {
-	const [isInitialized, setIsInitialized] = useState(false);
-	// Initialize with current URL search params
-	const [searchParams, setSearchParams] = useState<URLSearchParams>(new URLSearchParams());
-
-	useEventListener('popstate', handlePopState, globalThis);
-
-	useEffect(() => {
-		setSearchParams(new URLSearchParams(globalThis.location?.search));
-	}, []);
-
-	const getPageURL = useCallback(
-		(): string => `${globalThis.location.pathname}?${searchParams.toString()}`,
-		[searchParams],
+	const [searchParams, setSearchParams] = useState<URLSearchParams>(
+		() => new URLSearchParams(window.location?.search),
 	);
 
-	useEffect(() => {
-		if (!isInitialized) {
-			setIsInitialized(true);
-			return;
-		}
+	const handlePopState: (event: PopStateEvent) => void = useCallback(
+		(event: PopStateEvent): void => {
+			const newParams = new URLSearchParams(
+				event.state?.searchParams || window.location.search,
+			);
+			setSearchParams(newParams);
+		},
+		[],
+	);
 
-		globalThis.history.replaceState(
+	useEventListener('popstate', handlePopState, window);
+
+	const getPageURL = useCallback((): string => {
+		const q = searchParams.toString();
+		return q ? `${window.location.pathname}?${q}` : window.location.pathname;
+	}, [searchParams]);
+
+	useEffect(() => {
+		window.history.replaceState(
 			{ searchParams: searchParams.toString() },
 			'',
 			getPageURL(),
 		);
-	}, [searchParams, getPageURL, isInitialized]);
+	}, [searchParams, getPageURL]);
 
-	function handlePopState(event: PopStateEvent) {
-		// Get params from event state if available, otherwise from URL
-		const newParams = new URLSearchParams(
-			event.state?.searchParams || globalThis.location.search,
-		);
-		setSearchParams(newParams);
-	}
+	const getParamByKey = (key: string): string => (key ? searchParams.get(key) || '' : '');
 
-	// Convenience method to update parameters
-	const updateParams = useCallback(
-		(params: Record<string, string | null>) => {
-			setSearchParams((prevParams: URLSearchParams): URLSearchParams => {
-				const newParams: URLSearchParams = new URLSearchParams(prevParams);
-				for (const key in params) {
-					if (key.length === 0) continue;
-					params[key] === null
-						? newParams.delete(key)
-						: newParams.set(key, params[key] as string);
-				}
-				return newParams;
-			});
-		},
-		[setSearchParams],
-	);
+	const updateParams = useCallback((params: Record<string, string | null>) => {
+		setSearchParams((prevParams) => {
+			const newParams = new URLSearchParams(prevParams);
 
-	return { searchParams, setSearchParams, updateParams, getPageURL };
+			for (const key in params) {
+				if (!key) continue;
+				params[key] === null
+					? newParams.delete(key)
+					: newParams.set(key, params[key] as string);
+			}
+
+			return newParams;
+		});
+	}, []);
+
+	return { getPageURL, getParamByKey, searchParams, setSearchParams, updateParams };
 }

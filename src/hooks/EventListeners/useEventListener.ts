@@ -10,7 +10,7 @@ const logger: Logger = createLogger('useEventListener', {
 // Generic hook that supports single or multiple event types
 export function useEventListener<K extends keyof EventMap>(
 	eventType: K | K[],
-	callback: ((event: EventMap[K]) => void) | (() => void),
+	callback: EventListener | (() => void),
 	element: Target,
 	options?: Options,
 	errorHandling?: ErrorHandlingOptions, // Removed default value
@@ -19,7 +19,7 @@ export function useEventListener<K extends keyof EventMap>(
 // Overload for mixed event types with broader signature
 export function useEventListener(
 	eventType: keyof EventMap | (keyof EventMap)[],
-	callback: ((event: Event) => void) | (() => void),
+	callback: EventListener | (() => void),
 	element: Target,
 	options?: Options,
 	errorHandling?: ErrorHandlingOptions,
@@ -27,12 +27,12 @@ export function useEventListener(
 
 export function useEventListener<K extends keyof EventMap>(
 	eventType: K | K[],
-	callback: ((event: EventMap[K]) => void) | (() => void),
+	callback: EventListener | (() => void),
 	element: Target,
 	options?: Options,
 	errorHandling: ErrorHandlingOptions = {},
 ): void {
-	const callbackRef = useRef(callback);
+	const callbackRef = useRef<EventListener | (() => void)>(callback);
 	const optionsRef = useRef(options);
 	const errorHandlingRef = useRef(errorHandling);
 
@@ -53,9 +53,10 @@ export function useEventListener<K extends keyof EventMap>(
 
 	// Use useCallback with a generic event type K
 	const eventHandler = useCallback(
-		(event: EventMap[K]): void => {
+		(event: Event): void => {
 			try {
-				callbackRef.current?.(event);
+				// call via any to allow both EventListener and no-arg callbacks
+				(callbackRef.current as any)?.(event);
 			} catch (error) {
 				handleError('Unknown error in event handler', error);
 			}

@@ -1,8 +1,8 @@
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
+
+import { useSearchParams } from '../../hooks/useSearchParams';
 
 import ProductList from './ProudctList';
-
 import Pagination from '../Common/Pagination';
 import FormGenerator from '../Common/FormGenerator';
 import { constants } from '../../constants';
@@ -22,14 +22,14 @@ interface SortCallback {
 }
 
 export default function SearchForm({ data, addItem }: SearchFormProps) {
-	const [searchParams, setSearchParams] = useSearchParams();
 	const [displayData, setDisplayData] = React.useState<any[]>([]);
 	const [isLoading, setIsLoading] = React.useState(true);
-
-	const searchText = searchParams.get('searchText') || '';
+	const { getParamByKey, searchParams, updateParams } = useSearchParams();
 
 	const processData = (newData: any[] | undefined) => {
 		let processedData = newData || [];
+
+		const searchText = getParamByKey('searchText');
 
 		// Apply search filter
 		if (searchText) {
@@ -40,8 +40,8 @@ export default function SearchForm({ data, addItem }: SearchFormProps) {
 		}
 
 		// Apply sorting
-		const isAsc = searchParams.get('isAsc');
-		const sortHeader = searchParams.get('sortHeader') || 'product_name';
+		const isAsc = getParamByKey('isAsc');
+		const sortHeader = getParamByKey('sortHeader') || 'product_name';
 		if (processedData.length > 0 && isAsc) {
 			processedData = sortMixedArray(processedData, isAsc === 'true', sortHeader);
 		}
@@ -52,9 +52,8 @@ export default function SearchForm({ data, addItem }: SearchFormProps) {
 
 	React.useEffect(() => {
 		['isAsc', 'sortHeader', 'searchText', 'page'].forEach((key) => {
-			const newSearchParams = new URLSearchParams(searchParams);
-			if (!newSearchParams.has(key)) {
-				newSearchParams.delete(key, '');
+			if (searchParams && !searchParams.has(key)) {
+				searchParams.delete(key, '');
 			}
 		});
 		processData(data);
@@ -78,25 +77,19 @@ export default function SearchForm({ data, addItem }: SearchFormProps) {
 	};
 
 	const searchCallback = (searchText: string): void => {
-		const newSearchParams = new URLSearchParams(searchParams);
-		newSearchParams.set('page', '1');
+		updateParams({ page: '1' });
 		if (searchText.length === 0) {
-			newSearchParams.delete('searchText');
+			searchParams.delete('searchText');
 		} else {
-			newSearchParams.set('searchText', searchText);
+			updateParams({ searchText });
 		}
-		setSearchParams(newSearchParams);
 	};
 
-	const sortCallback: SortCallback = (header, isAsc) => {
-		const newSearchParams = new URLSearchParams(searchParams);
-		newSearchParams.set('isAsc', isAsc.toString());
-		newSearchParams.set('sortHeader', header);
-		setSearchParams(newSearchParams);
-	};
+	const sortCallback: SortCallback = (header, isAsc): void =>
+		updateParams({ isAsc: isAsc.toString(), sortHeader: header });
 
 	const currentPageData = React.useMemo(() => {
-		const pageNum = parseInt(searchParams.get('page') || '1');
+		const pageNum = parseInt(getParamByKey('page') || '1');
 		return displayData?.slice((pageNum - 1) * 10, pageNum * 10) || [];
 	}, [displayData, searchParams]);
 
@@ -117,7 +110,7 @@ export default function SearchForm({ data, addItem }: SearchFormProps) {
 						data={currentPageData}
 						callback={searchCallback}
 						sortCallback={sortCallback}
-						searchText={searchText}
+						searchText={getParamByKey('searchText')}
 					/>
 					<hr />
 					<Pagination totalRowCount={displayData?.length} pageSize={10} />

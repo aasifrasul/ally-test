@@ -1,14 +1,7 @@
 import { StrictMode, FC } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Provider } from 'react-redux';
-import { ApolloProvider } from '@apollo/client';
 
-import { FetchStoreProvider } from './Context/dataFetchContext';
-import { ThemeProvider } from './Context/ThemeProvider';
-import { AuthProvider } from './Context/AuthProvider';
-
-import store from './store';
-import { client } from './ApolloClient';
+import AppProviders from './AppProviders';
 
 import App from './components/App';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -27,23 +20,11 @@ const root = createRoot(rootElement);
 const renderApp = (AppComponent: FC) => {
 	root.render(
 		<StrictMode>
-			<ThemeProvider>
-				<Provider store={store}>
-					<ApolloProvider client={client}>
-						<FetchStoreProvider>
-							<AuthProvider>
-								<ErrorBoundary
-									fallback={
-										<div>Critical error. Please refresh the page.</div>
-									}
-								>
-									<AppComponent />
-								</ErrorBoundary>
-							</AuthProvider>
-						</FetchStoreProvider>
-					</ApolloProvider>
-				</Provider>
-			</ThemeProvider>
+			<AppProviders>
+				<ErrorBoundary fallback={<div>Critical error. Please refresh the page.</div>}>
+					<AppComponent />
+				</ErrorBoundary>
+			</AppProviders>
 		</StrictMode>,
 	);
 };
@@ -140,13 +121,13 @@ if (module.hot) {
 }
 
 // catches synchronous errors
-window.addEventListener('error', (event) => {
-	console.error('Uncaught error:', event.error);
-	event.preventDefault();
+window.addEventListener('error', (e) => {
+	console.error('Uncaught error:', e.error);
+	e.preventDefault();
 });
 
 // catches async/promise errors
-window.addEventListener('unhandledrejection', (event) => {
-	console.error('Unhandled rejection:', event.reason);
-	event.preventDefault();
+window.addEventListener('unhandledrejection', (e) => {
+	console.error('Unhandled rejection:', e.reason);
+	e.preventDefault();
 });
