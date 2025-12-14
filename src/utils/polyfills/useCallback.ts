@@ -1,4 +1,5 @@
 import { shallowEqual } from '../ArrayUtils';
+import { isFunction } from '../typeChecking';
 
 /**
  * A custom implementation of `useCallback` similar to React's `useCallback` hook.
@@ -12,7 +13,7 @@ export function useCallback<T extends (...args: any[]) => any>(fn: T, dependenci
 	if (!Array.isArray(dependencies)) {
 		throw new Error('dependencies must be an array');
 	}
-	if (typeof fn !== 'function') {
+	if (!isFunction(fn)) {
 		throw new Error('First Param should be a function');
 	}
 

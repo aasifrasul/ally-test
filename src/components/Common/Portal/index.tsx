@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { isUndefined } from '../../../utils/typeChecking';
 
 interface PortalProps {
 	container: HTMLElement | null;
@@ -16,7 +17,7 @@ export default function Portal({
 	const rootRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
-		if (!container || typeof document === 'undefined') return;
+		if (!container || isUndefined(document)) return;
 
 		try {
 			if (!rootRef.current) {

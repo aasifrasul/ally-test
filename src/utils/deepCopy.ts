@@ -1,6 +1,8 @@
+import { isObject } from './typeChecking';
+
 export function deepCopy<T>(obj: T, seen = new WeakMap()): T {
 	// Handle primitives, null, and functions
-	if (obj === null || typeof obj !== 'object') return obj;
+	if (obj === null || !isObject(obj)) return obj;
 
 	// Check for circular references
 	if (seen.has(obj)) return seen.get(obj);

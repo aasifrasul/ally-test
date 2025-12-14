@@ -1,3 +1,5 @@
+import { isObject, isString } from './typeChecking';
+
 type ReplacerFunction = (key: string | symbol, value: any) => any;
 
 const typeCheck = (data: any): string =>
@@ -13,9 +15,8 @@ function stringify(
 ): string {
 	if (value === null) return String(value);
 
-	if (typeof value === 'string') return '"' + value + '"';
-
-	if (typeof value !== 'object') return String(value);
+	if (isString(value)) return '"' + value + '"';
+	if (!isObject(value)) return String(value);
 
 	if (value instanceof Date) return '"' + value.toISOString() + '"';
 	if (value instanceof RegExp) return '"' + value.toString() + '"';
@@ -30,7 +31,7 @@ function stringify(
 		return '[' + resultArray.join(',') + ']';
 	}
 
-	if (typeof value === 'object') {
+	if (isObject(value)) {
 		const result: string[] = [];
 		Reflect.ownKeys(value).forEach((key) => {
 			const stringifiedKey = isSymbol(key) ? key.toString() : stringify(key);

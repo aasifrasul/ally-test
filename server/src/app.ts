@@ -95,7 +95,7 @@ app.use(
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use(bodyParser.text());
-app.use(timeout('10s'));
+app.use(timeout('30s'));
 app.use(haltOnTimedout as express.RequestHandler);
 
 // 2. Request ID middleware

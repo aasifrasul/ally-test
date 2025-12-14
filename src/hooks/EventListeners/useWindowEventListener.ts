@@ -1,5 +1,6 @@
 import { useEventListener } from './useEventListener';
 import { ErrorHandlingOptions, Options } from './types';
+import { isUndefined } from '../../utils/typeChecking';
 
 export function useWindowEventListener<K extends keyof WindowEventMap>(
 	eventType: K,
@@ -10,7 +11,7 @@ export function useWindowEventListener<K extends keyof WindowEventMap>(
 	useEventListener(
 		eventType,
 		callback,
-		typeof window !== 'undefined' ? window : undefined,
+		!isUndefined(window) ? window : undefined,
 		options,
 		errorHandling,
 	);

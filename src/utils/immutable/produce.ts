@@ -1,4 +1,4 @@
-import { isArray, isObject } from '../typeChecking';
+import { isArray, isFunction, isObject } from '../typeChecking';
 
 // Proper Immer-like produce function with copy-on-write
 interface DraftState {
@@ -124,7 +124,7 @@ export function produce<T extends object>(
 	maybeFn?: (draft: T) => void | T,
 ): T | ((state: T) => T) {
 	// Curried version: produce(fn)(state)
-	if (typeof stateOrFn === 'function' && !maybeFn) {
+	if (isFunction(stateOrFn) && !maybeFn) {
 		const fn = stateOrFn as (draft: T) => void | T;
 		return (state: T): T => {
 			const draft = createDraft(state);

@@ -16,6 +16,7 @@ import {
 	ModifyOptions,
 	HTTPMethod,
 } from '../../types/api';
+import { isObject, isUndefined } from '../../utils/typeChecking';
 
 // Stable module-level defaults to avoid changing dependencies per render
 const DEFAULT_TRANSFORM = (data: any) => data;
@@ -285,11 +286,8 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 		'focus',
 		(_: WindowEventMap['focus']) => {
 			if (!refetchOnWindowFocus) return;
-			if (typeof document !== 'undefined' && document.visibilityState === 'hidden')
-				return;
-			if (isStaleRef.current()) {
-				fetchDataRef.current({ force: true });
-			}
+			if (!isUndefined(document) && document.visibilityState === 'hidden') return;
+			if (isStaleRef.current()) fetchDataRef.current({ force: true });
 		},
 		undefined,
 		{ suppressErrors: true },
@@ -299,11 +297,8 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 		'visibilitychange',
 		(_: DocumentEventMap['visibilitychange']) => {
 			if (!refetchOnWindowFocus) return;
-			if (typeof document !== 'undefined' && document.visibilityState === 'hidden')
-				return;
-			if (isStaleRef.current()) {
-				fetchDataRef.current({ force: true });
-			}
+			if (isObject(document) && document.visibilityState === 'hidden') return;
+			if (isStaleRef.current()) fetchDataRef.current({ force: true });
 		},
 		undefined,
 		{ suppressErrors: true },
@@ -314,26 +309,17 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 		isMountedRef.current = true;
 
 		let intervalId: number | undefined;
-		if (refetchInterval && refetchInterval > 0 && typeof window !== 'undefined') {
+		if (refetchInterval && refetchInterval > 0 && !isUndefined(window)) {
 			intervalId = window.setInterval(() => {
-				if (
-					typeof navigator !== 'undefined' &&
-					'onLine' in navigator &&
-					!navigator.onLine
-				) {
-					return;
-				}
-				if (typeof document !== 'undefined' && document.visibilityState === 'hidden')
-					return;
-				if (isStaleRef.current()) {
-					fetchDataRef.current({});
-				}
+				if (isObject(navigator) && 'onLine' in navigator && !navigator.onLine) return;
+				if (isObject(document) && document.visibilityState === 'hidden') return;
+				if (isStaleRef.current()) fetchDataRef.current({});
 			}, refetchInterval);
 		}
 
 		return () => {
 			isMountedRef.current = false;
-			if (typeof window !== 'undefined' && intervalId) {
+			if (!isUndefined(window) && intervalId) {
 				window.clearInterval(intervalId);
 			}
 		};

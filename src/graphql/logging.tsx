@@ -1,3 +1,4 @@
+import { isUndefined } from '../utils/typeChecking';
 import { executeQuery } from './client';
 
 const isDevEnv = true;
@@ -19,7 +20,7 @@ class GraphQLDevTools {
 	constructor() {
 		// Enable in development
 
-		if (isDevEnv && typeof window !== 'undefined') {
+		if (isDevEnv && !isUndefined(window)) {
 			// Expose to window for browser debugging
 			(window as any).__GRAPHQL_DEVTOOLS__ = this;
 			console.log('GraphQL DevTools enabled. Access via window.__GRAPHQL_DEVTOOLS__');

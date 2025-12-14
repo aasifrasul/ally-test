@@ -1,3 +1,4 @@
+import { isFunction, isUndefined } from '../../typeChecking';
 import {
 	ComputedOptions,
 	ComputedReader,
@@ -171,7 +172,7 @@ export function createEffect(
 			try {
 				const result = fn();
 				// Support cleanup functions returned from effects
-				if (typeof result === 'function') {
+				if (isFunction(result)) {
 					cleanup = result;
 				}
 			} catch (error) {
@@ -356,7 +357,7 @@ declare global {
 	}
 }
 
-if (typeof window !== 'undefined') {
+if (!isUndefined(window)) {
 	window.ReactiveDemo = {
 		createSignal,
 		createEffect,

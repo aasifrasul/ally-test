@@ -8,7 +8,7 @@ interface UseInterval {
 	(callback: UseIntervalCallback, delay?: number): void;
 }
 
-const useInterval: UseInterval = (callback, delay = 0) => {
+export const useInterval: UseInterval = (callback, delay = 0) => {
 	const callbackRef = useRef<UseIntervalCallback>(callback);
 
 	// Remember the latest callback.
@@ -23,5 +23,3 @@ const useInterval: UseInterval = (callback, delay = 0) => {
 		return () => clearInterval(id);
 	}, [delay]);
 };
-
-export default useInterval;

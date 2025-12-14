@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { InputText } from '../Common/InputText';
 import { fetchAPIData, Result } from '../../utils/AsyncUtil';
+import Button from '../Common/Button';
 
 // Custom Send Icon Component
 const SendIcon: React.FC<{ size?: number }> = ({ size = 24 }) => (
@@ -91,9 +92,9 @@ const ChatBot: React.FC = () => {
 						className="flex-1 border rounded-l-lg p-2"
 						placeholder="Type a message..."
 					/>
-					<button type="submit" className="bg-blue-500 text-white p-2 rounded-r-lg">
+					<Button icon primary={true} size="small">
 						<SendIcon size={24} />
-					</button>
+					</Button>
 				</div>
 			</form>
 		</div>

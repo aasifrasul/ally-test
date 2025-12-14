@@ -1,4 +1,5 @@
 import React from 'react';
+import { isNumber } from '../../../utils/typeChecking';
 
 type SpacerSize = number | string;
 type SpacerAxis = 'vertical' | 'horizontal' | 'both';
@@ -33,7 +34,7 @@ const DIMENSION_CONFIGS = {
 const Spacer = React.forwardRef<HTMLDivElement, SpacerProps>(
 	({ size, axis = 'vertical', style = {}, inline = false, ...delegated }, ref) => {
 		// Convert size to CSS value
-		const cssSize = typeof size === 'number' ? `${size}px` : size;
+		const cssSize = isNumber(size) ? `${size}px` : size;
 		const dimensions = DIMENSION_CONFIGS[axis](cssSize);
 
 		return (

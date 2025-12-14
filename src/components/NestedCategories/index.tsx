@@ -9,6 +9,7 @@ import { buildNestedStructure } from './helpers';
 
 import { Category, NestedCategoriesProps, SelectChangeEvent } from './types';
 import styles from './NestedCategories.module.css';
+import { isObject } from '../../utils/typeChecking';
 
 export const NestedCategories: FC<NestedCategoriesProps> = ({
 	data: initialData,
@@ -26,9 +27,7 @@ export const NestedCategories: FC<NestedCategoriesProps> = ({
 	// Memoized nested data processing
 	const { nestedStructure, categories } = useMemo(() => {
 		const items: Category[] =
-			data && typeof data === 'object' && 'data' in data
-				? (data as { data: Category[] })!.data
-				: [];
+			isObject(data) && 'data' in data ? (data as { data: Category[] })!.data : [];
 		return buildNestedStructure(items);
 	}, [data]);
 

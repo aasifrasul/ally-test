@@ -10,10 +10,13 @@ export function useTimeout() {
 		}
 	}, []);
 
-	const set = useCallback((callback: () => void, delay: number) => {
-		cancel();
-		timeout.current = setTimeout(callback, delay);
-	}, []);
+	const set = useCallback(
+		(callback: () => void, delay: number) => {
+			cancel();
+			timeout.current = setTimeout(callback, delay);
+		},
+		[cancel],
+	);
 
 	useEffect(() => cancel(), [cancel]);
 

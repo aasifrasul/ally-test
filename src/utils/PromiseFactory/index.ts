@@ -1,5 +1,6 @@
 import { Deferred } from './Deferred';
 import { createLogger } from '../Logger';
+import { isString } from '../typeChecking';
 
 /**
  * Interface for PromiseFactory configuration options.
@@ -54,7 +55,7 @@ export class PromiseFactory<T = any> {
 	 * @private
 	 */
 	private validateKey(key: string): void {
-		if (!key || typeof key !== 'string') {
+		if (!isString(key) || key.trim() === '') {
 			throw new Error('Key must be a non-empty string');
 		}
 	}
@@ -399,7 +400,7 @@ export class PromiseFactory<T = any> {
 	 * @returns Array of matching deferred promises with their keys.
 	 */
 	findByPattern(pattern: RegExp | string): Array<{ key: string; deferred: Deferred<T> }> {
-		const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+		const regex = isString(pattern) ? new RegExp(pattern) : pattern;
 		const matches: Array<{ key: string; deferred: Deferred<T> }> = [];
 
 		for (const [key, deferred] of this.promises) {

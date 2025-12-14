@@ -1,3 +1,5 @@
+import { isString } from '../typeChecking';
+
 /**
  * Main thread analytics client
  * Provides simple API and communicates with Web Worker
@@ -113,7 +115,7 @@ class AnalyticsClient {
 	trackClick(element, clickData = {}, immediate = false) {
 		let elementInfo = {};
 
-		if (typeof element === 'string') {
+		if (isString(element)) {
 			// If element is a selector, try to find it
 			const foundElement = document.querySelector(element);
 			if (foundElement) {

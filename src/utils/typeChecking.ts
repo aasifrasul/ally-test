@@ -43,7 +43,7 @@ export const isWeakSet = (data: unknown): data is WeakSet<object> => data instan
 
 export const isPromise = (data: unknown): data is Promise<unknown> => data instanceof Promise;
 export const isDate = (data: unknown): data is Date => data instanceof Date;
-export const isSymbol = (data: unknown): data is symbol => typeof data === 'symbol';
+export const isSymbol = (data: unknown): data is symbol => typeCheck(data, 'symbol');
 export const isRegExp = (data: unknown): data is RegExp => data instanceof RegExp;
 
 // Improved array size function with type safety
