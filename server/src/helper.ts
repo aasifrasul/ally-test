@@ -3,6 +3,7 @@ import xss from 'xss';
 
 import { isProdEnv } from './envConfigDetails';
 import { pathBuildTime } from './paths';
+import { isObject } from '../../src/utils/typeChecking';
 
 interface EncOptions {
 	encoding?: string;
@@ -164,7 +165,7 @@ export const safeStringify = (obj: any): string => {
 		if (value === obj) return '[Circular]';
 		if (value instanceof RegExp) return String(value);
 		if (Array.isArray(value)) return value.map((ele: any) => ele);
-		if (typeof value === 'object' && value !== null) {
+		if (isObject(value)) {
 			if (seen.has(value)) return;
 			seen.add(value);
 		}

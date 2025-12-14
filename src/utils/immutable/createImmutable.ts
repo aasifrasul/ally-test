@@ -8,6 +8,8 @@ import {
 	isWeakMap,
 	isWeakSet,
 	isPromise,
+	isFunction,
+	isString,
 } from '../typeChecking';
 
 const proxyCache = new WeakMap<object, object>();
@@ -42,7 +44,7 @@ function shouldProxy(value: any): boolean {
 		value instanceof ArrayBuffer ||
 		value instanceof DataView ||
 		// Add other built-ins as needed
-		typeof value === 'function'
+		isFunction(value)
 	);
 }
 
@@ -67,7 +69,7 @@ export function createImmutable<T extends object>(obj: T): T {
 		},
 		get(target: T, prop: PropertyKey, receiver: any) {
 			// Handle array methods first (before getting the value)
-			if (isArray(target) && typeof prop === 'string') {
+			if (isArray(target) && isString(prop)) {
 				if (mutatingArrayMethods.includes(prop)) {
 					throw new Error(`Cannot use mutating method ${prop} on immutable array`);
 				}

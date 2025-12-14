@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useRef, ChangeEvent } from 'react';
-import { useDebouncedCallback } from '../useDebouncedCallback';
+import { useDebouncedCallback } from '../';
 
 import { ValidationResult, UseFormFieldProps, FormFieldState } from './types';
+import { isFunction } from '../../utils/typeChecking';
 
 export function useFormField({
 	id,
@@ -31,12 +32,13 @@ export function useFormField({
 			let validationResult: ValidationResult = { isValid: true };
 
 			if (validate) {
-				if (typeof validate === 'function') {
+				if (isFunction(validate)) {
 					validationResult = validate(value);
 				} else if (validate instanceof RegExp) {
+					const isValid = validate.test(value);
 					validationResult = {
-						isValid: validate.test(value),
-						error: validate.test(value) ? undefined : customErrorMessage,
+						isValid,
+						error: isValid ? undefined : customErrorMessage,
 					};
 				}
 			}
@@ -55,10 +57,7 @@ export function useFormField({
 	);
 
 	// Debounced validation
-	const { debouncedCallback: debouncedValidation } = useDebouncedCallback(
-		validation,
-		debounceMs,
-	);
+	const debouncedValidation = useDebouncedCallback(validation, debounceMs);
 
 	// Handle initialValue changes (both when clean and dirty)
 	useEffect(() => {

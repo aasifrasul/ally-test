@@ -1,4 +1,5 @@
 import { HTTPMethod } from '../types/api';
+import { isBoolean, isFunction, isUndefined } from './typeChecking';
 
 // Types for our response handling
 type SuccessResult<T> = {
@@ -42,9 +43,9 @@ function isResponseLike(obj: any): obj is ResponseLike {
 	return (
 		obj &&
 		typeof obj === 'object' &&
-		'ok' in obj &&
-		typeof obj.ok === 'boolean' &&
-		typeof obj.json === 'function'
+		isBoolean(obj.ok) &&
+		isFunction(obj.json) &&
+		isFunction(obj.text)
 	);
 }
 
@@ -78,9 +79,14 @@ export async function handleAsyncCalls<T>(promise: Promise<T>): Promise<Result<T
 }
 
 export async function fetchAPIData<T>(url: string, options?: RequestInit): Promise<Result<T>> {
-	const newOptions = {
-		method: HTTPMethod.GET,
-		...options,
+	// Infer method: if caller provided a method use it; otherwise
+	// if a body is present assume POST, else default to GET.
+	const { method, body } = options || {};
+	const inferredMethod = method || (!isUndefined(body) ? HTTPMethod.POST : HTTPMethod.GET);
+
+	const newOptions: RequestInit = {
+		...(options || {}),
+		method: inferredMethod,
 		headers: {
 			'Content-Type': 'application/json',
 			...options?.headers,

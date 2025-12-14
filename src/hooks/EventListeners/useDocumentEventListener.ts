@@ -1,5 +1,6 @@
 import { useEventListener } from './useEventListener';
 import { ErrorHandlingOptions, Options } from './types';
+import { isUndefined } from '../../utils/typeChecking';
 
 export function useDocumentEventListener<K extends keyof DocumentEventMap>(
 	eventType: K,
@@ -10,7 +11,7 @@ export function useDocumentEventListener<K extends keyof DocumentEventMap>(
 	useEventListener(
 		eventType,
 		callback,
-		typeof document !== 'undefined' ? document : undefined,
+		!isUndefined(document) ? document : undefined,
 		options,
 		errorHandling,
 	);

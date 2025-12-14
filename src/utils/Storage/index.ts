@@ -3,6 +3,7 @@ import { SessionStorageAdapter } from './SessionStorageAdapter';
 import { IndexedDBAdapter } from './IndexedDBAdapter';
 import { Keys, StorageType, StorageCapacity, IStorageAdapter } from './types';
 import { StorageError, StorageInitializationError } from './common';
+import { isUndefined } from '../typeChecking';
 
 class Storage {
 	private storageAdapter: IStorageAdapter;
@@ -48,13 +49,15 @@ class Storage {
 	}
 
 	private isStorageTypeSupported(type: StorageType): boolean {
+		if (isUndefined(window)) return false;
+
 		switch (type) {
 			case StorageType.LOCAL_STORAGE:
-				return typeof window !== 'undefined' && !!window.localStorage;
+				return !!window.localStorage;
 			case StorageType.SESSION_STORAGE:
-				return typeof window !== 'undefined' && !!window.sessionStorage;
+				return !!window.sessionStorage;
 			case StorageType.INDEXED_DB:
-				return typeof window !== 'undefined' && !!window.indexedDB;
+				return !!window.indexedDB;
 			default:
 				return false;
 		}

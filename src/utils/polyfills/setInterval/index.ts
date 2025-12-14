@@ -1,3 +1,5 @@
+import { isFunction, isNumber } from '../../typeChecking';
+
 export function setInterval(
 	callback: (...args: any[]) => void,
 	interval: number,
@@ -7,11 +9,11 @@ export function setInterval(
 	pause: () => void;
 	resume: () => void;
 } {
-	if (typeof callback !== 'function') {
+	if (!isFunction(callback)) {
 		throw new TypeError('Callback must be a function');
 	}
 
-	if (typeof interval !== 'number' || interval < 0) {
+	if (!isNumber(interval) || interval < 0) {
 		throw new TypeError('Interval must be a positive number');
 	}
 

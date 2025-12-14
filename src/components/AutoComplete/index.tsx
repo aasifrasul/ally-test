@@ -1,12 +1,14 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
 import Portal from '../Common/Portal';
-import { useClickOutside } from '../../hooks';
-import { useSearchParams } from '../../hooks/useSearchParams';
-import { useDebouncedCallback } from '../../hooks/useDebouncedCallback';
-import { fetchAPIData } from '../../utils/common';
-import { useEventListener } from '../../hooks';
 import { InputText } from '../Common/InputText';
+import {
+	useClickOutside,
+	useSearchParams,
+	useDebouncedCallback,
+	useEventListener,
+} from '../../hooks';
+import { fetchAPIData } from '../../utils/common';
 
 const url: string = 'https://autocomplete.clearbit.com/v1/companies/suggest?query=';
 
@@ -73,35 +75,28 @@ export default function AutoComplete() {
 		[updateParams],
 	);
 
-	const { debouncedCallback: debouncedFetchData, cancel } = useDebouncedCallback(
-		fetchData,
-		delay,
-	);
+	const debouncedFetch = useDebouncedCallback((searchText: string) => {
+		fetchData(searchText);
+	}, delay);
+
+	const handleClear = () => {
+		debouncedFetch.cancel();
+		searchTextRef.current = null;
+		setItems([]);
+		closeModal();
+		updateParams({ searchText: '' });
+	};
 
 	const handleChange = useCallback(
-		(searchText: string) => {
-			if (searchText?.length > 0) {
-				debouncedFetchData(searchText.toLowerCase());
-			} else {
-				cancel();
-				updateParams({ searchText: '' });
-				setItems([]);
-				closeModal();
-			}
+		(searchText: string): void => {
+			searchText.length > 0 ? debouncedFetch(searchText.toLowerCase()) : handleClear();
 		},
-		[debouncedFetchData, cancel, updateParams],
+		[debouncedFetch, handleClear],
 	);
 
 	const handleClick = (index: number) => {
 		setCurrentItem(items[index]);
 		setIsModalOpen(true);
-	};
-
-	const handleClear = () => {
-		searchTextRef.current = null;
-		setItems([]);
-		closeModal();
-		updateParams({ searchText: '' });
 	};
 
 	const closeModal = () => {
@@ -112,7 +107,7 @@ export default function AutoComplete() {
 	useEffect(() => {
 		const searchText = getParamByKey('searchText');
 		searchTextRef.current = null;
-		debouncedFetchData(searchText);
+		debouncedFetch(searchText);
 	}, []);
 
 	// Handle outside clicks for dropdown

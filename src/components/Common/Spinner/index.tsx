@@ -1,6 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import { Icon } from '../Icon';
+import { isString } from '../../../utils/typeChecking';
 
 export enum Shape {
 	REGULAR_CIRCLE = 'regularCircle',
@@ -42,7 +43,7 @@ export class Spinner extends React.Component<SpinnerProps> {
 		};
 
 		if (icon) {
-			if (typeof icon === 'string') {
+			if (isString(icon)) {
 				children = <Icon name={icon} />;
 			} else {
 				children = icon;

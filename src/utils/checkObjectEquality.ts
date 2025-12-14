@@ -1,7 +1,9 @@
+import { isFunction, isObject } from './typeChecking';
+
 export function checkObjectEquality(data1: any, data2: any, seen = new WeakSet()): boolean {
 	if (typeof data1 !== typeof data2) return false;
-	if (typeof data1 === 'function') return data1.toString() === data2.toString();
-	if (typeof data1 !== 'object' || data1 === null || data2 === null) return data1 === data2;
+	if (isFunction(data1)) return data1.toString() === data2.toString();
+	if (!isObject(data1) || data1 === null || data2 === null) return data1 === data2;
 
 	if (seen.has(data1) || seen.has(data2)) return true;
 	seen.add(data1);

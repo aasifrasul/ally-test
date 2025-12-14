@@ -1,4 +1,5 @@
 import React from 'react';
+import { safelyExecuteFunction } from '../../../utils/typeChecking';
 
 interface TextAreaProps {
 	label?: string;
@@ -43,9 +44,7 @@ export default function TextArea({
 	const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		const text = e.target.value;
 		setContent(text);
-		if (typeof callback === 'function') {
-			callback(text);
-		}
+		safelyExecuteFunction(callback, null, text);
 	};
 
 	const handleFocus = () => setIsFocused(true);

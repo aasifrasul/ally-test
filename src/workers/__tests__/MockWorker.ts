@@ -1,3 +1,6 @@
+import { getArrayCount } from '../../utils/ArrayUtils';
+import { isFunction } from '../../utils/typeChecking';
+
 type EventListenerMap = Map<string, Set<EventListenerOrEventListenerObject>>;
 
 export class MockWorker implements Worker {
@@ -116,13 +119,11 @@ export class MockWorker implements Worker {
 
 		const listeners = this.listeners.get(event.type);
 		if (listeners) {
-			listeners.forEach((listener) => {
-				if (typeof listener === 'function') {
-					listener.call(this, event);
-				} else {
-					listener.handleEvent(event);
-				}
-			});
+			listeners.forEach((listener) =>
+				isFunction(listener)
+					? listener.call(this, event)
+					: listener.handleEvent(event),
+			);
 		}
 		return true;
 	}

@@ -1,28 +1,37 @@
 import { useCallback } from 'react';
 
-import { useCallbackRef } from '../useCallbackRef';
-import { useTimeout } from '../useTimeout';
+import { useCallbackRef, useTimeout } from '../';
+
+type DebouncedCallback<A extends any[]> = ((...args: A) => void) & {
+	cancel: () => void;
+	flush: (...args: A) => void;
+};
 
 export function useDebouncedCallback<A extends any[]>(
 	callback: (...args: A) => void,
 	wait: number = 0,
-) {
+): DebouncedCallback<A> {
 	const callbackRef = useCallbackRef(callback);
 	const { set, cancel } = useTimeout();
 
 	const debouncedCallback = useCallback(
 		(...args: A): void => {
 			cancel();
-			if (wait <= 0) {
-				callbackRef.current(...args);
-			} else {
-				set(() => callbackRef.current(...args), wait);
-			}
+			wait <= 0
+				? callbackRef.current(...args)
+				: set(() => callbackRef.current(...args), wait);
 		},
 		[wait, cancel, set, callbackRef],
-	);
+	) as DebouncedCallback<A>;
 
-	return { debouncedCallback, cancel };
+	const flush = useCallback((...args: A): void => {
+		callbackRef.current(...args);
+	}, []);
+
+	debouncedCallback.cancel = () => cancel();
+	debouncedCallback.flush = (...args: A) => flush(args);
+
+	return debouncedCallback;
 }
 
 /*

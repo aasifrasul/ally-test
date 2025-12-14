@@ -1,6 +1,7 @@
 import { HTTPMethod } from '../types/api';
 import { createLogger, LogLevel, Logger } from '../utils/Logger';
 import { fetchAPIData, Result } from '../utils/common';
+import { isString } from '../utils/typeChecking';
 
 export interface SaveDataOptions extends RequestInit {
 	body: BodyInit;
@@ -57,10 +58,7 @@ export class APIService {
 		let body = '';
 		if (method !== HTTPMethod.GET && options.body) {
 			try {
-				body =
-					typeof options.body === 'string'
-						? options.body
-						: JSON.stringify(options.body);
+				body = isString(options.body) ? options.body : JSON.stringify(options.body);
 			} catch {
 				body = '[unserializable-body]';
 			}

@@ -1,3 +1,5 @@
+import { isFunction } from './typeChecking';
+
 // Types
 interface Hook {
 	memoizedState: any;
@@ -72,16 +74,16 @@ function useState<T>(
 
 	// Initialize state on first render
 	if (hook.memoizedState === undefined) {
-		hook.memoizedState =
-			typeof initialState === 'function' ? (initialState as () => T)() : initialState;
+		hook.memoizedState = isFunction(initialState)
+			? (initialState as () => T)()
+			: initialState;
 	}
 
 	const setState = (newState: T | ((prev: T) => T)) => {
 		const currentState = hook.memoizedState;
-		const nextState =
-			typeof newState === 'function'
-				? (newState as (prev: T) => T)(currentState)
-				: newState;
+		const nextState = isFunction(newState)
+			? (newState as (prev: T) => T)(currentState)
+			: newState;
 
 		// Only update if state actually changed
 		if (Object.is(nextState, currentState)) return;

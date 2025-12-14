@@ -2,7 +2,7 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 import { QueryParams } from '../constants/types';
-import { isNumber } from './typeChecking';
+import { isNumber, isObject } from './typeChecking';
 export { deepCopy } from './deepCopy';
 export { handleAsyncCalls, fetchAPIData, type Result } from './AsyncUtil';
 
@@ -109,10 +109,9 @@ export const buildQueryParams = (queryParams: QueryParams): string =>
 	Object.entries(queryParams)
 		.filter(([, value]) => value !== undefined && value !== null)
 		.map(([key, value]) => {
-			const encodedValue =
-				typeof value === 'object'
-					? encodeURIComponent(JSON.stringify(value))
-					: encodeURIComponent(value as string | number | boolean);
+			const encodedValue = isObject(value)
+				? encodeURIComponent(JSON.stringify(value))
+				: encodeURIComponent(value as string | number | boolean);
 			return `${encodeURIComponent(key)}=${encodedValue}`;
 		})
 		.join('&');

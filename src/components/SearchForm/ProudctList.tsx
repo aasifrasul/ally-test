@@ -10,6 +10,7 @@ import {
 	TableRow,
 } from '../Common/Table';
 import { Segment } from '../Common/Segment';
+import { safelyExecuteFunction } from '../../utils/typeChecking';
 
 interface ProductListProps {
 	data: any[];
@@ -33,11 +34,8 @@ export default function ProductList({
 	sortCallback,
 	searchText,
 }: ProductListProps) {
-	const handleSearch = (text: string) => {
-		if (typeof callback === 'function') {
-			callback(text, 'product_name');
-		}
-	};
+	const handleSearch = (text: string) =>
+		safelyExecuteFunction(callback, null, text, 'product_name');
 
 	const rows = data.map((item, id) => (
 		<TableRow key={id}>

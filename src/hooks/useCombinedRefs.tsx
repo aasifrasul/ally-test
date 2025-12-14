@@ -1,4 +1,5 @@
 import { useCallback, MutableRefObject, RefCallback } from 'react';
+import { isFunction } from '../utils/typeChecking';
 
 export function useCombinedRefs<T>(
 	...refs: (MutableRefObject<T | null> | RefCallback<T> | null | undefined)[]
@@ -7,7 +8,7 @@ export function useCombinedRefs<T>(
 		refs.forEach((ref) => {
 			if (!ref) return;
 
-			if (typeof ref === 'function') {
+			if (isFunction(ref)) {
 				ref(element);
 			} else {
 				ref.current = element;

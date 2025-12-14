@@ -1,3 +1,5 @@
+import { isObject, isString } from './typeChecking';
+
 /**
  * Creates a robust serialization key for memoization
  * @param value - The value to serialize
@@ -8,8 +10,8 @@ export function createKey(value: any, seen: WeakSet<object> = new WeakSet()): st
 	// Handle primitive types
 	if (value === null) return 'null';
 	// if (value === undefined) return 'undefined';
-	if (typeof value === 'string') return `${typeof value}:"${value}"`;
-	if (typeof value !== 'object') return `${typeof value}:${String(value)}`;
+	if (isString(value)) return `${typeof value}:"${value}"`;
+	if (!isObject(value)) return `${typeof value}:${String(value)}`;
 
 	// Handle circular references
 	if (seen.has(value)) return 'circular';

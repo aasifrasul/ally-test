@@ -4,6 +4,7 @@ import { getRandomId } from '../utils/common';
 import { PromiseFactory } from '../utils/PromiseFactory';
 import { HTTPMethod } from '../types/api';
 import { APIService } from '../services/APIService';
+import { isUndefined } from '../utils/typeChecking';
 
 const logger = createLogger('WorkerQueue');
 
@@ -28,8 +29,7 @@ export class WorkerQueue {
 	private telemetrySubscribers: Array<(e: TelemetryEvent) => void> = [];
 
 	private constructor() {
-		this.isWorkerEnvironment =
-			typeof window !== 'undefined' && typeof Worker !== 'undefined';
+		this.isWorkerEnvironment = !isUndefined(window) && !isUndefined(Worker);
 
 		// Initialize worker only in browser environments
 		if (this.isWorkerEnvironment) {
