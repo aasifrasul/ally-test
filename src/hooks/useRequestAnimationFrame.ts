@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useCallbackRef } from './';
 
 /**
  * A duration based hook for requestAnimationFrame.
@@ -11,10 +12,10 @@ function useRequestAnimationFrame(
 	callback: (relativeProgress: number, isLastFrame: boolean) => void,
 	duration: number,
 ) {
-	const savedCallback = useRef(callback);
-	const savedDuration = useRef(duration);
-	const shouldResetStartTime = useRef(false);
-	const startTime = useRef(0);
+	const callbackRef = useCallbackRef(callback);
+	const durationRef = useRef(duration);
+	const resetStartTimeRef = useRef(false);
+	const timeRef = useRef(0);
 	const rAFRef = useRef(0);
 
 	useEffect(() => {
@@ -22,28 +23,25 @@ function useRequestAnimationFrame(
 			return;
 		}
 
-		// Remember the latest callback, and duration if it changes
-		savedCallback.current = callback;
-		savedDuration.current = duration;
-
-		shouldResetStartTime.current = true;
+		durationRef.current = duration;
+		resetStartTimeRef.current = true;
 
 		// setup the requestAnimationFrame
 		function tick(time: number) {
-			if (!startTime.current || shouldResetStartTime.current) {
-				startTime.current = time;
+			if (!timeRef.current || resetStartTimeRef.current) {
+				timeRef.current = time;
 			}
-			shouldResetStartTime.current = false;
+			resetStartTimeRef.current = false;
 
-			const runtime = time - startTime.current;
-			const relativeProgress = runtime / savedDuration.current;
-			const isLastFrame = runtime >= savedDuration.current;
+			const runtime = time - timeRef.current;
+			const relativeProgress = runtime / durationRef.current;
+			const isLastFrame = runtime >= durationRef.current;
 
 			if (!isLastFrame) {
 				rAFRef.current = requestAnimationFrame(tick);
 			}
 
-			savedCallback.current(relativeProgress, isLastFrame);
+			callbackRef.current(relativeProgress, isLastFrame);
 		}
 
 		if (rAFRef.current) {

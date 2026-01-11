@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 
 import { ImageLoader } from '../utils/ImageLoader';
 import { useIntersectionObserver } from './useIntersectionObserver';
+import { useCallbackRef } from './useCallbackRef';
 
 interface LazyImageOptions {
 	src: string;
@@ -19,6 +20,10 @@ export const useLazyImage = (options: LazyImageOptions) => {
 	const loadedRef = useRef(false);
 	const cleanupRef = useRef<(() => void) | undefined>(null);
 
+	// Store callbacks in refs to avoid recreating handleIntersection
+	const onLoadRef = useCallbackRef(options?.onLoad);
+	const onErrorRef = useCallbackRef(options?.onError);
+
 	const loadImage = useCallback(async () => {
 		if (!imgRef.current || loadedRef.current) return;
 
@@ -30,24 +35,30 @@ export const useLazyImage = (options: LazyImageOptions) => {
 
 			img.src = options.src;
 			img.classList.remove('loading');
-			options.onLoad?.();
+			onLoadRef.current?.();
 		} catch (error) {
 			console.error('Image loading failed:', error);
-			options.onError?.(error as Error);
+			onErrorRef.current?.(error as Error);
 		}
-	}, [options.src, options.onLoad, options.onError]);
+	}, [options.src]); // Now only depends on src
+
+	const cleanup = useCallback(() => {
+		if (cleanupRef.current) {
+			cleanupRef.current();
+			cleanupRef.current = undefined;
+		}
+	}, []);
 
 	const handleIntersection: IntersectionObserverCallback = useCallback(
 		(entries) => {
 			entries.forEach((entry) => {
 				if (entry.isIntersecting && !loadedRef.current) {
 					loadImage();
-					// Stop observing once we start loading
 					cleanup();
 				}
 			});
 		},
-		[loadImage],
+		[loadImage, cleanup], // Now stable dependencies
 	);
 
 	const observe = useIntersectionObserver({
@@ -56,34 +67,22 @@ export const useLazyImage = (options: LazyImageOptions) => {
 		onIntersect: handleIntersection,
 	});
 
-	const cleanup = () => {
-		if (cleanupRef.current) {
-			cleanupRef.current();
-			cleanupRef.current = null;
-		}
-	};
-
 	useEffect(() => {
 		const img = imgRef.current;
 		if (!img) return;
 
-		// Set initial placeholder
 		if (options.placeholder) {
 			img.src = options.placeholder;
 			img.classList.add('loading');
 		}
 
-		// Cleanup previous observation
-		cleanup();
-
-		// Start observing
 		cleanupRef.current = observe(img);
 
 		return () => {
 			cleanup();
 			loadedRef.current = false;
 		};
-	}, [observe, options.placeholder]);
+	}, [options.placeholder, options.src, observe, cleanup]);
 
 	return imgRef;
 };

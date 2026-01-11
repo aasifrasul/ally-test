@@ -6,7 +6,7 @@ import { createLogger, LogLevel, Logger } from './Logger';
  */
 export interface ImageLoaderOptions {
 	/**
-	 * @property {string} [placeholder] - The default placeholder image URL. Defaults to 'placeholder.jpg'.
+	 * @property {string} [placeholder] - The default placeholder image URL. Defaults to a base64 SVG gradient.
 	 */
 	placeholder?: string;
 	/**
@@ -29,9 +29,9 @@ export interface LoadImageCallbacks {
 	 */
 	onError?: (error: Error) => void;
 	/**
-	 * @property {((error: Error) => void)} [onAbort] - Callback function triggered if the image load is aborted.
+	 * @property {(() => void)} [onCancel] - Callback function triggered if the image load is cancelled.
 	 */
-	onAbort?: (error: Error) => void;
+	onCancel?: () => void;
 }
 
 /**
@@ -55,12 +55,15 @@ export interface LoadImagePromiseOptions {
  */
 interface CurrentImageRequest {
 	img: HTMLImageElement;
-	controller: AbortController;
+	url: string;
+	cancelled: boolean;
 }
 
 /**
  * @class ImageLoader
  * @description A utility class for loading images with features like cancellation, placeholders, and logging.
+ * Note: Image elements don't support native abort/cancellation, but this class tracks requests
+ * to prevent stale image loads from updating the UI.
  */
 export class ImageLoader {
 	/**
@@ -109,17 +112,17 @@ export class ImageLoader {
 		url: string,
 		options: LoadImageCallbacks & LoadImagePromiseOptions = {},
 	): Promise<HTMLImageElement> {
-		const { onLoad, onError, onAbort, ...restOptions } = options;
+		const { onLoad, onError, onCancel, ...restOptions } = options;
 
 		const promise = this.loadImagePromise(url, restOptions);
 
 		// If callbacks provided, use them
-		if (onLoad || onError || onAbort) {
+		if (onLoad || onError || onCancel) {
 			promise
 				.then((img: HTMLImageElement) => onLoad?.(img))
 				.catch((error: Error) => {
-					if (error.message.includes('aborted')) {
-						onAbort?.(error);
+					if (error.message.includes('cancelled')) {
+						onCancel?.();
 					} else {
 						onError?.(error);
 					}
@@ -135,7 +138,7 @@ export class ImageLoader {
 	 * @private
 	 * @param {string} url - The URL of the image to load.
 	 * @param {LoadImagePromiseOptions} [options={}] - Options for the image loading, including target element and placeholder.
-	 * @returns {Promise<HTMLImageElement>} A promise that resolves with the HTMLImageElement on success or rejects on error/abort.
+	 * @returns {Promise<HTMLImageElement>} A promise that resolves with the HTMLImageElement on success or rejects on error/cancel.
 	 */
 	private loadImagePromise(
 		url: string,
@@ -143,32 +146,37 @@ export class ImageLoader {
 	): Promise<HTMLImageElement> {
 		const { targetElement, placeholder = this.defaultPlaceholder } = options;
 
-		// Ensure targetElement is an HTMLImageElement if provided
+		// Validate targetElement if provided
 		if (targetElement && !(targetElement instanceof HTMLImageElement)) {
-			console.warn(
-				'targetElement must be an HTMLImageElement. Ignoring targetElement for this load.',
-			);
-			// We could throw an error or handle it differently, but for now, we'll just ignore it.
+			const errorMsg = 'targetElement must be an HTMLImageElement';
+			if (this.enableLogging) {
+				this.logger.warn(errorMsg);
+			}
+			return Promise.reject(new Error(errorMsg));
 		}
 
 		// Cancel any existing request
 		this.cancel();
 
-		const controller = new AbortController();
 		const img = new Image();
+		const request: CurrentImageRequest = {
+			img,
+			url,
+			cancelled: false,
+		};
 
 		// If a targetElement is provided, set its src to the placeholder
 		if (targetElement) {
 			targetElement.src = placeholder;
-			targetElement.classList.add('loading'); // Add loading class immediately
+			targetElement.classList.add('loading');
 		}
 
-		this.currentRequest = { img, controller };
+		this.currentRequest = request;
 
 		return new Promise<HTMLImageElement>((resolve, reject) => {
 			const handleLoad = () => {
-				// Ensure this is still the active request before processing
-				if (this.currentRequest?.img === img) {
+				// Only process if this request hasn't been cancelled
+				if (!request.cancelled && this.currentRequest === request) {
 					if (targetElement) {
 						targetElement.src = url;
 						targetElement.classList.remove('loading');
@@ -176,47 +184,43 @@ export class ImageLoader {
 					if (this.enableLogging) {
 						this.logger.info(`✅ Loaded: ${url}`);
 					}
-					this.currentRequest = null; // Clear after success
+					this.currentRequest = null;
 					resolve(img);
+				} else if (request.cancelled) {
+					// Request was cancelled - don't update UI
+					if (this.enableLogging) {
+						this.logger.warn(
+							`🚫 Load completed but request was cancelled: ${url}`,
+						);
+					}
 				}
 			};
 
-			const handleError = (event: Event) => {
-				// Ensure this is still the active request before processing
-				if (this.currentRequest?.img === img) {
+			const handleError = () => {
+				// Only process if this request hasn't been cancelled
+				if (!request.cancelled && this.currentRequest === request) {
 					if (targetElement) {
-						targetElement.src = placeholder; // Revert to placeholder on error
+						targetElement.src = placeholder;
 						targetElement.classList.remove('loading');
 					}
 					if (this.enableLogging) {
-						this.logger.error(`❌ Error loading: ${url}. Event: ${event.type}`);
+						this.logger.error(`❌ Error loading: ${url}`);
 					}
-					this.currentRequest = null; // Clear after error
+					this.currentRequest = null;
 					reject(new Error(`Failed to load image: ${url}`));
+				} else if (request.cancelled) {
+					// Request was cancelled - error doesn't matter
+					if (this.enableLogging) {
+						this.logger.warn(
+							`🚫 Error occurred but request was already cancelled: ${url}`,
+						);
+					}
 				}
 			};
 
-			const handleAbort = () => {
-				if (this.enableLogging) {
-					this.logger.warn(`🚫 Aborted loading: ${url}`);
-				}
-				// Don't clear currentRequest here - it's being replaced by a new request or explicitly cancelled.
-				// The new request will overwrite `this.currentRequest`.
-				reject(new Error('Image loading aborted'));
-			};
-
-			// Add event listeners with the signal from the AbortController
-			img.addEventListener('load', handleLoad, {
-				once: true,
-				signal: controller.signal,
-			});
-			img.addEventListener('error', handleError, {
-				once: true,
-				signal: controller.signal,
-			});
-			// Note: Abort event on Image element is not standard.
-			// The AbortController signal handles the abortion of the fetch itself.
-			// We simulate an 'abort' event by catching the AbortError from the promise.
+			// Add event listeners
+			img.addEventListener('load', handleLoad, { once: true });
+			img.addEventListener('error', handleError, { once: true });
 
 			// Start loading
 			img.src = url;
@@ -242,11 +246,22 @@ export class ImageLoader {
 	/**
 	 * @method cancel
 	 * @description Cancels the currently active image loading request, if any.
+	 * Note: This doesn't stop the browser from downloading the image, but prevents
+	 * the cancelled request from updating the UI when it completes.
 	 */
 	public cancel(): void {
 		if (this.currentRequest) {
-			this.currentRequest.controller.abort();
-			this.currentRequest = null; // Clear the request after aborting
+			if (this.enableLogging) {
+				this.logger.warn(`🚫 Cancelling request: ${this.currentRequest.url}`);
+			}
+
+			this.currentRequest.cancelled = true;
+
+			// Clean up loading state if there's a target element
+			// Note: We can't access the targetElement from here, but the next
+			// load will handle cleanup when it sets the placeholder
+
+			this.currentRequest = null;
 		}
 	}
 
@@ -256,6 +271,6 @@ export class ImageLoader {
 	 * @returns {boolean} True if an image is currently loading, false otherwise.
 	 */
 	public isLoading(): boolean {
-		return this.currentRequest !== null;
+		return this.currentRequest !== null && !this.currentRequest.cancelled;
 	}
 }

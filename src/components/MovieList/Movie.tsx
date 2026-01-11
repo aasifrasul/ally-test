@@ -4,6 +4,7 @@ import { MovieProps } from '../../types/movieList';
 
 import Portal from '../Common/Portal';
 import { useLazyImage } from '../../hooks';
+import { LazyImage } from '../Common/LazyImage';
 
 export const Movie: FC<MovieProps> = ({ styles, item }) => {
 	const { id, poster_path, title, vote_average, overview } = item;
@@ -34,7 +35,12 @@ export const Movie: FC<MovieProps> = ({ styles, item }) => {
 				onMouseLeave={handleMouseOut}
 			>
 				<div className={styles.image}>
-					<img ref={imgRef} width={150} height={200} alt={title} />;
+					<LazyImage
+						src={imagePath}
+						className={styles.movieImage}
+						width={150}
+						height={200}
+					/>
 				</div>
 				<div className={styles.movieInfo}>
 					<h3 className={styles.title}>{title}</h3>

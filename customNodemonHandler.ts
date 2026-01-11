@@ -1,14 +1,14 @@
-const chokidar = require('chokidar');
-const path = require('path');
-const { execSync } = require('child_process');
+import chokidar from 'chokidar';
+import path from 'path';
+import { execSync, spawn } from 'child_process';
 
-const debounceTime = 300;
-let clientTimerId = null;
-let serverTimerId = null;
+const debounceTime: number = 300;
+let clientTimerId: NodeJS.Timeout | null = null;
+let serverTimerId: NodeJS.Timeout | null = null;
 
-const rootDir = path.resolve(__dirname);
+const rootDir: string = path.resolve(__dirname);
 
-function handleClientChange() {
+function handleClientChange(): void {
 	console.log('Change detected in client repository');
 	try {
 		console.log('Running client-specific command...');
@@ -18,7 +18,7 @@ function handleClientChange() {
 	}
 }
 
-function handleServerChange() {
+function handleServerChange(): void {
 	console.log('Change detected in server repository');
 	try {
 		console.log('Compiling server...');
@@ -39,19 +39,17 @@ const serverWatcher = chokidar.watch(path.join(rootDir, 'server', 'src', '**', '
 	persistent: true,
 });
 
-clientWatcher.on('change', (path) => {
-	console.log(`File ${path} has been changed`);
-	clearTimeout(clientTimerId);
+clientWatcher.on('change', (filePath: string) => {
+	console.log(`File ${filePath} has been changed`);
+	if (clientTimerId) clearTimeout(clientTimerId);
 	clientTimerId = setTimeout(handleClientChange, debounceTime);
 });
 
-/*
-serverWatcher.on('change', (path) => {
-	console.log(`File ${path} has been changed`);
-	clearTimeout(serverTimerId);
+serverWatcher.on('change', (filePath: string) => {
+	console.log(`File ${filePath} has been changed`);
+	if (serverTimerId) clearTimeout(serverTimerId);
 	serverTimerId = setTimeout(handleServerChange, debounceTime);
 });
-*/
 
 console.log('Watching for changes...');
 

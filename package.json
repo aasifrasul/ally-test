@@ -16,7 +16,7 @@
 		"build:make": "node --trace-deprecation make/make.js",
 		"watch": "npx babel src --out-dir public --watch",
 		"test:server": "ts-node server/server.ts",
-		"dev": "nodemon --legacy-watch server/src/index.ts",
+		"dev": "nodemon",
 		"dev:server": "ts-node server/src/index.ts",
 		"build:server": "tsc -p server/tsconfig.json",
 		"watch:server": "tsx watch server/src/index.ts",

@@ -6,6 +6,7 @@ export { useQuery } from './useQuery';
 export { useLazyQuery } from './useLazyQuery';
 export { useMutation } from './useMutation';
 export { useSubscription } from './useSubscription';
+export { useAsyncState } from './useAsyncState';
 
 export function useInvalidateCache() {
 	return useCallback((pattern?: string) => {

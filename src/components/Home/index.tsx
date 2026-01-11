@@ -2,6 +2,7 @@ import React from 'react';
 import Spacer from '../Common/Spacer';
 import RootNavigation from '../RootNavigation';
 import { useToast } from '../Common/toast/ToastContext';
+import Button from '../Common/Button';
 
 interface HomeProps {
 	pages: { [key: string]: React.LazyExoticComponent<React.ComponentType<any>> };
@@ -16,33 +17,33 @@ const Home: React.FC<HomeProps> = (props) => {
 			<Spacer size={16} />
 			<RootNavigation pages={props.pages} />
 			<Spacer size={16} />
-			<button
+			<Button
 				onClick={() => addToast('Saved successfully!', 'success', { timeout: 5000 })}
-				className="px-4 py-2 bg-blue-600 text-white rounded-md"
+				primary
 			>
 				Show Success
-			</button>
+			</Button>
 			<Spacer size={16} />
-			<button
+			<Button
+				primary
 				onClick={() => addToast('Something went wrong!', 'error', { timeout: 4000 })}
-				className="px-4 py-2 bg-blue-600 text-white rounded-md"
 			>
 				Show Error
-			</button>
+			</Button>
 			<Spacer size={16} />
-			<button
+			<Button
 				onClick={() => addToast('You have a new message.', 'info', { timeout: 3000 })}
-				className="px-4 py-2 bg-blue-600 text-white rounded-md"
+				primary
 			>
 				Show Info
-			</button>
+			</Button>
 			<Spacer size={16} />
-			<button
+			<Button
 				onClick={() => addToast('Check your inputs!', 'warning', { timeout: 2000 })}
-				className="px-4 py-2 bg-blue-600 text-white rounded-md"
+				primary
 			>
 				Show Warning
-			</button>
+			</Button>
 		</div>
 	);
 };

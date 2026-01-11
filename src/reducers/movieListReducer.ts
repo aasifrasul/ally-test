@@ -45,9 +45,7 @@ const movieListReducer: ReducerFunction = (
 			};
 
 		default:
-			return {
-				...state,
-			};
+			return state;
 	}
 };
 

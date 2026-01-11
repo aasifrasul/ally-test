@@ -50,7 +50,7 @@ export function useAsyncState<T>(
 			setIsLoading(true);
 			setError(null);
 
-			const result = await handleAsyncCalls(operation());
+			const result = await handleAsyncCalls(operation); // Fixed: pass function, not promise
 
 			if (result.success) {
 				setData(result.data);
@@ -65,7 +65,7 @@ export function useAsyncState<T>(
 				setError(errorObj);
 				setIsLoading(false);
 				options?.onFailure?.(errorObj);
-				throw errorObj; // Throw instead of return for proper error handling
+				throw errorObj;
 			}
 		},
 		[],

@@ -26,7 +26,7 @@ export const useInfiniteScroll = ({
 
 	const handleIntersection: IntersectionObserverCallback = useCallback(
 		(entries) => {
-			entries.forEach(({ isIntersecting }) => {
+			entries.forEach(({ isIntersecting }: { isIntersecting: boolean }) => {
 				// Only trigger if:
 				// 1. Element is intersecting
 				// 2. Feature is enabled

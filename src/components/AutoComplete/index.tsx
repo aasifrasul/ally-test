@@ -2,6 +2,8 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 
 import Portal from '../Common/Portal';
 import { InputText } from '../Common/InputText';
+import { Image } from '../Common/Image';
+
 import {
 	useClickOutside,
 	useSearchParams,
@@ -32,8 +34,9 @@ export default function AutoComplete() {
 
 	const { getParamByKey, updateParams } = useSearchParams();
 
-	const handlePageReload = (e: any) => {
-		console.log('page reloaded on event', e);
+	const handlePageReload = (e: BeforeUnloadEvent) => {
+		e.preventDefault();
+		e.returnValue = ''; // REQUIRED
 	};
 
 	useEventListener('beforeunload', handlePageReload, window);
@@ -81,7 +84,7 @@ export default function AutoComplete() {
 
 	const handleClear = () => {
 		debouncedFetch.cancel();
-		searchTextRef.current = null;
+		searchTextRef.current?.clear();
 		setItems([]);
 		closeModal();
 		updateParams({ searchText: '' });
@@ -106,7 +109,7 @@ export default function AutoComplete() {
 
 	useEffect(() => {
 		const searchText = getParamByKey('searchText');
-		searchTextRef.current = null;
+		searchTextRef.current?.clear();
 		debouncedFetch(searchText);
 	}, []);
 
@@ -145,9 +148,15 @@ export default function AutoComplete() {
 				{!isLoading && !isModalOpen ? (
 					<ul ref={dropdownRef}>
 						{items?.length > 0 ? (
-							items?.map(({ name, logo }, index) => (
+							items.map(({ name, logo }, index) => (
 								<li key={index} onClick={() => handleClick(index)}>
-									{name} <img src={logo} alt={name} />
+									{name}
+									<Image
+										src={logo}
+										alt={name}
+										placeholder="/placeholder.png"
+										className="dropdown-image"
+									/>
 								</li>
 							))
 						) : searchTextRef.current ? (
@@ -162,10 +171,15 @@ export default function AutoComplete() {
 								X
 							</button>
 							{currentItem ? (
-								<div className="modal-body">
+								<>
 									{currentItem?.name}{' '}
-									<img src={currentItem?.logo} alt={currentItem?.name} />
-								</div>
+									<Image
+										src={currentItem?.logo}
+										alt={currentItem?.name}
+										placeholder="/placeholder.png"
+										className="modal-image"
+									/>
+								</>
 							) : null}
 						</div>
 					</Portal>

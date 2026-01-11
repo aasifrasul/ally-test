@@ -1,4 +1,4 @@
-import { type FetchNextPage } from '../types';
+import { FetchNextPage } from './api';
 
 export interface Movie_Item {
 	adult: boolean;

@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { ToastContext } from './ToastContext';
 import type { ToastType, Toast } from './types';
 import ToastContainer from './ToastContainer';
+import { useTimers } from '../../../hooks/useTimers';
 
 export default function ToastProvider<TMessage = string, TMeta = unknown>({
 	children,
@@ -10,6 +11,7 @@ export default function ToastProvider<TMessage = string, TMeta = unknown>({
 	children: React.ReactNode;
 }) {
 	const [toasts, setToasts] = useState<Toast<TMessage, TMeta>[]>([]);
+	const { set } = useTimers();
 
 	const addToast = useCallback(
 		(message: TMessage, type: ToastType = 'info', meta?: TMeta): string => {
@@ -23,9 +25,7 @@ export default function ToastProvider<TMessage = string, TMeta = unknown>({
 					: (meta as any).timeout || 3000;
 
 			// Auto-remove toast after 3 seconds unless specified otherwise
-			if (timeout !== null) {
-				setTimeout(removeToast, timeout, id);
-			}
+			if (timeout) set(() => removeToast(id), timeout);
 
 			// Return the created toast id so callers can remove it if needed
 			return id;
