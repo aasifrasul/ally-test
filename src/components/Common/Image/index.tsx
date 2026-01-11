@@ -1,53 +1,96 @@
 import React from 'react';
-import { clsx } from 'clsx';
 
-import imageStyles from './styles.module.css';
+import { useImage } from '../../../hooks/useImage';
+import { ImageProps } from './types';
 
-interface ImageProps {
-	src: string;
-	styles?: string;
-	alt: string;
-	lazy?: boolean;
-	width?: number;
-	height?: number;
-}
-
-const Image: React.FC<ImageProps> = ({
+/**
+ * @component Image
+ * @description A React component for loading images with automatic placeholder,
+ * loading states, error handling, and optional retry logic.
+ *
+ * @example
+ * // Simple usage
+ * <Image src={imageUrl} alt="Product photo" />
+ *
+ * @example
+ * // With fetch mode and custom placeholder
+ * <Image
+ *   src={imageUrl}
+ *   alt="Product photo"
+ *   useFetch={true}
+ *   placeholder="/loading.gif"
+ *   showRetry={true}
+ *   className="w-full h-auto"
+ * />
+ *
+ * @example
+ * // With custom error fallback
+ * <Image
+ *   src={imageUrl}
+ *   alt="Product photo"
+ *   fallback={<div className="error-state">Image unavailable</div>}
+ * />
+ */
+export const Image: React.FC<ImageProps> = ({
 	src,
-	styles,
 	alt,
-	lazy,
-	width = 100,
-	height = 100,
+	placeholder,
+	useFetch = false,
+	loadingClassName = '',
+	errorClassName = '',
+	fallback,
+	showRetry = false,
+	onError,
+	onLoad,
+	className = '',
+	...imgProps
 }) => {
-	const [isLoaded, setIsLoaded] = useState(false);
-	const [isLoading, setIsLoading] = useState(true);
+	const {
+		src: imageSrc,
+		isLoading,
+		error,
+		retry,
+	} = useImage(src, {
+		placeholder,
+		useFetch,
+		onError,
+		onLoad,
+	});
 
-	const handleLoad = () => {
-		setIsLoaded(true);
-		setIsLoading(false);
-	};
+	// Determine class names
+	const combinedClassName = [
+		className,
+		isLoading ? loadingClassName : '',
+		error ? errorClassName : '',
+	]
+		.filter(Boolean)
+		.join(' ');
+
+	// Show custom fallback on error if provided
+	if (error && fallback) return <>{fallback}</>;
 
 	return (
-		<div className={styles}>
-			<img
-				src={src}
-				alt={alt}
-				width={width}
-				height={height}
-				loading={lazy ? 'lazy' : 'eager'}
-				onLoad={handleLoad}
-				style={{ display: isLoaded ? 'block' : 'none' }}
-			/>
+		<div className="relative inline-block">
+			<img {...imgProps} src={imageSrc} alt={alt} className={combinedClassName} />
+
+			{/* Optional loading indicator */}
 			{isLoading && (
-				<div className={imageStyles.snippet}>
-					<div className={clsx(imageStyles.stage, imageStyles.filterContrast)}>
-						<span className="dot-pulse" />
-					</div>
+				<div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50">
+					<div className="text-sm text-gray-600">Loading...</div>
+				</div>
+			)}
+
+			{/* Optional retry button on error */}
+			{error && showRetry && (
+				<div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75">
+					<button
+						onClick={retry}
+						className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+					>
+						Retry
+					</button>
 				</div>
 			)}
 		</div>
 	);
 };
-
-export default Image;

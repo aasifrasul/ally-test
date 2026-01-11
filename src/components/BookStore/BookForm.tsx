@@ -73,11 +73,9 @@ const BookForm = () => {
 			<h3 className="text-lg font-semibold text-gray-800 mb-4">📚 Add New Book</h3>
 			<div className="space-y-4">
 				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Title
-					</label>
 					<InputText
 						ref={titleRef}
+						label="Title"
 						id="title"
 						name="title"
 						placeholder="Title"
@@ -87,12 +85,10 @@ const BookForm = () => {
 					/>
 				</div>
 				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Author
-					</label>
 					<InputText
 						id="author"
 						name="author"
+						label="Author"
 						placeholder="Author"
 						initialValue={author}
 						hideWrapper

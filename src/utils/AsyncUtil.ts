@@ -16,8 +16,8 @@ export type Result<T> = SuccessResult<T> | ErrorResult;
 
 export interface ResponseLike {
 	ok: boolean;
-	headers?: Headers | null;
-	status?: number;
+	headers: Headers; // Remove null, Response always has headers
+	status: number; // Remove optional, always present
 	json(): Promise<any>;
 	text(): Promise<string>;
 }
@@ -49,13 +49,10 @@ function isResponseLike(obj: any): obj is ResponseLike {
 	);
 }
 
-export async function handleAsyncCalls<T>(promise: Promise<T>): Promise<Result<T>> {
+export async function handleAsyncCalls<T>(operation: () => Promise<T>): Promise<Result<T>> {
 	try {
-		const data = await promise;
-		return {
-			success: true,
-			data,
-		};
+		const data = await operation();
+		return { success: true, data };
 	} catch (error) {
 		if (error instanceof DOMException && error.name === 'AbortError') {
 			return {
@@ -79,13 +76,11 @@ export async function handleAsyncCalls<T>(promise: Promise<T>): Promise<Result<T
 }
 
 export async function fetchAPIData<T>(url: string, options?: RequestInit): Promise<Result<T>> {
-	// Infer method: if caller provided a method use it; otherwise
-	// if a body is present assume POST, else default to GET.
 	const { method, body } = options || {};
 	const inferredMethod = method || (!isUndefined(body) ? HTTPMethod.POST : HTTPMethod.GET);
 
-	const newOptions: RequestInit = {
-		...(options || {}),
+	const requestOptions: RequestInit = {
+		...options,
 		method: inferredMethod,
 		headers: {
 			'Content-Type': 'application/json',
@@ -93,11 +88,11 @@ export async function fetchAPIData<T>(url: string, options?: RequestInit): Promi
 		},
 	};
 
-	const result = await handleAsyncCalls(fetch(url, newOptions));
+	const fetchResult = await handleAsyncCalls(() => fetch(url, requestOptions));
 
-	if (!result.success) return result;
+	if (!fetchResult.success) return fetchResult;
 
-	const response = result.data;
+	const response = fetchResult.data;
 
 	if (!isResponseLike(response)) {
 		return {
@@ -110,15 +105,13 @@ export async function fetchAPIData<T>(url: string, options?: RequestInit): Promi
 		const errorText = await response.text().catch(() => 'Unknown error');
 		return {
 			success: false,
-			error: new HTTPError(response.status, errorText),
+			error: new HTTPError(response.status ?? 0, errorText),
 		};
 	}
 
-	const contentType = response.headers?.get('content-type') || '';
+	const contentType = response.headers?.get('content-type') ?? '';
 
-	if (contentType.includes('application/json')) {
-		return handleAsyncCalls(response.json() as Promise<T>);
-	}
-
-	return handleAsyncCalls(response.text() as Promise<T>);
+	return contentType.includes('application/json')
+		? handleAsyncCalls(() => response.json())
+		: handleAsyncCalls(() => response.text() as Promise<T>);
 }

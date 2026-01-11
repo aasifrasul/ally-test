@@ -1,4 +1,4 @@
-import { forwardRef, useCallback } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
 
 import { TextFieldProps } from './types';
 
@@ -6,7 +6,7 @@ import { useFormField } from '../../../hooks/Form/';
 
 import { cn } from '../../../utils/common';
 
-export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, ref) => {
+export const InputText = forwardRef<{ clear(): void }, TextFieldProps>((props, ref) => {
 	const {
 		name,
 		label,
@@ -27,6 +27,7 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 	} = props;
 
 	const id = props.id || `id-${name}`;
+
 	const { value, error, touched, isValid, handleChange, reset, handleBlur } = useFormField({
 		id,
 		initialValue,
@@ -34,10 +35,7 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 		onChange,
 		debounceMs,
 	});
-
-	const handleClear = useCallback(() => {
-		reset();
-	}, [reset]);
+	const inputRef = useRef<React.RefObject<{ clear(): void; focus(): void }>>(null);
 
 	const showClearButton = clearable && value?.length > 0 && !disabled;
 
@@ -56,6 +54,15 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 	const inputErrorStyles =
 		touched && !isValid ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : '';
 
+	const focus = useCallback(() => {
+		inputRef.current?.focus();
+	}, [inputRef]);
+
+	useImperativeHandle(ref, () => ({
+		clear: () => reset(),
+		focus,
+	}));
+
 	const component = (
 		<>
 			{label && (
@@ -72,9 +79,9 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 
 			<div className="relative">
 				<input
-					ref={ref}
 					type={type}
 					id={id}
+					ref={inputRef}
 					name={name}
 					value={value}
 					onChange={handleChange}
@@ -97,7 +104,7 @@ export const InputText = forwardRef<HTMLInputElement, TextFieldProps>((props, re
 				{showClearButton && (
 					<button
 						type="button"
-						onClick={handleClear}
+						onClick={reset}
 						className={cn(
 							'absolute right-2 top-1/2 transform -translate-y-1/2',
 							'text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600',

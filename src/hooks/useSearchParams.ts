@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useEventListener } from './';
+import { isEmpty } from '../utils/typeChecking';
 
 export function useSearchParams() {
 	const [searchParams, setSearchParams] = useState<URLSearchParams>(
@@ -39,7 +40,7 @@ export function useSearchParams() {
 
 			for (const key in params) {
 				if (!key) continue;
-				params[key] === null
+				isEmpty(params[key])
 					? newParams.delete(key)
 					: newParams.set(key, params[key] as string);
 			}

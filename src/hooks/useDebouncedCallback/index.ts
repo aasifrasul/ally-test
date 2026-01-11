@@ -24,12 +24,16 @@ export function useDebouncedCallback<A extends any[]>(
 		[wait, cancel, set, callbackRef],
 	) as DebouncedCallback<A>;
 
-	const flush = useCallback((...args: A): void => {
-		callbackRef.current(...args);
-	}, []);
+	const flush = useCallback(
+		(...args: A): void => {
+			cancel();
+			callbackRef.current(...args);
+		},
+		[callbackRef, cancel],
+	);
 
-	debouncedCallback.cancel = () => cancel();
-	debouncedCallback.flush = (...args: A) => flush(args);
+	debouncedCallback.cancel = cancel;
+	debouncedCallback.flush = (...args: A) => flush(...args);
 
 	return debouncedCallback;
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { createLogger, LogLevel, Logger } from '../../utils/Logger';
 import { ErrorHandlingOptions, Options, Target, EventMap } from './types';
 import { isFunction } from '../../utils/typeChecking';
+import { useCallbackRef } from '../';
 
 const logger: Logger = createLogger('useEventListener', {
 	level: LogLevel.DEBUG,
@@ -32,12 +33,13 @@ export function useEventListener<K extends keyof EventMap>(
 	options?: Options,
 	errorHandling: ErrorHandlingOptions = {},
 ): void {
-	const callbackRef = useRef<EventListener | (() => void)>(callback);
+	const callbackRef = useCallbackRef(callback);
 	const optionsRef = useRef(options);
+	optionsRef.current = options;
 	const errorHandlingRef = useRef(errorHandling);
+	errorHandlingRef.current = errorHandling;
 
 	useEffect(() => {
-		callbackRef.current = callback;
 		optionsRef.current = options;
 		errorHandlingRef.current = errorHandling;
 	}, [callback, options, errorHandling]);
@@ -65,8 +67,8 @@ export function useEventListener<K extends keyof EventMap>(
 	);
 
 	useEffect(() => {
-		if (!element) {
-			logger.debug('No target element provided, skipping event listener attachment');
+		if (!element || !callback) {
+			logger.debug('No target element or callback provided');
 			return;
 		}
 
@@ -101,7 +103,7 @@ export function useEventListener<K extends keyof EventMap>(
 				);
 			});
 		};
-	}, [eventType, element, eventHandler, handleError]);
+	}, [eventType, element, callback, eventHandler, handleError]);
 }
 
 /**

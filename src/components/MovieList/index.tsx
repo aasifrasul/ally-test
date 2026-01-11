@@ -11,14 +11,12 @@ interface ParentProps {
 	[key: string]: any;
 }
 
-function MovieListContainer(props: ParentProps): JSX.Element {
+export default function MovieListContainer(props: ParentProps): JSX.Element {
 	const { fetchData, fetchNextPage, ...result } = useSchemaQuery(Schema.MOVIE_LIST);
 
 	useEffect(() => {
 		fetchData();
-	}, [fetchData]);
-
-	if (!result.data) return <div>Loading...</div>;
+	}, []);
 
 	return (
 		<MovieList
@@ -29,5 +27,3 @@ function MovieListContainer(props: ParentProps): JSX.Element {
 		/>
 	);
 }
-
-export default MovieListContainer;

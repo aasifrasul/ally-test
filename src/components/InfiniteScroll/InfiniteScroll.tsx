@@ -4,7 +4,7 @@ import ScrollToTop from '../Common/ScrollToTopButton';
 
 import { InitialState } from '../../constants/types';
 import { IS_Item } from '../../types/infiniteScroll';
-import { type FetchNextPage } from '../../types';
+import { FetchNextPage } from '../../types/api';
 
 import UserCard from './UserCard';
 
@@ -33,6 +33,14 @@ export const InfiniteScroll = (props: Props) => {
 			observerElement && observer.current?.unobserve(observerElement);
 		};
 	}, [observerElement]);
+
+	if (isLoading) {
+		return <div>Loading...</div>;
+	}
+
+	if (!data?.length) {
+		return <div>No Records found</div>;
+	}
 
 	return (
 		<div className={'scrollParent'}>

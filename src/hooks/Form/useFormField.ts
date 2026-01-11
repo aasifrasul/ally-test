@@ -22,10 +22,6 @@ export function useFormField({
 	// Track the previous initialValue to detect actual changes
 	const prevInitialValueRef = useRef(initialValue);
 
-	useEffect(() => {
-		validation(initialValue);
-	}, []);
-
 	// validation and onChange handler
 	const validation = useCallback(
 		(value: string): void => {
@@ -57,7 +53,7 @@ export function useFormField({
 	);
 
 	// Debounced validation
-	const debouncedValidation = useDebouncedCallback(validation, debounceMs);
+	const debouncedValidation = useDebouncedCallback((value) => validation(value), debounceMs);
 
 	// Handle initialValue changes (both when clean and dirty)
 	useEffect(() => {
@@ -77,6 +73,11 @@ export function useFormField({
 		(event: ChangeEvent<HTMLInputElement>): void => {
 			const newValue = event.target.value;
 
+			// Only proceed if value actually changed
+			if (newValue === state.value) {
+				return;
+			}
+
 			setState((prev) => ({
 				...prev,
 				value: newValue,
@@ -86,7 +87,7 @@ export function useFormField({
 
 			debouncedValidation(newValue);
 		},
-		[debouncedValidation],
+		[debouncedValidation, state.value], // Add state.value to dependencies
 	);
 
 	const reset = useCallback((): void => {

@@ -3,6 +3,7 @@ import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { gql } from '@apollo/client';
 import { client } from '../ApolloClient';
+import { handleAsyncCalls } from '../utils/AsyncUtil';
 
 export interface Book {
 	id?: string;
@@ -139,29 +140,30 @@ export const useBookStore = create<BookStoreState>()(
 				fetchBooks: async () => {
 					get().setStatus();
 
-					try {
-						const { data } = await client.query({
+					const result = await handleAsyncCalls(() =>
+						client.query({
 							query: GET_BOOKS,
 							fetchPolicy: 'network-only',
-						});
+						}),
+					);
 
-						if (data?.getBooks) {
-							const counts = calculateCounts(data.getBooks);
-
-							set((state) => {
-								state.books = data.getBooks;
-								state.filteredBooks = filterBooks(
-									data.getBooks,
-									state.searchText,
-								);
-								state.noOfAvailable = counts.available;
-								state.noOfIssued = counts.issued;
-								state.loading = false;
-							});
-						}
-					} catch (error) {
-						get().setError(error as Error);
+					if (!result.success) {
+						get().setError(result.error as Error);
+						return;
 					}
+
+					const data = result?.data?.data?.getBooks;
+					if (!data.length) return;
+
+					const counts = calculateCounts(data);
+
+					set((state) => {
+						state.books = data;
+						state.filteredBooks = filterBooks(data, state.searchText);
+						state.noOfAvailable = counts.available;
+						state.noOfIssued = counts.issued;
+						state.loading = false;
+					});
 				},
 
 				filterByText: (text) =>
@@ -173,28 +175,27 @@ export const useBookStore = create<BookStoreState>()(
 				addBook: async (bookData) => {
 					get().setStatus();
 
-					try {
-						const { data } = await client.mutate({
+					const result = await handleAsyncCalls(() =>
+						client.mutate({
 							mutation: ADD_BOOK,
 							variables: { ...bookData, issued: false },
-						});
+						}),
+					);
 
-						if (data?.addBook?.success) {
-							const newBook = data.addBook.book;
-
-							set((state) => {
-								state.books.push(newBook);
-								state.filteredBooks = filterBooks(
-									state.books,
-									state.searchText,
-								);
-								state.noOfAvailable += 1;
-								state.loading = false;
-							});
-						}
-					} catch (error) {
-						get().setError(error as Error);
+					if (!result.success) {
+						get().setError(result.error as Error);
+						return;
 					}
+
+					if (!result?.data?.data?.addBook?.success) return;
+					const newBook = result?.data?.data.addBook.book;
+
+					set((state) => {
+						state.books.push(newBook);
+						state.filteredBooks = filterBooks(state.books, state.searchText);
+						state.noOfAvailable += 1;
+						state.loading = false;
+					});
 				},
 
 				editBook: (id: string | null) => {
@@ -203,12 +204,12 @@ export const useBookStore = create<BookStoreState>()(
 					});
 				},
 
-				updateBook: async (updateData) => {
+				updateBook: async (updateData): Promise<void> => {
 					get().setStatus();
 
-					try {
-						const { id, title, author, issued } = updateData;
-						const { data } = await client.mutate({
+					const { id, title, author, issued } = updateData;
+					const result = await handleAsyncCalls(() =>
+						client.mutate({
 							mutation: UPDATE_BOOK,
 							variables: {
 								id: id,
@@ -216,40 +217,39 @@ export const useBookStore = create<BookStoreState>()(
 								...(author && { author }),
 								...(issued && { issued }),
 							},
-						});
+						}),
+					);
 
-						if (data!.updateBook!.success) {
-							const updatedBook = data.updateBook.book;
-
-							set((state) => {
-								state.editingBook = null;
-								const bookIndex = state.books.findIndex(
-									(b) => b.id === updatedBook.id,
-								);
-								if (bookIndex !== -1) {
-									// If the issued is changing, update counts
-									if (state.books[bookIndex].issued !== updatedBook.issued) {
-										if (updatedBook.issued) {
-											state.noOfAvailable -= 1;
-											state.noOfIssued += 1;
-										} else {
-											state.noOfAvailable += 1;
-											state.noOfIssued -= 1;
-										}
-									}
-
-									state.books[bookIndex] = updatedBook;
-									state.filteredBooks = filterBooks(
-										state.books,
-										state.searchText,
-									);
-								}
-								state.loading = false;
-							});
-						}
-					} catch (error) {
-						get().setError(error as Error);
+					if (!result.success) {
+						get().setError(result.error as Error);
+						return;
 					}
+
+					if (!result?.data?.data!.updateBook!.success) return;
+					const updatedBook = result?.data?.data.updateBook.book;
+
+					set((state) => {
+						state.editingBook = null;
+						const bookIndex = state.books.findIndex(
+							(b) => b.id === updatedBook.id,
+						);
+						if (bookIndex !== -1) {
+							// If the issued is changing, update counts
+							if (state.books[bookIndex].issued !== updatedBook.issued) {
+								if (updatedBook.issued) {
+									state.noOfAvailable -= 1;
+									state.noOfIssued += 1;
+								} else {
+									state.noOfAvailable += 1;
+									state.noOfIssued -= 1;
+								}
+							}
+
+							state.books[bookIndex] = updatedBook;
+							state.filteredBooks = filterBooks(state.books, state.searchText);
+						}
+						state.loading = false;
+					});
 				},
 
 				issueBook: async (id) => {
@@ -266,40 +266,40 @@ export const useBookStore = create<BookStoreState>()(
 					}
 				},
 
-				deleteBook: async (id) => {
+				deleteBook: async (id): Promise<void> => {
 					get().setStatus();
 
-					try {
-						const { data } = await client.mutate({
+					const result = await handleAsyncCalls(() =>
+						client.mutate({
 							mutation: DELETE_BOOK,
 							variables: {
 								id,
 							},
-						});
+						}),
+					);
 
-						if (data?.deleteBook) {
-							set((state) => {
-								const bookIndex = state.books.findIndex((b) => b.id === id);
-								if (bookIndex !== -1) {
-									const deletedBook = state.books[bookIndex];
-									state.books.splice(bookIndex, 1);
-									state.filteredBooks = filterBooks(
-										state.books,
-										state.searchText,
-									);
-
-									if (deletedBook.issued) {
-										state.noOfIssued -= 1;
-									} else {
-										state.noOfAvailable -= 1;
-									}
-								}
-								state.loading = false;
-							});
-						}
-					} catch (error) {
-						get().setError(error as Error);
+					if (!result.success) {
+						get().setError(result.error as Error);
+						return;
 					}
+
+					if (!result?.data?.data?.deleteBook) return;
+
+					set((state) => {
+						const bookIndex = state.books.findIndex((b) => b.id === id);
+						if (bookIndex !== -1) {
+							const deletedBook = state.books[bookIndex];
+							state.books.splice(bookIndex, 1);
+							state.filteredBooks = filterBooks(state.books, state.searchText);
+
+							if (deletedBook.issued) {
+								state.noOfIssued -= 1;
+							} else {
+								state.noOfAvailable -= 1;
+							}
+						}
+						state.loading = false;
+					});
 				},
 
 				resetEditingBook: async () => {

@@ -1,6 +1,7 @@
+import { useEffect, useReducer, useState } from 'react';
 import dataFetchReducer from '../../reducers/dataFetchReducer';
 
-export const useDataApi = (initialUrl, initialData) => {
+export const useDataApi = (initialUrl: string, initialData: Record<string, unknown>) => {
 	const [url, setUrl] = useState(initialUrl);
 
 	const [state, dispatch] = useReducer(dataFetchReducer, {
@@ -16,7 +17,7 @@ export const useDataApi = (initialUrl, initialData) => {
 			dispatch({ type: 'FETCH_INIT' });
 
 			try {
-				const result = await axios(url);
+				const result = await fetch(url);
 
 				if (!didCancel) {
 					dispatch({ type: 'FETCH_SUCCESS', payload: result.data });

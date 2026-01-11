@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
 type AnyFunction = (...args: any[]) => any;
 
@@ -10,16 +10,13 @@ type AnyFunction = (...args: any[]) => any;
  * @returns A stable function reference that calls the latest callback
  */
 export function usePersistentCallback<T extends AnyFunction>(callback: T): T {
-	// Store the callback in a mutable ref
-	const callbackRef = useRef<T>(callback);
-
-	// Update the ref to latest callback
+	const callbackRef = useRef(callback);
 	callbackRef.current = callback;
 
-	// Create a stable function that delegates to the current callback
-	const persistentCallback = useRef<T>(((...args: Parameters<T>) => {
-		return callbackRef.current(...args);
-	}) as T);
-
-	return persistentCallback.current;
+	return useCallback(
+		((...args: Parameters<T>) => {
+			return callbackRef.current!(...args);
+		}) as T,
+		[callbackRef],
+	);
 }

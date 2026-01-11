@@ -1,24 +1,21 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 export function useTimeout() {
-	const timeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	const cancel = useCallback(() => {
-		if (timeout.current) {
-			clearTimeout(timeout.current);
-			timeout.current = null;
+	const cancel = () => {
+		if (timeoutRef.current) {
+			clearTimeout(timeoutRef.current);
+			timeoutRef.current = null;
 		}
-	}, []);
+	};
 
-	const set = useCallback(
-		(callback: () => void, delay: number) => {
-			cancel();
-			timeout.current = setTimeout(callback, delay);
-		},
-		[cancel],
-	);
+	const set = (callback: () => void, delay: number) => {
+		cancel();
+		timeoutRef.current = setTimeout(callback, delay);
+	};
 
-	useEffect(() => cancel(), [cancel]);
+	useEffect(() => cancel, []);
 
 	return { set, cancel };
 }
