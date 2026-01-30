@@ -61,6 +61,7 @@ export const InputText = forwardRef<{ clear(): void }, TextFieldProps>((props, r
 	useImperativeHandle(ref, () => ({
 		clear: () => reset(),
 		focus,
+		value,
 	}));
 
 	const component = (

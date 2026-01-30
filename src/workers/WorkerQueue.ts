@@ -284,7 +284,7 @@ export class WorkerQueue {
 	// Get info about pending requests (useful for debugging)
 	getPendingRequestsInfo(): { count: number; keys: string[] } {
 		return {
-			count: this.promiseFactory.getCount(),
+			count: this.promiseFactory.size,
 			keys: this.promiseFactory.getAllKeys(),
 		};
 	}

@@ -1,4 +1,4 @@
-import React from 'react';
+import { Dispatch } from 'react';
 
 import { IS_Item } from '../types/infiniteScroll';
 import { Movie_Item } from '../types/movieList';
@@ -153,10 +153,10 @@ export interface Store<T extends GenericState> {
 	getState: (schema: Schema) => InitialState;
 }
 
-export interface StoreContextValue<T extends GenericState> {
-	dispatch: React.Dispatch<GenericAction>;
-	store: Store<T>;
-}
+export type StoreContextValue<T> = {
+	state: T;
+	dispatch: Dispatch<GenericAction>;
+};
 
 export interface ServerToClientEvents {
 	noArg: () => void;

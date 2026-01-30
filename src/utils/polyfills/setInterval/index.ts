@@ -17,7 +17,7 @@ export function setInterval(
 		throw new TypeError('Interval must be a positive number');
 	}
 
-	let timeoutId: NodeJS.Timeout | null;
+	let timeoutId: ReturnType<typeof setTimeout> | null;
 	let state: 'running' | 'paused' | 'stopped' = 'running';
 
 	function internal() {

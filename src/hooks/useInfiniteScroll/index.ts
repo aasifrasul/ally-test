@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, RefObject } from 'react';
 import { useIntersectionObserver } from '../useIntersectionObserver';
+import { useCallbackRef } from '../useCallbackRef';
 
 interface UseInfiniteScrollProps {
 	scrollRef: RefObject<HTMLElement | null>;
@@ -16,13 +17,8 @@ export const useInfiniteScroll = ({
 	isLoading = false,
 	hasNextPage = true,
 }: UseInfiniteScrollProps): void => {
-	const callbackRef = useRef(callback);
+	const callbackRef = useCallbackRef(callback);
 	const cleanupRef = useRef<(() => void) | undefined>(null);
-
-	// Keep callback ref current
-	useEffect(() => {
-		callbackRef.current = callback;
-	}, [callback]);
 
 	const handleIntersection: IntersectionObserverCallback = useCallback(
 		(entries) => {

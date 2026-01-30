@@ -3,20 +3,16 @@ import { useState, useEffect, useRef } from 'react';
 import ScrollToTop from '../Common/ScrollToTopButton';
 
 import { InitialState } from '../../constants/types';
-import { IS_Item } from '../../types/infiniteScroll';
-import { FetchNextPage } from '../../types/api';
+import { ISProps } from '../../types/infiniteScroll';
 
 import UserCard from './UserCard';
 
 import './InfiniteScroll.css';
 
-interface Props extends InitialState {
-	fetchNextPage: FetchNextPage;
-}
+type Props = Omit<InitialState, 'data'> & ISProps;
 
 export const InfiniteScroll = (props: Props) => {
-	const data: IS_Item[] = props.data as IS_Item[];
-	const { currentPage = 1, isLoading, fetchNextPage, TOTAL_PAGES } = props;
+	const { currentPage = 1, fetchNextPage, TOTAL_PAGES, data } = props;
 
 	const [observerElement, setObserverElement] = useState<HTMLDivElement | null>(null);
 
@@ -33,14 +29,6 @@ export const InfiniteScroll = (props: Props) => {
 			observerElement && observer.current?.unobserve(observerElement);
 		};
 	}, [observerElement]);
-
-	if (isLoading) {
-		return <div>Loading...</div>;
-	}
-
-	if (!data?.length) {
-		return <div>No Records found</div>;
-	}
 
 	return (
 		<div className={'scrollParent'}>

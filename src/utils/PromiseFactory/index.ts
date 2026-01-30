@@ -30,8 +30,8 @@ export interface PromiseFactoryStats {
 export class PromiseFactory<T = any> {
 	private promises: Map<string, Deferred<T>>;
 	private options: Required<PromiseFactoryOptions>;
-	private cleanupInterval: NodeJS.Timeout | null = null;
-	private scheduledCleanups: Map<string, NodeJS.Timeout> = new Map(); // Track individual cleanups
+	private cleanupInterval: ReturnType<typeof setTimeout> | null = null;
+	private scheduledCleanups: Map<string, ReturnType<typeof setTimeout>> = new Map(); // Track individual cleanups
 	private logger = createLogger('PromiseFactory');
 
 	constructor(options: Partial<PromiseFactoryOptions> = {}) {
@@ -163,11 +163,6 @@ export class PromiseFactory<T = any> {
 		return Array.from(this.promises.keys());
 	}
 
-	// Get count of pending promises
-	getCount(): number {
-		return this.promises.size;
-	}
-
 	/**
 	 * Resolves a promise with the given key and value.
 	 * @param key The key of the promise to resolve.
@@ -205,7 +200,7 @@ export class PromiseFactory<T = any> {
 	 * @returns True if the promise was rejected, false if it was already settled.
 	 * @throws Error if no promise is found with the key.
 	 */
-	reject(key: string, error: any): boolean {
+	reject(key: string, error: { message: string }): boolean {
 		const deferred = this.get(key);
 
 		if (!deferred) {
@@ -302,9 +297,12 @@ export class PromiseFactory<T = any> {
 
 		for (const [key, deferred] of this.promises) {
 			if (deferred.isPending) {
-				if (includeSettled === false) stats.pending++;
-			} else if (deferred.isResolved) stats.resolved++;
-			else if (deferred.isRejected) stats.rejected++;
+				stats.pending++;
+			} else if (includeSettled) {
+				// Only count resolved/rejected if includeSettled is true
+				if (deferred.isResolved) stats.resolved++;
+				else if (deferred.isRejected) stats.rejected++;
+			}
 
 			if (deferred.createdAt < oldestTime) {
 				oldestTime = deferred.createdAt;
@@ -351,7 +349,7 @@ export class PromiseFactory<T = any> {
 	}
 
 	async runWithKey(key: string, fn: () => Promise<T>, timeoutMs?: number): Promise<T> {
-		const deferred = this.create(key, timeoutMs);
+		const deferred = this.getOrCreate(key, timeoutMs);
 		try {
 			const result = await fn();
 			deferred.resolve(result);
@@ -471,73 +469,13 @@ export class PromiseFactory<T = any> {
 	 */
 	dispose(): void {
 		this.stopAutoCleanup();
-		this.clear();
+
+		// Clear all scheduled cleanups
 		for (const timeout of this.scheduledCleanups.values()) {
 			clearTimeout(timeout);
 		}
 		this.scheduledCleanups.clear();
+
+		this.clear();
 	}
 }
-
-// Example usage:
-/*
-async function runExample() {
-	const factory = new PromiseFactory<string>({
-		autoCleanup: true,
-		cleanupDelay: 30000,
-		enableLogging: true,
-	});
-
-	try {
-		// Create a promise with timeout
-		const deferredUserData = factory.create('userData', 5000);
-		console.log('Is userData pending?', deferredUserData.isPending); // true
-
-		// Create another promise
-		const deferredConfig = factory.create('config');
-
-		// Resolve 'userData' after some time
-		setTimeout(() => {
-			factory.resolve('userData', 'User data loaded successfully!');
-		}, 2000);
-
-		// Reject 'config' after some time
-		setTimeout(() => {
-			factory.reject('config', new Error('Failed to load config!'));
-		}, 1000);
-
-		// Wait for multiple promises
-		console.log('\nWaiting for userData and config...');
-		try {
-			const results = await factory.waitForAll(['userData', 'config'], 10000);
-			console.log('waitForAll results:', results); // This might not be reached if config rejects
-		} catch (error: any) {
-			console.error('Error waiting for promises:', error.message);
-		}
-
-		// Get statistics
-		console.log('\nFactory Stats:', factory.getStats());
-
-		// Demonstrate getting or creating
-		const existingOrNew = factory.getOrCreate('anotherPromise');
-		console.log('Is anotherPromise pending?', existingOrNew.isPending);
-
-		// Resolve 'anotherPromise'
-		factory.resolve('anotherPromise', 'This was dynamically created or retrieved!');
-
-		// Wait for auto-cleanup to potentially run (adjust cleanupDelay for quicker testing)
-		console.log('\nWaiting for cleanup...');
-		await new Promise(resolve => setTimeout(resolve, factory.options.cleanupDelay + 1000));
-		console.log('Factory Stats after cleanup delay:', factory.getStats());
-
-
-	} catch (error: any) {
-		console.error('An error occurred:', error.message);
-	} finally {
-		factory.dispose();
-		console.log('Factory disposed. Final Stats:', factory.getStats());
-	}
-}
-
-runExample();
-*/

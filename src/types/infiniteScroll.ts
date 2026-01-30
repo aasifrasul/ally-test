@@ -1,3 +1,5 @@
+import { FetchNextPage } from './api';
+
 interface IS_Name {
 	title: string;
 	first: string;
@@ -80,4 +82,10 @@ export interface IS_Info {
 export interface ISResponse {
 	results: IS_Item[];
 	info: IS_Info;
+}
+
+export interface ISProps {
+	data?: IS_Item[];
+	fetchNextPage: FetchNextPage;
+	schema: any;
 }

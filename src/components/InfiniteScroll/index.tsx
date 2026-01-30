@@ -16,6 +16,16 @@ function InfiniteScrollContainer(props: ParentProps): JSX.Element {
 		fetchData();
 	}, [fetchData]);
 
+	// Handle initial loading state
+	if (result.isLoading && !result.data?.length) {
+		return <div className="text-center mt-10">Loading...</div>;
+	}
+
+	// Handle empty state
+	if (!result.isLoading && !result.data?.length) {
+		return <div className="text-center mt-10">No Records found</div>;
+	}
+
 	return (
 		<InfiniteScroll
 			{...props}

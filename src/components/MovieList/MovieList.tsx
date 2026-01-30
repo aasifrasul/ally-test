@@ -14,14 +14,14 @@ import styles from './MovieList.module.css';
 type Props = Omit<InitialState, 'data'> & MovieListProps;
 
 export const MovieList = (props: Props): ReactNode => {
-	const { data, fetchNextPage, schema, TOTAL_PAGES, currentPage, isLoading } = props;
+	const { data, fetchNextPage, schema, TOTAL_PAGES, currentPage = 0 } = props;
 	const observerRef = useRef<HTMLDivElement>(null);
 	const { searchActions } = createActionHooks(schema);
 	const { filterByText } = searchActions();
 
 	useInfiniteScroll({
 		scrollRef: observerRef,
-		callback: () => fetchNextPage(currentPage! + 1),
+		callback: () => fetchNextPage(currentPage + 1),
 	});
 
 	const handleChange = useCallback(
@@ -30,14 +30,6 @@ export const MovieList = (props: Props): ReactNode => {
 		},
 		[schema, filterByText],
 	);
-
-	if (isLoading) {
-		return <div>Loading...</div>;
-	}
-
-	if (!data?.length) {
-		return <div>No movies found</div>;
-	}
 
 	return (
 		<div className="movie-list">

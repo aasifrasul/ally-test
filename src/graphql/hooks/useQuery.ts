@@ -19,7 +19,7 @@ export function useQuery<T = any>(query: string, options: QueryOptions = {}): Qu
 	} = options;
 
 	const [state, actions] = useAsyncState<T>(!skip);
-	const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+	const pollIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const mountedRef = useRef(true);
 
 	// Memoize variables to prevent unnecessary re-renders
