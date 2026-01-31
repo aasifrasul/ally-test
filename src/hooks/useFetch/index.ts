@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDocumentEventListener, useWindowEventListener } from '../';
 
 import { WorkerQueue } from '../../workers/WorkerQueue';
 import { createActionHooks } from '../createActionHooks';
-import { getList } from '../dataSelector';
+import { useSchema } from '../dataSelector';
 
 import { buildQueryParams, Result, withTimeout } from '../../utils/common';
 import { constants } from '../../constants';
@@ -50,7 +50,7 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 		onUpdateSuccess = DEFAULT_ON_SUCCESS,
 		onUpdateError = DEFAULT_ON_ERROR,
 		staleTime = 0,
-		refetchOnWindowFocus = true,
+		refetchOnWindowFocus = false,
 		refetchInterval,
 		retry = 0,
 		retryDelay = DEFAULT_RETRY_DELAY,
@@ -74,7 +74,7 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 			worker.fetchAPIData(url, reqOptions));
 
 	// Get current data for cache updates
-	const { data: currentData } = getList(schema);
+	const { data: currentData } = useSchema(schema);
 
 	// Use refs for mutable values to avoid dependency issues
 	const retryRef = useRef<number>(0);
@@ -325,11 +325,14 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 		};
 	}, [refetchInterval]); // Only stable config values
 
-	return {
-		fetchData: fetchDataRef.current,
-		fetchNextPage,
-		updateData: updateDataRef.current,
-		refetch,
-		isStale: isStaleRef.current,
-	} as FetchResult<T, U>;
+	return useMemo(
+		() => ({
+			fetchData: fetchDataRef.current,
+			fetchNextPage,
+			updateData: updateDataRef.current,
+			refetch,
+			isStale: isStaleRef.current,
+		}),
+		[fetchNextPage, refetch],
+	) as FetchResult<T, U>;
 }

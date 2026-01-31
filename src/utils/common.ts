@@ -47,7 +47,7 @@ export const debounce = <T extends (...args: any[]) => any>(
 	fn: T,
 	delay: number,
 ): ((...args: Parameters<T>) => Promise<void>) => {
-	let timeoutId: NodeJS.Timeout | null = null;
+	let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
 	return function wrapper(this: any, ...args: Parameters<T>): Promise<void> {
 		clearTimeout(timeoutId!);

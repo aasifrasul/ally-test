@@ -12,6 +12,7 @@ import {
 } from '../constants/types';
 
 import { createLogger, LogLevel, Logger } from '../utils/Logger';
+import { isObject } from '../utils/typeChecking';
 
 const logger: Logger = createLogger('storeFactory', {
 	level: LogLevel.DEBUG,
@@ -24,29 +25,48 @@ function storeFactory<T extends GenericState>(
 	const GenericContext = createContext<StoreContextValue<T> | undefined>(undefined);
 
 	const StoreProvider = (props: { children: ReactNode }) => {
-		let state: GenericState;
-		let dispatch: Dispatch<GenericAction>;
-		[state, dispatch] = useReducer(reducer, initialState);
+		const [state, dispatch] = useReducer(reducer, initialState) as [
+			T,
+			Dispatch<GenericAction>,
+		];
 
-		const store: Store<T> = useMemo(
-			() => ({
-				getState: (schema: Schema) => state[schema],
-			}),
+		// Proxy the state itself to prevent mutations
+		const protectedState = useMemo(
+			() =>
+				new Proxy(state, {
+					get(target: T, prop: Schema) {
+						if (typeof prop === 'string' && prop in target) {
+							const value = target[prop as keyof T];
+
+							// Deep freeze objects to prevent nested mutations
+							return isObject(value) ? Object.freeze({ ...value }) : value;
+						}
+						logger.warn(`Schema "${String(prop)}" not found in store`);
+						return undefined;
+					},
+					set(target: T, prop: string | symbol) {
+						logger.error(
+							`Cannot modify store directly. Attempted to set "${String(prop)}". Use dispatch instead.`,
+						);
+						return false;
+					},
+					deleteProperty(target: T, prop: string | symbol) {
+						logger.error(
+							`Cannot delete "${String(prop)}" from store. Use dispatch instead.`,
+						);
+						return false;
+					},
+				}) as T,
 			[state],
 		);
 
-		const proxyStore = useMemo(
-			() =>
-				new Proxy(store, {
-					get(target: Store<T>, prop: Schema) {
-						logger.debug('prop:', prop);
-						return target.getState(prop);
-					},
-				}),
-			[store],
+		const value = useMemo(
+			() => ({
+				state: protectedState,
+				dispatch,
+			}),
+			[protectedState, dispatch],
 		);
-
-		const value = useMemo(() => ({ dispatch, store: proxyStore }), [dispatch, proxyStore]);
 
 		return (
 			<GenericContext.Provider value={value}>{props.children}</GenericContext.Provider>

@@ -13,7 +13,7 @@ export class Deferred<T> {
 	private error: unknown = null;
 	public createdAt: number = Date.now();
 	public promise: Promise<T>; // Publicly expose the promise
-	private timeoutId: NodeJS.Timeout | null = null;
+	private timeoutId: ReturnType<typeof setTimeout> | null = null;
 
 	// Public methods to resolve/reject the Deferred
 	public resolve!: (value: T | PromiseLike<T>) => void;
@@ -35,6 +35,7 @@ export class Deferred<T> {
 				if (this.isSettled) return;
 				this.state = DeferredState.REJECTED;
 				this.error = error;
+				this.settledAt = Date.now();
 				this.cleanUp();
 				reject(error);
 			};
@@ -91,13 +92,5 @@ export class Deferred<T> {
 		if (this.timeoutId) {
 			clearTimeout(this.timeoutId);
 		}
-	}
-
-	reset(): void {
-		if (!this.isSettled) {
-			throw new Error('Cannot reset pending promise');
-		}
-		this.cleanUp();
-		// Reset state...
 	}
 }

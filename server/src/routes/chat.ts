@@ -1,35 +1,11 @@
 import express, { Request, Response } from 'express';
-import OpenAI from 'openai';
-
-import { OPENAI_API_KEY } from '../envConfigDetails';
 
 const router = express.Router();
-
-// Validate API key on startup
-if (!OPENAI_API_KEY) {
-	console.warn('[chat] WARNING: OPENAI_API_KEY is not set in environment variables');
-}
-
-const client = new OpenAI({ apiKey: OPENAI_API_KEY || '' });
-
-// Local types for the Responses API output shape we care about.
-type OutputContent = { type?: string; text?: string } | string;
-type OutputItem = { id?: string; type?: string; content?: OutputContent[] };
-type ResponsesAPIResponse = { output?: OutputItem[] };
 
 router.post('/', async (req: Request, res: Response): Promise<void> => {
 	try {
 		const reqId = (req as any).id || 'none';
 		console.log(`[chat] request id=${reqId} body=${JSON.stringify(req.body)}`);
-
-		// Check API key
-		if (!OPENAI_API_KEY) {
-			console.error(`[chat] request id=${reqId} - API key not configured`);
-			res.status(500).json({
-				error: 'Chatbot service not configured (missing API key)',
-			});
-			return;
-		}
 
 		const { message } = req.body;
 
@@ -42,31 +18,18 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 		console.log(`[chat] request id=${reqId} - calling OpenAI API...`);
 
 		// Use the Responses API which is the recommended unified API surface.
-		const response = (await client.responses.create({
-			model: 'gpt-4o-mini',
-			input: message,
-		})) as ResponsesAPIResponse;
+		const response = await fetch('http://localhost:11434/api/chat', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				model: 'llama3',
+				messages: message,
+				stream: false,
+			}),
+		});
 
-		console.log(`[chat] request id=${reqId} - OpenAI response received`);
-
-		// Safely extract text content: Responses API uses an `output` array
-		// whose items contain a `content` array. Content entries can be
-		// strings or objects with a `text` field.
-		let reply = '';
-		const output = response.output ?? [];
-		if (output.length > 0) {
-			const first = output[0];
-			const contents = first.content ?? [];
-			reply = contents
-				.map((c) => (typeof c === 'string' ? c : (c?.text ?? '')))
-				.filter(Boolean)
-				.join(' ');
-		}
-
-		console.log(
-			`[chat] request id=${reqId} - sending reply: ${reply.substring(0, 50)}...`,
-		);
-		res.json({ reply });
+		const data = await response.json();
+		res.json(data.message);
 	} catch (err: any) {
 		const reqId = (req as any).id || 'none';
 		console.error(`[chat] request id=${reqId} - error:`, {

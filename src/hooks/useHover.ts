@@ -17,8 +17,8 @@ export function useHover<T extends HTMLElement = HTMLElement>({
 }: UseHoverOptions = {}): UseHoverReturn<T> {
 	const [isHovered, setIsHovered] = useState(false);
 	const hoverRef = useRef<T>(null);
-	const enterTimeoutRef = useRef<NodeJS.Timeout>(null);
-	const leaveTimeoutRef = useRef<NodeJS.Timeout>(null);
+	const enterTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
+	const leaveTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
 	const handleMouseEnter = useCallback(() => {
 		// Clear any pending leave timeout

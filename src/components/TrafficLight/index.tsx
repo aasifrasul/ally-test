@@ -6,7 +6,7 @@ function TrafficLight() {
 	const redRef = useRef<HTMLDivElement>(null);
 	const yellowRef = useRef<HTMLDivElement>(null);
 	const greenRef = useRef<HTMLDivElement>(null);
-	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const instance = useRef(-1);
 
 	const durations = [

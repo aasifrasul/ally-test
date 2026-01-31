@@ -18,6 +18,16 @@ export default function MovieListContainer(props: ParentProps): JSX.Element {
 		fetchData();
 	}, []);
 
+	// Handle initial loading state
+	if (result.isLoading && !result.data?.length) {
+		return <div className="text-center mt-10">Loading...</div>;
+	}
+
+	// Handle empty state
+	if (!result.isLoading && !result.data?.length) {
+		return <div className="text-center mt-10">No Records found</div>;
+	}
+
 	return (
 		<MovieList
 			{...props}

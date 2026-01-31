@@ -4,7 +4,7 @@ import styles from './styles.module.css';
 
 const DigitalClock = () => {
 	const [timeString, setTimeString] = React.useState('');
-	const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+	const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const clearTimer = () => timerRef.current && clearTimeout(timerRef.current);
 
@@ -34,7 +34,7 @@ const DigitalClock = () => {
 		timerRef.current = setTimeout(
 			() => getCurrentTime(format),
 			1000,
-		) as unknown as NodeJS.Timeout;
+		) as unknown as ReturnType<typeof setTimeout>;
 	}
 
 	React.useEffect(() => {
