@@ -73,17 +73,15 @@ export function useFormField({
 		(event: ChangeEvent<HTMLInputElement>): void => {
 			const newValue = event.target.value;
 
-			// Only proceed if value actually changed
-			if (newValue === state.value) {
-				return;
-			}
-
-			setState((prev) => ({
-				...prev,
-				value: newValue,
-				touched: true,
-				dirty: true,
-			}));
+			setState((prev) => {
+				if (prev.value === newValue) return prev;
+				return {
+					...prev,
+					value: newValue,
+					touched: true,
+					dirty: true,
+				};
+			});
 
 			debouncedValidation(newValue);
 		},

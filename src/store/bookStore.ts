@@ -3,7 +3,7 @@ import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { gql } from '@apollo/client';
 import { client } from '../ApolloClient';
-import { handleAsyncCalls } from '../utils/AsyncUtil';
+import { handleAsyncExecution } from '../utils/AsyncUtil';
 
 export interface Book {
 	id?: string;
@@ -13,7 +13,13 @@ export interface Book {
 }
 
 export type AddBookType = (book: Book) => void;
-export type UpdateBookType = Book;
+
+export type UpdateBookType = {
+	id: string;
+	title?: string;
+	author?: string;
+	issued?: boolean;
+};
 
 export interface BookStoreState {
 	books: Book[];
@@ -31,7 +37,7 @@ export interface BookStoreState {
 	returnBook: (id: string) => Promise<void>;
 	deleteBook: (id: string) => Promise<void>;
 	filterByText: (text: string) => void;
-	updateBook: (book: UpdateBookType) => Promise<void>;
+	updateBook: (book: Partial<UpdateBookType>) => Promise<void>;
 	reset: () => void;
 	resetEditingBook: () => void;
 	setStatus: () => void;
@@ -140,7 +146,7 @@ export const useBookStore = create<BookStoreState>()(
 				fetchBooks: async () => {
 					get().setStatus();
 
-					const result = await handleAsyncCalls(() =>
+					const result = await handleAsyncExecution(() =>
 						client.query({
 							query: GET_BOOKS,
 							fetchPolicy: 'network-only',
@@ -175,7 +181,7 @@ export const useBookStore = create<BookStoreState>()(
 				addBook: async (bookData) => {
 					get().setStatus();
 
-					const result = await handleAsyncCalls(() =>
+					const result = await handleAsyncExecution(() =>
 						client.mutate({
 							mutation: ADD_BOOK,
 							variables: { ...bookData, issued: false },
@@ -198,7 +204,7 @@ export const useBookStore = create<BookStoreState>()(
 					});
 				},
 
-				editBook: (id: string | null) => {
+				editBook: (id: string) => {
 					set((state) => {
 						state.editingBook = get().books.find((b) => b.id === id) || null;
 					});
@@ -208,14 +214,14 @@ export const useBookStore = create<BookStoreState>()(
 					get().setStatus();
 
 					const { id, title, author, issued } = updateData;
-					const result = await handleAsyncCalls(() =>
+					const result = await handleAsyncExecution(() =>
 						client.mutate({
 							mutation: UPDATE_BOOK,
 							variables: {
 								id: id,
 								...(title && { title }),
 								...(author && { author }),
-								...(issued && { issued }),
+								...(issued !== undefined && { issued }),
 							},
 						}),
 					);
@@ -255,21 +261,21 @@ export const useBookStore = create<BookStoreState>()(
 				issueBook: async (id) => {
 					const book = get().books.find((b) => b.id === id);
 					if (book && !book.issued) {
-						await get().updateBook({ ...book, id, issued: true });
+						await get().updateBook({ id, issued: true });
 					}
 				},
 
 				returnBook: async (id) => {
 					const book = get().books.find((b) => b.id === id);
 					if (book?.issued) {
-						await get().updateBook({ ...book, id, issued: false });
+						await get().updateBook({ id, issued: false });
 					}
 				},
 
 				deleteBook: async (id): Promise<void> => {
 					get().setStatus();
 
-					const result = await handleAsyncCalls(() =>
+					const result = await handleAsyncExecution(() =>
 						client.mutate({
 							mutation: DELETE_BOOK,
 							variables: {
@@ -302,7 +308,7 @@ export const useBookStore = create<BookStoreState>()(
 					});
 				},
 
-				resetEditingBook: async () => {
+				resetEditingBook: () => {
 					set((state) => {
 						state.editingBook = null;
 					});

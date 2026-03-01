@@ -3,99 +3,57 @@ import React from 'react';
 import Form from '../Form';
 import { InputText } from '../InputText';
 import TextArea from '../TextArea';
-
-type InputType = 'text' | 'textarea' | 'submit';
-
-export interface FormElements extends HTMLFormControlsCollection {
-	item: (index: number) => HTMLInputElement | null;
-	length: number;
-}
-
-export interface FormWithElements extends HTMLFormElement {
-	elements: FormElements;
-}
+import Button from '../Button';
+import Spacer from '../Spacer';
+import { FieldType } from '../../../constants/types';
 
 const emptyFunc = (): void => {};
 
-interface FormGeneratorProps {
+export interface FormFieldConfig {
+	type: FieldType;
 	id: string;
 	name: string;
-	children: {
-		id: string;
-		type: InputType;
-		name: string;
-		value?: string;
-		initialValue?: string;
-		placeholder?: string;
-		label?: string;
-		validate?: string;
-		rows?: number;
-		cols?: number;
-	}[];
-	validations: {
-		[key: string]: (value: string) => any;
-	};
-	onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+	value?: string;
+	initialValue?: string;
+	placeholder?: string;
+	label?: string;
+	validate?: string;
+	rows?: number;
+	cols?: number;
 }
 
+export type Validations = Record<string, (value: string) => boolean>;
+
+export interface FormGeneratorProps {
+	id: string;
+	name: string;
+	fields: FormFieldConfig[];
+	validations: Validations;
+	onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+	onValidationError?: (errors: Record<string, string>) => void;
+}
+
+const fieldMapping: Record<FieldType, React.FC<any>> = {
+	text: InputText,
+	textarea: TextArea,
+	submit: (props: { value: string }) => <Button type="submit">{props.value}</Button>,
+	Spacer: () => <Spacer size={16} />,
+};
+
+const renderField = (field: FormGeneratorProps['fields'][0], validations: Validations) => {
+	const { id, type, validate, ...restProps } = field;
+	const Component = fieldMapping[type];
+
+	const validation = validate ? validations[validate] : emptyFunc;
+	return <Component key={id} {...restProps} validate={validation} />;
+};
+
 export default function FormGenerator(props: FormGeneratorProps) {
-	const children = props?.children?.map(
-		({
-			id,
-			type,
-			name,
-			value,
-			initialValue,
-			placeholder,
-			label,
-			validate,
-			rows,
-			cols,
-		}) => {
-			switch (type) {
-				case 'text':
-					return (
-						<React.Fragment key={id}>
-							{' '}
-							<InputText
-								id={id}
-								name={name}
-								initialValue={initialValue}
-								placeholder={placeholder}
-								label={label}
-								validate={
-									validate
-										? props.validations[validate] || emptyFunc
-										: emptyFunc
-								}
-							/>
-							<hr />
-						</React.Fragment>
-					);
-				case 'textarea':
-					return (
-						<>
-							<TextArea id={id} name={name} rows={rows} cols={cols} />
-							<hr />
-						</>
-					);
-				case 'submit':
-					return (
-						<div>
-							<button key={id} type={type}>
-								{value}
-							</button>
-						</div>
-					);
-				default:
-					return null;
-			}
-		},
-	);
+	const fields = props.fields.map((field) => renderField(field, props.validations));
 
 	return (
 		<Form name={props.name} onSubmit={props.onSubmit} defaultSubmit={false}>
-			{children}
+			{fields}
 		</Form>
 	);
 }

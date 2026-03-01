@@ -108,14 +108,16 @@ export interface NewsFeed {
 	API_KEY: string;
 }
 
+export type FieldType = 'text' | 'textarea' | 'submit' | 'Spacer';
+
 export interface FormMetaData {
 	id: string;
 	name: string;
 	onSubmit: string;
-	children: Array<{
-		type: 'text' | 'textarea' | 'submit';
-		id: string;
-		name: string;
+	fields: Array<{
+		type: FieldType;
+		id?: string;
+		name?: string;
 		initialValue?: string;
 		placeholder?: string;
 		label?: string;

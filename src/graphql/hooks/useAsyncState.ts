@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { handleAsyncCalls } from '../../utils/AsyncUtil';
+import { handleAsyncExecution } from '../../utils/AsyncUtil';
 
 interface AsyncState<T> {
 	data: T | null;
@@ -50,7 +50,7 @@ export function useAsyncState<T>(
 			setIsLoading(true);
 			setError(null);
 
-			const result = await handleAsyncCalls(operation); // Fixed: pass function, not promise
+			const result = await handleAsyncExecution(operation); // Fixed: pass function, not promise
 
 			if (result.success) {
 				setData(result.data);

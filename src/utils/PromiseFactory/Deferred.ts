@@ -22,13 +22,13 @@ export class Deferred<T> {
 
 	constructor() {
 		this.promise = new Promise<T>((resolve, reject) => {
-			this.resolve = async (value) => {
+			this.resolve = (value) => {
 				if (this.isSettled) return;
 				this.state = DeferredState.RESOLVED;
-				this.value = await Promise.resolve(value); // Handles PromiseLike
+				// If value is a promise, native resolve() handles it automatically
 				this.settledAt = Date.now();
 				this.cleanUp();
-				resolve(value);
+				resolve(value as T);
 			};
 
 			this.reject = (error) => {
@@ -73,7 +73,7 @@ export class Deferred<T> {
 	/**
 	 * Get the current value (if resolved) or error (if rejected)
 	 */
-	get result(): T | unknown | null {
+	get result(): T | unknown {
 		// Union type for value or error
 		return this.isResolved ? this.value : this.error;
 	}

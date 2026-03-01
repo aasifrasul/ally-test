@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import AppProviders from './AppProviders';
 
 import App from './components/App';
-import ErrorBoundary from './components/ErrorBoundary';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 import './index.css';
 

@@ -1,8 +1,7 @@
 import { Suspense, FC } from 'react';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
-import { ErrorBoundary } from 'react-error-boundary';
 
-import { routes, ErrorPage } from '../../routes';
+import { routes } from '../../routes';
 import { Spinner } from '../Common/Spinner';
 import { configureGlobalLogger, LogLevel } from '../../utils/Logger';
 
@@ -14,20 +13,13 @@ configureGlobalLogger({
 	enabled: process.env.NODE_ENV !== 'production',
 });
 
-const App: FC = () => {
-	const router = createBrowserRouter(routes);
+const router = createBrowserRouter(routes);
 
+const App: FC = () => {
 	return (
-		<ErrorBoundary
-			FallbackComponent={ErrorPage}
-			onError={(error) => {
-				console.error('Top-level error:', error);
-			}}
-		>
-			<Suspense fallback={<Spinner />}>
-				<RouterProvider router={router} />
-			</Suspense>
-		</ErrorBoundary>
+		<Suspense fallback={<Spinner />}>
+			<RouterProvider router={router} />
+		</Suspense>
 	);
 };
 

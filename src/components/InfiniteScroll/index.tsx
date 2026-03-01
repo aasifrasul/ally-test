@@ -1,7 +1,7 @@
 import { useEffect, JSX } from 'react';
 import { InfiniteScroll } from './InfiniteScroll';
 import { Schema } from '../../constants/types';
-import { handleAsyncCalls } from '../../utils/common';
+import { handleAsyncExecution } from '../../utils/common';
 import { useSchemaQuery } from '../../hooks/dataSelector';
 
 interface ParentProps {

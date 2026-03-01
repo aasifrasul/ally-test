@@ -71,3 +71,46 @@ export interface FetchResult<T, U = T> {
 }
 
 export type FetchNextPage = (nextPage: number) => Promise<void>;
+
+export interface CacheOptions {
+	ttl?: number;
+	strategy?: 'network-first' | 'cache-first' | 'stale-while-revalidate';
+}
+
+// Types for our response handling
+export type SuccessResult<T> = {
+	success: true;
+	data: T;
+};
+
+export type ErrorResult = {
+	success: false;
+	error: Error;
+};
+
+export type Result<T> = SuccessResult<T> | ErrorResult;
+
+export interface ResponseLike {
+	ok: boolean;
+	headers: Headers; // Remove null, Response always has headers
+	status: number; // Remove optional, always present
+	json(): Promise<any>;
+	text(): Promise<string>;
+}
+
+export class NetworkError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = 'NetworkError';
+	}
+}
+
+export class HTTPError extends Error {
+	constructor(
+		public status: number,
+		message: string,
+	) {
+		super(message);
+		this.name = 'HTTPError';
+	}
+}
