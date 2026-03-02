@@ -35,7 +35,7 @@ export const InputText = forwardRef<{ clear(): void }, TextFieldProps>((props, r
 		onChange,
 		debounceMs,
 	});
-	const inputRef = useRef<React.RefObject<{ clear(): void; focus(): void }>>(null);
+	const inputRef = useRef<HTMLInputElement | null>(null);
 
 	const showClearButton = clearable && value?.length > 0 && !disabled;
 

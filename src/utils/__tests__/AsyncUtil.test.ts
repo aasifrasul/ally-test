@@ -1,11 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-	handleAsyncCalls,
-	fetchAPIData,
-	NetworkError,
-	HTTPError,
-	ResponseLike,
-} from '../AsyncUtil';
+import { handleAsyncExecution, fetchAPIData } from '../AsyncUtil';
+import { NetworkError, ResponseLike, HTTPError } from '../../types/api';
 
 // Create mock ResponseLike
 const createMockResponse = (
@@ -25,28 +20,28 @@ const createMockResponse = (
 	};
 };
 
-describe('handleAsyncCalls', () => {
+describe('handleAsyncExecution', () => {
 	it('handles successful promise', async () => {
-		const res = await handleAsyncCalls(Promise.resolve(123));
+		const res = await handleAsyncExecution(() => Promise.resolve(123));
 		expect(res.success).toBe(true);
 		if (res.success) expect(res.data).toBe(123);
 	});
 
 	it('handles normal Error', async () => {
-		const res = await handleAsyncCalls(Promise.reject(new Error('x')));
+		const res = await handleAsyncExecution(() => Promise.reject(new Error('x')));
 		expect(res.success).toBe(false);
 		if (!res.success) expect(res.error.message).toBe('x');
 	});
 
 	it('handles non-Error rejections', async () => {
-		const res = await handleAsyncCalls(Promise.reject('oops'));
+		const res = await handleAsyncExecution(() => Promise.reject('oops'));
 		expect(res.success).toBe(false);
 		if (!res.success) expect(res.error.message).toBe('oops');
 	});
 
 	it('handles AbortError', async () => {
 		const abortErr = new DOMException('Aborted', 'AbortError');
-		const res = await handleAsyncCalls(Promise.reject(abortErr));
+		const res = await handleAsyncExecution(() => Promise.reject(abortErr));
 
 		expect(res.success).toBe(false);
 		if (!res.success) {
@@ -56,7 +51,9 @@ describe('handleAsyncCalls', () => {
 	});
 
 	it('handles TypeError as NetworkError', async () => {
-		const res = await handleAsyncCalls(Promise.reject(new TypeError('Network failed')));
+		const res = await handleAsyncExecution(() =>
+			Promise.reject(new TypeError('Network failed')),
+		);
 		expect(!res.success).toBe(true);
 		if (!res.success) {
 			expect(res.error).toBeInstanceOf(NetworkError);

@@ -15,7 +15,7 @@
 		return { id, name: 'Noah' };
 	};
 
-	const handleAsyncCalls = async <T,>(
+	const handleAsyncExecution = async <T,>(
 		promise: Promise<T>,
 	): Promise<[undefined, T] | [Error]> => {
 		return promise
@@ -27,7 +27,7 @@
 			});
 	};
 
-	const [error, user] = await handleAsyncCalls(getUser(1));
+	const [error, user] = await handleAsyncExecution(getUser(1));
 
 	if (error) {
 		console.log(error);

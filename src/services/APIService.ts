@@ -1,7 +1,8 @@
 import { HTTPMethod } from '../types/api';
 import { createLogger, LogLevel, Logger } from '../utils/Logger';
-import { fetchAPIData, Result } from '../utils/common';
+import { fetchAPIData } from '../utils/common';
 import { isString } from '../utils/typeChecking';
+import { Result } from '../types/api';
 
 export interface SaveDataOptions extends RequestInit {
 	body: BodyInit;

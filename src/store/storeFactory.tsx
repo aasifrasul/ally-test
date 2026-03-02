@@ -8,7 +8,6 @@ import {
 	GenericAction,
 	Schema,
 	StoreContextValue,
-	Store,
 } from '../constants/types';
 
 import { createLogger, LogLevel, Logger } from '../utils/Logger';

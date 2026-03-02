@@ -66,33 +66,8 @@ export const isEmpty = (data: unknown): boolean =>
 	isEmptyArray(data) ||
 	isEmptyObject(data);
 
-export const isAsyncFunction = (
-	data: unknown,
-): data is (...args: any[]) => Promise<unknown> => {
-	if (!isFunction(data)) return false;
-
-	// 1. Native async function detection
-	if (data.constructor.name === 'AsyncFunction') return true;
-
-	// 2. Check if function returns a Promise by testing with no arguments
-	// We need to handle functions that might throw or require arguments
-	try {
-		// Only test if function has no required parameters
-		if (data.length === 0) {
-			const result = (data as any)();
-			const isPromiseResult = result instanceof Promise;
-			// Clean up the promise to avoid unhandled rejection warnings
-			if (isPromiseResult) {
-				result.catch(() => {});
-			}
-			return isPromiseResult;
-		}
-	} catch {
-		// If calling fails, it's not a zero-arg promise-returning function
-	}
-
-	return false;
-};
+export const isAsyncFunction = (data: unknown): data is (...args: any[]) => Promise<unknown> =>
+	isFunction(data) && data.constructor.name === 'AsyncFunction';
 
 export const isGeneratorFunction = (data: unknown): data is GeneratorFunction => {
 	if (!isFunction(data)) return false;
@@ -105,36 +80,29 @@ export const isGeneratorFunction = (data: unknown): data is GeneratorFunction =>
 	return proto && proto.constructor && proto.constructor.name === 'GeneratorFunction';
 };
 
+type Result<T> = { ok: true; value: T } | { ok: false; error: unknown };
+
 export const safelyExecuteFunction = <T>(
 	func: (...args: any[]) => T,
 	context: object | null = null,
 	...params: any[]
 ): T | undefined => {
-	if (!isFunction(func)) {
-		console.warn('Please pass a valid function!');
-		return undefined;
-	}
 	try {
 		return context ? func.apply(context, params) : func(...params);
-	} catch (err) {
-		console.error('Execution error:', err);
-		return undefined;
+	} catch (error) {
+		throw new Error(
+			`Error executing function: ${error instanceof Error ? error.message : String(error)}`,
+		);
 	}
 };
 
 export const safeAsyncExecute = async <T>(
 	fn: (...args: any[]) => T | Promise<T>,
 	...args: any[]
-): Promise<T | null> => {
+): Promise<T> => {
 	if (!isFunction(fn)) {
-		console.warn('Please pass a valid function!');
-		return null;
+		throw new TypeError('Please pass a valid function!');
 	}
 
-	try {
-		return await fn(...args);
-	} catch (error) {
-		console.error('An error occurred:', error);
-		throw error;
-	}
+	return await fn(...args);
 };

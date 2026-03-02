@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { handleAsyncCalls } from '../utils/AsyncUtil';
+import { handleAsyncExecution } from '../utils/AsyncUtil';
 
 interface AsyncFn<T> {
 	(): Promise<T>;
@@ -12,7 +12,7 @@ function useAsync<T>(
 ): void {
 	useEffect(() => {
 		const executeAsyncFunc = async () => {
-			const result = await handleAsyncCalls(asyncFn);
+			const result = await handleAsyncExecution(asyncFn);
 
 			if (!result.success) {
 				if (onError) {

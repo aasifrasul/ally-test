@@ -6,14 +6,14 @@ const logger: Logger = createLogger('storeFactory', {
 	level: LogLevel.DEBUG,
 });
 
-type ErrorBoundaryProps = {
-	children: React.ReactNode;
-	fallback?: React.ReactNode;
-};
-
 type ErrorBoundaryState = {
 	hasError: boolean;
 	error: Error | null;
+};
+
+type ErrorBoundaryProps = {
+	children: React.ReactNode;
+	fallback?: React.ReactNode | ((error: Error) => React.ReactNode);
 };
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -31,11 +31,13 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 	}
 
 	render(): React.ReactNode {
-		if (this.state.hasError) {
-			return this.props.fallback ?? <div>Something went wrong.</div>;
+		if (this.state.hasError && this.state.error) {
+			const { fallback } = this.props;
+			if (typeof fallback === 'function') {
+				return fallback(this.state.error);
+			}
+			return fallback ?? <div>Something went wrong.</div>;
 		}
 		return this.props.children;
 	}
 }
-
-export default ErrorBoundary;

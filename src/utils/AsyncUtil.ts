@@ -1,43 +1,5 @@
-import { HTTPMethod } from '../types/api';
+import { HTTPMethod, ResponseLike, NetworkError, Result, HTTPError } from '../types/api';
 import { isBoolean, isFunction, isUndefined } from './typeChecking';
-
-// Types for our response handling
-type SuccessResult<T> = {
-	success: true;
-	data: T;
-};
-
-type ErrorResult = {
-	success: false;
-	error: Error;
-};
-
-export type Result<T> = SuccessResult<T> | ErrorResult;
-
-export interface ResponseLike {
-	ok: boolean;
-	headers: Headers; // Remove null, Response always has headers
-	status: number; // Remove optional, always present
-	json(): Promise<any>;
-	text(): Promise<string>;
-}
-
-export class NetworkError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = 'NetworkError';
-	}
-}
-
-export class HTTPError extends Error {
-	constructor(
-		public status: number,
-		message: string,
-	) {
-		super(message);
-		this.name = 'HTTPError';
-	}
-}
 
 function isResponseLike(obj: any): obj is ResponseLike {
 	return (
@@ -49,7 +11,9 @@ function isResponseLike(obj: any): obj is ResponseLike {
 	);
 }
 
-export async function handleAsyncCalls<T>(operation: () => Promise<T>): Promise<Result<T>> {
+export async function handleAsyncExecution<T>(
+	operation: () => Promise<T>,
+): Promise<Result<T>> {
 	try {
 		const data = await operation();
 		return { success: true, data };
@@ -75,7 +39,10 @@ export async function handleAsyncCalls<T>(operation: () => Promise<T>): Promise<
 	}
 }
 
-export async function fetchAPIData<T>(url: string, options?: RequestInit): Promise<Result<T>> {
+export async function fetchAPIData<T>(
+	endpoint: string,
+	options?: RequestInit,
+): Promise<Result<T>> {
 	const { method, body } = options || {};
 	const inferredMethod = method || (!isUndefined(body) ? HTTPMethod.POST : HTTPMethod.GET);
 
@@ -88,7 +55,7 @@ export async function fetchAPIData<T>(url: string, options?: RequestInit): Promi
 		},
 	};
 
-	const fetchResult = await handleAsyncCalls(() => fetch(url, requestOptions));
+	const fetchResult = await handleAsyncExecution(() => fetch(endpoint, requestOptions));
 
 	if (!fetchResult.success) return fetchResult;
 
@@ -112,6 +79,6 @@ export async function fetchAPIData<T>(url: string, options?: RequestInit): Promi
 	const contentType = response.headers?.get('content-type') ?? '';
 
 	return contentType.includes('application/json')
-		? handleAsyncCalls(() => response.json())
-		: handleAsyncCalls(() => response.text() as Promise<T>);
+		? handleAsyncExecution(() => response.json())
+		: handleAsyncExecution(() => response.text() as Promise<T>);
 }
