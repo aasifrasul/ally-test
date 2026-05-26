@@ -1,11 +1,5 @@
-import { StrictMode, FC } from 'react';
 import { createRoot } from 'react-dom/client';
-
 import AppProviders from './AppProviders';
-
-import App from './components/App';
-import { ErrorBoundary } from './components/ErrorBoundary';
-
 import './index.css';
 
 const rootElement = document.querySelector('#root');
@@ -16,61 +10,39 @@ if (!rootElement) {
 
 const root = createRoot(rootElement);
 
-// Create a render function that wraps the entire app with providers
-const renderApp = (AppComponent: FC) => {
-	root.render(
-		<StrictMode>
-			<AppProviders>
-				<ErrorBoundary fallback={<div>Critical error. Please refresh the page.</div>}>
-					<AppComponent />
-				</ErrorBoundary>
-			</AppProviders>
-		</StrictMode>,
-	);
+const renderApp = () => {
+	root.render(<AppProviders />);
 };
 
 // Initial render
-renderApp(App);
+renderApp();
 
 // Hot Module Replacement setup
 if (module.hot) {
-	// Accept updates for the App component - this is the main one that matters
 	module.hot.accept('./components/App', () => {
 		console.log('🔥 HMR: App component updated');
 
 		try {
-			// With React Fast Refresh, we don't need to manually clear cache
-			// Just re-import and render
-			const { default: NextApp } = require('./components/App');
-			renderApp(NextApp);
+			renderApp();
 		} catch (error) {
 			console.error('❌ HMR: Failed to update App component:', error);
-			// Let React Fast Refresh handle the error, don't force reload
 		}
 	});
 
-	// For store updates, we need to be more careful to preserve state
 	module.hot.accept('./store', () => {
 		console.log('🏪 HMR: Store updated - Full reload recommended for Redux changes');
-		// For Redux store changes, full reload is usually safer
-		// to avoid state inconsistencies
 		window.location.reload();
 	});
 
-	// Apollo Client changes usually require full reload
 	module.hot.accept('./ApolloClient', () => {
 		console.log('🚀 HMR: Apollo Client updated - Reloading page');
 		window.location.reload();
 	});
 
-	// Context providers - let React Fast Refresh handle these
 	module.hot.accept(['./Context/dataFetchContext', './Context/ThemeProvider'], () => {
 		console.log('🎭 HMR: Context providers updated');
-		// React Fast Refresh should handle context updates automatically
-		// Only manually re-render if needed
 	});
 
-	// Status handler for debugging
 	module.hot.addStatusHandler((status) => {
 		switch (status) {
 			case 'idle':
@@ -98,21 +70,16 @@ if (module.hot) {
 		}
 	});
 
-	// Error handler - be less aggressive about reloading
 	module.hot.addErrorHandler((err) => {
 		console.error('❌ HMR Error:', err);
-		// Don't automatically reload, let React Fast Refresh handle it
 	});
 }
 
-// Development debugging
 console.log('🚀 Development mode enabled');
 
-// Log HMR status
 if (module.hot) {
 	console.log('🔥 Hot Module Replacement enabled');
 
-	// Add debugging helper
 	window.__DEV_HMR_STATUS__ = () => {
 		console.log('HMR Status:', module.hot?.status());
 	};
@@ -120,13 +87,11 @@ if (module.hot) {
 	console.warn('⚠️ HMR not available');
 }
 
-// catches synchronous errors
 window.addEventListener('error', (e) => {
 	console.error('Uncaught error:', e.error);
 	e.preventDefault();
 });
 
-// catches async/promise errors
 window.addEventListener('unhandledrejection', (e) => {
 	console.error('Unhandled rejection:', e.reason);
 	e.preventDefault();

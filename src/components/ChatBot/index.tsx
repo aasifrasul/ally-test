@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { InputText } from '../Common/InputText';
-import { fetchAPIData, Result } from '../../utils/AsyncUtil';
+import { fetchAPIData, Result } from '../../utils/fetchUtils';
 import Button from '../Common/Button';
 
 // Custom Send Icon Component

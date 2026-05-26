@@ -4,8 +4,10 @@ import { twMerge } from 'tailwind-merge';
 import { QueryParams } from '../constants/types';
 import { isNumber, isObject } from './typeChecking';
 export { deepCopy } from './deepCopy';
-export { handleAsyncExecution, fetchAPIData } from './AsyncUtil';
-import { Result } from '../types/api';
+export { fetchAPIData } from './fetchUtils';
+export { handleAsyncExecution } from './resultUtils';
+export { useAsync } from '../hooks/useAsync';
+export { useAsyncState } from '../graphql/hooks/useAsyncState';
 
 export const getRandomInt = (min = 1000 * 1000, max = 2000 * 1000): number => {
 	min = Math.ceil(min);

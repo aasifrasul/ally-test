@@ -2,6 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 
 import { useWindowEventListener } from '../../hooks';
 import { AsyncQueue } from '../../utils/AsyncQueue';
+import Button from '../Common/Button';
+import { useAsync, useLoadingDelay } from '../../hooks';
+import { LoadingBoundary } from '../Common/LoadingBoundary';
 
 type Article = {
 	id: number;
@@ -31,41 +34,34 @@ const asyncQueue = new AsyncQueue<Article>();
 
 const ArticleList: React.FC = () => {
 	const [articles, setArticles] = useState<Article[]>([]);
-	const [loading, setLoading] = useState(false);
 	const [nextStartId, setNextStartId] = useState(1);
 
 	const fetchArticles = useCallback(async () => {
-		if (loading) return;
+		const promises = Array.from({ length: ARTICLES_PER_PAGE }, (_, index) =>
+			asyncQueue.addToQueue(() => getMockArticle(nextStartId + index)),
+		);
 
-		setLoading(true);
+		const newArticles = await Promise.all(promises);
+		setArticles((prevArticles) => [...prevArticles, ...newArticles]);
+	}, [nextStartId]);
 
-		try {
-			const promises = Array.from({ length: ARTICLES_PER_PAGE }, (_, index) =>
-				asyncQueue.addToQueue(() => getMockArticle(nextStartId + index)),
-			);
-
-			const newArticles = await Promise.all(promises);
-			setArticles((prevArticles) => [...prevArticles, ...newArticles]);
-
-			// Optional: Set hasMore to false if no more articles
-			// if (newArticles.length < ARTICLES_PER_PAGE) setHasMore(false);
-		} catch (error) {
-			console.error('Error fetching articles:', error);
-		} finally {
-			setLoading(false);
-		}
-	}, [loading, nextStartId]);
-
-	const handleLoadMore = () => setNextStartId(articles.length + 1);
+	const { run, loading } = useAsync(() => fetchArticles());
+	const visible = useLoadingDelay(loading);
 
 	useEffect(() => {
-		void fetchArticles();
-	}, []);
+		run();
+	}, [nextStartId]);
 
-	useWindowEventListener('scroll', (_: WindowEventMap['scroll']): void => {
+	const handleLoadMore = () => {
+		setNextStartId((prev) => prev + ARTICLES_PER_PAGE);
+	};
+
+	useWindowEventListener('scroll', () => {
+		const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
 		const scrolledToBottom =
-			window.innerHeight + document.documentElement.scrollTop >=
-			document.documentElement.offsetHeight - SCROLL_THRESHOLD;
+			window.innerHeight + scrollTop >=
+			document.documentElement.scrollHeight - SCROLL_THRESHOLD;
 
 		if (scrolledToBottom && !loading) {
 			handleLoadMore();
@@ -79,16 +75,15 @@ const ArticleList: React.FC = () => {
 					<b>{id}</b>. {title}
 				</div>
 			))}
-			{loading && <div className="loading">Loading...</div>}
-			{!loading && (
-				<button
+			<LoadingBoundary loading={visible} overlay>
+				<Button
 					onClick={handleLoadMore}
 					disabled={loading}
 					className="load-more-button"
 				>
 					Load More
-				</button>
-			)}
+				</Button>
+			</LoadingBoundary>
 		</div>
 	);
 };

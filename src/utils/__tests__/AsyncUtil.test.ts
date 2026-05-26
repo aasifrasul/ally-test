@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { handleAsyncExecution, fetchAPIData } from '../AsyncUtil';
 import { NetworkError, ResponseLike, HTTPError } from '../../types/api';
+import { fetchAPIData, handleAsyncExecution } from '../common';
 
 // Create mock ResponseLike
 const createMockResponse = (

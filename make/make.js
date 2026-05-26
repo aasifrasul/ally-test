@@ -1,4 +1,3 @@
- 
 const chalk = require('chalk');
 const webpack = require('webpack');
 const { generateHBS } = require('./make.hbs');

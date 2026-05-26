@@ -18,47 +18,36 @@ export const useInfiniteScroll = ({
 	hasNextPage = true,
 }: UseInfiniteScrollProps): void => {
 	const callbackRef = useCallbackRef(callback);
-	const cleanupRef = useRef<(() => void) | undefined>(null);
+	const canLoadRef = useCallbackRef(() => enabled && !isLoading && hasNextPage);
+	// Re-check when loading finishes in case sentinel is already visible
+	const isIntersectingRef = useRef(false);
 
-	const handleIntersection: IntersectionObserverCallback = useCallback(
-		(entries) => {
-			entries.forEach(({ isIntersecting }: { isIntersecting: boolean }) => {
-				// Only trigger if:
-				// 1. Element is intersecting
-				// 2. Feature is enabled
-				// 3. Not currently loading
-				// 4. Has more pages to load
-				if (isIntersecting && enabled && !isLoading && hasNextPage) {
-					callbackRef.current();
-				}
-			});
-		},
-		[enabled, isLoading, hasNextPage],
-	);
+	const handleIntersection: IntersectionObserverCallback = useCallback((entries) => {
+		const target = entries[0];
+		isIntersectingRef.current = target?.isIntersecting ?? false;
+
+		if (isIntersectingRef.current && canLoadRef.current()) {
+			callbackRef.current();
+		}
+	}, []);
+
+	useEffect(() => {
+		if (isIntersectingRef.current && enabled && !isLoading && hasNextPage) {
+			callbackRef.current();
+		}
+	}, [isLoading, enabled, hasNextPage]);
 
 	const observe = useIntersectionObserver({
 		threshold: 0,
-		rootMargin: '100px',
+		rootMargin: '200px', // Slightly larger margin often feels smoother
 		onIntersect: handleIntersection,
 	});
 
-	const cleanup = () => {
-		if (cleanupRef.current) {
-			cleanupRef.current();
-			cleanupRef.current = null;
-		}
-	};
-
 	useEffect(() => {
-		// Cleanup previous observation
-		cleanup();
+		const el = scrollRef.current;
+		if (!el) return;
 
-		// Only observe if enabled and has more pages
-		if (enabled && hasNextPage && scrollRef.current) {
-			cleanupRef.current = observe(scrollRef.current);
-		}
-
-		// Cleanup on unmount or when dependencies change
-		return () => cleanup();
-	}, [observe, scrollRef, enabled, hasNextPage]);
+		const unobserve = observe(el);
+		return () => unobserve?.();
+	}, [observe, scrollRef]);
 };
