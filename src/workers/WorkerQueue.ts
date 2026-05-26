@@ -37,7 +37,6 @@ export class WorkerQueue {
 		}
 
 		this.promiseFactory = new PromiseFactory<string>({
-			autoCleanup: true,
 			cleanupDelay: 30000,
 			enableLogging: true,
 		});

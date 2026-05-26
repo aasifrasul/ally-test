@@ -1,4 +1,5 @@
-import { HTTPMethod, ResponseLike, NetworkError, Result, HTTPError } from '../types/api';
+import { HTTPMethod, ResponseLike, Result, HTTPError } from '../types/api';
+import { handleAsyncExecution } from '../utils/common';
 import { isBoolean, isFunction, isUndefined } from './typeChecking';
 
 function isResponseLike(obj: any): obj is ResponseLike {
@@ -9,34 +10,6 @@ function isResponseLike(obj: any): obj is ResponseLike {
 		isFunction(obj.json) &&
 		isFunction(obj.text)
 	);
-}
-
-export async function handleAsyncExecution<T>(
-	operation: () => Promise<T>,
-): Promise<Result<T>> {
-	try {
-		const data = await operation();
-		return { success: true, data };
-	} catch (error) {
-		if (error instanceof DOMException && error.name === 'AbortError') {
-			return {
-				success: false,
-				error: new NetworkError('Request aborted'),
-			};
-		}
-
-		if (error instanceof TypeError) {
-			return {
-				success: false,
-				error: new NetworkError(error.message),
-			};
-		}
-
-		return {
-			success: false,
-			error: error instanceof Error ? error : new Error(String(error)),
-		};
-	}
 }
 
 export async function fetchAPIData<T>(

@@ -1,21 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useEventListener } from './';
-import { isEmpty } from '../utils/typeChecking';
+import { isEmpty, isUndefined } from '../utils/typeChecking';
 
 export function useSearchParams() {
-	const [searchParams, setSearchParams] = useState<URLSearchParams>(
-		() => new URLSearchParams(window.location?.search),
+	const [searchParams, setSearchParams] = useState<URLSearchParams>(() =>
+		isUndefined(window)
+			? new URLSearchParams()
+			: new URLSearchParams(window.location?.search),
 	);
 
-	const handlePopState: (event: PopStateEvent) => void = useCallback(
-		(event: PopStateEvent): void => {
-			const newParams = new URLSearchParams(
-				event.state?.searchParams || window.location.search,
-			);
-			setSearchParams(newParams);
-		},
-		[],
-	);
+	const handlePopState = useCallback((event: Event): void => {
+		const popStateEvent = event as PopStateEvent;
+		const newParams = new URLSearchParams(
+			popStateEvent.state?.searchParams || window.location.search,
+		);
+		setSearchParams(newParams);
+	}, []) as EventListener;
 
 	useEventListener('popstate', handlePopState, window);
 

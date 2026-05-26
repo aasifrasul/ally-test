@@ -3,7 +3,7 @@ import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { gql } from '@apollo/client';
 import { client } from '../ApolloClient';
-import { handleAsyncExecution } from '../utils/AsyncUtil';
+import { handleAsyncExecution } from '../utils/common';
 
 export interface Book {
 	id?: string;

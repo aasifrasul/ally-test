@@ -18,26 +18,35 @@ const infiniteScrollReducer: ReducerFunction = (
 	const payload: Payload = action.payload ?? { results: [] };
 
 	switch (type) {
-		case ActionType.FETCH_SUCCESS:
-			const currentData: IS_Item[] = payload.results || [];
-			const originalData: IS_Item[] = (state?.data as IS_Item[]) || [];
+		case ActionType.FETCH_SUCCESS: {
+			const incoming: IS_Item[] = payload.results ?? [];
+			const originalData: IS_Item[] = (state.originalData as IS_Item[]) ?? [];
+			const accumulated = [...originalData, ...incoming];
+
 			return {
 				...state,
 				isLoading: false,
 				isError: false,
-				data: [...originalData, ...currentData],
+				originalData: accumulated, // ← source of truth grows
+				data: accumulated, // ← filtered view resets to full for now
 			};
+		}
 
-		case ActionType.FILTER_BY_TEXT:
-			const filterText = payload?.filterText || '';
+		case ActionType.FILTER_BY_TEXT: {
+			const filterText = payload?.filterText ?? '';
+			const originalData = (state.originalData as IS_Item[]) ?? [];
+
 			return {
 				...state,
-				data:
-					(state?.data as IS_Item[]).filter(
-						({ name }) =>
-							name.first.includes(filterText) || name.last.includes(filterText),
-					) || [],
+				data: filterText
+					? originalData.filter(
+							({ name }) =>
+								name.first.includes(filterText) ||
+								name.last.includes(filterText),
+						)
+					: originalData,
 			};
+		}
 
 		default:
 			return state;

@@ -1,37 +1,23 @@
-import { useEffect } from 'react';
-import { handleAsyncExecution } from '../utils/AsyncUtil';
+import { useState, useCallback } from 'react';
 
-interface AsyncFn<T> {
-	(): Promise<T>;
-}
+export function useAsync<T extends (...args: any[]) => Promise<any>>(fn: T) {
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<Error | null>(null);
 
-function useAsync<T>(
-	asyncFn: AsyncFn<T>,
-	onSuccess?: (data: T) => void,
-	onError?: (error: Error) => void,
-): void {
-	useEffect(() => {
-		const executeAsyncFunc = async () => {
-			const result = await handleAsyncExecution(asyncFn);
-
-			if (!result.success) {
-				if (onError) {
-					onError(
-						result.error instanceof Error
-							? result.error
-							: new Error(String(result.error)),
-					);
-				}
-				return;
-			} else {
-				if (onSuccess) {
-					onSuccess(result.data as T);
-				}
+	const run = useCallback(
+		async (...args: Parameters<T>) => {
+			setLoading(true);
+			setError(null);
+			try {
+				return await fn(...args);
+			} catch (err) {
+				setError(err instanceof Error ? err : new Error(String(err)));
+			} finally {
+				setLoading(false);
 			}
-		};
+		},
+		[fn],
+	);
 
-		executeAsyncFunc();
-	}, [asyncFn, onSuccess, onError]);
+	return { run, loading, error };
 }
-
-export default useAsync;

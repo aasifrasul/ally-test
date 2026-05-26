@@ -15,12 +15,12 @@ type Props = Omit<InitialState, 'data'> & MovieListProps;
 
 export const MovieList = (props: Props): ReactNode => {
 	const { data, fetchNextPage, schema, TOTAL_PAGES, currentPage = 0 } = props;
-	const observerRef = useRef<HTMLDivElement>(null);
+	const sentinelRef = useRef<HTMLDivElement>(null);
 	const { searchActions } = createActionHooks(schema);
 	const { filterByText } = searchActions();
 
 	useInfiniteScroll({
-		scrollRef: observerRef,
+		scrollRef: sentinelRef,
 		callback: () => fetchNextPage(currentPage + 1),
 	});
 
@@ -49,7 +49,7 @@ export const MovieList = (props: Props): ReactNode => {
 					{data?.map((item) => <Movie key={item.id} item={item} styles={styles} />)}
 				</div>
 			</div>
-			<div ref={observerRef} className="loading-indicator">
+			<div ref={sentinelRef} className="loading-indicator">
 				{currentPage !== TOTAL_PAGES && 'Loading...'}
 			</div>
 		</div>
