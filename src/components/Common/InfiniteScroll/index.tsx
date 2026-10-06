@@ -101,8 +101,7 @@ export function InfiniteScroll({
 	 * 3. A fetch is not already in progress (`isFetchingRef`).
 	 */
 	const handleIntersection = useCallback<IntersectionObserverCallback>(
-		(entries) => {
-			const entry = entries[0];
+		([entry]) => {
 			if (!entry?.isIntersecting || !hasMoreRef.current || isFetchingRef.current) {
 				return;
 			}

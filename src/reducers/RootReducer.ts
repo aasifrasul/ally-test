@@ -113,7 +113,7 @@ function create(createState) {
 	const listeners = new Set();
 
 	const setState = (partial, replace) => {
-		const nextState = typeof partial === 'function' ? partial(state) : partial;
+		const nextState = isFunction(partial) ? partial(state) : partial;
 		if (nextState !== state) {
 			state = replace ? nextState : { ...state, ...nextState };
 			listeners.forEach((listener) => listener());

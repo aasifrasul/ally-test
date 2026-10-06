@@ -1,7 +1,7 @@
-import { isFunction, isObject } from './typeChecking';
+import { getType, isFunction, isObject } from './typeChecking';
 
 export function checkObjectEquality(data1: any, data2: any, seen = new WeakSet()): boolean {
-	if (typeof data1 !== typeof data2) return false;
+	if (getType(data1) !== getType(data2)) return false;
 	if (isFunction(data1)) return data1.toString() === data2.toString();
 	if (!isObject(data1) || data1 === null || data2 === null) return data1 === data2;
 

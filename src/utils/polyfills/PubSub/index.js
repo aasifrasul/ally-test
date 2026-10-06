@@ -1,8 +1,10 @@
+import { isFunction, isString } from '../../typeChecking';
+
 const PubSub = (function () {
 	const subscribers = new Map();
 
 	const subscribe = (eventName, callback) => {
-		if (typeof callback !== 'function' || typeof eventName !== 'string') {
+		if (!isFunction(callback) || !isString(eventName)) {
 			throw new Error('Invalid eventName or callback');
 		}
 
@@ -26,7 +28,7 @@ const PubSub = (function () {
 	};
 
 	const publish = (eventName, data) => {
-		if (typeof eventName !== 'string') {
+		if (!isString(eventName)) {
 			throw new Error('Invalid eventName');
 		}
 

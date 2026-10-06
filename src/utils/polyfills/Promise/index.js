@@ -1,10 +1,12 @@
+import { isFunction } from '../../typeChecking';
+
 export class MyPromise {
 	static PENDING = 'pending';
 	static FULFILLED = 'fulfilled';
 	static REJECTED = 'rejected';
 
 	constructor(executor) {
-		if (typeof executor !== 'function') {
+		if (!isFunction(executor)) {
 			throw new TypeError('Executor must be a function');
 		}
 
@@ -48,14 +50,12 @@ export class MyPromise {
 	then(onFulfilled, onRejected) {
 		return new MyPromise((resolve, reject) => {
 			this.handlers.push({
-				onFulfilled:
-					typeof onFulfilled === 'function' ? onFulfilled : (value) => value,
-				onRejected:
-					typeof onRejected === 'function'
-						? onRejected
-						: (error) => {
-								throw error;
-							},
+				onFulfilled: isFunction(onFulfilled) ? onFulfilled : (value) => value,
+				onRejected: isFunction(onRejected)
+					? onRejected
+					: (error) => {
+							throw error;
+						},
 				resolve,
 				reject,
 			});
@@ -69,7 +69,7 @@ export class MyPromise {
 	}
 
 	finally(onFinally) {
-		if (typeof onFinally !== 'function') {
+		if (!isFunction(onFinally)) {
 			return this.then();
 		}
 

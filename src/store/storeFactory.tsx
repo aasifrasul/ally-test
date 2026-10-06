@@ -11,7 +11,7 @@ import {
 } from '../constants/types';
 
 import { createLogger, LogLevel, Logger } from '../utils/Logger';
-import { isObject } from '../utils/typeChecking';
+import { isObject, isString } from '../utils/typeChecking';
 
 const logger: Logger = createLogger('storeFactory', {
 	level: LogLevel.DEBUG,
@@ -34,7 +34,7 @@ function storeFactory<T extends GenericState>(
 			() =>
 				new Proxy(state, {
 					get(target: T, prop: Schema) {
-						if (typeof prop === 'string' && prop in target) {
+						if (isString(prop) && prop in target) {
 							const value = target[prop as keyof T];
 
 							// Deep freeze objects to prevent nested mutations

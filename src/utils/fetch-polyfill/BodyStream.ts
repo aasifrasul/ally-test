@@ -1,3 +1,5 @@
+import { isString } from '../typeChecking';
+
 class BodyStream implements ReadableStream {
 	private reader: ReadableStreamDefaultReader<Uint8Array>;
 	private controller!: ReadableStreamDefaultController<Uint8Array>;
@@ -22,7 +24,7 @@ class BodyStream implements ReadableStream {
 		if (this.body instanceof Blob) {
 			const arrayBuffer = await this.body.arrayBuffer();
 			this.controller.enqueue(new Uint8Array(arrayBuffer));
-		} else if (typeof this.body === 'string') {
+		} else if (isString(this.body)) {
 			const encoder = new TextEncoder();
 			this.controller.enqueue(encoder.encode(this.body));
 		}

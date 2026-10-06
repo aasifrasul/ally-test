@@ -1,5 +1,5 @@
 import { deepCopy } from './deepCopy';
-import { isArray, isObject } from './typeChecking';
+import { getType, isArray, isObject } from './typeChecking';
 
 export const alphabets = [
 	'a',
@@ -66,7 +66,7 @@ export const arrayChunks = <T>(a: T[], size: number): T[][] =>
  */
 export function shallowEqual(a: unknown, b: unknown): boolean {
 	// Different types cannot be equal
-	if (typeof a !== typeof b) return false;
+	if (getType(a) !== getType(b)) return false;
 
 	// Same reference or primitive equality
 	if (a === b) return true;
@@ -110,7 +110,7 @@ export function shallowEqual(a: unknown, b: unknown): boolean {
  */
 export function deepEqual(a: unknown, b: unknown): boolean {
 	// Different types cannot be equal
-	if (typeof a !== typeof b) return false;
+	if (getType(a) !== getType(b)) return false;
 
 	// Same reference or primitive equality
 	if (a === b) return true;

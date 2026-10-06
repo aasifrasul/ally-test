@@ -9,11 +9,13 @@ The goal is that calling memoizedGetSomeData multiple times with the same argume
 should trigger the callback with the same cached result, 
 avoiding unnecessary expensive calls etc..
 */
+import { isFunction } from '../../typeChecking';
+
 export const memoizeAsync = (function () {
 	const allCaches = new WeakMap();
 
 	return function outer(asyncFn) {
-		if (typeof asyncFn !== 'function') {
+		if (!isFunction(asyncFn)) {
 			throw new Error('First argument should be a function');
 		}
 
@@ -29,7 +31,7 @@ export const memoizeAsync = (function () {
 			const callback = originalArgs.pop();
 
 			// Verify callback is a function
-			if (typeof callback !== 'function') {
+			if (!isFunction(callback)) {
 				throw new Error('Last argument should be a callback function');
 			}
 

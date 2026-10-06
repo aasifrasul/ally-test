@@ -59,6 +59,12 @@ process.on('exit', (code) => {
 async function gracefulShutdown(signal: string): Promise<void> {
 	if (isShuttingDown) {
 		logger.info('Shutdown already in progress...');
+		// If the user presses Ctrl+C (SIGINT) or the process receives SIGTERM again,
+		// force an immediate exit instead of waiting for the timeout.
+		if (signal === 'SIGINT' || signal === 'SIGTERM') {
+			logger.error('Second signal received; forcing immediate shutdown');
+			process.exit(constants.ExitCodes.FORCED_TIMEOUT);
+		}
 		return;
 	}
 

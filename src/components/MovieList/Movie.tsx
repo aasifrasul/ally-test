@@ -13,10 +13,6 @@ export const Movie: FC<MovieProps> = ({ styles, item }) => {
 		: '/placeholder-movie.jpg'; // Add a placeholder image
 
 	const [isShown, setIsShown] = useState(false);
-	const imgRef = useLazyImage({
-		src: imagePath,
-		onLoad: () => console.log('Image loaded!'),
-	});
 
 	const handleMouseOver: MouseEventHandler<HTMLDivElement> = useCallback(() => {
 		setIsShown(true);

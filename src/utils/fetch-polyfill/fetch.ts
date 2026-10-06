@@ -3,6 +3,7 @@ import { DOMException } from './helpers';
 import { Request } from './Request';
 import { Response } from './Response';
 import { RequestInit, ResponseInit } from './types';
+import { isUndefined } from '../typeChecking';
 
 type RequestInfo = Request | string;
 
@@ -94,6 +95,6 @@ export function fetch(input: RequestInfo, init?: RequestInit): Promise<Response>
 		}
 
 		const bodyInit = (request as unknown as { _bodyInit: any })._bodyInit;
-		xhr.send(typeof bodyInit === 'undefined' ? null : bodyInit);
+		xhr.send(isUndefined(bodyInit) ? null : bodyInit);
 	});
 }

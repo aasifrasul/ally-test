@@ -11,8 +11,10 @@
  * @returns {*} - The result of the function
  */
 
+import { isFunction } from '../../typeChecking';
+
 Function.prototype.myApply = function (context, args) {
-	if (typeof this !== 'function') {
+	if (!isFunction(this)) {
 		throw new TypeError('myApply is called on a non function');
 	}
 

@@ -65,7 +65,10 @@ export interface ModifyOptions {
 export interface FetchResult<T, U = T> {
 	fetchData: (options?: CustomFetchOptions) => Promise<void>;
 	fetchNextPage: FetchNextPage;
-	updateData: (config?: ModifyOptions) => Promise<U | null>;
+	updateData: (
+		payloadOrConfig?: ModifyOptions | Record<string, unknown>,
+		config?: ModifyOptions,
+	) => Promise<U | null>;
 	refetch: () => Promise<void>;
 	isStale: () => boolean;
 }

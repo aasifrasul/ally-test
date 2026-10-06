@@ -1,3 +1,5 @@
+import { isFunction } from '../../typeChecking';
+
 'use strict';
 
 function myFilter(fn, thisArg) {
@@ -12,7 +14,7 @@ function myFilter(fn, thisArg) {
 	const len = O.length >>> 0; // Convert to unsigned 32-bit integer
 
 	// 4. Function check with detailed error
-	if (typeof fn !== 'function') {
+	if (!isFunction(fn)) {
 		throw new TypeError(
 			'Filter callback must be a function, got: ' + (fn === null ? 'null' : typeof fn),
 		);

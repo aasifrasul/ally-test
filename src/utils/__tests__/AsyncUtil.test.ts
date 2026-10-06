@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { isString } from '../typeChecking';
 import { NetworkError, ResponseLike, HTTPError } from '../../types/api';
 import { fetchAPIData, handleAsyncExecution } from '../common';
 
@@ -16,7 +16,7 @@ const createMockResponse = (
 			get: (key: string) => (key === 'content-type' ? contentType : null),
 		} as any,
 		json: () => (body instanceof Error ? Promise.reject(body) : Promise.resolve(body)),
-		text: () => Promise.resolve(typeof body === 'string' ? body : JSON.stringify(body)),
+		text: () => Promise.resolve(isString(body) ? body : JSON.stringify(body)),
 	};
 };
 
@@ -64,11 +64,11 @@ describe('handleAsyncExecution', () => {
 
 describe('fetchAPIData', () => {
 	beforeEach(() => {
-		globalThis.fetch = vi.fn();
+		globalThis.fetch = jest.fn();
 	});
 
 	afterEach(() => {
-		vi.restoreAllMocks();
+		jest.restoreAllMocks();
 	});
 
 	it('returns JSON data on success', async () => {

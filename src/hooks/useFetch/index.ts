@@ -1,13 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useDocumentEventListener, useWindowEventListener } from '../';
+import { useCallback, useMemo, useRef } from 'react';
 
 import { WorkerQueue } from '../../workers/WorkerQueue';
 import { createActionHooks } from '../createActionHooks';
 import { useSchema } from '../dataSelector';
 
-import { buildQueryParams, Result, withTimeout } from '../../utils/common';
 import { constants } from '../../constants';
-import { DataSource, Schema, SchemaToResponse } from '../../constants/types';
+import { DataSource, Schema } from '../../constants/types';
 import {
 	FetchNextPage,
 	FetchOptions,
@@ -16,39 +14,29 @@ import {
 	ModifyOptions,
 	HTTPMethod,
 } from '../../types/api';
-import { isObject, isUndefined } from '../../utils/typeChecking';
+import { handleError, requestWithRetry } from './helpers';
+import { invalidateSchema, isSchemaStale, markSchemaFetched } from './cacheMetadata';
+import { buildFetchRequest } from './fetchRequest';
+import { buildMutationRequest, normalizeMutationOptions } from './mutationRequest';
+import { useRefetchLifecycle } from './useRefetchLifecycle';
 
-// Stable module-level defaults to avoid changing dependencies per render
-const DEFAULT_TRANSFORM = (data: any) => data;
-const DEFAULT_ON_SUCCESS = () => {};
-const DEFAULT_ON_ERROR = () => {};
 const DEFAULT_RETRY_DELAY = (attempt: number) => Math.min(1000 * 2 ** (attempt - 1), 30000);
 const DEFAULT_TIMEOUT = 2000;
 
-// Keep lightweight per-schema metadata for SWR behaviors
-const schemaMeta = new Map<Schema, { lastFetchedAt?: number }>();
 const workerManager = WorkerQueue.getInstance();
 
-function handleError(error: Error, fail: () => void, cb?: (err: Error) => void) {
-	if (error.name !== 'AbortError') {
-		fail();
-		cb?.(error);
-	}
-}
-
-export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
-	schema: S,
+export function useFetch<T = unknown, U = T>(
+	schema: Schema,
 	options: FetchOptions<T, U> = {},
 ): FetchResult<T, U> {
-	// Destructure with stable defaults to prevent recreation
 	const {
 		timeout = DEFAULT_TIMEOUT,
-		transformResponse = DEFAULT_TRANSFORM as (d: any) => T,
-		transformUpdateResponse = DEFAULT_TRANSFORM as (d: any) => U,
-		onSuccess = DEFAULT_ON_SUCCESS,
-		onError = DEFAULT_ON_ERROR,
-		onUpdateSuccess = DEFAULT_ON_SUCCESS,
-		onUpdateError = DEFAULT_ON_ERROR,
+		transformResponse = (data: any) => data as T,
+		transformUpdateResponse = (data: any) => data as U,
+		onSuccess = () => {},
+		onError = () => {},
+		onUpdateSuccess = () => {},
+		onUpdateError = () => {},
 		staleTime = 0,
 		refetchOnWindowFocus = false,
 		refetchInterval,
@@ -61,34 +49,24 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 	} = options;
 
 	const { useFetchActions, useUpdateActions, usePageActions } = createActionHooks(schema);
-
-	// Cache stable values to avoid recreating functions
 	const dataSource: DataSource | undefined =
 		dataSourceOverride ?? constants.dataSources?.[schema];
 	const { BASE_URL, queryParams } = dataSource ?? {};
-
 	const worker = injectedWorker ?? workerManager;
 	const transport =
 		injectedTransport ??
 		((url: string, reqOptions: RequestInit & { method: HTTPMethod; body?: any }) =>
 			worker.fetchAPIData(url, reqOptions));
-
-	// Get current data for cache updates
 	const { data: currentData } = useSchema(schema);
+	const { fetchStarted, fetchSucceeded, fetchFailed, fetchCompleted } = useFetchActions();
+	const { updateStarted, updateSucceeded, updateFailed, updateCompleted } =
+		useUpdateActions();
+	const { advancePage } = usePageActions();
 
-	// Use refs for mutable values to avoid dependency issues
-	const retryRef = useRef<number>(0);
-	const isMountedRef = useRef<boolean>(false);
-
-	// CRITICAL: Stable stale checker with useCallback and proper dependencies
 	const isStale = useCallback((): boolean => {
-		if (!staleTime) return true;
-		const meta = schemaMeta.get(schema);
-		if (!meta?.lastFetchedAt) return true;
-		return Date.now() - meta.lastFetchedAt > staleTime;
-	}, [staleTime, schema]); // Only stable values as deps
+		return isSchemaStale(schema, staleTime);
+	}, [staleTime, schema]);
 
-	// Core fetch logic - optimized to reduce recreations
 	const fetchData = useCallback(
 		async (fetchOptions: CustomFetchOptions = {}): Promise<void> => {
 			const endpoint = fetchOptions.url || BASE_URL;
@@ -98,80 +76,65 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 				return;
 			}
 
-			const { advancePage } = usePageActions();
-			const { fetchStarted, fetchSucceeded, fetchFailed, fetchCompleted } =
-				useFetchActions();
-
-			// Skip if not forced and cache is fresh
 			const shouldForce = Boolean(fetchOptions.force);
 			if (!shouldForce && !fetchOptions.nextPage && !isStale()) {
+				// Debug: log why fetch is skipped
+				// eslint-disable-next-line no-console
+				console.debug(
+					`useFetch(${schema}): skipping fetch (not stale and not forced)`,
+				);
 				return;
 			}
 
-			const enhancedQueryParams = {
-				...queryParams,
-				page: fetchOptions.nextPage || queryParams?.page,
-			};
+			const { url, requestOptions } = buildFetchRequest(
+				endpoint,
+				dataSource,
+				queryParams,
+				fetchOptions,
+			);
 
-			// Clean up fetch options
-			const cleanOptions = { ...fetchOptions };
-			delete cleanOptions.nextPage;
-			delete (cleanOptions as any).force;
+			if (worker.isAPIAlreadyRunning(url, requestOptions)) return;
 
-			const url = `${endpoint}?${buildQueryParams(enhancedQueryParams)}`;
-			const enhancedOptions: RequestInit = {
-				headers: {
-					'Content-Type': 'application/json',
-					...dataSource?.headers,
-				},
-				...cleanOptions,
-			};
-
-			const isRunning = worker.isAPIAlreadyRunning(url, {
-				...enhancedOptions,
-				method: HTTPMethod.GET,
-			});
-
-			if (isRunning) return;
-
+			// Debug: indicate fetch start
+			// eslint-disable-next-line no-console
+			console.debug(`useFetch(${schema}): starting fetch for url=${url}`);
 			fetchStarted();
 
-			// Retry logic with proper error handling
-			const attemptFetch = async (attemptNum = 0): Promise<void> => {
-				const result: Result<T> = await withTimeout(
-					transport(url, {
-						...enhancedOptions,
-						method: HTTPMethod.GET,
-					}) as Promise<any>,
+			try {
+				const result = await requestWithRetry<T>(
+					transport,
+					url,
+					requestOptions,
 					timeout,
+					{ retry, retryDelay },
 				);
 
-				if (result.success) {
-					const transformedData = transformResponse(result.data);
-					fetchSucceeded(transformedData);
-					onSuccess(transformedData);
-					retryRef.current = 0;
-					schemaMeta.set(schema, { lastFetchedAt: Date.now() });
-
-					if (enhancedQueryParams.page) {
-						advancePage(enhancedQueryParams.page);
-					}
-					fetchCompleted();
-				} else {
-					if (retry > 0 && attemptNum < retry) {
-						retryRef.current = attemptNum + 1;
-						const delay = retryDelay(attemptNum + 1);
-						await new Promise((resolve) => setTimeout(resolve, delay));
-						return attemptFetch(attemptNum + 1);
-					}
-
-					// Final failure
-					handleError(result.error as Error, fetchFailed, onError);
-					throw result.error;
+				if (!result.success) {
+					handleError(result.error, fetchFailed, onError);
+					return;
 				}
-			};
 
-			await attemptFetch();
+				const transformedData = transformResponse(result.data);
+				// Debug: log fetch success summary
+				// eslint-disable-next-line no-console
+				console.debug(
+					`useFetch(${schema}): fetch succeeded; transformedData keys=`,
+					transformedData && typeof transformedData === 'object'
+						? Object.keys(transformedData)
+						: transformedData,
+				);
+				fetchSucceeded(transformedData);
+				onSuccess(transformedData);
+				markSchemaFetched(schema);
+
+				if (fetchOptions.nextPage || queryParams?.page) {
+					advancePage(fetchOptions.nextPage || queryParams?.page);
+				}
+				fetchCompleted();
+			} catch (error) {
+				const err = error instanceof Error ? error : new Error(String(error));
+				handleError(err, fetchFailed, onError);
+			}
 		},
 		[
 			BASE_URL,
@@ -186,20 +149,17 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 			retryDelay,
 			worker,
 			transport,
-			isStale, // Include isStale in dependencies
+			isStale,
 		],
 	);
 
-	// Simplified update logic
 	const updateData = useCallback(
-		async (config: ModifyOptions = {}): Promise<U | null> => {
-			const {
-				method = HTTPMethod.POST,
-				headers = {},
-				queryParams: updateQueryParams = {},
-				body = '',
-				skipCacheUpdate = false,
-			} = config;
+		async (
+			payloadOrConfig: ModifyOptions | Record<string, unknown> = {},
+			config: ModifyOptions = {},
+		): Promise<U | null> => {
+			const normalizedConfig = normalizeMutationOptions(payloadOrConfig, config);
+			const { skipCacheUpdate = false } = normalizedConfig;
 
 			if (!BASE_URL || !schema) {
 				const error = new Error('Missing required parameters: BASE_URL or schema');
@@ -207,48 +167,43 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 				return null;
 			}
 
-			const { updateStarted, updateSucceeded, updateFailed, updateCompleted } =
-				useUpdateActions();
-
 			updateStarted();
 
-			const mergedQueryParams = { ...queryParams, ...updateQueryParams };
-			const url = `${config.url || BASE_URL}?${buildQueryParams(mergedQueryParams)}`;
-
-			const enhancedOptions: RequestInit = {
-				headers: {
-					'Content-Type': 'application/json',
-					...dataSource?.headers,
-					...headers,
-				},
-				method,
-				body,
-			};
-
-			const result: Result<U> = await withTimeout(
-				transport(url, enhancedOptions as any) as Promise<any>,
-				timeout,
+			const { url, requestOptions } = buildMutationRequest(
+				BASE_URL,
+				dataSource,
+				queryParams,
+				normalizedConfig,
 			);
+			try {
+				const result = await requestWithRetry<U>(
+					transport,
+					url,
+					requestOptions,
+					timeout,
+					{ retry, retryDelay },
+				);
 
-			if (result.success) {
-				const transformedData = transformUpdateResponse(result.data);
-				updateSucceeded();
-				onUpdateSuccess(transformedData);
+				if (result.success) {
+					const transformedData = transformUpdateResponse(result.data);
+					updateSucceeded();
+					onUpdateSuccess(transformedData);
 
-				// Update local cache if configured
-				if (updateCache && !skipCacheUpdate && currentData) {
-					const updatedData = updateCache(currentData as T, transformedData);
-					const { fetchSucceeded } = useFetchActions();
-					fetchSucceeded(updatedData);
+					if (updateCache && !skipCacheUpdate && currentData) {
+						const updatedData = updateCache(currentData as T, transformedData);
+						fetchSucceeded(updatedData);
+					}
+
+					invalidateSchema(schema);
+					updateCompleted();
+					return transformedData;
 				}
 
-				// Invalidate cache to ensure fresh data on next fetch
-				schemaMeta.delete(schema);
-				updateCompleted();
-
-				return transformedData;
-			} else {
 				handleError(result.error as Error, updateFailed, onUpdateError);
+				return null;
+			} catch (error) {
+				const err = error instanceof Error ? error : new Error(String(error));
+				handleError(err, updateFailed, onUpdateError);
 				return null;
 			}
 		},
@@ -261,6 +216,8 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 			transformUpdateResponse,
 			onUpdateSuccess,
 			onUpdateError,
+			retry,
+			retryDelay,
 			updateCache,
 			currentData,
 			worker,
@@ -268,71 +225,55 @@ export function useFetch<S extends Schema, T = SchemaToResponse[S], U = T>(
 		],
 	);
 
-	// Stable event handlers using refs to avoid recreating on every render
 	const fetchDataRef = useRef(fetchData);
 	const updateDataRef = useRef(updateData);
-	const isStaleRef = useRef(isStale);
+	fetchDataRef.current = fetchData;
+	updateDataRef.current = updateData;
 
 	const fetchNextPage = useCallback(async (nextPage: number): Promise<void> => {
 		await fetchDataRef.current({ nextPage, force: true });
 	}, []) as FetchNextPage;
 
+	const fetchDataStable = useCallback(
+		(fetchOptions: CustomFetchOptions = {}) => fetchDataRef.current(fetchOptions),
+		[],
+	);
+	const updateDataStable = useCallback(
+		(
+			payloadOrConfig: ModifyOptions | Record<string, unknown> = {},
+			config: ModifyOptions = {},
+		) => updateDataRef.current(payloadOrConfig, config),
+		[],
+	);
+
 	const refetch = useCallback(async (): Promise<void> => {
 		await fetchDataRef.current({ force: true });
 	}, []);
 
-	// Use shared event listener hooks for focus and visibility changes
-	useWindowEventListener(
-		'focus',
-		(_: WindowEventMap['focus']) => {
-			if (!refetchOnWindowFocus) return;
-			if (!isUndefined(document) && document.visibilityState === 'hidden') return;
-			if (isStaleRef.current()) fetchDataRef.current({ force: true });
-		},
-		undefined,
-		{ suppressErrors: true },
-	);
-
-	useDocumentEventListener(
-		'visibilitychange',
-		(_: DocumentEventMap['visibilitychange']) => {
-			if (!refetchOnWindowFocus) return;
-			if (isObject(document) && document.visibilityState === 'hidden') return;
-			if (isStaleRef.current()) fetchDataRef.current({ force: true });
-		},
-		undefined,
-		{ suppressErrors: true },
-	);
-
-	// Polling with stable dependencies
-	useEffect(() => {
-		isMountedRef.current = true;
-
-		let intervalId: number | undefined;
-		if (refetchInterval && refetchInterval > 0 && !isUndefined(window)) {
-			intervalId = window.setInterval(() => {
-				if (isObject(navigator) && 'onLine' in navigator && !navigator.onLine) return;
-				if (isObject(document) && document.visibilityState === 'hidden') return;
-				if (isStaleRef.current()) fetchDataRef.current({});
-			}, refetchInterval);
-		}
-
-		return () => {
-			isMountedRef.current = false;
-			if (!isUndefined(window) && intervalId) {
-				window.clearInterval(intervalId);
-			}
-		};
-	}, [refetchInterval]); // Only stable config values
+	useRefetchLifecycle({
+		enabled: refetchOnWindowFocus,
+		interval: refetchInterval,
+		isStale: isStale as () => boolean,
+		refetch: refetch as () => void,
+	});
 
 	return useMemo(
 		() => ({
-			fetchData: fetchDataRef.current,
+			fetchData: fetchDataStable,
 			fetchNextPage,
-			updateData: updateDataRef.current,
+			updateData: updateDataStable,
 			refetch,
-			isStale: isStaleRef.current,
+			isStale,
 		}),
-		[fetchNextPage, refetch],
+		[fetchDataStable, fetchNextPage, updateDataStable, refetch, isStale],
 	) as FetchResult<T, U>;
 }
+
+export default useFetch;
+export type {
+	FetchOptions,
+	FetchResult,
+	ModifyOptions,
+	CustomFetchOptions,
+	FetchNextPage,
+} from '../../types/api';

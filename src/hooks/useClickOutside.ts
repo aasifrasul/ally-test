@@ -37,7 +37,7 @@ export const useClickOutside = <T extends ElementRef = ElementRef>(
 	const outsideRef = useRef<T>(null);
 
 	const handleClickOutside = useCallback(
-		(event: MouseEvent | TouchEvent | PointerEvent): void => {
+		(event: Event): void => {
 			// No ref to check against, do nothing
 			if (!outsideRef.current) return;
 
@@ -50,7 +50,7 @@ export const useClickOutside = <T extends ElementRef = ElementRef>(
 		[setIsOutsideClick],
 	);
 
-	useEventListener(eventType, handleClickOutside, globalThis.document);
+	useEventListener(eventType, handleClickOutside as EventListener, globalThis.document);
 
 	return { isOutsideClick, outsideRef };
 };

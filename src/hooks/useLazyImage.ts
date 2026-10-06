@@ -1,11 +1,11 @@
-import { useEffect, useRef, useCallback } from 'react';
-
-import { ImageLoader } from '../utils/ImageLoader';
+import { useEffect, useRef, useState } from 'react';
 import { useIntersectionObserver } from './useIntersectionObserver';
-import { useCallbackRef } from './useCallbackRef';
+import { useImage } from './useImage';
 
-interface LazyImageOptions {
-	src: string;
+/**
+ * Shared options for lazy image hooks.
+ */
+export interface LazyImageOptions {
 	placeholder?: string;
 	rootMargin?: string;
 	threshold?: number;
@@ -13,76 +13,39 @@ interface LazyImageOptions {
 	onError?: (error: Error) => void;
 }
 
-const imageLoader = new ImageLoader();
+/**
+ * Lazy-loads an image once the host element enters the viewport.
+ *
+ * Combines intersection observation with `useImage` so callers get the same
+ * `{ src, isLoading, error, retry }` state surface as `useImage` itself.
+ *
+ * @example
+ * const { imgRef, src, isLoading } = useLazyImage(url, {
+ *   placeholder: '/placeholder.png',
+ *   rootMargin: '100px',
+ * });
+ *
+ * return <img ref={imgRef} src={src} />;
+ */
+export const useLazyImage = (url: string, options: LazyImageOptions = {}) => {
+	const { rootMargin = '50px', threshold = 0, onLoad, onError, placeholder } = options;
 
-export const useLazyImage = (options: LazyImageOptions) => {
+	const [shouldLoad, setShouldLoad] = useState(false);
 	const imgRef = useRef<HTMLImageElement>(null);
-	const loadedRef = useRef(false);
-	const cleanupRef = useRef<(() => void) | undefined>(null);
-
-	// Store callbacks in refs to avoid recreating handleIntersection
-	const onLoadRef = useCallbackRef(options?.onLoad);
-	const onErrorRef = useCallbackRef(options?.onError);
-
-	const loadImage = useCallback(async () => {
-		if (!imgRef.current || loadedRef.current) return;
-
-		const img = imgRef.current;
-		loadedRef.current = true;
-
-		try {
-			await imageLoader.loadImageSimple(options.src);
-
-			img.src = options.src;
-			img.classList.remove('loading');
-			onLoadRef.current?.();
-		} catch (error) {
-			console.error('Image loading failed:', error);
-			onErrorRef.current?.(error as Error);
-		}
-	}, [options.src]); // Now only depends on src
-
-	const cleanup = useCallback(() => {
-		if (cleanupRef.current) {
-			cleanupRef.current();
-			cleanupRef.current = undefined;
-		}
-	}, []);
-
-	const handleIntersection: IntersectionObserverCallback = useCallback(
-		(entries) => {
-			entries.forEach((entry) => {
-				if (entry.isIntersecting && !loadedRef.current) {
-					loadImage();
-					cleanup();
-				}
-			});
-		},
-		[loadImage, cleanup], // Now stable dependencies
-	);
 
 	const observe = useIntersectionObserver({
-		threshold: options.threshold || 0,
-		rootMargin: options.rootMargin || '50px',
-		onIntersect: handleIntersection,
+		threshold,
+		rootMargin,
+		onIntersect: ([entry]) => {
+			if (entry.isIntersecting) setShouldLoad(true);
+		},
 	});
 
 	useEffect(() => {
-		const img = imgRef.current;
-		if (!img) return;
+		return observe(imgRef.current);
+	}, [observe]);
 
-		if (options.placeholder) {
-			img.src = options.placeholder;
-			img.classList.add('loading');
-		}
+	const imageState = useImage(shouldLoad ? url : null, { placeholder, onLoad, onError });
 
-		cleanupRef.current = observe(img);
-
-		return () => {
-			cleanup();
-			loadedRef.current = false;
-		};
-	}, [options.placeholder, options.src, observe, cleanup]);
-
-	return imgRef;
+	return { imgRef, ...imageState };
 };

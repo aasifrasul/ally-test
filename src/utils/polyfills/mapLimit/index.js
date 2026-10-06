@@ -23,16 +23,18 @@ function* range(start, stop, step) {
 	}
 }
 
+import { isFunction } from '../../typeChecking';
+
 function mapLimit(items, concurrencyLimit, iterateeCallback, finalCallback) {
 	if (!Array.isArray(items)) {
 		throw new Error('First param should be an array');
 	}
 
-	if (typeof iterateeCallback !== 'function') {
+	if (!isFunction(iterateeCallback)) {
 		throw new Error('third param should be a function');
 	}
 
-	if (typeof finalCallback !== 'function') {
+	if (!isFunction(finalCallback)) {
 		throw new Error('fourth param should be a function');
 	}
 

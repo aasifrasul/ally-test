@@ -1,3 +1,5 @@
+import { isFunction } from '../../typeChecking';
+
 // Enhanced Reactive Programming System
 // Addresses: memory leaks, async scheduling, cleanup, infinite loops, computed values
 
@@ -134,7 +136,7 @@ function createEffect(fn, options = {}) {
 			try {
 				const result = fn();
 				// Support cleanup functions returned from effects
-				if (typeof result === 'function') {
+				if (isFunction(result)) {
 					cleanup = result;
 				}
 			} catch (error) {
@@ -299,7 +301,7 @@ function configure(options = {}) {
 }
 
 // Example usage and demonstration:
-if (typeof window !== 'undefined') {
+if (globalThis.window !== undefined) {
 	window.ReactiveDemo = {
 		createSignal,
 		createEffect,

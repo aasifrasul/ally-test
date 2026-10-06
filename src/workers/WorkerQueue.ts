@@ -4,7 +4,7 @@ import { getRandomId } from '../utils/common';
 import { PromiseFactory } from '../utils/PromiseFactory';
 import { HTTPMethod } from '../types/api';
 import { APIService } from '../services/APIService';
-import { isUndefined } from '../utils/typeChecking';
+import { isFunction, isUndefined } from '../utils/typeChecking';
 
 const logger = createLogger('WorkerQueue');
 
@@ -27,13 +27,33 @@ export class WorkerQueue {
 	private isWorkerEnvironment: boolean;
 	private requestKeyNormalizer?: (endpoint: string, options?: RequestInit) => string;
 	private telemetrySubscribers: Array<(e: TelemetryEvent) => void> = [];
+	private pendingWorkerRequests = new Map<string, { type: string; data: any }>();
 
 	private constructor() {
 		this.isWorkerEnvironment = !isUndefined(window) && !isUndefined(Worker);
 
 		// Initialize worker only in browser environments
-		if (this.isWorkerEnvironment) {
-			this.worker = new Worker(new URL('./MyWorker.worker.ts', import.meta.url));
+		if (
+			this.isWorkerEnvironment &&
+			!isUndefined(globalThis.Worker) &&
+			!isUndefined(globalThis.location)
+		) {
+			try {
+				const workerUrl = new URL('./MyWorker.worker.ts', import.meta.url);
+				// Create worker as module so internal ES module imports work
+				this.worker = new Worker(workerUrl, { type: 'module' } as any);
+			} catch {
+				this.worker = undefined;
+			}
+		}
+
+		const hasWorkerApi =
+			!!this.worker &&
+			isFunction(this.worker.addEventListener) &&
+			isFunction(this.worker.postMessage);
+
+		if (!hasWorkerApi) {
+			this.worker = undefined;
 		}
 
 		this.promiseFactory = new PromiseFactory<string>({
@@ -84,6 +104,18 @@ export class WorkerQueue {
 
 	private handleError(error: ErrorEvent): void {
 		logger.error('Worker error:', error);
+		this.worker = undefined;
+
+		for (const [id, request] of this.pendingWorkerRequests) {
+			const pending = this.promiseFactory.get(id);
+			this.pendingWorkerRequests.delete(id);
+			if (!pending) continue;
+
+			this.clearRequest(id);
+			this.executeInMainThread(request.type, request.data)
+				.then((result) => pending.resolve(result))
+				.catch((fallbackError) => pending.reject(fallbackError));
+		}
 	}
 
 	private handleMessage(event: MessageEvent<WorkerMessage>): void {
@@ -92,6 +124,7 @@ export class WorkerQueue {
 
 		if (!pending) return;
 
+		this.pendingWorkerRequests.delete(id);
 		this.clearRequest(id);
 
 		if (error) {
@@ -151,6 +184,7 @@ export class WorkerQueue {
 
 		try {
 			if (this.worker) {
+				this.pendingWorkerRequests.set(id, { type, data });
 				this.worker.postMessage(message);
 				logger.debug('New request created and sent to worker:', id);
 				// Wrap promise to emit success/error/complete
@@ -201,6 +235,7 @@ export class WorkerQueue {
 
 			return pending.promise;
 		} catch (error) {
+			this.pendingWorkerRequests.delete(id);
 			pending.reject(error as any);
 			this.promiseFactory.remove(id);
 			throw error;
@@ -298,6 +333,7 @@ export class WorkerQueue {
 
 	terminate(): void {
 		this.promiseFactory.clear();
+		this.pendingWorkerRequests.clear();
 		if (this.worker) {
 			this.worker.terminate();
 		}

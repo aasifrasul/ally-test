@@ -10,7 +10,7 @@ export function useWindowEventListener<K extends keyof WindowEventMap>(
 ): void {
 	useEventListener(
 		eventType,
-		callback,
+		callback as unknown as EventListener,
 		!isUndefined(window) ? window : undefined,
 		options,
 		errorHandling,

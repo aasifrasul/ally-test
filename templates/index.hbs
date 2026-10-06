@@ -12,7 +12,7 @@
 	<meta name='mobile-web-app-capable' content='yes' />
 	<meta name='apple-mobile-web-app-status-bar-style' content='#2874f0' />
 	<meta http-equiv='X-UA-Compatible' content='IE=edge' />
-	<base href="http://localhost:3100/">
+	<base href="/">
 	<title>Ally Test</title>
 	<!-- PREVENT UNWANTED FAVICON REQUEST -->
 	<link rel='icon' href='data:;base64,iVBORw0KGgo=' />
@@ -144,10 +144,10 @@
 
 	<!-- Append the `?module` param to load the module version of `web-vitals` -->
 	<script type="module">
-		import { onCLS, onFID, onLCP } from 'https://unpkg.com/web-vitals?module';
-		onCLS(console.log);
-		onFID(console.log);
-		onLCP(console.log);
+		import { getCLS, getFID, getLCP } from 'https://unpkg.com/web-vitals?module';
+		getCLS(console.log);
+		getFID(console.log);
+		getLCP(console.log);
 	</script>
 
 	<!-- CSS -->

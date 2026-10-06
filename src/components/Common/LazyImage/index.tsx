@@ -21,8 +21,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
 	showLoader = false,
 	...props
 }) => {
-	const imgRef = useLazyImage({
-		src,
+	const { imgRef } = useLazyImage(src, {
 		placeholder,
 		rootMargin,
 		threshold,

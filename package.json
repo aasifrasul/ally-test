@@ -227,6 +227,8 @@
 		"sass-loader": "^16.0.5",
 		"stats-webpack-plugin": "0.7.0",
 		"style-loader": "^4.0.0",
+		"stylelint": "^17.12.0",
+		"stylelint-config-standard": "^40.0.0",
 		"tailwindcss": "4.0.5",
 		"terser-webpack-plugin": "^5.3.14",
 		"ts-jest": "29.2.5",

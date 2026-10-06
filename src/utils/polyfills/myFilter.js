@@ -1,9 +1,11 @@
+import { isFunction } from '../typeChecking';
+
 function myFilter(callback, thisArg) {
 	if (!Array.isArray(this)) {
 		throw new TypeError('this is null or undefined');
 	}
 
-	if (typeof callback !== 'function') {
+	if (!isFunction(callback)) {
 		throw new TypeError(callback + ' is not a function');
 	}
 
