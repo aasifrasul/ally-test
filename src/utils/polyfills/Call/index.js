@@ -6,9 +6,11 @@
  * @throws {TypeError} If called on a non-function
  */
 
+import { isFunction } from '../../typeChecking';
+
 Function.prototype.myCall = function (context, ...args) {
 	// Check if the function is callable
-	if (typeof this !== 'function') {
+	if (!isFunction(this)) {
 		throw new TypeError('myCall must be called on a function');
 	}
 

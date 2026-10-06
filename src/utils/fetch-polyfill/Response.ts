@@ -122,7 +122,7 @@ export class Response {
 			return;
 		}
 
-		if (typeof body === 'string') {
+		if (isString(body)) {
 			this._bodyText = body;
 			return;
 		}

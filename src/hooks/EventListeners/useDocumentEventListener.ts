@@ -10,7 +10,7 @@ export function useDocumentEventListener<K extends keyof DocumentEventMap>(
 ): void {
 	useEventListener(
 		eventType,
-		callback,
+		callback as unknown as EventListener,
 		!isUndefined(document) ? document : undefined,
 		options,
 		errorHandling,

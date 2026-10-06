@@ -155,10 +155,7 @@ export function useVirtualization<T>({
 	 * invalidating memoized content on parent rerenders.
 	 */
 	const renderItemRef = useRef(renderItem);
-
-	useLayoutEffect(() => {
-		renderItemRef.current = renderItem;
-	});
+	renderItemRef.current = renderItem;
 
 	/**
 	 * Updates viewport measurements.
@@ -261,7 +258,7 @@ export function useVirtualization<T>({
 		const slice = items.slice(startIndex, endIndex);
 
 		return slice.map((item, i) => renderItemRef.current(item, startIndex + i));
-	}, [items, startIndex, endIndex]);
+	}, [items, startIndex, endIndex, renderItem]);
 
 	return {
 		containerRef,

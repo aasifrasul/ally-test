@@ -10,8 +10,8 @@ interface TestData {
 
 const workerManager = WorkerQueue.getInstance();
 
-jest.mock('../../hooks/selector', () => ({
-	useSelector: jest.fn(),
+jest.mock('../dataSelector', () => ({
+	useSchema: jest.fn(() => ({ data: undefined })),
 }));
 
 jest.mock('../createActionHooks', () => ({
@@ -35,38 +35,38 @@ jest.mock('../createActionHooks', () => ({
 }));
 
 jest.mock('../../constants', () => {
-	const constants: Constants = {
+	const constants = {
 		dataSources: {
-			[Schema.INFINITE_SCROLL]: {
-				schema: Schema.INFINITE_SCROLL,
+			infiniteScroll: {
+				schema: 'infiniteScroll',
 				BASE_URL: 'http://api.test.com',
 				queryParams: {
 					page: 1,
 				},
 			},
 			movieList: {
-				schema: Schema.MOVIE_LIST,
+				schema: 'movieList',
 				BASE_URL: 'http://api.movies.com',
 				queryParams: {
 					page: 1,
 				},
 			},
 			nestedCategories: {
-				schema: Schema.NESTED_CATEGORIES,
+				schema: 'nestedCategories',
 				BASE_URL: 'http://api.categories.com',
 				queryParams: {
 					page: 1,
 				},
 			},
 			wineConnoisseur: {
-				schema: Schema.WINE_CONNOISSUER,
+				schema: 'wineConnoisseur',
 				BASE_URL: 'http://api.wine.com',
 				queryParams: {
 					page: 1,
 				},
 			},
 			searchForm: {
-				schema: Schema.SEARCH_FORM,
+				schema: 'searchForm',
 				BASE_URL: 'http://api.search.com',
 				queryParams: {
 					page: 1,
@@ -516,6 +516,76 @@ describe('useFetch - Additional Test Coverage', () => {
 
 			// Verify both operations were processed
 			expect(workerManager.fetchAPIData).toHaveBeenCalledTimes(2);
+		});
+	});
+
+	describe('6. Request failure branches', () => {
+		it('reports a missing fetch endpoint', async () => {
+			const onError = jest.fn();
+			const { result } = renderHook(() =>
+				useFetch<TestData>(schema, {
+					onError,
+					dataSourceOverride: { schema, BASE_URL: '' },
+				}),
+			);
+
+			await act(async () => {
+				await result.current.fetchData();
+			});
+
+			expect(onError).toHaveBeenCalledWith(expect.any(Error));
+		});
+
+		it('reports an API-shaped failure result', async () => {
+			const onError = jest.fn();
+			const error = new Error('API rejected request');
+			const transport = jest.fn().mockResolvedValue({ success: false, error });
+			const { result } = renderHook(() =>
+				useFetch<TestData>(schema, { onError, transport }),
+			);
+
+			await act(async () => {
+				await result.current.fetchData();
+			});
+
+			expect(onError).toHaveBeenCalledWith(error);
+		});
+
+		it('suppresses abort errors from fetch callbacks', async () => {
+			const onError = jest.fn();
+			const error = new Error('cancelled');
+			error.name = 'AbortError';
+			const transport = jest.fn().mockRejectedValue(error);
+			const { result } = renderHook(() =>
+				useFetch<TestData>(schema, { onError, transport }),
+			);
+
+			await act(async () => {
+				await result.current.fetchData();
+			});
+
+			expect(onError).not.toHaveBeenCalled();
+		});
+
+		it('reports mutation transform failures', async () => {
+			const onUpdateError = jest.fn();
+			const transformUpdateResponse = jest.fn(() => {
+				throw new Error('Invalid mutation response');
+			});
+			const transport = jest.fn().mockResolvedValue({ updated: true });
+			const { result } = renderHook(() =>
+				useFetch<TestData>(schema, {
+					onUpdateError,
+					transformUpdateResponse,
+					transport,
+				}),
+			);
+
+			await act(async () => {
+				await result.current.updateData({ data: 'test' });
+			});
+
+			expect(onUpdateError).toHaveBeenCalledWith(expect.any(Error));
 		});
 	});
 });

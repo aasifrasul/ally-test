@@ -25,6 +25,14 @@ export const typeCheck = <T>(data: unknown, type: TypeName): data is T =>
 // Type guard functions with proper return types
 export const isArray = (data: unknown): data is unknown[] => typeCheck(data, 'array');
 
+export const isExist = <T>(data: T | null | undefined): data is T =>
+	data !== null && data !== undefined;
+
+export const hasProperty = (
+	data: unknown,
+	property: string | symbol,
+): data is Record<string | symbol, unknown> => isObject(data) && property in data;
+
 export const isObject = (data: unknown): data is Record<string, unknown> =>
 	typeCheck(data, 'object');
 

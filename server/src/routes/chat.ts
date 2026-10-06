@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import { isString } from '../../../src/utils/typeChecking';
 
 const router = express.Router();
 
@@ -10,7 +11,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
 		const { message } = req.body;
 
 		// Validate request payload
-		if (!message || typeof message !== 'string') {
+		if (!message || !isString(message)) {
 			res.status(400).json({ error: 'Missing or invalid `message` in request body' });
 			return;
 		}

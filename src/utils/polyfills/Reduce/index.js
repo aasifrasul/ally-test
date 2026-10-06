@@ -1,9 +1,11 @@
+import { isFunction } from '../../typeChecking';
+
 function myReduce(fn, initialValue) {
 	if (!Array.isArray(this)) {
 		throw new TypeError('myReduce called on non-array');
 	}
 
-	if (typeof fn !== 'function') {
+	if (!isFunction(fn)) {
 		throw new TypeError(fn + ' is not a function');
 	}
 

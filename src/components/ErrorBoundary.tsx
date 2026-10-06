@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { createLogger, LogLevel, Logger } from '../utils/Logger';
+import { isFunction } from '../utils/typeChecking';
 
 const logger: Logger = createLogger('storeFactory', {
 	level: LogLevel.DEBUG,
@@ -33,7 +34,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 	render(): React.ReactNode {
 		if (this.state.hasError && this.state.error) {
 			const { fallback } = this.props;
-			if (typeof fallback === 'function') {
+			if (isFunction(fallback)) {
 				return fallback(this.state.error);
 			}
 			return fallback ?? <div>Something went wrong.</div>;

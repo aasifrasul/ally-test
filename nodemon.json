@@ -16,7 +16,8 @@
 		"NODE_ENV": "development"
 	},
 	"delay": "500",
-	"signal": "SIGTERM",
+	"signal": "SIGINT",
+	"killTimeout": 5000,
 	"verbose": true,
 	"legacyWatch": false,
 	"restartable": "rs",

@@ -1,15 +1,9 @@
 import { HTTPMethod, ResponseLike, Result, HTTPError } from '../types/api';
 import { handleAsyncExecution } from '../utils/common';
-import { isBoolean, isFunction, isUndefined } from './typeChecking';
+import { isBoolean, isFunction, isObject, isUndefined } from './typeChecking';
 
 function isResponseLike(obj: any): obj is ResponseLike {
-	return (
-		obj &&
-		typeof obj === 'object' &&
-		isBoolean(obj.ok) &&
-		isFunction(obj.json) &&
-		isFunction(obj.text)
-	);
+	return isObject(obj) && isBoolean(obj.ok) && isFunction(obj.json) && isFunction(obj.text);
 }
 
 export async function fetchAPIData<T>(

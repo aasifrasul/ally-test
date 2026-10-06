@@ -271,7 +271,7 @@ class ABRController {
 		// This is where you would integrate with your actual video player's API.
 		// For a DASH/HLS player, this usually means setting a new rendition/quality level.
 		// For simpler players, it might involve changing the source URL and reloading.
-		if (this.player && typeof this.player.switchSource === 'function' && newQuality.url) {
+		if (this.player && isFunction(this.player.switchSource) && newQuality.url) {
 			// Example: Assumes player has a method to switch source URL
 			// This is a simplistic example for demonstration. Real ABR involves
 			// MediaSource Extensions (MSE) to seamlessly switch segments.

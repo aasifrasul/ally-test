@@ -65,18 +65,18 @@ class Queue {
 	}
 }
 
+import { isFunction } from '../../typeChecking';
+
 class ConcurrentQueue {
 	constructor(processorFn, onCompleteFn, concurrency) {
 		this.queue = new Queue();
 		this.concurrency = concurrency;
-		this.processorFn =
-			typeof processorFn === 'function'
-				? processorFn
-				: () => console.log('processorFn is not a function');
-		this.onCompleteFn =
-			typeof onCompleteFn === 'function'
-				? onCompleteFn
-				: () => console.log('onCompleteFn is not a function');
+		this.processorFn = isFunction(processorFn)
+			? processorFn
+			: () => console.log('processorFn is not a function');
+		this.onCompleteFn = isFunction(onCompleteFn)
+			? onCompleteFn
+			: () => console.log('onCompleteFn is not a function');
 
 		this.processingCount = 0;
 	}
@@ -116,17 +116,15 @@ class ConcurrentQueue {
 	}
 
 	drain(callbackFn) {
-		this.drainCallback =
-			typeof callbackFn === 'function'
-				? callbackFn
-				: () => console.log('drain callbackFn is not a function');
+		this.drainCallback = isFunction(callbackFn)
+			? callbackFn
+			: () => console.log('drain callbackFn is not a function');
 	}
 
 	error(callbackFn) {
-		this.errorCallback =
-			typeof callbackFn === 'function'
-				? callbackFn
-				: () => console.log('error callbackFn is not a function');
+		this.errorCallback = isFunction(callbackFn)
+			? callbackFn
+			: () => console.log('error callbackFn is not a function');
 	}
 }
 

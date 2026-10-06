@@ -1,5 +1,7 @@
+import { isString } from '../typeChecking';
+
 function getElementsByClassName(targetClassName, root = document.documentElement) {
-	if (typeof targetClassName !== 'string') {
+	if (!isString(targetClassName)) {
 		throw new TypeError('className must be a string');
 	}
 

@@ -43,36 +43,40 @@ if (module.hot) {
 		console.log('🎭 HMR: Context providers updated');
 	});
 
-	module.hot.addStatusHandler((status) => {
-		switch (status) {
-			case 'idle':
-				console.log('✅ HMR: Ready');
-				break;
-			case 'check':
-				console.log('🔍 HMR: Checking for updates...');
-				break;
-			case 'prepare':
-				console.log('⚙️ HMR: Preparing updates...');
-				break;
-			case 'ready':
-				console.log('📦 HMR: Updates ready');
-				break;
-			case 'dispose':
-				console.log('🗑️ HMR: Disposing modules...');
-				break;
-			case 'apply':
-				console.log('⚡ HMR: Applying updates...');
-				break;
-			case 'abort':
-			case 'fail':
-				console.error('❌ HMR: Update failed');
-				break;
-		}
-	});
+	if (module.hot.addStatusHandler) {
+		module.hot.addStatusHandler((status) => {
+			switch (status) {
+				case 'idle':
+					console.log('✅ HMR: Ready');
+					break;
+				case 'check':
+					console.log('🔍 HMR: Checking for updates...');
+					break;
+				case 'prepare':
+					console.log('⚙️ HMR: Preparing updates...');
+					break;
+				case 'ready':
+					console.log('📦 HMR: Updates ready');
+					break;
+				case 'dispose':
+					console.log('🗑️ HMR: Disposing modules...');
+					break;
+				case 'apply':
+					console.log('⚡ HMR: Applying updates...');
+					break;
+				case 'abort':
+				case 'fail':
+					console.error('❌ HMR: Update failed');
+					break;
+			}
+		});
+	}
 
-	module.hot.addErrorHandler((err) => {
-		console.error('❌ HMR Error:', err);
-	});
+	if (module.hot.addErrorHandler) {
+		module.hot.addErrorHandler((err) => {
+			console.error('❌ HMR Error:', err);
+		});
+	}
 }
 
 console.log('🚀 Development mode enabled');

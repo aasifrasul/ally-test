@@ -1,5 +1,6 @@
 import { support, bufferClone, isArrayBufferView } from './helpers';
 import { Headers } from './Headers';
+import { isString } from '../typeChecking';
 
 interface InitBody {
 	bodyUsed: boolean;
@@ -39,7 +40,7 @@ export class Body implements InitBody {
 			return;
 		}
 
-		if (typeof body === 'string') {
+		if (isString(body)) {
 			this._bodyText = body;
 			return;
 		}
@@ -74,7 +75,7 @@ export class Body implements InitBody {
 		body = this._bodyText as unknown as InitBody;
 
 		if (!this.headers.get('content-type')) {
-			if (typeof body === 'string') {
+			if (isString(body)) {
 				this.headers.set('content-type', 'text/plain;charset=UTF-8');
 			} else if (this._bodyBlob && this._bodyBlob.type) {
 				this.headers.set('content-type', this._bodyBlob.type);

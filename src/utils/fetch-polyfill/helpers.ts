@@ -1,5 +1,6 @@
 import { Iterator, IteratorResult, Support } from './types';
 import { Headers } from './Headers';
+import { isString } from '../typeChecking';
 
 const methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT'];
 
@@ -49,7 +50,7 @@ if (support.arrayBuffer) {
 }
 
 export function normalizeName(name: string | number | boolean): string {
-	if (typeof name !== 'string') {
+	if (!isString(name)) {
 		name = String(name);
 	}
 	if (/[^a-z0-9\-#$%&'*+.^_`|~]/i.test(name) || name === '') {
@@ -59,7 +60,7 @@ export function normalizeName(name: string | number | boolean): string {
 }
 
 export function normalizeValue(value: string | number | boolean): string {
-	if (typeof value !== 'string') {
+	if (!isString(value)) {
 		value = String(value);
 	}
 	return value;

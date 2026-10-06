@@ -25,39 +25,37 @@ const WineConnoisseur: FC<WineConnoisseurProps> = ({
 	hasNextPage = true,
 	totalPages,
 }) => {
-	const ioObserverRef = useRef<HTMLDivElement>(null);
+	const sentinelRef = useRef<HTMLDivElement>(null);
 
 	useInfiniteScroll({
-		scrollRef: ioObserverRef,
+		sentinelRef,
 		callback: () => fetchNextPage(currentPage + 1),
+		enabled: true,
 		isLoading,
 		hasNextPage,
 	});
-
-	if (isLoading && pageData.length === 0) {
-		return <div>Loading...</div>;
-	}
-
-	if (isError) {
-		return <div>Encountered some error, Please refresh the page</div>;
-	}
-
-	if (pageData.length === 0) {
-		return <div>No Items found</div>;
-	}
 
 	return (
 		<div className={styles.alignCenter}>
 			<span>Wine Connoisseur</span>
 			<ScrollToTop />
-			<DataGrid headings={headers} rows={pageData} />
 
-			{/* Conditional rendering of observer/loading indicator */}
-			{hasNextPage && (
-				<div ref={ioObserverRef} style={{ height: '20px', margin: '20px 0' }}>
-					{isLoading ? 'Loading more...' : ''}
-				</div>
+			{/* Show appropriate states but always keep the DataGrid and sentinel
+			   in the DOM so the IntersectionObserver can attach on first mount. */}
+			{isError && <div>Encountered some error, Please refresh the page</div>}
+
+			{isLoading && pageData.length === 0 ? (
+				<div>Loading...</div>
+			) : pageData.length === 0 ? (
+				<div>No Items found</div>
+			) : (
+				<DataGrid headings={headers} rows={pageData} />
 			)}
+
+			{/* Sentinel for intersection observer — always rendered */}
+			<div ref={sentinelRef} style={{ height: '20px', margin: '20px 0' }}>
+				{isLoading && pageData.length > 0 ? 'Loading more...' : ''}
+			</div>
 
 			{/* Optional: Show completion message */}
 			{!hasNextPage && pageData.length > 0 && (

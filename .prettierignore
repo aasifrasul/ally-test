@@ -5,6 +5,7 @@ logs
 
 records.json
 
-
-node_modules/
-public/*
+playwright-report
+node_modules
+public
+dist

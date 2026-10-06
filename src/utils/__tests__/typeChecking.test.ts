@@ -1,4 +1,3 @@
-import { describe, test, expect, vi } from 'vitest';
 import {
 	arraySize,
 	isEmptyString,
@@ -8,6 +7,7 @@ import {
 	isAsyncFunction,
 	isBoolean,
 	isEmpty,
+	isExist,
 	isMap,
 	isSet,
 	isGeneratorFunction,
@@ -19,6 +19,7 @@ import {
 	isFunction,
 	isNumber,
 	isObject,
+	hasProperty,
 	isString,
 	isUndefined,
 	safelyExecuteFunction,
@@ -34,6 +35,21 @@ describe('Type checking functions', () => {
 	test('isObject', () => {
 		expect(isObject({})).toBe(true);
 		expect(isObject([])).toBe(false);
+	});
+
+	test('isExist', () => {
+		expect(isExist(null)).toBe(false);
+		expect(isExist(undefined)).toBe(false);
+		expect(isExist(0)).toBe(true);
+		expect(isExist('')).toBe(true);
+		expect(isExist({})).toBe(true);
+	});
+
+	test('hasProperty', () => {
+		expect(hasProperty({ method: 'POST' }, 'method')).toBe(true);
+		expect(hasProperty({ method: 'POST' }, 'url')).toBe(false);
+		expect(hasProperty([], 'length')).toBe(false);
+		expect(hasProperty(null, 'method')).toBe(false);
 	});
 
 	test('isNull', () => {
@@ -178,7 +194,7 @@ describe('safelyExecuteFunction', () => {
 	});
 
 	test('returns undefined for non-function input', () => {
-		const warnMock = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const warnMock = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
 		expect(safelyExecuteFunction(null as any, null)).toBeUndefined();
 		expect(warnMock).toHaveBeenCalledWith('Please pass a valid function!');
@@ -187,7 +203,7 @@ describe('safelyExecuteFunction', () => {
 	});
 
 	test('handles functions with no return value', () => {
-		const testFunc = vi.fn();
+		const testFunc = jest.fn();
 		expect(safelyExecuteFunction(testFunc, null)).toBeUndefined();
 		expect(testFunc).toHaveBeenCalled();
 	});
@@ -223,7 +239,7 @@ describe('safeAsyncExecute', () => {
 	});
 
 	test('rejects with error for rejecting async function', async () => {
-		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
 		const testFunc = async () => {
 			throw new Error('Async error');
@@ -237,7 +253,7 @@ describe('safeAsyncExecute', () => {
 	});
 
 	test('logs error to console when function throws', async () => {
-		const consoleErrorMock = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
 
 		const testFunc = () => {
 			throw new Error('Console log test');
@@ -251,7 +267,7 @@ describe('safeAsyncExecute', () => {
 	});
 
 	test('handles non-function input', async () => {
-		const warnMock = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const warnMock = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
 		await expect(safeAsyncExecute(null as any)).resolves.toBeNull();
 		expect(warnMock).toHaveBeenCalledWith('Please pass a valid function!');

@@ -79,7 +79,13 @@ app.use(userAgentHandler);
 app.use(compression());
 app.use(
 	cors({
-		origin: isProdEnv ? ALLOWED_ORIGINS?.split(',') : `http://${host}:${port}`,
+		origin: isProdEnv
+			? ALLOWED_ORIGINS?.split(',')
+			: [
+					`http://${host}:${port}`,
+					`http://localhost:${port}`,
+					`http://127.0.0.1:${port}`,
+				],
 		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Authorization'],
 		credentials: true,
@@ -109,6 +115,15 @@ app.use(optionalAuth);
 
 // 4. WEBPACK DEV MIDDLEWARE SETUP (BEFORE OTHER STATIC ROUTES)
 if (!isProdEnv) {
+	// Ensure `.ts` module chunks under /public are served with JS MIME type.
+	// Place this BEFORE webpackDevMiddleware so headers are set even when
+	// webpack serves the files from memory.
+	app.use('/public', (req, res, next) => {
+		if (req.path && req.path.endsWith('.ts')) {
+			res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+		}
+		next();
+	});
 	// Import your webpack configuration
 	const webpackConfig = require('../../webpack-configs/webpack.config');
 
@@ -183,6 +198,17 @@ if (isProdEnv) {
 	app.use(express.static(pathRootDir, { index: false }));
 } else {
 	// Development:
+	// Development:
+	// Some browsers may interpret `.ts` extension as MPEG transport stream
+	// (video/mp2t). Ensure `.ts` module chunks are served with JS MIME type
+	// so ES module imports execute correctly during development.
+	app.use('/public', (req, res, next) => {
+		if (req.path && req.path.endsWith('.ts')) {
+			res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+		}
+		next();
+	});
+
 	// Webpack-dev-middleware already handles /public/ paths
 	// Only serve non-webpack static assets from root
 	app.use(

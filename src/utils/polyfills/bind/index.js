@@ -9,8 +9,10 @@
  * @returns {Function} - The bound function
  * @throws {TypeError} - If called on a non-function
  */
+import { isFunction } from '../../typeChecking';
+
 Function.prototype.myBind = function (context, ...boundArgs) {
-	if (typeof this !== 'function') {
+	if (!isFunction(this)) {
 		throw new TypeError('bind is called on a non function');
 	}
 

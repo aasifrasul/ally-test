@@ -1,3 +1,5 @@
+import { isFunction } from '../typeChecking';
+
 // Enhanced setZeroTimeout that accepts parameters
 // Only add setZeroTimeout to the window object, and hide everything
 // else in a closure.
@@ -7,7 +9,7 @@
 
 	// Like setTimeout, but with zero delay and support for parameters
 	function setZeroTimeout(fn, ...args) {
-		if (typeof fn !== 'function') {
+		if (!isFunction(fn)) {
 			throw new Error('Please pass a valid function');
 		}
 
@@ -44,7 +46,7 @@
 
 	function setZeroTimeoutV2(fn, delay = 0, ...args) {
 		// Note: delay parameter is ignored (always 0), but kept for setTimeout compatibility
-		if (typeof fn !== 'function') {
+		if (!isFunction(fn)) {
 			throw new Error('Please pass a valid function');
 		}
 

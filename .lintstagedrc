@@ -1,0 +1,12 @@
+{
+	"**/*.{jsx,ts,tsx,hbs}": [
+		"node --max-old-space-size=4096 ./node_modules/.bin/prettier --write"
+	],
+	"**/*.{json,yml,yaml,md,mdx}": [
+		"node --max-old-space-size=4096 ./node_modules/.bin/prettier --write"
+	],
+	"src/**/*.css": [
+		"stylelint --fix",
+		"node --max-old-space-size=4096 ./node_modules/.bin/prettier --write"
+	]
+}

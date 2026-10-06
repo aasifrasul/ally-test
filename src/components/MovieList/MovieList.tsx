@@ -20,7 +20,7 @@ export const MovieList = (props: Props): ReactNode => {
 	const { filterByText } = searchActions();
 
 	useInfiniteScroll({
-		scrollRef: sentinelRef,
+		sentinelRef,
 		callback: () => fetchNextPage(currentPage + 1),
 	});
 
