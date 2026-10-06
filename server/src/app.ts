@@ -2,9 +2,13 @@ import express, { Application } from 'express';
 
 import { isProdEnv } from './envConfigDetails';
 import { generateBuildTime } from './helper';
-import { configureGlobalMiddleware } from './bootstrap/middleware';
-import { configureStaticAssets, configureTemplateRendering } from './bootstrap/static';
-import { registerRoutes } from './bootstrap/routes';
+import {
+	configureGlobalMiddleware,
+	configureStaticAssets,
+	configureTemplateRendering,
+	registerHealthCheck,
+	registerRoutes,
+} from './bootstrap';
 
 const app: Application = express();
 
@@ -17,6 +21,7 @@ const bundleConfig = isProdEnv
 
 configureStaticAssets(app);
 configureTemplateRendering(app);
+registerHealthCheck(app);
 registerRoutes(app, bundleConfig);
 
 export { app };
