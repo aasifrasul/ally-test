@@ -1,166 +1,23 @@
-import cors from 'cors';
-import express, { Application, Request, Response, NextFunction } from 'express';
-import helmet from 'helmet';
-import { engine } from 'express-handlebars';
-import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
-import { rateLimit } from 'express-rate-limit';
-import compression from 'compression';
-import { v4 as uuidv4 } from 'uuid';
-import webpack from 'webpack';
-import webpackDevMiddleware from 'webpack-dev-middleware';
-import webpackHotMiddleware from 'webpack-hot-middleware';
+import express, { Application, NextFunction, Request, Response } from 'express';
 
-const timeout = require('connect-timeout');
-
-import { host, port, isProdEnv, ALLOWED_ORIGINS } from './envConfigDetails';
-import {
-	userAgentHandler,
-	fetchWineData,
-	fetchImage,
-	compiledTemplate,
-	handleGraphql,
-} from './middlewares';
-import { handleFileupload } from './fileUploads';
-import { setupProxy } from './setupProxy';
-import { constructReqDataObject, generateBuildTime } from './helper';
-import { pathTemplate, pathRootDir, pathDist } from './paths';
+import { isProdEnv } from './envConfigDetails';
+import { compiledTemplate, fetchImage, fetchWineData, userAgentHandler } from './middlewares';
 import { finalHandler } from './globalErrorHandler';
+import { constructReqDataObject, generateBuildTime } from './helper';
 import { constants } from '../../src/constants';
-
-// Import auth components
 import { authRoutes } from './routes/authRoutes';
-import { optionalAuth } from './middlewares/authMiddleware';
 import { chatRoute } from './routes/chat';
-
-import { logger } from './Logger';
 import { errorHandler } from './middlewares/errorHandler';
 import { PostgresDBConnection } from './dbClients/PostgresDBConnection';
 import { MongoDBConnection } from './dbClients/MongoDBConnection';
 import { RedisClient } from './cachingClients/redis';
-
-interface RequestWithId extends Request {
-	id?: string;
-}
-
-interface RequestWithTimedout extends Request {
-	timedout: boolean;
-}
+import { configureGlobalMiddleware } from './bootstrap/middleware';
+import { configureStaticAssets, configureTemplateRendering } from './bootstrap/static';
 
 const app: Application = express();
 
 generateBuildTime();
-
-// Global rate limiter
-const globalLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000, // 15 minutes
-	max: 100, // max 100 requests per window per IP
-	standardHeaders: true,
-	legacyHeaders: false,
-});
-app.use(globalLimiter);
-
-// Setup file upload and proxy early
-handleFileupload(app);
-setupProxy(app);
-app.all('/graphql', handleGraphql);
-
-function haltOnTimedout(req: RequestWithTimedout, res: Response, next: NextFunction): void {
-	if (!req.timedout) {
-		next();
-	} else {
-		res.status(408).json({ error: 'Request timeout' });
-	}
-}
-
-// 1. Global middlewares first
-app.use(cookieParser());
-app.use(userAgentHandler);
-app.use(compression());
-app.use(
-	cors({
-		origin: isProdEnv
-			? ALLOWED_ORIGINS?.split(',')
-			: [
-					`http://${host}:${port}`,
-					`http://localhost:${port}`,
-					`http://127.0.0.1:${port}`,
-				],
-		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-		allowedHeaders: ['Content-Type', 'Authorization'],
-		credentials: true,
-	}),
-);
-
-app.use(
-	helmet({
-		contentSecurityPolicy: isProdEnv ? undefined : false,
-	}),
-);
-
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true, limit: '100kb' }));
-app.use(bodyParser.text());
-app.use(timeout('30s'));
-app.use(haltOnTimedout as express.RequestHandler);
-
-// 2. Request ID middleware
-app.use((req: RequestWithId, _, next: NextFunction) => {
-	req.id = uuidv4();
-	next();
-});
-
-// 3. Optional auth middleware (before routes that might need it)
-app.use(optionalAuth);
-
-// 4. WEBPACK DEV MIDDLEWARE SETUP (BEFORE OTHER STATIC ROUTES)
-if (!isProdEnv) {
-	// Ensure `.ts` module chunks under /public are served with JS MIME type.
-	// Place this BEFORE webpackDevMiddleware so headers are set even when
-	// webpack serves the files from memory.
-	app.use('/public', (req, res, next) => {
-		if (req.path && req.path.endsWith('.ts')) {
-			res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-		}
-		next();
-	});
-	// Import your webpack configuration
-	const webpackConfig = require('../../webpack-configs/webpack.config');
-
-	// Create webpack compiler
-	const compiler = webpack(webpackConfig) as any;
-
-	// Add webpack-dev-middleware FIRST
-	app.use(
-		webpackDevMiddleware(compiler, {
-			publicPath: webpackConfig.output.publicPath, // This should be '/public/'
-			stats: {
-				colors: true,
-				hash: false,
-				timings: true,
-				chunks: false,
-				chunkModules: false,
-				modules: false,
-			},
-			writeToDisk: false,
-			// Ensure it handles all requests under /public/
-			index: false, // Don't serve index files
-		}),
-	);
-
-	// Add webpack-hot-middleware for HMR
-	app.use(
-		webpackHotMiddleware(compiler, {
-			log: console.log,
-			path: '/__webpack_hmr',
-			heartbeat: 10 * 1000,
-		}),
-	);
-
-	logger.info('🔥 Hot Module Replacement enabled');
-}
-
-// 5. Specific API routes (before static files)
+configureGlobalMiddleware(app);
 
 app.get('/health', async (_, res) => {
 	const mongoHealthy = await MongoDBConnection.isAvailable();
@@ -175,67 +32,22 @@ app.get('/health', async (_, res) => {
 	});
 });
 
-// Auth routes
 app.use('/auth', authRoutes);
-
-// API routes
 app.get('/api/fetchWineData/', fetchWineData);
 app.use('/api/chat', chatRoute);
-
-// Image serving
 app.get('/images/', fetchImage);
 
-// Redirects
 app.use('/login', (_, res: Response) => {
 	res.redirect('/auth/login');
 });
 
-// 6. STATIC FILE SERVING (after webpack middleware)
-if (isProdEnv) {
-	// Production: serve built files
-	app.use('/public', express.static(pathDist));
-	// Serve other static assets from root
-	app.use(express.static(pathRootDir, { index: false }));
-} else {
-	// Development:
-	// Development:
-	// Some browsers may interpret `.ts` extension as MPEG transport stream
-	// (video/mp2t). Ensure `.ts` module chunks are served with JS MIME type
-	// so ES module imports execute correctly during development.
-	app.use('/public', (req, res, next) => {
-		if (req.path && req.path.endsWith('.ts')) {
-			res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-		}
-		next();
-	});
+configureStaticAssets(app);
+configureTemplateRendering(app);
 
-	// Webpack-dev-middleware already handles /public/ paths
-	// Only serve non-webpack static assets from root
-	app.use(
-		express.static(pathRootDir, {
-			index: false,
-			// Exclude paths that webpack handles
-			setHeaders: (res, path) => {
-				if (path.includes('/public/')) {
-					// Let webpack-dev-middleware handle these
-					return false;
-				}
-			},
-		}),
-	);
-}
-
-// Set hbs template config
-app.engine('.hbs', engine({ extname: '.hbs' }));
-app.set('view engine', 'handlebars');
-app.set('views', pathTemplate);
-
-// Bundle config for templates
 const bundleConfig = isProdEnv
-	? ['en', 'vendor', 'app'].map((item) => `/public/${item}.[chunkhash].js`) // Production uses chunkhash
-	: ['en', 'vendor', 'app'].map((item) => `/public/${item}.bundle.js`); // Dev uses .bundle.js
+	? ['en', 'vendor', 'app'].map((item) => `/public/${item}.[chunkhash].js`)
+	: ['en', 'vendor', 'app'].map((item) => `/public/${item}.bundle.js`);
 
-// 7. Dynamic template routes
 app.all(['/', '/:route'], (req: any, res: Response, next: NextFunction) => {
 	const { route } = req.params;
 	if (route && !constants.routes!.includes(route)) {
@@ -252,7 +64,7 @@ app.all(['/', '/:route'], (req: any, res: Response, next: NextFunction) => {
 	res.send(compiledTemplate(data));
 });
 
-// 8. 404 Handler last
 finalHandler(app);
 app.use(errorHandler);
+
 export { app };
