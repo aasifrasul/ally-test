@@ -1,5 +1,6 @@
 import { createContext, FC, ReactNode, useState, useContext } from 'react';
 
+import { createContextProvider } from './contextProviderFactory';
 import { fetchAPIData } from '../utils/fetchUtils';
 import { HTTPMethod } from '../types/api';
 import { IUser } from '../../server/src/types';
@@ -22,7 +23,19 @@ interface AuthContextType {
 	isLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function createAuthContext(): [
+	React.FC<{ children?: ReactNode; value: AuthContextType }>,
+	() => AuthContextType,
+] {
+	return createContextProvider(
+		AuthContext as React.Context<AuthContextType>,
+		'AuthProvider',
+	);
+}
+
+export const [AuthContextProvider, useAuthContext] = createAuthContext();
 
 export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 	const [user, setUser] = useState<IUser | null>(null);
@@ -74,11 +87,9 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 		return result.success && (result.data as any)?.success;
 	};
 
-	return (
-		<AuthContext.Provider value={{ user, login, logout, isLoading }}>
-			{children}
-		</AuthContext.Provider>
-	);
+	const value = { user, login, logout, isLoading };
+
+	return <AuthContextProvider value={value}>{children}</AuthContextProvider>;
 };
 
 export const useAuth = () => {

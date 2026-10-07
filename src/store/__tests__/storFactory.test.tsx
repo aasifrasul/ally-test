@@ -1,12 +1,19 @@
 import { render } from '@testing-library/react';
 import { renderHook, act } from '@testing-library/react-hooks';
+
 import storeFactory from '../storeFactory';
-import { Schema, GenericAction, GenericState, InitialState } from '../../constants/types';
+import {
+	ActionType,
+	GenericAction,
+	GenericState,
+	InitialState,
+	Schema,
+} from '../../constants/types';
 
 describe('storeFactory', () => {
 	const testReducer = (state: GenericState, action: GenericAction): GenericState => {
 		switch (action.type) {
-			case 'ADD_DATA':
+			case ActionType.FETCH_SUCCESS:
 				return {
 					...state,
 					[Schema.INFINITE_SCROLL]: {
@@ -55,18 +62,19 @@ describe('storeFactory', () => {
 		const [Provider] = storeFactory<GenericState>(testReducer, genericState);
 		const children = <div>Test</div>;
 		const { getByText } = render(<Provider>{children}</Provider>);
-		expect(getByText('Test')).toBeInTheDocument();
+		expect(getByText('Test').textContent).toBe('Test');
 	});
 
 	it('should return a hook that throws error when used outside Provider', () => {
 		const [, useStore] = storeFactory<GenericState>(testReducer, genericState);
 		const { result } = renderHook(() => useStore());
-		expect(result.error).toEqual(
-			Error('useContext must be used within a StoreContext.Provider'),
+		expect(result.error).toBeInstanceOf(Error);
+		expect((result.error as Error).message).toBe(
+			'useContext must be used within a StoreContext.Provider',
 		);
 	});
 
-	it('should return a hook that returns an object with a dispatch function and a store object when used within Provider', () => {
+	it('should return a hook that returns an object with a dispatch function and a state object when used within Provider', () => {
 		const [Provider, useStore] = storeFactory<GenericState>(testReducer, genericState);
 		const { result } = renderHook(() => useStore(), {
 			wrapper: (props: { children: React.ReactNode }) => (
@@ -74,7 +82,7 @@ describe('storeFactory', () => {
 			),
 		});
 		expect(result.current.dispatch).toBeInstanceOf(Function);
-		expect(result.current.store).toBeDefined();
+		expect(result.current.state).toBeDefined();
 	});
 
 	it('should access state through proxy', () => {
@@ -84,15 +92,13 @@ describe('storeFactory', () => {
 				<Provider>{props.children}</Provider>
 			),
 		});
-		const data: InitialState = (result.current.store as unknown as GenericState)[
-			Schema.INFINITE_SCROLL
-		];
+		const data: InitialState = result.current.state[Schema.INFINITE_SCROLL];
 		expect(data).toEqual({
 			data: [],
 		});
 	});
 
-	it('should maintain referential equality of store and dispatch between renders', () => {
+	it('should maintain referential equality of state and dispatch between renders', () => {
 		const [Provider, useStore] = storeFactory<GenericState>(testReducer, genericState);
 		const { result, rerender } = renderHook(() => useStore(), {
 			wrapper: (props: { children: React.ReactNode }) => (
@@ -100,12 +106,12 @@ describe('storeFactory', () => {
 			),
 		});
 
-		const firstStoreRef = result.current.store;
+		const firstStateRef = result.current.state;
 		const firstDispatchRef = result.current.dispatch;
 
 		rerender();
 
-		expect(result.current.store).toBe(firstStoreRef);
+		expect(result.current.state).toBe(firstStateRef);
 		expect(result.current.dispatch).toBe(firstDispatchRef);
 	});
 
@@ -120,14 +126,12 @@ describe('storeFactory', () => {
 		act(() => {
 			result.current.dispatch({
 				schema: Schema.INFINITE_SCROLL,
-				type: 'ADD_DATA',
+				type: ActionType.FETCH_SUCCESS,
 				payload: { id: 1, value: 'test' },
 			});
 		});
 
-		const data: InitialState = (result.current.store as unknown as GenericState)[
-			Schema.INFINITE_SCROLL
-		];
+		const data: InitialState = result.current.state[Schema.INFINITE_SCROLL];
 		expect(data).toEqual({
 			data: [{ id: 1, value: 'test' }],
 		});

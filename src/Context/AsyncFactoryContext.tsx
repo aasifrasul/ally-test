@@ -1,31 +1,38 @@
 import React, { createContext, useContext, useEffect, useMemo } from 'react';
+
+import { createContextProvider } from './contextProviderFactory';
 import { PromiseFactory, PromiseFactoryOptions } from '../utils/PromiseFactory';
 
 // Create the context
-const AsyncFactoryContext = createContext<PromiseFactory<any> | null>(null);
+export const AsyncFactoryContext = createContext<PromiseFactory<any> | null>(null);
+
+export function createAsyncContext<T = any>(): [
+	React.FC<{ children?: React.ReactNode; value: PromiseFactory<T> }>,
+	() => PromiseFactory<T>,
+] {
+	return createContextProvider(
+		AsyncFactoryContext as React.Context<PromiseFactory<T>>,
+		'AsyncProvider',
+	);
+}
 
 interface AsyncProviderProps {
 	children: React.ReactNode;
 	options?: Partial<PromiseFactoryOptions>;
 }
 
+export const [AsyncContextProvider, useAsyncContext] = createAsyncContext();
+
 export const AsyncProvider: React.FC<AsyncProviderProps> = ({ children, options }) => {
-	// We use useMemo so the factory instance is stable for the app's lifetime
 	const factory = useMemo(() => new PromiseFactory(options), []);
 
-	// Cleanup when the app unmounts
 	useEffect(() => {
 		return () => factory.dispose();
 	}, [factory]);
 
-	return (
-		<AsyncFactoryContext.Provider value={factory}>{children}</AsyncFactoryContext.Provider>
-	);
+	return <AsyncContextProvider value={factory}>{children}</AsyncContextProvider>;
 };
 
-/**
- * Internal hook to grab the factory safely
- */
 export function useAsyncFactory<T = any>() {
 	const context = useContext(AsyncFactoryContext);
 	if (!context) {

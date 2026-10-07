@@ -1,14 +1,24 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, ReactNode, useMemo } from 'react';
+
+import { createContextProvider } from './contextProviderFactory';
 import { useCsrfToken } from '../hooks/useCsrfToken';
 
-const SecurityContext = createContext<{ csrfToken: string }>({ csrfToken: '' });
+export const SecurityContext = createContext<{ csrfToken: string }>({ csrfToken: '' });
+
+export function createSecurityContext(): [
+	React.FC<{ children?: ReactNode; value: { csrfToken: string } }>,
+	() => { csrfToken: string },
+] {
+	return createContextProvider(SecurityContext, 'SecurityProvider');
+}
+
+export const [SecurityContextProvider, useSecurityContextValue] = createSecurityContext();
 
 export function SecurityProvider({ children }: { children: React.ReactNode }) {
 	const csrfToken = useCsrfToken();
+	const value = useMemo(() => ({ csrfToken }), [csrfToken]);
 
-	return (
-		<SecurityContext.Provider value={{ csrfToken }}>{children}</SecurityContext.Provider>
-	);
+	return <SecurityContextProvider value={value}>{children}</SecurityContextProvider>;
 }
 
 export function useSecurityContext() {
@@ -18,3 +28,5 @@ export function useSecurityContext() {
 	}
 	return context;
 }
+
+export const useSecurityContextInstance = useSecurityContext;

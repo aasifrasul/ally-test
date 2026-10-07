@@ -1,5 +1,6 @@
-import { createContext, ReactNode } from 'react';
+import { createContext, ReactNode, useMemo } from 'react';
 
+import { createContextProvider } from './contextProviderFactory';
 import { useToggle } from '../hooks';
 
 export interface ThemeContextType {
@@ -14,14 +15,34 @@ export const ThemeContext = createContext<ThemeContextType>({
 	isDark: false,
 });
 
+export function createThemeContext(): [
+	React.FC<{ children?: ReactNode; value: ThemeContextType }>,
+	() => ThemeContextType,
+] {
+	return createContextProvider(ThemeContext, 'ThemeProvider');
+}
+
+export const [ThemeContextProvider, useThemeContext] = createThemeContext();
+
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 	const [state, toggleTheme] = useToggle(true);
 
-	const value = {
-		theme: state ? 'light' : 'dark',
-		toggleTheme,
-		isDark: !state,
-	};
+	const value = useMemo(
+		() => ({
+			theme: state ? 'light' : 'dark',
+			toggleTheme,
+			isDark: !state,
+		}),
+		[state, toggleTheme],
+	);
 
-	return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+	return <ThemeContextProvider value={value}>{children}</ThemeContextProvider>;
+};
+
+export const useTheme = () => {
+	const context = useThemeContext();
+	if (context === undefined) {
+		throw new Error('useTheme must be used within a ThemeProvider');
+	}
+	return context;
 };
