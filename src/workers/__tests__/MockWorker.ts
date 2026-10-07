@@ -99,6 +99,13 @@ export class MockWorker implements Worker {
 			this.listeners.set(type, new Set());
 		}
 		this.listeners.get(type)?.add(listener);
+
+		if (type === 'message' && isFunction(listener)) {
+			this.onmessage = listener as (this: Worker, ev: MessageEvent) => any;
+		}
+		if (type === 'error' && isFunction(listener)) {
+			this.onerror = listener as (this: AbstractWorker, ev: ErrorEvent) => any;
+		}
 	}
 
 	public removeEventListener(

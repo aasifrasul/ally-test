@@ -28,6 +28,11 @@ export interface CustomFetchOptions extends RequestInit {
 	force?: boolean;
 }
 
+export type RequestTransport = (
+	url: string,
+	options: RequestInit & { method?: HTTPMethod; body?: any },
+) => Promise<any>;
+
 export interface FetchOptions<T, U = T> {
 	timeout?: number;
 	transformResponse?: (data: any) => T;
@@ -44,10 +49,7 @@ export interface FetchOptions<T, U = T> {
 	retryDelay?: (attempt: number) => number; // backoff function in ms
 	// Dependency injection for testing/overrides
 	worker?: WorkerQueue;
-	transport?: (
-		url: string,
-		options: RequestInit & { method: HTTPMethod; body?: any },
-	) => Promise<any>;
+	transport?: RequestTransport;
 	dataSourceOverride?: DataSource;
 	// Local cache update on mutations
 	updateCache?: (oldData: T, mutationResult: U) => T;

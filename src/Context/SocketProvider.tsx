@@ -1,7 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 
-import { constants } from '../constants';
+import { createSocketConnection } from './socketConnection';
 
 interface SocketContextType {
 	socket: Socket | null;
@@ -26,25 +26,23 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 	const [isConnected, setIsConnected] = useState(false);
 
 	useEffect(() => {
-		// Initialize socket connection
-		const socketInstance = io(constants.BASE_URL);
-
-		// Explicitly connect to the server
-		socketInstance.connect();
-
-		socketInstance.on('connect', () => {
-			console.log('Connected to Socket.io server');
-			setIsConnected(true);
-		});
-
-		socketInstance.on('disconnect', () => {
-			console.log('Disconnected from Socket.io server');
-			setIsConnected(false);
+		const socketInstance = createSocketConnection({
+			url: undefined,
+			onConnect: () => {
+				console.log('Connected to Socket.io server');
+				setIsConnected(true);
+			},
+			onDisconnect: () => {
+				console.log('Disconnected from Socket.io server');
+				setIsConnected(false);
+			},
+			onConnectError: (error) => {
+				console.error('Socket connection error:', error);
+			},
 		});
 
 		setSocket(socketInstance);
 
-		// Clean up on unmount
 		return () => {
 			socketInstance.disconnect();
 		};

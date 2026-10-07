@@ -53,10 +53,8 @@ export function useFetch<T = unknown, U = T>(
 		dataSourceOverride ?? constants.dataSources?.[schema];
 	const { BASE_URL, queryParams } = dataSource ?? {};
 	const worker = injectedWorker ?? workerManager;
-	const transport =
-		injectedTransport ??
-		((url: string, reqOptions: RequestInit & { method: HTTPMethod; body?: any }) =>
-			worker.fetchAPIData(url, reqOptions));
+	const defaultTransport = useMemo(() => worker.createRequestTransport(), [worker]);
+	const transport = injectedTransport ?? defaultTransport;
 	const { data: currentData } = useSchema(schema);
 	const { fetchStarted, fetchSucceeded, fetchFailed, fetchCompleted } = useFetchActions();
 	const { updateStarted, updateSucceeded, updateFailed, updateCompleted } =

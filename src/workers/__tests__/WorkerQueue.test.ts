@@ -9,8 +9,9 @@ import { WorkerMessage, HTTPMethod } from '../../types/api';
 	}
 };
 
-jest.mock('../../utils/logger', () => ({
+jest.mock('../../utils/Logger', () => ({
 	createLogger: () => ({
+		debug: jest.fn(),
 		error: jest.fn(),
 		info: jest.fn(),
 		warn: jest.fn(),
@@ -22,6 +23,7 @@ describe('WorkerQueue', () => {
 	let mockWorker: MockWorker;
 
 	beforeEach(() => {
+		jest.useRealTimers();
 		// Reset the singleton instance
 		(WorkerQueue as any).instance = null;
 
@@ -33,6 +35,7 @@ describe('WorkerQueue', () => {
 	});
 
 	afterEach(() => {
+		jest.useRealTimers();
 		workerQueue.terminate();
 	});
 
@@ -94,10 +97,12 @@ describe('WorkerQueue', () => {
 
 	describe('Timeout Handling', () => {
 		it('should timeout after specified duration', async () => {
+			jest.useFakeTimers();
 			mockWorker.postMessage = jest.fn();
 
 			const promise = workerQueue.fetchAPIData('/test', undefined);
-			await expect(promise).rejects.toThrow('Request timeout after 100ms');
+			jest.advanceTimersByTime(30000);
+			await expect(promise).rejects.toThrow('Promise timed out');
 		});
 
 		it('should clear timeout on successful response', async () => {
@@ -121,6 +126,19 @@ describe('WorkerQueue', () => {
 	});
 
 	describe('Public API Methods', () => {
+		it('should expose a transport function for request execution', async () => {
+			const endpoint = '/api/test';
+			const options = { method: HTTPMethod.POST, body: { hello: 'world' } };
+			const fetchSpy = jest
+				.spyOn(workerQueue, 'fetchAPIData')
+				.mockResolvedValue({ ok: true } as any);
+			const transport = workerQueue.createRequestTransport();
+
+			await transport(endpoint, options as any);
+
+			expect(fetchSpy).toHaveBeenCalledWith(endpoint, options);
+		});
+
 		it('should handle fetchAPIData', async () => {
 			const endpoint = '/api/test';
 			const options = { method: HTTPMethod.POST };

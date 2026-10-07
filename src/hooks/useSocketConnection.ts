@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import io, { Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
+
 import { constants } from '../constants';
+import { createSocketConnection } from '../Context/socketConnection';
 
 // Constants
 const RECONNECTION_ATTEMPTS = 3;
@@ -21,38 +23,35 @@ export function useSocketConnection(onConnectionCallback?: () => void): {
 	const reconnectAttemptsRef = useRef(0);
 
 	const initializeSocket = useCallback(() => {
-		socketRef.current = io(constants.BASE_URL, {
+		socketRef.current = createSocketConnection({
+			url: constants.BASE_URL,
 			reconnectionAttempts: RECONNECTION_ATTEMPTS,
 			reconnectionDelay: RECONNECTION_DELAY,
-			transports: ['websocket', 'polling'], // Try WebSocket first, fallback to polling
-		});
+			onConnect: () => {
+				setConnectionStatus(Status.CONNECTED);
+				onConnectionCallback?.();
+				reconnectAttemptsRef.current = 0;
+			},
+			onDisconnect: () => {
+				setConnectionStatus(Status.DISCONNECTED);
+			},
+			onConnectError: (error) => {
+				console.error('Socket connection error:', error);
+				setConnectionStatus(Status.ERROR);
 
-		socketRef.current.on('connect', () => {
-			setConnectionStatus(Status.CONNECTED);
-			onConnectionCallback?.();
-			reconnectAttemptsRef.current = 0;
-		});
-
-		socketRef.current.on('disconnect', () => {
-			setConnectionStatus(Status.DISCONNECTED);
-		});
-
-		socketRef.current.on('connect_error', (error) => {
-			console.error('Socket connection error:', error);
-			setConnectionStatus(Status.ERROR);
-
-			if (reconnectAttemptsRef.current < RECONNECTION_ATTEMPTS) {
-				reconnectAttemptsRef.current++;
-				setTimeout(() => {
-					socketRef.current?.connect();
-				}, RECONNECTION_DELAY);
-			}
+				if (reconnectAttemptsRef.current < RECONNECTION_ATTEMPTS) {
+					reconnectAttemptsRef.current++;
+					setTimeout(() => {
+						socketRef.current?.connect();
+					}, RECONNECTION_DELAY);
+				}
+			},
 		});
 
 		return () => {
 			socketRef.current?.disconnect();
 		};
-	}, []);
+	}, [onConnectionCallback]);
 
 	useEffect(() => {
 		const cleanup = initializeSocket();
