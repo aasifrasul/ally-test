@@ -1,42 +1,53 @@
-import storeFactory from '../store/storeFactory';
+import React from 'react';
+
+import { createStoreContext } from '../store/createStore';
 import dataFetchReducer from '../reducers/dataFetchReducer';
 import { constants } from '../constants';
-import { InitialState, GenericState } from '../constants/types';
+import { InitialState, GenericState, StoreContextValue } from '../constants/types';
 
-const { dataSources } = constants;
+const dataSources = constants.dataSources;
 
 if (!dataSources) {
 	throw new Error('dataSources is undefined');
 }
 
-const initialState: GenericState = {};
+function createDefaultDataFetchState(): GenericState {
+	const initialState: GenericState = {};
 
-function createSchemaState() {
-	const individualState: InitialState = {
-		isLoading: false,
-		isError: false,
-		data: [],
-		originalData: [],
-		pageData: [],
-		headers: [],
-		currentPage: 0,
-		TOTAL_PAGES: 0,
-	};
+	function createSchemaState(): InitialState {
+		return {
+			isLoading: false,
+			isError: false,
+			data: [],
+			originalData: [],
+			pageData: [],
+			headers: [],
+			currentPage: 0,
+			TOTAL_PAGES: 0,
+		};
+	}
 
-	return individualState;
+	Object.entries(dataSources as Record<string, any>).forEach(([key, dataSource]) => {
+		const individualState = createSchemaState();
+		individualState.currentPage = dataSource.queryParams?.page || 0;
+		initialState[key] = individualState;
+	});
+
+	return initialState;
 }
 
-// Populate initialState based on dataSources
-Object.entries(dataSources).forEach(([key, dataSource]) => {
-	const individualState = createSchemaState();
-	individualState.currentPage = dataSource.queryParams?.page || 0;
-	initialState[key] = individualState;
-});
+export function createDataFetchContext<T extends GenericState = GenericState>(
+	reducer: typeof dataFetchReducer = dataFetchReducer,
+	initialState: T = createDefaultDataFetchState() as T,
+	config?: { name?: string },
+): [React.FC<{ children?: React.ReactNode }>, () => StoreContextValue<T>] {
+	const [Provider, useStore] = createStoreContext(reducer, initialState, {
+		name: config?.name ?? 'FetchStoreContext.Provider',
+	}) as [React.FC<{ children?: React.ReactNode }>, () => StoreContextValue<T>];
 
-// Use the storeFactory with the correct types
-const [FetchStoreProvider, useFetchStore] = storeFactory<GenericState>(
-	dataFetchReducer,
-	initialState,
-);
+	return [Provider, useStore];
+}
+
+const [FetchStoreProvider, useFetchStore] = createDataFetchContext();
 
 export { FetchStoreProvider, useFetchStore };

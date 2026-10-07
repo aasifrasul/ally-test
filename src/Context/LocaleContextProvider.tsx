@@ -1,30 +1,48 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useMemo, useState } from 'react';
 
-interface LocaleContextType {
+import { createContextProvider } from './contextProviderFactory';
+
+export interface LocaleContextType {
 	locale: string;
 	translations: Record<string, string>;
 	changeLocale: (newLocale: string) => void;
 }
 
-const LocaleContext = createContext<LocaleContextType>({
+export const LocaleContext = createContext<LocaleContextType>({
 	locale: '',
 	translations: { abc: 'xyz' },
-	changeLocale: (newLocale) => {},
+	changeLocale: () => {},
 });
 
-export const LocaleContextProvider: React.FC<{ children: React.ReactNode }> = ({
-	children,
-}) => {
-	const [locale, setLocale] = useState('en');
-	const [translations, setTranslations] = useState({});
+export function createLocaleContext(): [
+	React.FC<{ children?: React.ReactNode; value: LocaleContextType }>,
+	() => LocaleContextType,
+] {
+	return createContextProvider(LocaleContext, 'LocaleProvider');
+}
 
-	const changeLocale = async (newLocale: string) => {
+export const [LocaleContextProvider, useLocaleContextValue] = createLocaleContext();
+
+export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+	const [locale, setLocale] = useState('en');
+	const [translations] = useState<Record<string, string>>({});
+
+	const changeLocale = (newLocale: string) => {
 		setLocale(newLocale);
 	};
 
-	return (
-		<LocaleContext.Provider value={{ locale, translations, changeLocale }}>
-			{children}
-		</LocaleContext.Provider>
+	const value = useMemo(
+		() => ({ locale, translations, changeLocale }),
+		[locale, translations],
 	);
+
+	return <LocaleContextProvider value={value}>{children}</LocaleContextProvider>;
+};
+
+export const useLocaleContext = () => {
+	const context = useLocaleContextValue();
+	if (!context) {
+		throw new Error('useLocaleContext must be used within a LocaleProvider');
+	}
+	return context;
 };
