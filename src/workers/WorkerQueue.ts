@@ -1,4 +1,4 @@
-import type { WorkerMessage } from '../types/api';
+import type { RequestTransport, WorkerMessage } from '../types/api';
 import { createLogger } from '../utils/Logger';
 import { getRandomId } from '../utils/common';
 import { PromiseFactory } from '../utils/PromiseFactory';
@@ -39,7 +39,13 @@ export class WorkerQueue {
 			!isUndefined(globalThis.location)
 		) {
 			try {
-				const workerUrl = new URL('./MyWorker.worker.ts', import.meta.url);
+				const workerLocation =
+					typeof window !== 'undefined' && window.location
+						? window.location.href
+						: typeof self !== 'undefined' && self.location
+							? self.location.href
+							: 'http://localhost/';
+				const workerUrl = new URL('./MyWorker.worker.ts', workerLocation);
 				// Create worker as module so internal ES module imports work
 				this.worker = new Worker(workerUrl, { type: 'module' } as any);
 			} catch {
@@ -266,6 +272,12 @@ export class WorkerQueue {
 	isAPIAlreadyRunning(endpoint: string, options?: RequestInit) {
 		const requestKey = this.createRequestKey(endpoint, options);
 		return this.promiseFactory.has(requestKey);
+	}
+
+	createRequestTransport(): RequestTransport {
+		return (url: string, options: RequestInit & { method?: HTTPMethod; body?: any }) => {
+			return this.fetchAPIData(url, options);
+		};
 	}
 
 	// Public API methods

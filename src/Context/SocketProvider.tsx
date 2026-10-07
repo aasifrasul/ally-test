@@ -1,58 +1,63 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { createContext, ReactNode, useEffect, useMemo, useState } from 'react';
+import type { Socket } from 'socket.io-client';
 
-import { constants } from '../constants';
+import { createContextProvider } from './contextProviderFactory';
+import { createSocketConnection } from './socketConnection';
 
-interface SocketContextType {
+export interface SocketContextType {
 	socket: Socket | null;
 	isConnected: boolean;
 }
 
-const SocketContext = createContext<SocketContextType>({
+export const SocketContext = createContext<SocketContextType>({
 	socket: null,
 	isConnected: false,
 });
 
-export const useSocket = () => {
-	const context = useContext(SocketContext);
-	if (context === undefined) {
-		throw new Error('useSocket must be used within a SocketProvider');
-	}
-	return context;
-};
+export function createSocketContext(): [
+	React.FC<{ children?: ReactNode; value: SocketContextType }>,
+	() => SocketContextType,
+] {
+	return createContextProvider(SocketContext, 'SocketProvider');
+}
+
+export const [SocketContextProvider, useSocketContext] = createSocketContext();
+export const useSocket = useSocketContext;
 
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const [isConnected, setIsConnected] = useState(false);
 
 	useEffect(() => {
-		// Initialize socket connection
-		const socketInstance = io(constants.BASE_URL);
-
-		// Explicitly connect to the server
-		socketInstance.connect();
-
-		socketInstance.on('connect', () => {
-			console.log('Connected to Socket.io server');
-			setIsConnected(true);
-		});
-
-		socketInstance.on('disconnect', () => {
-			console.log('Disconnected from Socket.io server');
-			setIsConnected(false);
+		const socketInstance = createSocketConnection({
+			url: undefined,
+			onConnect: () => {
+				console.log('Connected to Socket.io server');
+				setIsConnected(true);
+			},
+			onDisconnect: () => {
+				console.log('Disconnected from Socket.io server');
+				setIsConnected(false);
+			},
+			onConnectError: (error) => {
+				console.error('Socket connection error:', error);
+			},
 		});
 
 		setSocket(socketInstance);
 
-		// Clean up on unmount
 		return () => {
 			socketInstance.disconnect();
 		};
 	}, []);
 
-	return (
-		<SocketContext.Provider value={{ socket, isConnected }}>
-			{children}
-		</SocketContext.Provider>
+	const value = useMemo(
+		() => ({
+			socket,
+			isConnected,
+		}),
+		[socket, isConnected],
 	);
+
+	return <SocketContextProvider value={value}>{children}</SocketContextProvider>;
 };

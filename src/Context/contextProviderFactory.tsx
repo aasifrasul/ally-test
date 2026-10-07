@@ -1,5 +1,7 @@
 import React from 'react';
 
+import useContextFactory from './useContextFactory';
+
 interface ContextProviderProps {
 	children: React.ReactNode;
 }
@@ -11,9 +13,19 @@ interface ReducerAction {
 
 type ReducerType = (state: any, action: ReducerAction) => any;
 
-export const GenericContext = React.createContext({});
+export const GenericContext = React.createContext<any>(undefined);
 
-const { Provider } = GenericContext;
+export function createContextProvider<T>(
+	context: React.Context<T>,
+	name: string,
+): [React.FC<{ children?: React.ReactNode; value: T }>, () => T] {
+	const Provider = ({ children, value }: { children?: React.ReactNode; value: T }) =>
+		React.createElement(context.Provider, { value }, children);
+
+	Provider.displayName = name.replace(/\.Provider$/, '') + 'Provider';
+
+	return [Provider, useContextFactory(name, context)];
+}
 
 export const contextProviderFactory = (
 	props: ContextProviderProps,
@@ -21,7 +33,7 @@ export const contextProviderFactory = (
 	initialState: any = {},
 ) => {
 	const [state, dispatch] = React.useReducer(Reducer, initialState);
-	const value = React.useMemo(() => [state, dispatch], [state]);
+	const value = React.useMemo(() => [state, dispatch], [state, dispatch]);
 
-	return <Provider value={value}>{props.children}</Provider>;
+	return React.createElement(GenericContext.Provider, { value }, props.children);
 };

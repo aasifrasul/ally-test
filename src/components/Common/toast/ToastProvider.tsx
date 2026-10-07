@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 
-import { ToastContext } from './ToastContext';
+import { ToastContextProvider } from './ToastContext';
 import type { ToastType, Toast } from './types';
 import ToastContainer from './ToastContainer';
 import { useTimers } from '../../../hooks/useTimers';
@@ -54,9 +54,9 @@ export default function ToastProvider<TMessage = string, TMeta = unknown>({
 	);
 
 	return (
-		<ToastContext.Provider value={contextValue as any}>
+		<ToastContextProvider value={contextValue as any}>
 			{children}
 			<ToastContainer />
-		</ToastContext.Provider>
+		</ToastContextProvider>
 	);
 }

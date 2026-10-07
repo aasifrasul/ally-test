@@ -1,5 +1,5 @@
 import { buildQueryParams, withTimeout } from '../../utils/common';
-import { HTTPMethod, Result } from '../../types/api';
+import { HTTPMethod, RequestTransport, Result } from '../../types/api';
 import { isObject, isUndefined } from '../../utils/typeChecking';
 
 export interface RetryConfig {
@@ -7,10 +7,7 @@ export interface RetryConfig {
 	retryDelay: (attempt: number) => number;
 }
 
-export type FetchTransport = (
-	url: string,
-	options: RequestInit & { method: HTTPMethod; body?: any },
-) => Promise<unknown>;
+export type FetchTransport = RequestTransport;
 
 export function handleError(error: Error, fail: () => void, callback?: (err: Error) => void) {
 	if (error.name !== 'AbortError') {
@@ -79,7 +76,7 @@ export async function executeWithRetry<T>(
 }
 
 export async function requestWithRetry<T>(
-	transport: FetchTransport,
+	transport: RequestTransport,
 	url: string,
 	requestOptions: RequestInit & { method: HTTPMethod; body?: any },
 	timeout: number,

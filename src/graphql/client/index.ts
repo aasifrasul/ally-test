@@ -1,4 +1,5 @@
 import { GraphQLClient } from './client';
+import { createGraphQLClient } from './factory';
 import {
 	ConnectionStatus,
 	MutationOptions,
@@ -8,11 +9,11 @@ import {
 	SubscriptionResult,
 } from './types';
 
-// Create default client instance
-export const client = new GraphQLClient();
+// Create default client instance through a dedicated factory for consistent runtime config
+export const client = createGraphQLClient();
 
 // Export the client class for custom instances
-export { GraphQLClient };
+export { GraphQLClient, createGraphQLClient };
 
 // Export all types for external use
 export type {

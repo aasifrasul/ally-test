@@ -14,9 +14,7 @@ const useContextFactory = <T>(name: string, context: React.Context<T>): (() => T
 		if (ctx) {
 			return ctx;
 		}
-		throw new Error(
-			`useContext must be used within a ${name}; Please check the Component hierarchy`,
-		);
+		throw new Error(`useContext must be used within a ${name}`);
 	};
 };
 
