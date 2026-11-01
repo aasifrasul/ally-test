@@ -91,6 +91,19 @@ describe('fetchAPIData', () => {
 		if (res.success) expect(res.data).toBe('hello');
 	});
 
+	it('parses JSON even when content-type is missing', async () => {
+		(globalThis.fetch as any).mockResolvedValue({
+			...createMockResponse(true, 200, { results: [{ id: 1 }] }),
+			headers: { get: () => null },
+		});
+
+		const res = await fetchAPIData<{ results: Array<{ id: number }> }>('test');
+		expect(res.success).toBe(true);
+		if (res.success) {
+			expect(res.data.results).toEqual([{ id: 1 }]);
+		}
+	});
+
 	it('returns error when fetch rejects', async () => {
 		(globalThis.fetch as any).mockRejectedValue(new Error('fetch failed'));
 
