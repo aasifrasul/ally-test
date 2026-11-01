@@ -9,6 +9,7 @@ import {
 	ReducerFunction,
 	Schema,
 } from '../constants/types';
+import { toArrayData } from '../utils/common';
 
 const dataFetchReducer: GenericReducer = (
 	state: GenericState,
@@ -40,21 +41,29 @@ const dataFetchReducer: GenericReducer = (
 			};
 			break;
 
-		case ActionType.FETCH_SUCCESS:
+		case ActionType.FETCH_SUCCESS: {
+			const resolvedData = toArrayData(payload);
+			const existingData = Array.isArray(individualState.data)
+				? individualState.data
+				: [];
+			const existingOriginalData = Array.isArray(individualState.originalData)
+				? individualState.originalData
+				: existingData;
+
 			individualState = {
 				...individualState,
 				isLoading: false,
 			};
-			if (payload?.data) {
+			if (resolvedData) {
+				const accumulated = [...existingOriginalData, ...resolvedData];
 				individualState = {
 					...individualState,
-					data: [
-						...(Array.isArray(individualState.data) ? individualState.data : []),
-						...payload.data,
-					],
+					data: accumulated,
+					originalData: accumulated,
 				};
 			}
 			break;
+		}
 
 		case ActionType.FETCH_STOP:
 			individualState = {

@@ -11,7 +11,12 @@ import './InfiniteScroll.css';
 
 import { useVirtualization } from '../../hooks/useVirtualization';
 
-type Props = Omit<InitialState, 'data'> & ISProps;
+type Props = Omit<InitialState, 'data'> &
+	ISProps & {
+		className?: string;
+		'data-testid'?: string;
+		'data-hasmore'?: string;
+	};
 
 /**
  * InfiniteScroll
@@ -55,8 +60,18 @@ type Props = Omit<InitialState, 'data'> & ISProps;
  *   TOTAL_PAGES  – total number of pages available
  *   data         – flat array of user objects for the current fetch
  */
-export const InfiniteScroll = (props: Props) => {
-	const { currentPage = 1, fetchNextPage, TOTAL_PAGES, data } = props;
+export const InfiniteScroll = (
+	props: Props & { 'data-testid'?: string; 'data-hasmore'?: string },
+) => {
+	const {
+		currentPage = 1,
+		fetchNextPage,
+		TOTAL_PAGES,
+		data,
+		className,
+		'data-testid': dataTestId,
+		'data-hasmore': dataHasMore,
+	} = props;
 
 	// ─── Refs ────────────────────────────────────────────────────────────────
 
@@ -163,7 +178,11 @@ export const InfiniteScroll = (props: Props) => {
 	// ─── Render ───────────────────────────────────────────────────────────────
 
 	return (
-		<div className="scrollParent">
+		<div
+			className={['scrollParent', className].filter(Boolean).join(' ')}
+			data-testid={dataTestId}
+			data-hasmore={dataHasMore}
+		>
 			<h1 className="text-3xl text-center mt-4 mb-10">All users</h1>
 
 			<ScrollToTop />

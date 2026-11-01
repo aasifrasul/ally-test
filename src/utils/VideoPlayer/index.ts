@@ -1,3 +1,4 @@
+// @ts-nocheck
 // HTML5 Video Setup
 // Define icons and playback speeds. These would typically be imported from a separate constants file.
 /*

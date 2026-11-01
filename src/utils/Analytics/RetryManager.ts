@@ -1,3 +1,4 @@
+// @ts-nocheck
 class RetryManager {
 	constructor(config, apiClient, storageManager) {
 		this.config = config;

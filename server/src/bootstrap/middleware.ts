@@ -27,91 +27,125 @@ interface RequestWithTimedout extends Request {
 	timedout: boolean;
 }
 
-export function configureGlobalMiddleware(app: Application): void {
-	const globalLimiter = rateLimit({
-		windowMs: 15 * 60 * 1000,
-		max: 100,
-		standardHeaders: true,
-		legacyHeaders: false,
-	});
+export interface GlobalMiddlewareDependencies {
+	app?: Application;
+	host?: string;
+	port?: number | string;
+	isProdEnv?: boolean;
+	ALLOWED_ORIGINS?: string;
+	logger?: Pick<typeof logger, 'info'>;
+	webpackFactory?: typeof webpack;
+	loadWebpackConfig?: () => any;
+	rateLimitFactory?: typeof rateLimit;
+	timeoutFactory?: (ms: string) => any;
+}
 
-	app.use(globalLimiter);
-	handleFileupload(app);
-	setupProxy(app);
-	app.all('/graphql', handleGraphql);
+export function createGlobalMiddleware(
+	dependencies: GlobalMiddlewareDependencies = {},
+): (app: Application) => void {
+	const resolvedApp = dependencies.app;
+	const resolvedHost = dependencies.host ?? host;
+	const resolvedPort = dependencies.port ?? port;
+	const resolvedIsProdEnv = dependencies.isProdEnv ?? isProdEnv;
+	const resolvedAllowedOrigins = dependencies.ALLOWED_ORIGINS ?? ALLOWED_ORIGINS;
+	const runtimeLogger = dependencies.logger ?? logger;
+	const webpackFactory = dependencies.webpackFactory ?? webpack;
+	const loadWebpackConfig =
+		dependencies.loadWebpackConfig ??
+		(() => require('../../../webpack-configs/webpack.config.js'));
+	const rateLimitFactory = dependencies.rateLimitFactory ?? rateLimit;
+	const timeoutFactory = dependencies.timeoutFactory ?? timeout;
 
-	app.use(cookieParser());
-	app.use(userAgentHandler);
-	app.use(compression());
-	app.use(
-		cors({
-			origin: isProdEnv
-				? ALLOWED_ORIGINS?.split(',')
-				: [
-						`http://${host}:${port}`,
-						`http://localhost:${port}`,
-						`http://127.0.0.1:${port}`,
-					],
-			methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-			allowedHeaders: ['Content-Type', 'Authorization'],
-			credentials: true,
-		}),
-	);
-
-	app.use(
-		helmet({
-			contentSecurityPolicy: isProdEnv ? undefined : false,
-		}),
-	);
-
-	app.use(express.json({ limit: '1mb' }));
-	app.use(express.urlencoded({ extended: true, limit: '100kb' }));
-	app.use(bodyParser.text());
-	app.use(timeout('30s'));
-	app.use(haltOnTimedout as express.RequestHandler);
-	app.use((req: RequestWithId, _: unknown, next: NextFunction) => {
-		req.id = uuidv4();
-		next();
-	});
-	app.use(optionalAuth);
-
-	if (!isProdEnv) {
-		app.use('/public', (req, res, next) => {
-			if (req.path && req.path.endsWith('.ts')) {
-				res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-			}
-			next();
+	return (app: Application = resolvedApp ?? ({} as Application)): void => {
+		const globalLimiter = rateLimitFactory({
+			windowMs: 15 * 60 * 1000,
+			max: 100,
+			standardHeaders: true,
+			legacyHeaders: false,
 		});
 
-		const webpackConfig = require('../../webpack-configs/webpack.config');
-		const compiler = webpack(webpackConfig) as any;
+		app.use(globalLimiter);
+		handleFileupload(app);
+		setupProxy(app);
+		app.all('/graphql', handleGraphql);
 
+		app.use(cookieParser());
+		app.use(userAgentHandler);
+		app.use(compression());
 		app.use(
-			webpackDevMiddleware(compiler, {
-				publicPath: webpackConfig.output.publicPath,
-				stats: {
-					colors: true,
-					hash: false,
-					timings: true,
-					chunks: false,
-					chunkModules: false,
-					modules: false,
-				},
-				writeToDisk: false,
-				index: false,
+			cors({
+				origin: resolvedIsProdEnv
+					? resolvedAllowedOrigins?.split(',')
+					: [
+							`http://${resolvedHost}:${resolvedPort}`,
+							`http://localhost:${resolvedPort}`,
+							`http://127.0.0.1:${resolvedPort}`,
+						],
+				methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+				allowedHeaders: ['Content-Type', 'Authorization'],
+				credentials: true,
 			}),
 		);
 
 		app.use(
-			webpackHotMiddleware(compiler, {
-				log: console.log,
-				path: '/__webpack_hmr',
-				heartbeat: 10 * 1000,
+			helmet({
+				contentSecurityPolicy: resolvedIsProdEnv ? undefined : false,
 			}),
 		);
 
-		logger.info('🔥 Hot Module Replacement enabled');
-	}
+		app.use(express.json({ limit: '1mb' }));
+		app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+		app.use(bodyParser.text());
+		app.use(timeoutFactory('30s'));
+		app.use(haltOnTimedout as express.RequestHandler);
+		app.use((req: RequestWithId, _: unknown, next: NextFunction) => {
+			req.id = uuidv4();
+			next();
+		});
+		app.use(optionalAuth);
+
+		if (!resolvedIsProdEnv) {
+			app.use('/public', (req, res, next) => {
+				if (req.path && req.path.endsWith('.ts')) {
+					res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+				}
+				next();
+			});
+
+			const webpackConfig = loadWebpackConfig();
+			const compiler = webpackFactory(webpackConfig) as any;
+
+			app.use(
+				webpackDevMiddleware(compiler, {
+					publicPath: webpackConfig.output.publicPath,
+					stats: {
+						colors: true,
+						hash: false,
+						timings: true,
+						chunks: false,
+						chunkModules: false,
+						modules: false,
+					},
+					writeToDisk: false,
+					index: false,
+				}),
+			);
+
+			app.use(
+				webpackHotMiddleware(compiler, {
+					log: console.log,
+					path: '/__webpack_hmr',
+					heartbeat: 10 * 1000,
+				}),
+			);
+
+			runtimeLogger.info('🔥 Hot Module Replacement enabled');
+		}
+	};
+}
+
+export function configureGlobalMiddleware(app: Application): void {
+	return createGlobalMiddleware()(app);
 }
 
 function haltOnTimedout(req: RequestWithTimedout, res: Response, next: NextFunction): void {

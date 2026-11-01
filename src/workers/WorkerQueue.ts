@@ -32,21 +32,31 @@ export class WorkerQueue {
 	private constructor() {
 		this.isWorkerEnvironment = !isUndefined(window) && !isUndefined(Worker);
 
-		// Initialize worker only in browser environments
+		const isLocalServer =
+			typeof location !== 'undefined' &&
+			(['localhost', '127.0.0.1', '0.0.0.0'].includes(location.hostname) ||
+				location.port === '3100');
+
+		// Local server/browser setups in this repo do not reliably expose the TS worker
+		// module as a public asset, so the app should use the main-thread fallback there.
 		if (
 			this.isWorkerEnvironment &&
 			!isUndefined(globalThis.Worker) &&
-			!isUndefined(globalThis.location)
+			!isUndefined(globalThis.location) &&
+			!isLocalServer
 		) {
 			try {
-				const workerLocation =
-					typeof window !== 'undefined' && window.location
-						? window.location.href
-						: typeof self !== 'undefined' && self.location
-							? self.location.href
-							: 'http://localhost/';
-				const workerUrl = new URL('./MyWorker.worker.ts', workerLocation);
-				// Create worker as module so internal ES module imports work
+				const workerUrl = (() => {
+					if (typeof document !== 'undefined' && document.baseURI) {
+						return new URL('./MyWorker.worker.ts', document.baseURI);
+					}
+					if (typeof self !== 'undefined' && self.location) {
+						return new URL('./MyWorker.worker.ts', self.location.href);
+					}
+					return new URL('./MyWorker.worker.ts', 'http://localhost/');
+				})();
+
+				// Create worker as module so internal ES module imports work.
 				this.worker = new Worker(workerUrl, { type: 'module' } as any);
 			} catch {
 				this.worker = undefined;
@@ -109,7 +119,17 @@ export class WorkerQueue {
 	}
 
 	private handleError(error: ErrorEvent): void {
-		logger.error('Worker error:', error);
+		const workerMessage =
+			error?.message ||
+			(error?.target && 'url' in error.target
+				? String((error.target as any).url)
+				: '') ||
+			'Worker script failed to load';
+
+		logger.warn(
+			'Web Worker unavailable; falling back to main-thread execution.',
+			workerMessage,
+		);
 		this.worker = undefined;
 
 		for (const [id, request] of this.pendingWorkerRequests) {

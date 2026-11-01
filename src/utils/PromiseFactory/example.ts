@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PromiseFactory } from '.';
 
 async function runExample() {

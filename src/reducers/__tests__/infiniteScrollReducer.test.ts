@@ -28,8 +28,10 @@ describe('infiniteScrollReducer', () => {
 			const newState = infiniteScrollReducer(existingState, action);
 
 			expect(newState).toEqual({
+				...existingState,
 				isLoading: false,
 				isError: false,
+				originalData: [mockUserData[0], mockUserData[1]],
 				data: [mockUserData[0], mockUserData[1]],
 			});
 		});
@@ -45,9 +47,32 @@ describe('infiniteScrollReducer', () => {
 			const newState = infiniteScrollReducer(initialState, action);
 
 			expect(newState).toEqual({
+				...initialState,
 				isLoading: false,
 				isError: false,
+				originalData: mockUserData,
 				data: mockUserData,
+			});
+		});
+
+		it('should handle nested payloads returned under data.results', () => {
+			const action = {
+				type: ActionType.FETCH_SUCCESS,
+				payload: {
+					data: {
+						results: [mockUserData[1]],
+					},
+				},
+			};
+
+			const newState = infiniteScrollReducer(initialState, action);
+
+			expect(newState).toEqual({
+				...initialState,
+				isLoading: false,
+				isError: false,
+				originalData: [mockUserData[1]],
+				data: [mockUserData[1]],
 			});
 		});
 	});

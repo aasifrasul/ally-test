@@ -17,6 +17,7 @@ export function useSchemaQuery(schema: Schema) {
 	const { data, pageData, headers, currentPage, isLoading, isError } = useSchema(schema);
 
 	return {
+		schema,
 		data,
 		pageData,
 		headers,

@@ -2,19 +2,23 @@ import dataFetchReducer from '../dataFetchReducer';
 import { GenericState, GenericAction, Schema, ActionType } from '../../constants/types';
 import { constants } from '../../constants';
 
-// Mock the entire constants module
-jest.mock('../../constants', () => ({
-	...jest.requireActual('../../constants'),
-	constants: {
-		dataSources: {
-			[Schema.INFINITE_SCROLL]: {
-				reducer: jest.fn(),
-				BASE_URL: 'http://example.com',
-				schema: Schema.INFINITE_SCROLL,
+// Mock the entire constants module without relying on enum hoisting order.
+jest.mock('../../constants', () => {
+	const { Schema } = jest.requireActual('../../constants/types');
+
+	return {
+		...jest.requireActual('../../constants'),
+		constants: {
+			dataSources: {
+				[Schema.INFINITE_SCROLL]: {
+					reducer: jest.fn(),
+					BASE_URL: 'http://example.com',
+					schema: Schema.INFINITE_SCROLL,
+				},
 			},
 		},
-	},
-}));
+	};
+});
 
 describe('dataFetchReducer', () => {
 	// Mock schema and initial states

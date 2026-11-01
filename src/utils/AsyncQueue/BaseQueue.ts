@@ -1,9 +1,9 @@
 type Key = number;
 
 export class BaseQueue<T> {
-	private map: Map<Key, T> = new Map();
-	private upperLimit: Key = 0;
-	private lowerLimit: Key = 0;
+	protected map: Map<Key, T> = new Map();
+	protected upperLimit: Key = 0;
+	protected lowerLimit: Key = 0;
 
 	constructor() {
 		this.reset();

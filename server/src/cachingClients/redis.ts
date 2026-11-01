@@ -105,6 +105,17 @@ export class RedisClient {
 		if (!this.client) return;
 
 		this.client.on('error', (error) => {
+			const message = error instanceof Error ? error.message : String(error);
+			if (
+				message.includes('AUTH') &&
+				message.includes('without any password configured')
+			) {
+				logger.warn(
+					'Redis auth is not configured for this environment; skipping Redis cache connection.',
+				);
+				this.isConnected = false;
+				return;
+			}
 			logger.error('Redis error:', error);
 			this.isConnected = false;
 		});

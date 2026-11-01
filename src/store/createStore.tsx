@@ -34,6 +34,9 @@ export function createStoreContext<T extends GenericState>(
 					get(target: T, prop: string | symbol) {
 						if (isString(prop) && prop in target) {
 							const value = target[prop as keyof T];
+							if (Array.isArray(value)) {
+								return Object.freeze([...value]);
+							}
 							return isObject(value) ? Object.freeze({ ...value }) : value;
 						}
 						logger.warn(`Schema "${String(prop)}" not found in store`);

@@ -4,6 +4,12 @@ declare module '*.module.scss';
 declare global {
 	interface Window {
 		__DEV_HMR_STATUS__?: () => void;
+		analytics?: {
+			track: (eventName: string, eventData?: Record<string, unknown>) => void;
+		};
+		videoPlayer?: {
+			switchQuality: (quality: string | { label?: string }) => Promise<void> | void;
+		};
 	}
 
 	declare module '*.png' {

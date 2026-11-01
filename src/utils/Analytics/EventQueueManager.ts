@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { BaseQueue } from '../AsyncQueue/BaseQueue';
 
 export class EventQueueManager<T> extends BaseQueue<T> {

@@ -2,7 +2,9 @@ import { JSX, useEffect } from 'react';
 
 import { useSchemaQuery } from '../../hooks/dataSelector';
 
-import { Schema, APIDataTypes } from '../../constants/types';
+import { Schema } from '../../constants/types';
+import { toArrayData } from '../../utils/common';
+import { Movie_Item } from '../../types/movieList';
 
 import { MovieList } from './MovieList';
 
@@ -12,7 +14,8 @@ interface ParentProps {
 }
 
 export default function MovieListContainer(props: ParentProps): JSX.Element {
-	const { fetchData, fetchNextPage, ...result } = useSchemaQuery(Schema.MOVIE_LIST);
+	const { fetchData, fetchNextPage, data, ...result } = useSchemaQuery(Schema.MOVIE_LIST);
+	const normalizedData = toArrayData<Movie_Item>(data);
 
 	useEffect(() => {
 		// Debug: ensure fetch is invoked on mount
@@ -25,21 +28,20 @@ export default function MovieListContainer(props: ParentProps): JSX.Element {
 	// eslint-disable-next-line no-console
 	console.debug('MovieListContainer: result=', result);
 
-	// Handle initial loading state
-	if (result.isLoading && !result.data?.length) {
+	if (result.isLoading && normalizedData.length === 0) {
 		return <div className="text-center mt-10">Loading...</div>;
 	}
 
-	// Handle empty state
-	if (!result.isLoading && !result.data?.length) {
+	if (!result.isLoading && normalizedData.length === 0) {
 		return <div className="text-center mt-10">No Records found</div>;
 	}
 
 	return (
 		<MovieList
 			{...props}
-			{...(result as APIDataTypes)}
+			{...result}
 			schema={Schema.MOVIE_LIST}
+			data={normalizedData}
 			fetchNextPage={fetchNextPage}
 		/>
 	);

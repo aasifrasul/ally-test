@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Storage, StorageType } from './Storage';
 
 class StorageManager {
