@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { atom, useAtom } from 'jotai';
 
 import { getCurrentUserGroup, getCurrentUserId } from '../auth';

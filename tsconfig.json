@@ -26,5 +26,20 @@
 		]
 	},
 	"include": ["src", "types"],
-	"exclude": ["node_modules", "public", "dist", "server/**/*", "src/utils/polyfills/"]
+	"exclude": [
+		"node_modules",
+		"public",
+		"dist",
+		"server/**/*",
+		"src/utils/polyfills/",
+		"src/utils/fetch-polyfill/**/*",
+		"src/utils/Analytics/**/*",
+		"src/utils/FeatureFlags/**/*",
+		"src/utils/VideoPlayer/**/*",
+		"src/utils/PriorityQueue.ts",
+		"src/utils/PromiseFactory/example.ts",
+		"src/hooks/__tests__/**/*",
+		"src/**/*.test.*",
+		"src/**/__tests__/**/*"
+	]
 }

@@ -10,18 +10,22 @@ import {
 	registerRoutes,
 } from './bootstrap';
 
-const app: Application = express();
+export function createApp(): Application {
+	const app: Application = express();
 
-generateBuildTime();
-configureGlobalMiddleware(app);
+	generateBuildTime();
+	configureGlobalMiddleware(app);
 
-const bundleConfig = isProdEnv
-	? ['en', 'vendor', 'app'].map((item) => `/public/${item}.[chunkhash].js`)
-	: ['en', 'vendor', 'app'].map((item) => `/public/${item}.bundle.js`);
+	const bundleConfig = isProdEnv
+		? ['en', 'vendor', 'app'].map((item) => `/public/${item}.[chunkhash].js`)
+		: ['en', 'vendor', 'app'].map((item) => `/public/${item}.bundle.js`);
 
-configureStaticAssets(app);
-configureTemplateRendering(app);
-registerHealthCheck(app);
-registerRoutes(app, bundleConfig);
+	configureStaticAssets(app);
+	configureTemplateRendering(app);
+	registerHealthCheck(app);
+	registerRoutes(app, bundleConfig);
 
-export { app };
+	return app;
+}
+
+export const app = createApp();

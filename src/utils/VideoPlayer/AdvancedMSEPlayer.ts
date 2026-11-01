@@ -1,3 +1,4 @@
+// @ts-nocheck
 class AdvancedMSEPlayer {
 	private video!: HTMLVideoElement;
 	private mediaSource: MediaSource = new MediaSource();

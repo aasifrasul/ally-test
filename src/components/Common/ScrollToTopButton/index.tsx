@@ -1,12 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useEventListener } from '../../../hooks';
 
 const ScrollToTop: React.FC = () => {
 	const [showTopBtn, setShowTopBtn] = useState<boolean>(false);
 
-	const handleScroll = useCallback(() => {
+	const handleScroll: EventListener = (event: Event) => {
+		void event;
 		setShowTopBtn(window.scrollY > 500);
-	}, []);
+	};
 
 	useEventListener('scroll', handleScroll, window);
 

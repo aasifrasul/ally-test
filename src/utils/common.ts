@@ -237,3 +237,35 @@ export function isValidSSN(value: string): boolean {
 
 	return true;
 }
+
+export function toArrayData<T>(value: unknown): T[] {
+	if (Array.isArray(value)) {
+		return value as T[];
+	}
+
+	if (!value || typeof value !== 'object') {
+		return [];
+	}
+
+	const record = value as Record<string, unknown>;
+
+	if (Array.isArray(record.results)) {
+		return record.results as T[];
+	}
+
+	if (Array.isArray(record.data)) {
+		return record.data as T[];
+	}
+
+	if (record.data && typeof record.data === 'object') {
+		const nestedRecord = record.data as Record<string, unknown>;
+		if (Array.isArray(nestedRecord.results)) {
+			return nestedRecord.results as T[];
+		}
+		if (Array.isArray(nestedRecord.data)) {
+			return nestedRecord.data as T[];
+		}
+	}
+
+	return [];
+}

@@ -22,8 +22,11 @@ export interface ToastContextState<
 export const ToastContext = createContext<ToastContextState<any, any> | null>(null);
 
 export function createToastContext<TMessage = string, TMeta = unknown>(): [
-	React.FC<{ children?: ReactNode; value: ToastContextState<TMessage, TMeta> }>,
-	() => ToastContextState<TMessage, TMeta>,
+	React.FC<{
+		children?: ReactNode;
+		value: ToastContextState<TMessage, TMeta> | null;
+	}>,
+	() => ToastContextState<TMessage, TMeta> | null,
 ] {
 	return createContextProvider(
 		ToastContext as React.Context<ToastContextState<TMessage, TMeta> | null>,

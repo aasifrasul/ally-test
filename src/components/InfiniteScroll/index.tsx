@@ -1,8 +1,9 @@
 import { useEffect, JSX } from 'react';
 import { InfiniteScroll } from './InfiniteScroll';
 import { Schema } from '../../constants/types';
-import { handleAsyncExecution } from '../../utils/common';
+import { toArrayData } from '../../utils/common';
 import { useSchemaQuery } from '../../hooks/dataSelector';
+import { IS_Item } from '../../types/infiniteScroll';
 
 interface ParentProps {
 	className?: string;
@@ -10,19 +11,20 @@ interface ParentProps {
 }
 
 function InfiniteScrollContainer(props: ParentProps): JSX.Element {
-	const { fetchData, fetchNextPage, ...result } = useSchemaQuery(Schema.INFINITE_SCROLL);
+	const { fetchData, fetchNextPage, data, ...result } = useSchemaQuery(
+		Schema.INFINITE_SCROLL,
+	);
+	const normalizedData = toArrayData<IS_Item>(data);
 
 	useEffect(() => {
 		fetchData();
 	}, [fetchData]);
 
-	// Handle initial loading state
-	if (result.isLoading && !result.data?.length) {
+	if (result.isLoading && normalizedData.length === 0) {
 		return <div className="text-center mt-10">Loading...</div>;
 	}
 
-	// Handle empty state
-	if (!result.isLoading && !result.data?.length) {
+	if (!result.isLoading && normalizedData.length === 0) {
 		return <div className="text-center mt-10">No Records found</div>;
 	}
 
@@ -30,9 +32,11 @@ function InfiniteScrollContainer(props: ParentProps): JSX.Element {
 		<InfiniteScroll
 			{...props}
 			{...result}
+			schema={Schema.INFINITE_SCROLL}
+			data={normalizedData}
 			fetchNextPage={fetchNextPage}
 			data-testid="infinite-scroll"
-			data-hasmore={'true'}
+			data-hasmore={normalizedData.length > 0 ? 'true' : 'false'}
 		/>
 	);
 }

@@ -2,9 +2,9 @@ const webpack = require('webpack');
 const CompressionPlugin = require('compression-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 const EmitAssetsPlugin = require('./emit-assets-plugin');
-const Visualizer = require('webpack-visualizer-plugin');
 const StatsPlugin = require('stats-webpack-plugin');
 const DEV = process.env.NODE_ENV !== 'production';
 const PROD = !DEV;
@@ -72,13 +72,10 @@ if (PROD) {
 			test: /\.(js|css|svg)$/,
 		}),
 
-		/**
-		 * This plugin helps visualize and analyze your Webpack bundle to see which
-		 * modules are taking up space and which might be duplicates.
-		 * Source: https://github.com/chrisbateman/webpack-visualizer
-		 */
-		new Visualizer({
-			filename: './statistics.html',
+		new BundleAnalyzerPlugin({
+			analyzerMode: 'static',
+			openAnalyzer: false,
+			reportFilename: 'statistics.html',
 		}),
 
 		/**

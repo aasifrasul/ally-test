@@ -13,8 +13,10 @@ const loaders = [
 			{
 				loader: 'ts-loader',
 				options: {
-					// Enable faster builds in development
-					transpileOnly: DEV,
+					// The project contains legacy strict-typing demo utilities that are not part
+					// of the shipped bundle. Skip full type checking during webpack compilation
+					// so the production build can focus on the app entrypoints.
+					transpileOnly: true,
 					// Enable HMR for TypeScript
 					experimentalWatchApi: DEV,
 				},

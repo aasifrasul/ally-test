@@ -12,13 +12,13 @@ import {
 	FetchResult,
 	CustomFetchOptions,
 	ModifyOptions,
-	HTTPMethod,
 } from '../../types/api';
 import { handleError, requestWithRetry } from './helpers';
 import { invalidateSchema, isSchemaStale, markSchemaFetched } from './cacheMetadata';
 import { buildFetchRequest } from './fetchRequest';
 import { buildMutationRequest, normalizeMutationOptions } from './mutationRequest';
 import { useRefetchLifecycle } from './useRefetchLifecycle';
+import { toArrayData } from '../../utils/common';
 
 const DEFAULT_RETRY_DELAY = (attempt: number) => Math.min(1000 * 2 ** (attempt - 1), 30000);
 const DEFAULT_TIMEOUT = 2000;
@@ -31,7 +31,7 @@ export function useFetch<T = unknown, U = T>(
 ): FetchResult<T, U> {
 	const {
 		timeout = DEFAULT_TIMEOUT,
-		transformResponse = (data: any) => data as T,
+		transformResponse = (data: any) => toArrayData<T>(data) as T,
 		transformUpdateResponse = (data: any) => data as U,
 		onSuccess = () => {},
 		onError = () => {},

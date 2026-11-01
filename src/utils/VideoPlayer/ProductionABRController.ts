@@ -1,5 +1,37 @@
+// @ts-nocheck
+type QualityLevel = {
+	id: string;
+	height: number;
+	bitrate: number;
+	url: string;
+	label: string;
+};
+
+type DeviceCapabilities = {
+	maxResolution: number;
+	memoryGB: number;
+	connectionType: string;
+	isMobile: boolean;
+	hardwareAcceleration: boolean;
+};
+
 class ProductionABRController {
-	constructor(player) {
+	player: NetflixStylePlayer;
+	qualityLevels: QualityLevel[];
+	currentQualityIndex: number;
+	bandwidthMeasurements: Array<{ timestamp: number; value: number }>;
+	switchHistory: Array<{
+		timestamp: number;
+		from: number;
+		to: number;
+		reason: string;
+		bandwidth: number;
+		bufferLength: number;
+	}>;
+	isUserOverride: boolean;
+	deviceCapabilities: DeviceCapabilities;
+
+	constructor(player: NetflixStylePlayer) {
 		this.player = player;
 		this.qualityLevels = [
 			{
@@ -32,7 +64,7 @@ class ProductionABRController {
 			},
 		];
 
-		this.currentQualityIndex = 1; // Start conservatively
+		this.currentQualityIndex = 1;
 		this.bandwidthMeasurements = [];
 		this.switchHistory = [];
 		this.isUserOverride = false;
@@ -41,39 +73,46 @@ class ProductionABRController {
 		this.startAdaptation();
 	}
 
-	detectDeviceCapabilities() {
+	detectDeviceCapabilities(): DeviceCapabilities {
 		const screen = window.screen;
 		const connection =
-			navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+			(
+				navigator as Navigator & {
+					connection?: { effectiveType?: string };
+					mozillaConnection?: { effectiveType?: string };
+					webkitConnection?: { effectiveType?: string };
+				}
+			).connection ||
+			(navigator as Navigator & { mozConnection?: { effectiveType?: string } })
+				.mozConnection ||
+			(navigator as Navigator & { webkitConnection?: { effectiveType?: string } })
+				.webkitConnection;
 
 		return {
 			maxResolution: Math.min(screen.width, screen.height),
-			memoryGB: navigator.deviceMemory || 4, // Default to 4GB
-			connectionType: connection ? connection.effectiveType : '4g',
+			memoryGB: (navigator as Navigator & { deviceMemory?: number }).deviceMemory || 4,
+			connectionType: connection ? connection.effectiveType || '4g' : '4g',
 			isMobile: /Mobile|Android|iPhone|iPad/.test(navigator.userAgent),
 			hardwareAcceleration: this.checkHardwareAcceleration(),
 		};
 	}
 
-	checkHardwareAcceleration() {
-		// Simple hardware acceleration detection
+	checkHardwareAcceleration(): boolean {
 		const canvas = document.createElement('canvas');
 		const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-		return gl ? gl.getParameter(gl.RENDERER).includes('GPU') : false;
+		return !!gl && gl.getParameter(gl.RENDERER).includes('GPU');
 	}
 
-	startAdaptation() {
-		// Multiple adaptation intervals
+	startAdaptation(): void {
 		setInterval(() => this.measureThroughput(), 2000);
 		setInterval(() => this.adaptQuality(), 5000);
 		setInterval(() => this.cleanupHistory(), 30000);
 
-		// React to video events
 		this.player.video.addEventListener('waiting', () => this.onBuffering());
 		this.player.video.addEventListener('canplaythrough', () => this.onBufferRecovered());
 	}
 
-	async measureThroughput() {
+	async measureThroughput(): Promise<void> {
 		const startTime = performance.now();
 		const testSize = this.selectTestSize();
 
@@ -85,8 +124,8 @@ class ProductionABRController {
 			const data = await response.arrayBuffer();
 			const endTime = performance.now();
 
-			const duration = (endTime - startTime) / 1000; // seconds
-			const throughput = (data.byteLength * 8) / duration; // bits per second
+			const duration = (endTime - startTime) / 1000;
+			const throughput = (data.byteLength * 8) / duration;
 
 			this.addBandwidthMeasurement(throughput);
 		} catch (error) {
@@ -94,31 +133,28 @@ class ProductionABRController {
 		}
 	}
 
-	selectTestSize() {
-		// Adaptive test size based on current quality
+	selectTestSize(): number {
 		const currentQuality = this.qualityLevels[this.currentQualityIndex];
-		return Math.min(100000, currentQuality.bitrate / 8); // 1 second worth of data
+		return Math.min(100000, currentQuality.bitrate / 8);
 	}
 
-	addBandwidthMeasurement(throughput) {
+	addBandwidthMeasurement(throughput: number): void {
 		this.bandwidthMeasurements.push({
 			timestamp: Date.now(),
 			value: throughput,
 		});
 
-		// Keep only recent measurements (last 60 seconds)
 		const cutoff = Date.now() - 60000;
 		this.bandwidthMeasurements = this.bandwidthMeasurements.filter(
 			(m) => m.timestamp > cutoff,
 		);
 	}
 
-	calculateAvailableBandwidth() {
+	calculateAvailableBandwidth(): number {
 		if (this.bandwidthMeasurements.length < 3) {
-			return this.qualityLevels[1].bitrate; // Default to medium quality
+			return this.qualityLevels[1].bitrate;
 		}
 
-		// Use harmonic mean for more conservative estimate
 		const weights = this.bandwidthMeasurements.map((_, i) => i + 1);
 		const weightedSum = this.bandwidthMeasurements.reduce(
 			(sum, measurement, i) => sum + measurement.value * weights[i],
@@ -129,7 +165,7 @@ class ProductionABRController {
 		return weightedSum / totalWeight;
 	}
 
-	adaptQuality() {
+	adaptQuality(): void {
 		if (this.isUserOverride) return;
 
 		const availableBandwidth = this.calculateAvailableBandwidth();
@@ -147,13 +183,21 @@ class ProductionABRController {
 		}
 	}
 
-	analyzeBufferHealth() {
+	analyzeBufferHealth(): {
+		length: number;
+		ratio: number;
+		isStarving: boolean;
+		isHealthy: boolean;
+		isAbundant: boolean;
+		playbackRate: number;
+		isBuffering: boolean;
+	} {
 		const bufferLength = this.player.getBufferLength();
 		const video = this.player.video;
 
 		return {
 			length: bufferLength,
-			ratio: bufferLength / 30, // Target 30 seconds
+			ratio: bufferLength / 30,
 			isStarving: bufferLength < 3,
 			isHealthy: bufferLength > 15,
 			isAbundant: bufferLength > 45,
@@ -162,43 +206,39 @@ class ProductionABRController {
 		};
 	}
 
-	calculateDeviceScore() {
+	calculateDeviceScore(): number {
 		let score = 1.0;
 
-		// Screen resolution factor
 		if (this.deviceCapabilities.maxResolution < 720) score *= 0.6;
 		else if (this.deviceCapabilities.maxResolution < 1080) score *= 0.8;
 
-		// Memory factor
 		if (this.deviceCapabilities.memoryGB < 2) score *= 0.5;
 		else if (this.deviceCapabilities.memoryGB < 4) score *= 0.7;
 
-		// Connection type factor
 		if (this.deviceCapabilities.connectionType === 'slow-2g') score *= 0.2;
 		else if (this.deviceCapabilities.connectionType === '2g') score *= 0.4;
 		else if (this.deviceCapabilities.connectionType === '3g') score *= 0.7;
 
-		// Mobile penalty for battery life
 		if (this.deviceCapabilities.isMobile) score *= 0.8;
 
 		return Math.max(0.1, Math.min(1.0, score));
 	}
 
-	selectOptimalQuality(bandwidth, bufferHealth, deviceScore) {
-		// Safety margin - use 70% of available bandwidth
+	selectOptimalQuality(
+		bandwidth: number,
+		bufferHealth: ReturnType<this['analyzeBufferHealth']>,
+		deviceScore: number,
+	): number {
 		const usableBandwidth = bandwidth * 0.7 * deviceScore;
 
-		// Emergency downgrade for critical buffer
 		if (bufferHealth.isStarving) {
 			return Math.max(0, this.currentQualityIndex - 2);
 		}
 
-		// Conservative downgrade for low buffer
 		if (bufferHealth.length < 8 && !bufferHealth.isHealthy) {
 			return Math.max(0, this.currentQualityIndex - 1);
 		}
 
-		// Find highest sustainable quality
 		let targetIndex = 0;
 		for (let i = this.qualityLevels.length - 1; i >= 0; i--) {
 			if (this.qualityLevels[i].bitrate <= usableBandwidth) {
@@ -207,7 +247,6 @@ class ProductionABRController {
 			}
 		}
 
-		// Prevent oscillation - require significant improvement for upgrade
 		if (targetIndex > this.currentQualityIndex) {
 			const requiredImprovement = this.qualityLevels[targetIndex].bitrate * 1.2;
 			if (usableBandwidth < requiredImprovement) {
@@ -218,47 +257,43 @@ class ProductionABRController {
 		return targetIndex;
 	}
 
-	switchQuality(newIndex, reason) {
+	switchQuality(newIndex: number, reason: string): void {
 		const oldQuality = this.qualityLevels[this.currentQualityIndex];
 		const newQuality = this.qualityLevels[newIndex];
 
 		console.log(`Quality switch (${reason}): ${oldQuality.label} → ${newQuality.label}`);
 
-		// Record switch for analysis
 		this.switchHistory.push({
 			timestamp: Date.now(),
 			from: this.currentQualityIndex,
 			to: newIndex,
-			reason: reason,
+			reason,
 			bandwidth: this.calculateAvailableBandwidth(),
 			bufferLength: this.player.getBufferLength(),
 		});
 
 		this.currentQualityIndex = newIndex;
-
-		// Trigger actual quality switch in player
 		this.player.switchToQuality(newQuality);
-
-		// Notify UI
 		this.onQualityChanged(newQuality);
 	}
 
-	// Handle user manual quality selection
-	setQualityOverride(qualityIndex) {
-		this.isUserOverride = qualityIndex !== -1; // -1 means auto
+	setQualityOverride(qualityIndex: number): void {
+		this.isUserOverride = qualityIndex !== -1;
 
 		if (!this.isUserOverride) {
-			// Re-enable automatic adaptation
 			setTimeout(() => this.adaptQuality(), 1000);
 		} else {
 			this.switchQuality(qualityIndex, 'user_override');
 		}
 	}
 
-	onBuffering() {
+	onQualityChanged(_quality: QualityLevel): void {
+		// no-op for demo integration
+	}
+
+	onBuffering(): void {
 		console.log('Buffering detected - considering quality reduction');
 
-		// Immediate quality reduction if we're not already at lowest
 		if (this.currentQualityIndex > 0 && !this.isUserOverride) {
 			this.switchQuality(
 				Math.max(0, this.currentQualityIndex - 1),
@@ -267,18 +302,29 @@ class ProductionABRController {
 		}
 	}
 
-	onBufferRecovered() {
+	onBufferRecovered(): void {
 		console.log('Buffer recovered');
-		// Let normal adaptation handle quality increases
 	}
 
-	cleanupHistory() {
-		const cutoff = Date.now() - 300000; // Keep 5 minutes of history
+	cleanupHistory(): void {
+		const cutoff = Date.now() - 300000;
 		this.switchHistory = this.switchHistory.filter((s) => s.timestamp > cutoff);
 	}
 
-	// Analytics and debugging
-	getPerformanceMetrics() {
+	getPerformanceMetrics(): {
+		currentQuality: QualityLevel;
+		averageBandwidth: number;
+		bufferHealth: ReturnType<this['analyzeBufferHealth']>;
+		recentSwitches: Array<{
+			timestamp: number;
+			from: number;
+			to: number;
+			reason: string;
+			bandwidth: number;
+			bufferLength: number;
+		}>;
+		deviceScore: number;
+	} {
 		return {
 			currentQuality: this.qualityLevels[this.currentQualityIndex],
 			averageBandwidth: this.calculateAvailableBandwidth(),

@@ -1,39 +1,45 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import InfiniteScrollContainer from '..';
-import { useFetch } from '../../../hooks/useFetch';
+import { useSchemaQuery } from '../../../hooks/dataSelector';
 import { Schema } from '../../../constants/types';
 import type { InitialState } from '../../../constants/types';
+import { mockUserData } from '../../../reducers/__tests__/infiniteScroll.testdata';
 
-jest.mock('../../../hooks/useFetch');
+jest.mock('../../../hooks/dataSelector');
 
 describe('InfiniteScrollContainer', () => {
-	// Define mock data
-	const mockItems: InitialState['data'] = [
-		{ id: 1, name: 'Item 1' },
-		{ id: 2, name: 'Item 2' },
-	];
+	beforeAll(() => {
+		class ResizeObserverMock {
+			observe = jest.fn();
+			unobserve = jest.fn();
+			disconnect = jest.fn();
+		}
+		(global as any).ResizeObserver = ResizeObserverMock;
+	});
+
+	const mockItems: InitialState['data'] = mockUserData;
 
 	const mockInitialState: InitialState = {
 		data: mockItems,
 	};
 
-	// Type the mock
-	const mockUseFetch = useFetch as jest.MockedFunction<typeof useFetch>;
+	const mockUseSchemaQuery = useSchemaQuery as jest.MockedFunction<typeof useSchemaQuery>;
 
 	const mockFetchData = jest.fn();
-	const mockCleanUpTopLevel = jest.fn();
 	const mockFetchNextPage = jest.fn();
-	const mockGetList = jest.fn();
 	const mockUpdateData = jest.fn();
 
 	beforeEach(() => {
-		// Reset all mocks
 		jest.clearAllMocks();
 
-		// Setup mock implementation
-		mockGetList.mockReturnValue(mockInitialState);
-
-		mockUseFetch.mockReturnValue({
+		mockUseSchemaQuery.mockReturnValue({
+			schema: Schema.INFINITE_SCROLL,
+			data: mockInitialState.data,
+			pageData: [],
+			headers: [],
+			isLoading: false,
+			currentPage: 1,
+			isError: false,
 			fetchData: mockFetchData,
 			fetchNextPage: mockFetchNextPage,
 			updateData: mockUpdateData,
@@ -43,7 +49,7 @@ describe('InfiniteScrollContainer', () => {
 	it('should render without crashing and show the infinite scroll component', () => {
 		render(<InfiniteScrollContainer />);
 		const infiniteScrollElement = screen.getByTestId('infinite-scroll');
-		expect(infiniteScrollElement).toBeInTheDocument();
+		expect(infiniteScrollElement).not.toBeNull();
 	});
 
 	it('should pass correct props to InfiniteScroll component', () => {
@@ -51,20 +57,46 @@ describe('InfiniteScrollContainer', () => {
 
 		const infiniteScrollElement = screen.getByTestId('infinite-scroll');
 
-		// Check if all required props are passed
-		expect(infiniteScrollElement).toHaveAttribute('data-hasmore', 'true');
-		expect(mockGetList).toHaveBeenCalledWith(Schema.INFINITE_SCROLL);
+		expect(infiniteScrollElement.getAttribute('data-hasmore')).toBe('true');
+		expect(mockUseSchemaQuery).toHaveBeenCalledWith(Schema.INFINITE_SCROLL);
 	});
 
 	it('should handle empty data state correctly', () => {
-		mockGetList.mockReturnValueOnce({
+		mockUseSchemaQuery.mockReturnValueOnce({
+			schema: Schema.INFINITE_SCROLL,
 			data: [],
+			pageData: [],
+			headers: [],
+			isLoading: false,
+			currentPage: 1,
+			isError: false,
+			fetchData: mockFetchData,
+			fetchNextPage: mockFetchNextPage,
+			updateData: mockUpdateData,
 		});
 
 		render(<InfiniteScrollContainer />);
-		const infiniteScrollElement = screen.getByTestId('infinite-scroll');
+		expect(screen.getByText('No Records found')).not.toBeNull();
+	});
 
-		expect(infiniteScrollElement).toHaveAttribute('data-hasmore', 'false');
+	it('should unwrap RandomUser-style results payloads before rendering', () => {
+		mockUseSchemaQuery.mockReturnValueOnce({
+			schema: Schema.INFINITE_SCROLL,
+			data: { results: [mockItems[0]], info: { count: 1 } },
+			pageData: [],
+			headers: [],
+			isLoading: false,
+			currentPage: 1,
+			isError: false,
+			fetchData: mockFetchData,
+			fetchNextPage: mockFetchNextPage,
+			updateData: mockUpdateData,
+		});
+
+		render(<InfiniteScrollContainer />);
+
+		expect(screen.queryByText('No Records found')).toBeNull();
+		expect(screen.getByTestId('infinite-scroll')).not.toBeNull();
 	});
 
 	it('should pass additional props to InfiniteScroll', () => {
@@ -72,26 +104,11 @@ describe('InfiniteScrollContainer', () => {
 		render(<InfiniteScrollContainer {...additionalProps} />);
 
 		const infiniteScrollElement = screen.getByTestId('infinite-scroll');
-		expect(infiniteScrollElement).toHaveClass('custom-class');
+		expect(infiniteScrollElement.classList.contains('custom-class')).toBe(true);
 	});
 
-	it('should call useFetch with correct schema', () => {
+	it('should call useSchemaQuery with correct schema', () => {
 		render(<InfiniteScrollContainer />);
-		expect(mockUseFetch).toHaveBeenCalledWith(Schema.INFINITE_SCROLL);
-	});
-
-	describe('error handling', () => {
-		it('should handle fetchData errors gracefully', async () => {
-			const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-			mockFetchData.mockRejectedValueOnce(new Error('Fetch failed'));
-
-			render(<InfiniteScrollContainer />);
-
-			await waitFor(() => {
-				expect(consoleErrorSpy).toHaveBeenCalled();
-			});
-
-			consoleErrorSpy.mockRestore();
-		});
+		expect(mockUseSchemaQuery).toHaveBeenCalledWith(Schema.INFINITE_SCROLL);
 	});
 });

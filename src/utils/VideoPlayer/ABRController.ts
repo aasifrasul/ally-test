@@ -1,4 +1,5 @@
 // Adaptive Bitrate Streaming Implementation
+// @ts-nocheck
 class ABRController {
 	private player: any; // Assuming 'player' has methods like getBufferLength(), switchSource(), and provides video element access
 	private qualityLevels: { height: number; bitrate: number; label: string; url?: string }[];

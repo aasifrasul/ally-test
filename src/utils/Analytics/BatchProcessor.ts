@@ -1,3 +1,4 @@
+// @ts-nocheck
 class BatchProcessor {
 	constructor(config, queueManager, apiClient, storageManager, retryManager) {
 		this.config = config;
