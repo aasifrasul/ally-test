@@ -32,18 +32,10 @@ export class WorkerQueue {
 	private constructor() {
 		this.isWorkerEnvironment = !isUndefined(window) && !isUndefined(Worker);
 
-		const isLocalServer =
-			typeof location !== 'undefined' &&
-			(['localhost', '127.0.0.1', '0.0.0.0'].includes(location.hostname) ||
-				location.port === '3100');
-
-		// Local server/browser setups in this repo do not reliably expose the TS worker
-		// module as a public asset, so the app should use the main-thread fallback there.
 		if (
 			this.isWorkerEnvironment &&
 			!isUndefined(globalThis.Worker) &&
-			!isUndefined(globalThis.location) &&
-			!isLocalServer
+			!isUndefined(globalThis.location)
 		) {
 			try {
 				const workerUrl = (() => {

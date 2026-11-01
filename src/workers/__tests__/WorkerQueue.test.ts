@@ -45,6 +45,19 @@ describe('WorkerQueue', () => {
 			const instance2 = WorkerQueue.getInstance();
 			expect(instance1).toBe(instance2);
 		});
+
+		it('should initialize a worker on localhost', () => {
+			Object.defineProperty(globalThis, 'location', {
+				value: new URL('http://localhost:3100/'),
+				configurable: true,
+			});
+
+			(WorkerQueue as any).instance = null;
+			const localhostQueue = WorkerQueue.getInstance();
+
+			expect(localhostQueue['worker']).toBeDefined();
+			localhostQueue.terminate();
+		});
 	});
 
 	describe('Message Handling', () => {
